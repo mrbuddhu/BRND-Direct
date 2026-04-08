@@ -1,0 +1,1073 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dashboard – BRND Direct Portal</title>
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&family=Inter:wght@300;400;500;600;700&family=Outfit:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.5.0/css/all.min.css" />
+  <link rel="stylesheet" href="css/portal.css" />
+
+  <style>
+    /* Dashboard-specific extras */
+    .dash-two-col {
+      display: grid;
+      grid-template-columns: 1fr 320px;
+      gap: 20px;
+      align-items: start;
+    }
+    .brand-bar { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+    .brand-item { display: flex; align-items: center; gap: 10px; padding: 12px 0; border-bottom: 1px solid var(--color-border); }
+    .brand-item:last-child { border-bottom: none; }
+    .brand-avatar {
+      width: 36px; height: 36px; border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: .9rem; flex-shrink: 0; font-weight: 700; color: white;
+    }
+    .brand-info { flex: 1; min-width: 0; }
+    .brand-name { font-size: .82rem; font-weight: 600; color: var(--color-near-black); margin-bottom: 4px; }
+    .brand-orders { font-size: .72rem; color: var(--color-muted); }
+    .brand-pct { font-size: .82rem; font-weight: 700; color: var(--color-near-black); flex-shrink: 0; }
+
+    /* Fulfillment rings (CSS only) */
+    .ring-chart {
+      display: flex; gap: 16px; flex-wrap: wrap; justify-content: center;
+      padding: 8px 0;
+    }
+    .ring-item { display: flex; flex-direction: column; align-items: center; gap: 8px; }
+    .ring {
+      width: 64px; height: 64px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: .82rem; font-weight: 800;
+      font-family: var(--font-display);
+      position: relative;
+    }
+    .ring-label { font-size: .72rem; color: var(--color-muted); font-weight: 500; text-align: center; }
+
+    /* Quick action buttons */
+    .quick-actions { display: flex; flex-direction: column; gap: 8px; }
+
+    @media (max-width: 900px) {
+      .dash-two-col { grid-template-columns: 1fr; }
+    }
+
+    /* ── Orders table enhancements (shared with orders.html) ── */
+    .order-num-link {
+      font-family: var(--font-mono, monospace);
+      font-size: .82rem;
+      font-weight: 700;
+      color: var(--color-accent);
+      cursor: pointer;
+      text-decoration: none;
+      padding: 2px 0;
+      border-bottom: 1.5px dashed var(--color-accent);
+      transition: color .15s;
+    }
+    .order-num-link:hover { color: var(--color-accent-light); border-color: var(--color-accent-light); }
+
+    .multi-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      background: var(--color-accent-glow);
+      color: var(--color-accent);
+      font-size: .7rem;
+      font-weight: 700;
+      padding: 2px 8px;
+      border-radius: 20px;
+      letter-spacing: .02em;
+      white-space: nowrap;
+    }
+
+    .tracking-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      font-size: .72rem;
+      font-weight: 600;
+      padding: 3px 8px;
+      border-radius: 20px;
+      white-space: nowrap;
+      max-width: 160px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .tracking-chip.has-tracking {
+      background: rgba(16,185,129,.1);
+      color: var(--color-emerald);
+    }
+    .tracking-chip.is-bol {
+      background: rgba(99,102,241,.1);
+      color: var(--color-accent);
+    }
+    .tracking-chip.no-tracking {
+      background: var(--color-border);
+      color: var(--color-muted);
+    }
+
+    .delivery-date {
+      font-size: .78rem;
+      font-weight: 600;
+      white-space: nowrap;
+    }
+    .delivery-date.est  { color: var(--color-sky);     }
+    .delivery-date.done { color: var(--color-emerald);  }
+    .delivery-date.none { color: var(--color-muted);    }
+
+    /* ── Recent Orders table columns ── */
+    #dashOrdersTable th, #dashOrdersTable td { font-size: .8rem; }
+    #dashOrdersTable th:nth-child(3),
+    #dashOrdersTable td:nth-child(3) { max-width: 140px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+    /* ── Full-screen order detail overlay (same as orders.html) ── */
+    .order-detail-overlay {
+      position: fixed; inset: 0; z-index: 2000;
+      background: var(--color-white);
+      overflow-y: auto;
+      display: none;
+      animation: slideUp .25s ease;
+    }
+    .order-detail-overlay.open { display: block; }
+    @keyframes slideUp {
+      from { opacity:0; transform:translateY(24px); }
+      to   { opacity:1; transform:translateY(0); }
+    }
+    .odp-topbar {
+      position: sticky; top:0; z-index:10;
+      background: var(--color-white);
+      border-bottom: 1.5px solid var(--color-border);
+      padding: 14px 28px;
+      display: flex; align-items: center; gap: 14px;
+    }
+    .odp-back-btn {
+      display: inline-flex; align-items: center; gap: 7px;
+      font-size: .82rem; font-weight: 600; color: var(--color-accent);
+      background: none; border: 1.5px solid var(--color-accent);
+      padding: 6px 14px; border-radius: var(--radius-sm);
+      cursor: pointer; transition: all .15s; font-family: var(--font-sans);
+    }
+    .odp-back-btn:hover { background: var(--color-accent); color: white; }
+    .odp-title { font-size: 1.1rem; font-weight: 800; font-family: var(--font-display); flex:1; }
+    .odp-main { padding: 28px; max-width: 960px; margin: 0 auto; }
+    .odp-grid { display: grid; grid-template-columns: 1fr 340px; gap: 20px; }
+    @media (max-width: 768px) { .odp-grid { grid-template-columns: 1fr; } }
+
+    /* hero section */
+    .odp-hero {
+      background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+      border-radius: var(--radius-lg); padding: 28px 32px; margin-bottom: 20px;
+      color: white; display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 16px;
+    }
+    .odp-hero-num { font-size: 1.6rem; font-weight: 900; font-family: var(--font-display); letter-spacing: -.04em; }
+    .odp-hero-meta { font-size: .8rem; opacity: .72; margin-top: 4px; }
+    .odp-hero-refs { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px; }
+    .odp-ref-tag {
+      display: inline-flex; align-items: center; gap: 5px;
+      background: rgba(255,255,255,.12); border: 1px solid rgba(255,255,255,.22);
+      color: white; font-size: .72rem; font-weight: 600; padding: 4px 10px; border-radius: 20px;
+    }
+    .odp-hero-total { text-align: right; }
+    .odp-hero-total-label { font-size: .72rem; opacity: .65; text-transform: uppercase; letter-spacing: .06em; }
+    .odp-hero-total-amt { font-size: 2rem; font-weight: 900; font-family: var(--font-display); letter-spacing: -.04em; }
+
+    /* items table */
+    .odp-items-card { margin-bottom: 20px; }
+    .odp-items-table { width: 100%; border-collapse: collapse; font-size: .82rem; }
+    .odp-items-table th { padding: 8px 12px; text-align: left; font-size: .68rem; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: var(--color-muted); border-bottom: 1.5px solid var(--color-border); }
+    .odp-items-table td { padding: 12px 12px; border-bottom: 1px solid var(--color-border); }
+    .odp-items-table tr:last-child td { border-bottom: none; }
+    .odp-item-brand { font-weight: 700; color: var(--color-near-black); }
+    .odp-item-product { font-size: .78rem; color: var(--color-muted); margin-top:2px; }
+    .odp-item-sku { font-family: var(--font-mono, monospace); font-size: .72rem; color: var(--color-muted); }
+    .odp-items-total { display: flex; justify-content: flex-end; gap: 24px; align-items: center; padding: 14px 12px 4px; border-top: 2px solid var(--color-near-black); font-weight: 800; font-family: var(--font-display); font-size: 1rem; }
+
+    /* tracking / shipping card */
+    .odp-tracking-block {
+      background: rgba(99,102,241,.06); border: 1.5px solid rgba(99,102,241,.18);
+      border-radius: var(--radius-md); padding: 16px 18px; margin-bottom: 16px;
+    }
+    .odp-tracking-num {
+      font-family: var(--font-mono, monospace); font-size: .9rem;
+      font-weight: 700; color: var(--color-accent); margin-bottom: 6px;
+    }
+    .odp-tracking-meta { font-size: .78rem; color: var(--color-muted); }
+
+    /* detail row (reused from orders.html) */
+    .order-detail-section { margin-bottom: 20px; }
+    .order-detail-section h4 {
+      font-size: .72rem; font-weight: 700; letter-spacing: .08em;
+      text-transform: uppercase; color: var(--color-muted); margin-bottom: 12px;
+    }
+    .detail-row {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 8px 0; border-bottom: 1px solid var(--color-border); font-size: .875rem;
+    }
+    .detail-row:last-child { border-bottom: none; }
+    .detail-row .label { color: var(--color-muted); }
+    .detail-row .value { font-weight: 600; color: var(--color-near-black); text-align: right; }
+    .detail-total {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 16px 0 0; border-top: 2px solid var(--color-near-black);
+      font-size: 1rem; font-weight: 800; font-family: var(--font-display); margin-top: 8px;
+    }
+
+    /* PO / Invoice tags in modal */
+    .modal-ref-tags { display: flex; gap: 8px; flex-wrap: wrap; margin: 8px 0 4px; }
+    .modal-ref-tag {
+      display: inline-flex; align-items: center; gap: 5px;
+      background: var(--color-accent-glow); color: var(--color-accent);
+      font-size: .7rem; font-weight: 700; padding: 3px 10px; border-radius: 20px;
+    }
+    .modal-ref-tag.invoice { background: rgba(16,185,129,.1); color: var(--color-emerald); }
+
+    /* action btn */
+    .action-btn {
+      font-size: .78rem; font-weight: 600; color: var(--color-accent);
+      border: 1.5px solid var(--color-accent); background: transparent;
+      padding: 5px 12px; border-radius: var(--radius-sm);
+      cursor: pointer; transition: all .15s; font-family: var(--font-sans); white-space: nowrap;
+    }
+    .action-btn:hover { background: var(--color-accent); color: white; }
+  </style>
+</head>
+<body>
+
+<!-- ===== SIDEBAR ===== -->
+<aside class="sidebar" id="sidebar">
+  <div class="sidebar__logo">
+    <a href="dashboard.html" class="logo-mark">
+      <span class="logo-icon"><i class="fas fa-chevron-right"></i></span>
+      <span class="logo-word">BRND <span class="logo-accent">DIRECT</span></span>
+    </a>
+  </div>
+
+  <nav class="sidebar__nav">
+    <div class="nav-section">
+      <span class="nav-section-label">Main Menu</span>
+      <a href="dashboard.html" class="nav-item active"><i class="fas fa-table-columns"></i><span>Dashboard</span></a>
+      <a href="products.html" class="nav-item"><i class="fas fa-boxes-stacked"></i><span>Products</span></a>
+      <a href="orders.html" class="nav-item"><i class="fas fa-file-invoice"></i><span>Orders</span><span class="nav-badge">18</span></a>
+      <a href="rfq.html" class="nav-item"><i class="fas fa-comment-dollar"></i><span>RFQ</span><span class="nav-badge new">5</span></a>
+      <a href="dropship.html" class="nav-item"><i class="fas fa-rotate"></i><span>Dropship</span></a>
+      <a href="analytics.html" class="nav-item"><i class="fas fa-chart-line"></i><span>Analytics</span></a>
+    </div>
+    <div class="nav-section">
+      <span class="nav-section-label">Finance</span>
+      <a href="invoices.html" class="nav-item"><i class="fas fa-file-invoice-dollar"></i><span>Invoices &amp; Payments</span></a>
+      <a href="trade-finance.html" class="nav-item"><i class="fas fa-credit-card"></i><span>Trade Finance</span></a>
+      <a href="reports.html" class="nav-item"><i class="fas fa-chart-bar"></i><span>Reports</span></a>
+    </div>
+    <div class="nav-section">
+      <span class="nav-section-label">Operations</span>
+      <a href="warehousing.html" class="nav-item"><i class="fas fa-warehouse"></i><span>Warehousing</span></a>
+      <a href="shipping-logistics.html" class="nav-item"><i class="fas fa-truck-fast"></i><span>Shipping &amp; Logistics</span></a>
+    </div>
+    <div class="sidebar__divider"></div>
+    <a href="messages.html" class="nav-item"><i class="fas fa-message"></i><span>Messages</span><span class="nav-badge">3</span></a>
+    <a href="account.html" class="nav-item"><i class="fas fa-gear"></i><span>Settings</span></a>
+    <a href="help.html" class="nav-item"><i class="fas fa-circle-question"></i><span>Help &amp; Support</span></a>
+  </nav>
+
+  <div class="sidebar__bottom">
+    <div class="sidebar__user">
+      <div class="sidebar__user-avatar">AJ</div>
+      <div class="sidebar__user-info">
+        <div class="sidebar__user-name">Alex Johnson</div>
+        <div class="sidebar__user-role">Wholesale Buyer</div>
+      </div>
+      <button class="sidebar__user-logout" title="Sign out" onclick="window.location.href='index.html'">
+        <i class="fas fa-arrow-right-from-bracket"></i>
+      </button>
+    </div>
+  </div>
+</aside>
+
+<!-- Sidebar Overlay (mobile) -->
+<div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+<!-- ===== TOPBAR ===== -->
+<header class="topbar">
+  <div class="topbar__left" style="display:flex;align-items:center;gap:12px;">
+    <button class="topbar__mobile-toggle" id="sidebarToggle" aria-label="Toggle sidebar">
+      <i class="fas fa-bars"></i>
+    </button>
+    <div>
+      <div class="topbar__title">Dashboard</div>
+      <div class="topbar__breadcrumb">Welcome back, Alex 👋</div>
+    </div>
+  </div>
+
+  <div class="topbar__right">
+    <div class="search-bar">
+      <i class="fas fa-magnifying-glass"></i>
+      <input type="text" placeholder="Search brands, orders…" />
+    </div>
+    <div class="topbar__btn" title="Notifications">
+      <i class="fas fa-bell"></i>
+      <span class="notif-dot"></span>
+    </div>
+    <div class="topbar__btn" title="Messages">
+      <i class="fas fa-message"></i>
+    </div>
+    <div class="topbar__avatar" title="Profile">AJ</div>
+  </div>
+</header>
+
+<!-- ===== MAIN CONTENT ===== -->
+<main class="app-main">
+
+  <!-- Welcome Banner -->
+  <div class="welcome-banner fade-in">
+    <div class="welcome-banner__content">
+      <h2>Good morning, Alex! 🌟</h2>
+      <p>You have <strong style="color:white;">3 new orders</strong> to review and <strong style="color:white;">2 shipments</strong> on the way today.</p>
+    </div>
+    <div class="welcome-banner__action">
+      <a href="products.html" class="btn btn-white btn-sm">
+        <i class="fas fa-boxes-stacked"></i> Browse Catalog
+      </a>
+    </div>
+  </div>
+
+  <!-- Stats Row -->
+  <div class="grid-4 mb-6 fade-in d1">
+
+    <div class="stat-card">
+      <div class="stat-card__icon" style="background:var(--color-accent-glow);color:var(--color-accent);">
+        <i class="fas fa-dollar-sign"></i>
+      </div>
+      <div class="stat-card__label">Revenue MTD</div>
+      <div class="stat-card__value" data-count="284520" data-prefix="$" data-format="comma">$0</div>
+      <div class="stat-card__change up mt-2">
+        <i class="fas fa-arrow-trend-up"></i> +18.4% vs last month
+      </div>
+    </div>
+
+    <div class="stat-card">
+      <div class="stat-card__icon" style="background:rgba(99,102,241,.12);color:var(--color-accent-light);">
+        <i class="fas fa-file-invoice"></i>
+      </div>
+      <div class="stat-card__label">Active Orders</div>
+      <div class="stat-card__value" data-count="142">0</div>
+      <div class="stat-card__change up mt-2">
+        <i class="fas fa-plus"></i> +24 new today
+      </div>
+    </div>
+
+    <div class="stat-card">
+      <div class="stat-card__icon" style="background:var(--color-emerald-glow);color:var(--color-emerald);">
+        <i class="fas fa-boxes-stacked"></i>
+      </div>
+      <div class="stat-card__label">Brands Available</div>
+      <div class="stat-card__value" data-count="500" data-suffix="+">0</div>
+      <div class="stat-card__change neutral mt-2">
+        <i class="fas fa-layer-group"></i> Across 6 verticals
+      </div>
+    </div>
+
+    <div class="stat-card">
+      <div class="stat-card__icon" style="background:var(--color-amber-glow);color:var(--color-amber);">
+        <i class="fas fa-credit-card"></i>
+      </div>
+      <div class="stat-card__label">Credit Available</div>
+      <div class="stat-card__value" data-count="45000" data-prefix="$" data-format="comma">$0</div>
+      <div class="stat-card__change neutral mt-2">
+        <i class="fas fa-clock"></i> Net-30 terms active
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Two Column Layout -->
+  <div class="dash-two-col fade-in d2">
+
+    <!-- LEFT: Recent Orders Table -->
+    <div class="card">
+      <div class="card-header">
+        <div>
+          <h3>Recent Orders</h3>
+          <div class="card-header-sub">Last 7 days activity</div>
+        </div>
+        <a href="orders.html" class="btn btn-secondary btn-xs">
+          View All <i class="fas fa-arrow-right"></i>
+        </a>
+      </div>
+      <div class="table-wrap">
+        <table class="data-table" id="dashOrdersTable">
+          <thead>
+            <tr>
+              <th>Order #</th>
+              <th>Brand</th>
+              <th>Product</th>
+              <th>Units</th>
+              <th>Unit Price</th>
+              <th>Total</th>
+              <th>Status</th>
+              <th>Ship Date</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody id="dashOrdersBody">
+            <!-- Rendered by JS -->
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- RIGHT COLUMN -->
+    <div style="display:flex;flex-direction:column;gap:20px;">
+
+      <!-- Quick Actions -->
+      <div class="card">
+        <div class="card-header">
+          <h3>Quick Actions</h3>
+        </div>
+        <div class="card-body">
+          <div class="quick-actions">
+            <a href="products.html" class="btn btn-primary btn-sm btn-full">
+              <i class="fas fa-plus"></i> New Order
+            </a>
+            <a href="products.html" class="btn btn-outline btn-sm btn-full">
+              <i class="fas fa-boxes-stacked"></i> Browse Catalog
+            </a>
+            <a href="orders.html" class="btn btn-secondary btn-sm btn-full">
+              <i class="fas fa-file-invoice-dollar"></i> View Invoices
+            </a>
+            <a href="#" class="btn btn-secondary btn-sm btn-full">
+              <i class="fas fa-plug"></i> Connect Store
+            </a>
+          </div>
+        </div>
+      </div>
+
+      <!-- Recent Activity -->
+      <div class="card">
+        <div class="card-header">
+          <h3>Recent Activity</h3>
+        </div>
+        <div class="card-body" style="padding-top:8px;padding-bottom:8px;">
+          <div class="activity-item">
+            <div class="activity-icon order"><i class="fas fa-shopping-bag"></i></div>
+            <div class="activity-content">
+              <div class="activity-title">Order BD-48291 confirmed</div>
+              <div class="activity-time">Maison Margiela · 2 hours ago</div>
+            </div>
+          </div>
+          <div class="activity-item">
+            <div class="activity-icon ship"><i class="fas fa-truck-fast"></i></div>
+            <div class="activity-content">
+              <div class="activity-title">BD-48290 has shipped</div>
+              <div class="activity-time">Charlotte Tilbury · 5 hours ago</div>
+            </div>
+          </div>
+          <div class="activity-item">
+            <div class="activity-icon payment"><i class="fas fa-dollar-sign"></i></div>
+            <div class="activity-content">
+              <div class="activity-title">Invoice #INV-2891 paid</div>
+              <div class="activity-time">$9,600 · Net-30 · Yesterday</div>
+            </div>
+          </div>
+          <div class="activity-item">
+            <div class="activity-icon alert"><i class="fas fa-bell"></i></div>
+            <div class="activity-content">
+              <div class="activity-title">Reorder alert: Dior Sauvage</div>
+              <div class="activity-time">Stock running low · 1 day ago</div>
+            </div>
+          </div>
+          <div class="activity-item">
+            <div class="activity-icon order"><i class="fas fa-check"></i></div>
+            <div class="activity-content">
+              <div class="activity-title">BD-48289 delivered</div>
+              <div class="activity-time">New Balance · 2 days ago</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Bottom Row: Charts + Analytics -->
+  <div class="grid-3 mt-6 fade-in d3">
+
+    <!-- Weekly Sales Chart -->
+    <div class="card">
+      <div class="card-header">
+        <div>
+          <h3>Weekly Sales Volume</h3>
+          <div class="card-header-sub">Units sold per day this week</div>
+        </div>
+      </div>
+      <div class="card-body">
+        <div class="mini-chart" style="height:80px;gap:6px;align-items:flex-end;">
+          <div style="display:flex;flex-direction:column;align-items:center;gap:4px;flex:1;">
+            <div class="mini-bar" style="height:45%;background:var(--color-accent-glow);"></div>
+            <span style="font-size:.62rem;color:var(--color-muted);">Mon</span>
+          </div>
+          <div style="display:flex;flex-direction:column;align-items:center;gap:4px;flex:1;">
+            <div class="mini-bar" style="height:60%;background:var(--color-accent-glow);"></div>
+            <span style="font-size:.62rem;color:var(--color-muted);">Tue</span>
+          </div>
+          <div style="display:flex;flex-direction:column;align-items:center;gap:4px;flex:1;">
+            <div class="mini-bar" style="height:38%;background:var(--color-accent-glow);"></div>
+            <span style="font-size:.62rem;color:var(--color-muted);">Wed</span>
+          </div>
+          <div style="display:flex;flex-direction:column;align-items:center;gap:4px;flex:1;">
+            <div class="mini-bar" style="height:75%;background:var(--color-accent-glow);"></div>
+            <span style="font-size:.62rem;color:var(--color-muted);">Thu</span>
+          </div>
+          <div style="display:flex;flex-direction:column;align-items:center;gap:4px;flex:1;">
+            <div class="mini-bar" style="height:55%;background:var(--color-accent-glow);"></div>
+            <span style="font-size:.62rem;color:var(--color-muted);">Fri</span>
+          </div>
+          <div style="display:flex;flex-direction:column;align-items:center;gap:4px;flex:1;">
+            <div class="mini-bar" style="height:88%;background:var(--color-accent-glow);"></div>
+            <span style="font-size:.62rem;color:var(--color-muted);">Sat</span>
+          </div>
+          <div style="display:flex;flex-direction:column;align-items:center;gap:4px;flex:1;">
+            <div class="mini-bar active" style="height:100%;"></div>
+            <span style="font-size:.62rem;color:var(--color-accent);font-weight:700;">Sun</span>
+          </div>
+        </div>
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-top:16px;">
+          <div>
+            <div style="font-size:1.3rem;font-weight:800;font-family:var(--font-display);color:var(--color-near-black);" data-count="2847">0</div>
+            <div style="font-size:.72rem;color:var(--color-muted);">Units this week</div>
+          </div>
+          <span class="stat-card__change up"><i class="fas fa-arrow-trend-up"></i> +12.3%</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Top Brands -->
+    <div class="card">
+      <div class="card-header">
+        <h3>Top Brands</h3>
+        <a href="products.html" class="btn btn-secondary btn-xs">View All</a>
+      </div>
+      <div class="card-body" style="padding-top:8px;padding-bottom:8px;">
+        <div class="brand-item">
+          <div class="brand-avatar" style="background:linear-gradient(135deg,#1a1a2e,#16213e);">🌸</div>
+          <div class="brand-info">
+            <div class="brand-name">Maison Margiela</div>
+            <div class="progress-bar mt-1"><div class="progress-fill" style="width:78%"></div></div>
+          </div>
+          <div class="brand-pct">78%</div>
+        </div>
+        <div class="brand-item">
+          <div class="brand-avatar" style="background:linear-gradient(135deg,#0f2027,#203a43);">💄</div>
+          <div class="brand-info">
+            <div class="brand-name">Charlotte Tilbury</div>
+            <div class="progress-bar mt-1"><div class="progress-fill" style="width:64%"></div></div>
+          </div>
+          <div class="brand-pct">64%</div>
+        </div>
+        <div class="brand-item">
+          <div class="brand-avatar" style="background:linear-gradient(135deg,#1a1a1a,#333);">👟</div>
+          <div class="brand-info">
+            <div class="brand-name">Jordan Brand</div>
+            <div class="progress-bar mt-1"><div class="progress-fill" style="width:51%"></div></div>
+          </div>
+          <div class="brand-pct">51%</div>
+        </div>
+        <div class="brand-item">
+          <div class="brand-avatar" style="background:linear-gradient(135deg,#2d1b69,#11998e);">👜</div>
+          <div class="brand-info">
+            <div class="brand-name">Gucci</div>
+            <div class="progress-bar mt-1"><div class="progress-fill" style="width:43%"></div></div>
+          </div>
+          <div class="brand-pct">43%</div>
+        </div>
+        <div class="brand-item">
+          <div class="brand-avatar" style="background:linear-gradient(135deg,#2c3e50,#3498db);">🌹</div>
+          <div class="brand-info">
+            <div class="brand-name">Dior</div>
+            <div class="progress-bar mt-1"><div class="progress-fill" style="width:38%"></div></div>
+          </div>
+          <div class="brand-pct">38%</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Fulfillment Status -->
+    <div class="card">
+      <div class="card-header">
+        <h3>Fulfillment Status</h3>
+        <div class="card-header-sub">Last 30 days</div>
+      </div>
+      <div class="card-body">
+        <div class="ring-chart">
+          <div class="ring-item">
+            <div class="ring" style="background:conic-gradient(var(--color-emerald) 0% 55%, #e5e5e5 55% 100%);">
+              <div style="width:44px;height:44px;border-radius:50%;background:white;display:flex;align-items:center;justify-content:center;font-size:.75rem;font-weight:800;color:var(--color-emerald);">55%</div>
+            </div>
+            <div class="ring-label">Delivered</div>
+          </div>
+          <div class="ring-item">
+            <div class="ring" style="background:conic-gradient(var(--color-accent-light) 0% 32%, #e5e5e5 32% 100%);">
+              <div style="width:44px;height:44px;border-radius:50%;background:white;display:flex;align-items:center;justify-content:center;font-size:.75rem;font-weight:800;color:var(--color-accent-light);">32%</div>
+            </div>
+            <div class="ring-label">Shipped</div>
+          </div>
+          <div class="ring-item">
+            <div class="ring" style="background:conic-gradient(var(--color-amber) 0% 13%, #e5e5e5 13% 100%);">
+              <div style="width:44px;height:44px;border-radius:50%;background:white;display:flex;align-items:center;justify-content:center;font-size:.75rem;font-weight:800;color:var(--color-amber);">13%</div>
+            </div>
+            <div class="ring-label">Pending</div>
+          </div>
+        </div>
+        <div style="margin-top:20px;">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+            <div style="display:flex;align-items:center;gap:6px;font-size:.78rem;">
+              <div style="width:8px;height:8px;border-radius:50%;background:var(--color-emerald);"></div>
+              <span>Delivered</span>
+            </div>
+            <span style="font-size:.78rem;font-weight:700;color:var(--color-emerald);">76 orders</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+            <div style="display:flex;align-items:center;gap:6px;font-size:.78rem;">
+              <div style="width:8px;height:8px;border-radius:50%;background:var(--color-accent-light);"></div>
+              <span>Shipped</span>
+            </div>
+            <span style="font-size:.78rem;font-weight:700;color:var(--color-accent-light);">44 orders</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;align-items:center;">
+            <div style="display:flex;align-items:center;gap:6px;font-size:.78rem;">
+              <div style="width:8px;height:8px;border-radius:50%;background:var(--color-amber);"></div>
+              <span>Pending</span>
+            </div>
+            <span style="font-size:.78rem;font-weight:700;color:var(--color-amber);">18 orders</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+</main>
+
+<!-- ===== ORDER DETAIL MODAL (matches orders.html) ===== -->
+<div class="modal-overlay" id="orderModal">
+  <div class="modal" style="max-width:600px;">
+    <div class="modal-header">
+      <div>
+        <div class="modal-title" id="modalOrderNum">Order BD-48291</div>
+        <div style="display:flex;align-items:center;gap:8px;margin-top:6px;">
+          <span id="modalStatus" class="badge badge-confirmed">Confirmed</span>
+          <span style="font-size:.78rem;color:var(--color-muted);" id="modalDate">Placed Mar 18, 2026</span>
+        </div>
+      </div>
+      <button class="modal-close" id="modalClose"><i class="fas fa-times"></i></button>
+    </div>
+    <div class="modal-body">
+
+      <!-- Order Details -->
+      <div class="order-detail-section">
+        <h4>Order Details</h4>
+        <div class="detail-row">
+          <span class="label">Brand</span>
+          <span class="value" id="modalBrand">Maison Margiela</span>
+        </div>
+        <div class="detail-row">
+          <span class="label">Product</span>
+          <span class="value" id="modalProduct">Replica Fragrance Set</span>
+        </div>
+        <div class="detail-row">
+          <span class="label">SKU</span>
+          <span class="value td-mono" id="modalSku">SKU-4821</span>
+        </div>
+        <div class="detail-row">
+          <span class="label">Quantity</span>
+          <span class="value" id="modalUnits">48 units</span>
+        </div>
+        <div class="detail-row">
+          <span class="label">Unit Price</span>
+          <span class="value" id="modalPrice">$80.00 / unit</span>
+        </div>
+        <div class="detail-total">
+          <span>Total</span>
+          <span id="modalTotal">$3,840.00</span>
+        </div>
+      </div>
+
+      <!-- placeholder for old items table - kept for compatibility -->
+      <table style="display:none;"><tbody id="modalItemsBody"></tbody></table>
+      <!-- placeholder for tracking block -->
+      <div style="display:none;" id="modalTrackingBlock"></div>
+      <div style="display:none;" id="modalCarrierRow"><span id="modalCarrier"></span></div>
+      <div style="display:none;" id="modalShipRow"><span id="modalShipDate"></span></div>
+      <div style="display:none;" id="modalDeliveryRow"><span id="modalDelivery"></span></div>
+      <div style="display:none;" id="modalRefTags"></div>
+
+      <!-- Dummy th for compatibility -->
+      <table style="display:none;"><thead><tr><th>Brand / Product</th><th>SKU</th><th style="text-align:right;">Qty</th><th style="text-align:right;">Unit Price</th><th style="text-align:right;">Line Total</th>
+            </tr></thead></table>
+
+      <!-- Fulfillment Timeline -->
+      <div class="order-detail-section">
+        <h4>Fulfillment Timeline</h4>
+        <div class="order-timeline" id="modalTimeline">
+          <div class="timeline-step" id="ts0">
+            <div class="timeline-dot"><i class="fas fa-check"></i></div>
+            <div class="timeline-label">Placed</div>
+            <div class="timeline-date" id="tDate1">—</div>
+          </div>
+          <div class="timeline-step" id="ts1">
+            <div class="timeline-dot"><i class="fas fa-check"></i></div>
+            <div class="timeline-label">Confirmed</div>
+            <div class="timeline-date" id="tDate2">—</div>
+          </div>
+          <div class="timeline-step" id="ts2">
+            <div class="timeline-dot"><i class="fas fa-truck"></i></div>
+            <div class="timeline-label">Shipped</div>
+            <div class="timeline-date" id="tDate3">—</div>
+          </div>
+          <div class="timeline-step" id="ts3">
+            <div class="timeline-dot"><i class="fas fa-home"></i></div>
+            <div class="timeline-label">Delivered</div>
+            <div class="timeline-date" id="tDate4">—</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Payment & Terms -->
+      <div class="order-detail-section">
+        <h4>Payment &amp; Terms</h4>
+        <div class="detail-row">
+          <span class="label">Payment Terms</span>
+          <span class="value">Net-30</span>
+        </div>
+        <div class="detail-row">
+          <span class="label">Invoice #</span>
+          <span class="value td-mono" id="modalInvoice">INV-2891</span>
+        </div>
+        <div class="detail-row">
+          <span class="label">Due Date</span>
+          <span class="value" id="modalDue">Apr 17, 2026</span>
+        </div>
+        <!-- hidden compat fields -->
+        <span style="display:none;" id="modalTerms"></span>
+        <span style="display:none;" id="modalPO"></span>
+        <span style="display:none;" id="modalPayStatus"></span>
+        <span style="display:none;" id="modalInvoiceRow"></span>
+        <span style="display:none;" id="modalPORow"></span>
+        <span style="display:none;" id="modalDueRow"></span>
+      </div>
+
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary btn-sm" id="modalCloseBtn">Close</button>
+      <button class="btn btn-outline btn-sm" onclick="showToast('Invoice downloaded.','success')">
+        <i class="fas fa-download"></i> Download Invoice
+      </button>
+      <button class="btn btn-primary btn-sm" onclick="showToast('Reorder initiated!','success')">
+        <i class="fas fa-rotate-right"></i> Reorder
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== ORDER DETAIL FULL-PAGE OVERLAY ===== -->
+<div class="order-detail-overlay" id="orderDetailOverlay">
+  <div class="odp-topbar">
+    <button class="odp-back-btn" id="odpBackBtn">
+      <i class="fas fa-arrow-left"></i> Back to Dashboard
+    </button>
+    <div class="odp-title" id="odpTitle">Order BD-48291</div>
+    <span id="odpStatus" class="badge badge-confirmed" style="margin-left:8px;">Confirmed</span>
+    <div style="margin-left:auto;display:flex;gap:8px;flex-wrap:wrap;">
+      <button class="btn btn-outline btn-sm" onclick="showToast('Invoice downloaded.','success')">
+        <i class="fas fa-download"></i> Invoice
+      </button>
+      <button class="btn btn-secondary btn-sm" onclick="showToast('PO downloaded.','success')">
+        <i class="fas fa-file-alt"></i> PO
+      </button>
+      <button class="btn btn-primary btn-sm" onclick="showToast('Reorder initiated!','success')">
+        <i class="fas fa-rotate-right"></i> Reorder
+      </button>
+    </div>
+  </div>
+  <div class="odp-main">
+    <!-- Hero -->
+    <div class="odp-hero">
+      <div>
+        <div class="odp-hero-num" id="odpHeroNum">BD-48291</div>
+        <div class="odp-hero-meta" id="odpHeroMeta">Placed Mar 18, 2026</div>
+        <div class="odp-hero-refs" id="odpHeroRefs"><!-- PO + Invoice tags --></div>
+      </div>
+      <div class="odp-hero-total">
+        <div class="odp-hero-total-label">Order Total</div>
+        <div class="odp-hero-total-amt" id="odpHeroTotal">$3,840</div>
+      </div>
+    </div>
+
+    <div class="odp-grid">
+      <!-- LEFT: Items + Tracking -->
+      <div>
+        <!-- Items Table -->
+        <div class="card odp-items-card">
+          <div class="card-header">
+            <h3>Order Items</h3>
+            <span id="odpItemsCount" style="font-size:.78rem;color:var(--color-muted);"></span>
+          </div>
+          <div class="table-wrap" style="overflow-x:auto;">
+            <table class="odp-items-table">
+              <thead>
+                <tr>
+                  <th>Brand / Product</th>
+                  <th>SKU</th>
+                  <th style="text-align:right;">Qty</th>
+                  <th style="text-align:right;">Unit Price</th>
+                  <th style="text-align:right;">Line Total</th>
+                </tr>
+              </thead>
+              <tbody id="odpItemsBody"></tbody>
+            </table>
+            <div class="odp-items-total">
+              <span style="font-size:.8rem;color:var(--color-muted);font-weight:400;">Order Total</span>
+              <span id="odpTotal">$3,840.00</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tracking -->
+        <div class="card" id="odpTrackingCard" style="margin-bottom:20px;">
+          <div class="card-header"><h3>Tracking &amp; Shipping</h3></div>
+          <div class="card-body" id="odpTrackingBody"><!-- injected --></div>
+        </div>
+
+        <!-- Fulfillment Timeline -->
+        <div class="card">
+          <div class="card-header"><h3>Fulfillment Timeline</h3></div>
+          <div class="card-body">
+            <div class="order-timeline" id="odpTimeline">
+              <div class="timeline-step" id="odpts0">
+                <div class="timeline-dot"><i class="fas fa-check"></i></div>
+                <div class="timeline-label">Placed</div>
+                <div class="timeline-date" id="odptDate1">—</div>
+              </div>
+              <div class="timeline-step" id="odpts1">
+                <div class="timeline-dot"><i class="fas fa-check"></i></div>
+                <div class="timeline-label">Confirmed</div>
+                <div class="timeline-date" id="odptDate2">—</div>
+              </div>
+              <div class="timeline-step" id="odpts2">
+                <div class="timeline-dot"><i class="fas fa-truck"></i></div>
+                <div class="timeline-label">Shipped</div>
+                <div class="timeline-date" id="odptDate3">—</div>
+              </div>
+              <div class="timeline-step" id="odpts3">
+                <div class="timeline-dot"><i class="fas fa-home"></i></div>
+                <div class="timeline-label">Delivered</div>
+                <div class="timeline-date" id="odptDate4">—</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- RIGHT: Payment + Shipping Address -->
+      <div style="display:flex;flex-direction:column;gap:20px;">
+        <!-- Payment & Refs -->
+        <div class="card">
+          <div class="card-header"><h3>Payment &amp; References</h3></div>
+          <div class="card-body">
+            <div class="order-detail-section" style="margin-bottom:0;">
+              <div class="detail-row">
+                <span class="label">Payment Terms</span>
+                <span class="value" id="odpTerms">Net-30</span>
+              </div>
+              <div class="detail-row">
+                <span class="label">Invoice #</span>
+                <span class="value td-mono" id="odpInvoice">—</span>
+              </div>
+              <div class="detail-row">
+                <span class="label">PO Number</span>
+                <span class="value td-mono" id="odpPO">—</span>
+              </div>
+              <div class="detail-row">
+                <span class="label">Payment Status</span>
+                <span class="value" id="odpPayStatus">Unpaid</span>
+              </div>
+              <div class="detail-row">
+                <span class="label">Due Date</span>
+                <span class="value" id="odpDue">—</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <!-- Shipping Address -->
+        <div class="card">
+          <div class="card-header"><h3>Shipping Address</h3></div>
+          <div class="card-body">
+            <div style="font-size:.875rem;line-height:1.7;color:var(--color-near-black);">
+              <strong>Alex Johnson</strong><br>
+              1540 W Fulton Market<br>
+              Chicago, IL 60607<br>
+              United States
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="toast-container" id="toastContainer"></div>
+
+<script src="js/portal.js"></script>
+<script>
+  /* ================================================================
+     SHARED ORDER DATA — exact same dataset as orders.html
+  ================================================================ */
+  const DASH_ORDERS = [
+    { id:'BD-48291', brand:'Maison Margiela',  product:'Replica Fragrance Set',        units:48,  price:80,   total:3840,  status:'confirmed', ship:'Mar 19, 2026', sku:'SKU-4821', placed:'Mar 18, 2026', invoice:'INV-2891', due:'Apr 17, 2026' },
+    { id:'BD-48290', brand:'Charlotte Tilbury',product:'Pillow Talk Collection',        units:120, price:80,   total:9600,  status:'shipped',   ship:'Mar 17, 2026', sku:'SKU-2290', placed:'Mar 17, 2026', invoice:'INV-2890', due:'Apr 16, 2026' },
+    { id:'BD-48289', brand:'New Balance',       product:'990v6 Assorted Sizes',          units:36,  price:60,   total:2160,  status:'delivered', ship:'Mar 16, 2026', sku:'SKU-0033', placed:'Mar 14, 2026', invoice:'INV-2889', due:'Apr 13, 2026' },
+    { id:'BD-48288', brand:'Chanel',            product:'No. 5 EDP 50ml',                units:24,  price:240,  total:5760,  status:'pending',   ship:'—',            sku:'SKU-5510', placed:'Mar 15, 2026', invoice:null,        due:null           },
+    { id:'BD-48287', brand:'Gucci',             product:'GG Marmont Mini Bag',           units:12,  price:600,  total:7200,  status:'confirmed', ship:'Mar 15, 2026', sku:'SKU-3381', placed:'Mar 14, 2026', invoice:'INV-2887', due:'Apr 13, 2026' },
+    { id:'BD-48286', brand:'Jordan Brand',      product:'Air Jordan 1 Retro High OG',   units:18,  price:180,  total:3240,  status:'shipped',   ship:'Mar 14, 2026', sku:'SKU-0123', placed:'Mar 13, 2026', invoice:'INV-2886', due:'Apr 12, 2026' },
+    { id:'BD-48285', brand:'Dior',              product:'Sauvage EDT 100ml',             units:60,  price:95,   total:5700,  status:'delivered', ship:'Mar 12, 2026', sku:'SKU-6688', placed:'Mar 10, 2026', invoice:'INV-2885', due:'Apr 9, 2026'  },
+    { id:'BD-48284', brand:'NARS Cosmetics',    product:'Iconic Lipstick Set',           units:72,  price:28,   total:2016,  status:'delivered', ship:'Mar 11, 2026', sku:'SKU-7742', placed:'Mar 8, 2026',  invoice:'INV-2884', due:'Apr 7, 2026'  },
+    { id:'BD-48283', brand:'Prada',             product:'Saffiano Leather Tote',         units:4,   price:720,  total:2880,  status:'shipped',   ship:'Mar 10, 2026', sku:'SKU-9021', placed:'Mar 7, 2026',  invoice:'INV-2883', due:'Apr 6, 2026'  },
+    { id:'BD-48282', brand:'Versace',           product:'Jeans Couture Polo SS26',       units:36,  price:85,   total:3060,  status:'confirmed', ship:'Mar 9, 2026',  sku:'SKU-4455', placed:'Mar 6, 2026',  invoice:'INV-2882', due:'Apr 5, 2026'  },
+    { id:'BD-48281', brand:'MAC Cosmetics',     product:'Studio Fix Foundation',         units:96,  price:22,   total:2112,  status:'delivered', ship:'Mar 8, 2026',  sku:'SKU-8823', placed:'Mar 5, 2026',  invoice:'INV-2881', due:'Apr 4, 2026'  },
+    { id:'BD-48280', brand:'Ralph Lauren',      product:'Oxford Piqué Polo — Classic',  units:24,  price:65,   total:1560,  status:'delivered', ship:'Mar 7, 2026',  sku:'SKU-6654', placed:'Mar 4, 2026',  invoice:'INV-2880', due:'Apr 3, 2026'  },
+    { id:'BD-48279', brand:'Maison Margiela',   product:'Beach Walk EDP 100ml',          units:30,  price:90,   total:2700,  status:'pending',   ship:'—',            sku:'SKU-4822', placed:'Mar 17, 2026', invoice:null,        due:null           },
+    { id:'BD-48278', brand:'Balenciaga',        product:'Triple S Sneaker — White',      units:6,   price:450,  total:2700,  status:'pending',   ship:'—',            sku:'SKU-7721', placed:'Mar 16, 2026', invoice:null,        due:null           },
+    { id:'BD-48277', brand:'YSL Beauty',        product:'Rouge Pur Couture Set',         units:48,  price:52,   total:2496,  status:'shipped',   ship:'Mar 13, 2026', sku:'SKU-3311', placed:'Mar 11, 2026', invoice:'INV-2877', due:'Apr 10, 2026' },
+  ];
+
+  /* ── Helpers ── */
+  const badgeMap = {
+    confirmed: 'badge-confirmed', shipped: 'badge-shipped',
+    delivered: 'badge-delivered', pending: 'badge-pending', cancelled: 'badge-cancelled'
+  };
+
+  /* ── Render Recent Orders — same columns as orders.html ── */
+  function renderDashOrders() {
+    const recent = DASH_ORDERS.slice(0, 7);
+    document.getElementById('dashOrdersBody').innerHTML = recent.map(o => `
+      <tr data-status="${o.status}" data-id="${o.id}">
+        <td><span class="td-mono">${o.id}</span></td>
+        <td><div class="td-primary">${o.brand}</div></td>
+        <td>${o.product}</td>
+        <td>${o.units} units</td>
+        <td>$${o.price.toFixed(2)}</td>
+        <td><strong>$${o.total.toLocaleString()}</strong></td>
+        <td><span class="badge ${badgeMap[o.status]}">${o.status.charAt(0).toUpperCase()+o.status.slice(1)}</span></td>
+        <td style="font-size:.78rem;color:var(--color-muted);">${o.ship}</td>
+        <td>
+          <button class="action-btn dash-view-btn" data-id="${o.id}">
+            <i class="fas fa-eye"></i> View
+          </button>
+        </td>
+      </tr>`).join('');
+
+    document.querySelectorAll('.dash-view-btn').forEach(btn => {
+      btn.addEventListener('click', () => openModal(btn.dataset.id));
+    });
+  }
+
+  renderDashOrders();
+
+  /* ── Open Modal — same style as orders.html ── */
+  function openModal(orderId) {
+    const o = DASH_ORDERS.find(x => x.id === orderId);
+    if (!o) return;
+
+    document.getElementById('modalOrderNum').textContent = `Order ${o.id}`;
+    document.getElementById('modalStatus').textContent   = o.status.charAt(0).toUpperCase() + o.status.slice(1);
+    document.getElementById('modalStatus').className     = `badge ${badgeMap[o.status]}`;
+    document.getElementById('modalDate').textContent     = `Placed ${o.placed}`;
+    document.getElementById('modalBrand').textContent    = o.brand;
+    document.getElementById('modalProduct').textContent  = o.product;
+    document.getElementById('modalSku').textContent      = o.sku;
+    document.getElementById('modalUnits').textContent    = `${o.units} units`;
+    document.getElementById('modalPrice').textContent    = `$${o.price.toFixed(2)} / unit`;
+    document.getElementById('modalTotal').textContent    = `$${o.total.toLocaleString()}.00`;
+    document.getElementById('modalInvoice').textContent  = o.invoice || '—';
+    document.getElementById('modalDue').textContent      = o.due     || '—';
+
+    // Timeline states
+    const steps = document.querySelectorAll('.timeline-step');
+    const idx   = { pending:0, confirmed:1, shipped:2, delivered:3 }[o.status] ?? 0;
+    steps.forEach((s, i) => {
+      s.classList.remove('done','current');
+      if (i < idx)  s.classList.add('done');
+      if (i === idx) s.classList.add('current');
+    });
+    document.getElementById('tDate1').textContent = o.placed || '—';
+    document.getElementById('tDate2').textContent = o.status !== 'pending' ? (o.placed || '—') : '—';
+    document.getElementById('tDate3').textContent = o.ship && o.ship !== '—' ? o.ship : '—';
+    document.getElementById('tDate4').textContent = o.status === 'delivered' ? o.ship : 'Est. pending';
+
+    document.getElementById('orderModal').classList.add('open');
+    document.body.style.overflow = 'hidden';
+  }
+
+  function closeModal() {
+    document.getElementById('orderModal').classList.remove('open');
+    document.body.style.overflow = '';
+  }
+  document.getElementById('modalClose').addEventListener('click', closeModal);
+  document.getElementById('modalCloseBtn').addEventListener('click', closeModal);
+  document.getElementById('orderModal').addEventListener('click', function(e) {
+    if (e.target === this) closeModal();
+  });
+
+  /* ── Full Detail Overlay (order # click) — updated for flat data ── */
+  function openDetailPage(orderId) {
+    const o = DASH_ORDERS.find(x => x.id === orderId);
+    if (!o) return;
+    openModal(orderId); // Re-use modal for simplicity
+  }
+
+  document.getElementById('odpBackBtn').addEventListener('click', () => {
+    document.getElementById('orderDetailOverlay').classList.remove('open');
+    document.body.style.overflow = '';
+  });
+
+  /* ── Animated counters ── */
+  document.querySelectorAll('[data-count]').forEach(el => {
+    const target  = parseInt(el.dataset.count);
+    const prefix  = el.dataset.prefix  || '';
+    const suffix  = el.dataset.suffix  || '';
+    const isComma = el.dataset.format  === 'comma';
+    const dur = 1400, steps = 60, inc = target / steps;
+    let cur = 0;
+    const io = new IntersectionObserver(entries => {
+      if (entries[0].isIntersecting) {
+        const t = setInterval(() => {
+          cur = Math.min(cur + inc, target);
+          el.textContent = prefix + (isComma ? Math.round(cur).toLocaleString() : Math.round(cur)) + suffix;
+          if (cur >= target) clearInterval(t);
+        }, dur / steps);
+        io.disconnect();
+      }
+    }, { threshold: .3 });
+    io.observe(el);
+  });
+
+  function showToast(msg, type = 'success') {
+    const container = document.getElementById('toastContainer');
+    const icon  = type === 'success' ? 'fa-check-circle' : 'fa-info-circle';
+    const toast = document.createElement('div');
+    toast.className = `toast ${type}`;
+    toast.innerHTML = `<i class="fas ${icon}"></i><span>${msg}</span>`;
+    container.appendChild(toast);
+    setTimeout(() => {
+      toast.style.opacity = '0'; toast.style.transform = 'translateX(60px)';
+      toast.style.transition = 'all .3s';
+      setTimeout(() => toast.remove(), 350);
+    }, 3200);
+  }
+</script>
+
+</body>
+</html>

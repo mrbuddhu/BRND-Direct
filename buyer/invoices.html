@@ -1,0 +1,1586 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Invoices & Payments – BRND Direct Portal</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&family=Inter:wght@300;400;500;600;700&family=Outfit:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.5.0/css/all.min.css" />
+  <link rel="stylesheet" href="css/portal.css" />
+  <script src="js/auth-guard.js"></script>
+  <style>
+    /* ════════════════════════════════
+       INVOICE LIST STYLES
+    ════════════════════════════════ */
+    .inv-stats { display:grid; grid-template-columns:repeat(4,1fr); gap:20px; margin-bottom:28px; }
+    .inv-stat { background:#fff; border:1px solid var(--color-border); border-radius:var(--radius-md); padding:24px 20px; }
+    .inv-stat__icon { width:40px; height:40px; border-radius:9px; display:flex; align-items:center; justify-content:center; font-size:.95rem; margin-bottom:14px; }
+    .inv-stat__label { font-size:.7rem; font-weight:700; text-transform:uppercase; letter-spacing:.07em; color:var(--color-muted); margin-bottom:6px; }
+    .inv-stat__value { font-family:var(--font-display); font-size:1.75rem; font-weight:900; letter-spacing:-.04em; color:var(--color-near-black); margin-bottom:6px; }
+    .inv-stat__sub { font-size:.75rem; color:var(--color-muted); }
+
+    .due-banner { background:linear-gradient(135deg,#f59e0b,#d97706); border-radius:var(--radius-md); padding:20px 28px; color:#fff; display:flex; align-items:center; justify-content:space-between; gap:16px; margin-bottom:24px; flex-wrap:wrap; }
+    .due-banner p { font-size:.9rem; opacity:.9; margin-top:3px; }
+    .due-banner h3 { font-size:1.05rem; font-weight:800; font-family:var(--font-display); }
+
+    /* PAGE-LEVEL section tabs (Invoices / Payment Portal) */
+    .page-section-tabs {
+      display: flex;
+      gap: 0;
+      border-bottom: 2px solid var(--color-border);
+      margin-bottom: 28px;
+    }
+    .page-section-tab {
+      padding: 12px 26px;
+      font-size: .875rem;
+      font-weight: 700;
+      cursor: pointer;
+      border: none;
+      background: transparent;
+      color: var(--color-muted);
+      border-bottom: 3px solid transparent;
+      margin-bottom: -2px;
+      transition: all .18s;
+      font-family: var(--font-sans);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .page-section-tab:hover { color: var(--color-near-black); }
+    .page-section-tab.active {
+      color: var(--color-accent);
+      border-bottom-color: var(--color-accent);
+    }
+    .page-section-tab .tab-badge {
+      background: var(--color-accent);
+      color: #fff;
+      font-size: .6rem;
+      font-weight: 800;
+      padding: 2px 7px;
+      border-radius: 20px;
+    }
+
+    /* Section panels */
+    .page-section { display: none; }
+    .page-section.active { display: block; }
+
+    /* Invoice filter tabs */
+    .inv-tabs { display:flex; gap:2px; background:var(--color-off-white); border:1.5px solid var(--color-border); border-radius:10px; padding:4px; width:fit-content; margin-bottom:20px; }
+    .inv-tab { padding:8px 20px; border-radius:7px; font-size:.875rem; font-weight:600; cursor:pointer; border:none; background:transparent; color:var(--color-muted); transition:all .18s; font-family:var(--font-sans); }
+    .inv-tab.active { background:#fff; color:var(--color-near-black); box-shadow:var(--shadow-sm); }
+
+    .payment-method-card { background:#fff; border:1.5px solid var(--color-border); border-radius:var(--radius-md); padding:20px; display:flex; align-items:center; gap:16px; margin-bottom:12px; transition:border-color .18s; }
+    .payment-method-card:hover { border-color:var(--color-accent); }
+    .payment-method-card.active-card { border-color:var(--color-accent); background:var(--color-accent-glow); }
+    .card-logo { width:52px; height:34px; border-radius:6px; display:flex; align-items:center; justify-content:center; color:white; font-size:.65rem; font-weight:800; letter-spacing:.04em; flex-shrink:0; }
+
+    .timeline-vertical { display:flex; flex-direction:column; gap:0; }
+    .tl-item { display:flex; gap:16px; padding-bottom:20px; position:relative; }
+    .tl-item:last-child { padding-bottom:0; }
+    .tl-line { display:flex; flex-direction:column; align-items:center; flex-shrink:0; }
+    .tl-dot { width:28px; height:28px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:.7rem; font-weight:700; z-index:1; flex-shrink:0; }
+    .tl-dot.paid { background:var(--color-emerald); color:#fff; }
+    .tl-dot.pending { background:var(--color-amber); color:#fff; }
+    .tl-dot.overdue { background:var(--color-rose); color:#fff; }
+    .tl-dot.upcoming { background:var(--color-border); color:var(--color-muted); }
+    .tl-connector { flex:1; width:2px; background:var(--color-border); margin:4px 0; min-height:16px; }
+    .tl-content { flex:1; padding-top:4px; }
+    .tl-title { font-size:.875rem; font-weight:600; color:var(--color-near-black); margin-bottom:2px; }
+    .tl-meta { font-size:.75rem; color:var(--color-muted); }
+
+    @media(max-width:900px){ .inv-stats{grid-template-columns:1fr 1fr;} }
+    @media(max-width:540px){ .inv-stats{grid-template-columns:1fr;} }
+
+    /* ════════════════════════════════
+       PAYMENT PORTAL STYLES
+    ════════════════════════════════ */
+    .pp-layout {
+      display: grid;
+      grid-template-columns: 1fr 380px;
+      gap: 28px;
+      align-items: start;
+    }
+    @media(max-width:1100px){ .pp-layout { grid-template-columns: 1fr; } }
+
+    /* Progress steps */
+    .pp-steps {
+      display: flex;
+      align-items: center;
+      margin-bottom: 28px;
+      background: #fff;
+      border: 1.5px solid var(--color-border);
+      border-radius: var(--radius-md);
+      padding: 16px 24px;
+    }
+    .pp-step {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: .8rem;
+      font-weight: 600;
+      color: var(--color-muted);
+      flex: 1;
+    }
+    .pp-step__num {
+      width: 32px; height: 32px;
+      border-radius: 50%;
+      border: 2px solid var(--color-border);
+      display: flex; align-items: center; justify-content: center;
+      font-size: .78rem; font-weight: 800;
+      color: var(--color-muted);
+      transition: all .25s;
+      flex-shrink: 0;
+      background: var(--color-off-white);
+    }
+    .pp-step.active .pp-step__num { background: var(--color-accent); border-color: var(--color-accent); color: #fff; }
+    .pp-step.done .pp-step__num { background: var(--color-emerald); border-color: var(--color-emerald); color: #fff; }
+    .pp-step.active { color: var(--color-near-black); }
+    .pp-step.done { color: var(--color-emerald); }
+    .pp-step__label { line-height: 1.2; }
+    .pp-step__label small { font-size: .65rem; font-weight: 400; color: var(--color-muted); display: block; }
+    .pp-step__line { flex: 1; height: 2px; background: var(--color-border); margin: 0 12px; }
+    .pp-step__line.done { background: var(--color-emerald); }
+
+    /* Step panels */
+    .pp-panel { display: none; }
+    .pp-panel.active { display: block; animation: ppSlideUp .25s ease; }
+    @keyframes ppSlideUp {
+      from { opacity: 0; transform: translateY(14px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Invoice selector */
+    .inv-pick-item {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 14px 16px;
+      border: 1.5px solid var(--color-border);
+      border-radius: var(--radius-md);
+      cursor: pointer;
+      transition: all .18s;
+      background: #fff;
+      margin-bottom: 8px;
+      user-select: none;
+    }
+    .inv-pick-item:hover { border-color: var(--color-accent); background: var(--color-accent-glow); }
+    .inv-pick-item.selected { border-color: var(--color-accent); background: var(--color-accent-glow); }
+    .inv-pick-item input[type="checkbox"] { width:17px; height:17px; accent-color:var(--color-accent); flex-shrink:0; cursor:pointer; }
+    .inv-pick-item__id { font-size:.82rem; font-weight:800; font-family:monospace; color:var(--color-accent); }
+    .inv-pick-item__meta { font-size:.72rem; color:var(--color-muted); margin-top:2px; }
+    .inv-pick-item__amount { font-size:1rem; font-weight:800; font-family:var(--font-display); color:var(--color-near-black); text-align:right; }
+    .inv-pick-item__due { font-size:.68rem; font-weight:700; padding:3px 8px; border-radius:20px; display:inline-block; margin-top:4px; background:#fef3c7; color:#92400e; }
+    .inv-pick-item__due.overdue { background:#fee2e2; color:#991b1b; }
+
+    /* Payment method picker */
+    .pm-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+    @media(max-width:640px){ .pm-grid { grid-template-columns:1fr; } }
+    .pm-opt {
+      border: 1.5px solid var(--color-border);
+      border-radius: var(--radius-md);
+      padding: 14px;
+      cursor: pointer;
+      transition: all .18s;
+      background: #fff;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .pm-opt:hover { border-color: var(--color-accent); }
+    .pm-opt.selected { border-color: var(--color-accent); background: var(--color-accent-glow); }
+    .pm-opt__icon {
+      width:44px; height:29px; border-radius:5px;
+      display:flex; align-items:center; justify-content:center;
+      font-size:.58rem; font-weight:800; color:#fff; letter-spacing:.04em;
+      flex-shrink:0;
+    }
+    .pm-opt__label { font-size:.8rem; font-weight:700; color:var(--color-near-black); }
+    .pm-opt__sub { font-size:.68rem; color:var(--color-muted); margin-top:2px; }
+
+    /* Card form */
+    .pp-form-grid { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+    @media(max-width:540px){ .pp-form-grid { grid-template-columns:1fr; } }
+    .pp-form-group { display:flex; flex-direction:column; gap:5px; }
+    .pp-form-group label { font-size:.7rem; font-weight:700; text-transform:uppercase; letter-spacing:.07em; color:var(--color-muted); }
+    .pp-form-group input, .pp-form-group select {
+      padding:10px 13px; border:1.5px solid var(--color-border); border-radius:var(--radius-sm);
+      font-family:var(--font-sans); font-size:.875rem; color:var(--color-near-black);
+      background:#fff; transition:border-color .18s; outline:none; width:100%; box-sizing:border-box;
+    }
+    .pp-form-group input:focus, .pp-form-group select:focus { border-color:var(--color-accent); }
+    .pp-form-group.span2 { grid-column:span 2; }
+    @media(max-width:540px){ .pp-form-group.span2 { grid-column:span 1; } }
+    .card-num-wrap { position:relative; }
+    .card-num-wrap input { padding-right:52px; letter-spacing:.1em; font-family:monospace; }
+    .card-type-pill {
+      position:absolute; right:10px; top:50%; transform:translateY(-50%);
+      font-size:.52rem; font-weight:900; letter-spacing:.04em;
+      color:#fff; padding:2px 6px; border-radius:4px; display:none;
+    }
+
+    /* Saved cards */
+    .saved-card {
+      display:flex; align-items:center; gap:10px;
+      padding:10px 14px; border-radius:var(--radius-sm); cursor:pointer;
+      border:1.5px solid var(--color-border); margin-bottom:6px; transition:all .18s;
+    }
+    .saved-card.selected-sc { border-color:var(--color-accent); background:var(--color-accent-glow); }
+    .saved-card__logo { width:36px; height:24px; border-radius:4px; display:flex; align-items:center; justify-content:center; color:#fff; font-size:.5rem; font-weight:900; flex-shrink:0; }
+
+    /* Confirm rows */
+    .confirm-row {
+      display:flex; justify-content:space-between; align-items:center;
+      padding:11px 16px; border-bottom:1px solid var(--color-off-white);
+      font-size:.875rem;
+    }
+    .confirm-row:last-child { border-bottom:none; }
+    .confirm-row__label { color:var(--color-muted); font-size:.78rem; }
+    .confirm-row__val { font-weight:700; color:var(--color-near-black); }
+
+    /* Summary sidebar */
+    .pp-summary {
+      background:#fff; border:1.5px solid var(--color-border); border-radius:var(--radius-md);
+      overflow:hidden; position:sticky; top:84px;
+    }
+    .pp-summary__head {
+      background:var(--color-near-black); color:#fff; padding:18px 22px;
+    }
+    .pp-summary__head h3 { font-family:var(--font-display); font-size:1rem; font-weight:800; }
+    .pp-summary__head p { font-size:.72rem; opacity:.65; margin-top:3px; }
+    .pp-summary__items { padding:14px 22px; border-bottom:1px solid var(--color-border); min-height:80px; }
+    .pp-sum-item { display:flex; justify-content:space-between; align-items:flex-start; gap:10px; padding:8px 0; border-bottom:1px solid var(--color-off-white); }
+    .pp-sum-item:last-child { border-bottom:none; }
+    .pp-sum-item__id { font-size:.8rem; font-weight:700; font-family:monospace; color:var(--color-accent); }
+    .pp-sum-item__brand { font-size:.7rem; color:var(--color-muted); margin-top:2px; }
+    .pp-sum-item__amt { font-size:.875rem; font-weight:800; color:var(--color-near-black); white-space:nowrap; }
+    .pp-summary__totals { padding:14px 22px; }
+    .pp-sum-row { display:flex; justify-content:space-between; font-size:.82rem; padding:5px 0; }
+    .pp-sum-row.grand {
+      font-size:1.05rem; font-weight:900; font-family:var(--font-display);
+      border-top:2px solid var(--color-near-black); padding-top:12px; margin-top:4px;
+    }
+    .pp-summary__footer { padding:14px 22px; border-top:1px solid var(--color-border); }
+    .sec-chips { display:flex; gap:6px; flex-wrap:wrap; margin-top:10px; }
+    .sec-chip {
+      display:flex; align-items:center; gap:5px;
+      font-size:.64rem; color:var(--color-muted);
+      background:var(--color-off-white); border:1px solid var(--color-border);
+      border-radius:20px; padding:4px 10px;
+    }
+    .sec-chip i { color:var(--color-emerald); }
+
+    /* Success screen */
+    .pp-success {
+      text-align:center; padding:52px 24px;
+    }
+    .pp-success__icon {
+      width:84px; height:84px; border-radius:50%;
+      background:linear-gradient(135deg,var(--color-emerald),#10b981);
+      display:flex; align-items:center; justify-content:center;
+      margin:0 auto 24px; font-size:2.2rem; color:#fff;
+      box-shadow:0 10px 28px rgba(16,185,129,.28);
+      animation: successPop .45s cubic-bezier(.34,1.56,.64,1);
+    }
+    @keyframes successPop {
+      from { transform:scale(.4); opacity:0; }
+      to   { transform:scale(1);  opacity:1; }
+    }
+    @keyframes fadeSlideIn {
+      from { opacity:0; transform:translateY(-10px); }
+      to   { opacity:1; transform:translateY(0); }
+    }
+    .pp-success h2 { font-family:var(--font-display); font-size:1.9rem; font-weight:900; letter-spacing:-.04em; color:var(--color-near-black); margin-bottom:10px; }
+    .pp-success p { font-size:.92rem; color:var(--color-muted); max-width:400px; margin:0 auto 28px; line-height:1.6; }
+    .pp-success__ref {
+      background:var(--color-off-white); border:1.5px solid var(--color-border);
+      border-radius:var(--radius-md); padding:18px 28px;
+      display:inline-block; margin-bottom:28px;
+    }
+    .pp-success__ref-label { font-size:.68rem; font-weight:800; text-transform:uppercase; letter-spacing:.08em; color:var(--color-muted); margin-bottom:6px; }
+    .pp-success__ref-num { font-size:1.4rem; font-weight:900; font-family:monospace; color:var(--color-accent); letter-spacing:.06em; }
+
+    /* Action btn */
+    .action-btn { font-size:.78rem; font-weight:600; color:var(--color-accent); border:1.5px solid var(--color-accent); background:transparent; padding:5px 12px; border-radius:var(--radius-sm); cursor:pointer; transition:all .15s; font-family:var(--font-sans); white-space:nowrap; }
+    .action-btn:hover { background:var(--color-accent); color:white; }
+
+    @media(max-width:900px){ #mainGrid{grid-template-columns:1fr!important;} }
+  </style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<aside class="sidebar" id="sidebar">
+  <div class="sidebar__logo">
+    <a href="dashboard.html" class="logo-mark">
+      <span class="logo-icon"><i class="fas fa-chevron-right"></i></span>
+      <span class="logo-word">BRND <span class="logo-accent">DIRECT</span></span>
+    </a>
+  </div>
+  <nav class="sidebar__nav">
+    <div class="nav-section">
+      <span class="nav-section-label">Main Menu</span>
+      <a href="dashboard.html" class="nav-item"><i class="fas fa-table-columns"></i><span>Dashboard</span></a>
+      <a href="products.html" class="nav-item"><i class="fas fa-boxes-stacked"></i><span>Products</span></a>
+      <a href="orders.html" class="nav-item"><i class="fas fa-file-invoice"></i><span>Orders</span><span class="nav-badge">18</span></a>
+      <a href="cart.html" class="nav-item" id="navCartLink"><i class="fas fa-cart-shopping"></i><span>Order Cart</span><span class="nav-badge" id="sidebarCartBadge" style="display:none;">0</span></a>
+      <a href="rfq.html" class="nav-item"><i class="fas fa-comment-dollar"></i><span>RFQ</span><span class="nav-badge new">5</span></a>
+      <a href="dropship.html" class="nav-item"><i class="fas fa-rotate"></i><span>Dropship</span></a>
+      <a href="analytics.html" class="nav-item"><i class="fas fa-chart-line"></i><span>Analytics</span></a>
+    </div>
+    <div class="nav-section">
+      <span class="nav-section-label">Finance</span>
+      <a href="invoices.html" class="nav-item active"><i class="fas fa-file-invoice-dollar"></i><span>Invoices &amp; Payments</span></a>
+      <a href="trade-finance.html" class="nav-item"><i class="fas fa-credit-card"></i><span>Trade Finance</span></a>
+      <a href="reports.html" class="nav-item"><i class="fas fa-chart-bar"></i><span>Reports</span></a>
+    </div>
+    <div class="nav-section">
+      <span class="nav-section-label">Operations</span>
+      <a href="warehousing.html" class="nav-item"><i class="fas fa-warehouse"></i><span>Warehousing</span></a>
+      <a href="shipping-logistics.html" class="nav-item"><i class="fas fa-truck-fast"></i><span>Shipping &amp; Logistics</span></a>
+    </div>
+    <div class="sidebar__divider"></div>
+    <a href="messages.html" class="nav-item"><i class="fas fa-message"></i><span>Messages</span><span class="nav-badge">3</span></a>
+    <a href="account.html" class="nav-item"><i class="fas fa-gear"></i><span>Settings</span></a>
+    <a href="help.html" class="nav-item"><i class="fas fa-circle-question"></i><span>Help &amp; Support</span></a>
+  </nav>
+  <div class="sidebar__bottom">
+    <div class="sidebar__user">
+      <div class="sidebar__user-avatar">AJ</div>
+      <div class="sidebar__user-info">
+        <div class="sidebar__user-name">Alex Johnson</div>
+        <div class="sidebar__user-role">Wholesale Buyer</div>
+      </div>
+      <button class="sidebar__user-logout" onclick="window.location.href='index.html'" title="Sign out"><i class="fas fa-arrow-right-from-bracket"></i></button>
+    </div>
+  </div>
+</aside>
+<div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+<!-- TOPBAR -->
+<header class="topbar">
+  <div class="topbar__left" style="display:flex;align-items:center;gap:12px;">
+    <button class="topbar__mobile-toggle" id="sidebarToggle"><i class="fas fa-bars"></i></button>
+    <div>
+      <div class="topbar__title">Invoices &amp; Payments</div>
+      <div class="topbar__breadcrumb">Manage billing, payment terms, and transaction history</div>
+    </div>
+  </div>
+  <div class="topbar__right">
+    <div class="search-bar"><i class="fas fa-magnifying-glass"></i><input type="text" id="invSearch" placeholder="Search invoices…" /></div>
+    <div class="topbar__btn"><i class="fas fa-bell"></i><span class="notif-dot"></span></div>
+    <div class="topbar__avatar">AJ</div>
+  </div>
+</header>
+
+<!-- MAIN -->
+<main class="app-main">
+
+  <!-- Page Header -->
+  <div class="page-header-bar fade-in">
+    <div>
+      <h1>Invoices &amp; Payments</h1>
+      <div class="page-header-sub">Pay confirmed orders to start fulfilment &amp; shipping</div>
+    </div>
+    <div class="page-header-bar__actions">
+      <a href="orders.html" class="btn btn-outline btn-sm"><i class="fas fa-arrow-left"></i> Back to Orders</a>
+      <button class="btn btn-secondary btn-sm" onclick="exportInvoices()"><i class="fas fa-download"></i> Export PDF</button>
+      <button class="btn btn-primary btn-sm" onclick="openPaymentPortal()"><i class="fas fa-credit-card"></i> Pay Invoice</button>
+    </div>
+  </div>
+
+  <!-- ORDER JOURNEY STRIP -->
+  <div style="display:flex;align-items:stretch;overflow-x:auto;background:#fff;border:1.5px solid var(--color-border);border-radius:var(--radius-md);margin-bottom:22px;" class="fade-in">
+    <div style="display:flex;align-items:center;gap:9px;padding:12px 16px;flex:1;min-width:120px;border-right:1px solid var(--color-border);background:rgba(16,185,129,.03);">
+      <div style="width:26px;height:26px;border-radius:50%;background:#10b981;border:2px solid #10b981;display:flex;align-items:center;justify-content:center;font-size:.55rem;color:#fff;flex-shrink:0;"><i class="fas fa-check"></i></div>
+      <div><div style="font-size:.68rem;font-weight:700;color:#10b981;">1. Browse &amp; Cart</div><div style="font-size:.58rem;color:var(--color-muted);">Add products</div></div>
+    </div>
+    <div style="display:flex;align-items:center;gap:9px;padding:12px 16px;flex:1;min-width:120px;border-right:1px solid var(--color-border);background:rgba(16,185,129,.03);">
+      <div style="width:26px;height:26px;border-radius:50%;background:#10b981;border:2px solid #10b981;display:flex;align-items:center;justify-content:center;font-size:.55rem;color:#fff;flex-shrink:0;"><i class="fas fa-check"></i></div>
+      <div><div style="font-size:.68rem;font-weight:700;color:#10b981;">2. Confirm Order</div><div style="font-size:.58rem;color:var(--color-muted);">Submitted &amp; invoiced</div></div>
+    </div>
+    <div style="display:flex;align-items:center;gap:9px;padding:12px 16px;flex:1;min-width:120px;border-right:1px solid var(--color-border);background:rgba(16,185,129,.03);">
+      <div style="width:26px;height:26px;border-radius:50%;background:#10b981;border:2px solid #10b981;display:flex;align-items:center;justify-content:center;font-size:.55rem;color:#fff;flex-shrink:0;"><i class="fas fa-check"></i></div>
+      <div><div style="font-size:.68rem;font-weight:700;color:#10b981;">3. Seller Confirms</div><div style="font-size:.58rem;color:var(--color-muted);">Order approved</div></div>
+    </div>
+    <div style="display:flex;align-items:center;gap:9px;padding:12px 16px;flex:1;min-width:120px;border-right:1px solid var(--color-border);background:rgba(79,70,229,.04);">
+      <div style="width:26px;height:26px;border-radius:50%;background:var(--color-accent);border:2px solid var(--color-accent);display:flex;align-items:center;justify-content:center;font-size:.65rem;color:#fff;flex-shrink:0;box-shadow:0 0 0 3px rgba(79,70,229,.15);">4</div>
+      <div><div style="font-size:.68rem;font-weight:700;color:var(--color-accent);">4. Pay Invoice ← YOU ARE HERE</div><div style="font-size:.58rem;color:var(--color-muted);">Pay to start fulfilment</div></div>
+    </div>
+    <div style="display:flex;align-items:center;gap:9px;padding:12px 16px;flex:1;min-width:120px;border-right:1px solid var(--color-border);">
+      <div style="width:26px;height:26px;border-radius:50%;border:2px solid var(--color-border);display:flex;align-items:center;justify-content:center;font-size:.65rem;color:var(--color-muted);flex-shrink:0;">5</div>
+      <div><div style="font-size:.68rem;font-weight:700;color:var(--color-muted);">5. Seller Packs</div><div style="font-size:.58rem;color:var(--color-muted);">Pick &amp; pack</div></div>
+    </div>
+    <div style="display:flex;align-items:center;gap:9px;padding:12px 16px;flex:1;min-width:120px;">
+      <div style="width:26px;height:26px;border-radius:50%;border:2px solid var(--color-border);display:flex;align-items:center;justify-content:center;font-size:.65rem;color:var(--color-muted);flex-shrink:0;">6</div>
+      <div><div style="font-size:.68rem;font-weight:700;color:var(--color-muted);">6. Schedule Ship</div><div style="font-size:.58rem;color:var(--color-muted);">Book carrier</div></div>
+    </div>
+  </div>
+
+  <!-- OUTSTANDING INVOICES ACTION BANNER -->
+  <div style="background:linear-gradient(135deg,#059669,#047857);border-radius:var(--radius-md);padding:22px 28px;margin-bottom:22px;color:#fff;" class="fade-in">
+    <div style="display:flex;align-items:center;gap:18px;flex-wrap:wrap;margin-bottom:16px;">
+      <div style="width:52px;height:52px;border-radius:14px;background:rgba(255,255,255,.15);display:flex;align-items:center;justify-content:center;font-size:1.4rem;flex-shrink:0;">💳</div>
+      <div style="flex:1;min-width:0;">
+        <div style="font-size:.65rem;font-weight:800;text-transform:uppercase;letter-spacing:.1em;opacity:.7;margin-bottom:4px;">⬅ Step 4 Action Required</div>
+        <div style="font-size:1.05rem;font-weight:800;font-family:var(--font-display);margin-bottom:4px;">4 Orders Ready for Payment — $12,340.00 Outstanding</div>
+        <div style="font-size:.82rem;opacity:.85;">Seller has confirmed your orders. Pay now to unlock <strong>Step 5 (Pick &amp; Pack)</strong> — your order won't ship until payment is received.</div>
+      </div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;flex-shrink:0;">
+        <button onclick="openPaymentPortal()" style="background:#fff;color:#065f46;border:none;font-weight:800;font-size:.85rem;padding:11px 22px;border-radius:8px;cursor:pointer;display:flex;align-items:center;gap:7px;white-space:nowrap;"><i class="fas fa-credit-card"></i> Pay All Now</button>
+        <button onclick="switchSection('invoices')" style="background:transparent;color:#fff;border:2px solid rgba(255,255,255,.5);font-weight:700;font-size:.82rem;padding:10px 16px;border-radius:8px;cursor:pointer;white-space:nowrap;">View Invoices</button>
+      </div>
+    </div>
+    <!-- Mini step flow: what happens after payment -->
+    <div style="background:rgba(0,0,0,.15);border-radius:10px;padding:12px 16px;display:flex;align-items:center;gap:0;overflow-x:auto;">
+      <div style="display:flex;align-items:center;gap:8px;padding-right:12px;border-right:1px solid rgba(255,255,255,.2);flex-shrink:0;">
+        <div style="width:24px;height:24px;border-radius:50%;background:#10b981;display:flex;align-items:center;justify-content:center;font-size:.5rem;color:#fff;flex-shrink:0;"><i class="fas fa-check"></i></div>
+        <div style="font-size:.7rem;font-weight:700;opacity:.9;">3. Seller Confirmed</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px;padding:0 12px;border-right:1px solid rgba(255,255,255,.2);flex-shrink:0;background:rgba(255,255,255,.1);border-radius:6px;margin:0 4px;">
+        <div style="width:24px;height:24px;border-radius:50%;background:#fff;display:flex;align-items:center;justify-content:center;font-size:.6rem;color:#059669;font-weight:800;flex-shrink:0;box-shadow:0 0 0 3px rgba(255,255,255,.3);">4</div>
+        <div style="font-size:.7rem;font-weight:800;">Pay Invoice ← YOU ARE HERE</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px;padding:0 12px;border-right:1px solid rgba(255,255,255,.2);flex-shrink:0;opacity:.6;">
+        <div style="width:24px;height:24px;border-radius:50%;border:2px solid rgba(255,255,255,.4);display:flex;align-items:center;justify-content:center;font-size:.6rem;font-weight:700;flex-shrink:0;">5</div>
+        <div style="font-size:.7rem;font-weight:700;">Seller Packs</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px;padding-left:12px;flex-shrink:0;opacity:.6;">
+        <div style="width:24px;height:24px;border-radius:50%;border:2px solid rgba(255,255,255,.4);display:flex;align-items:center;justify-content:center;font-size:.6rem;font-weight:700;flex-shrink:0;">6</div>
+        <div style="font-size:.7rem;font-weight:700;">Schedule Ship</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Stats -->
+  <div class="inv-stats fade-in d1">
+    <div class="inv-stat">
+      <div class="inv-stat__icon" style="background:var(--color-accent-glow);color:var(--color-accent);"><i class="fas fa-file-invoice-dollar"></i></div>
+      <div class="inv-stat__label">Total Billed (YTD)</div>
+      <div class="inv-stat__value">$284,520</div>
+      <div class="inv-stat__sub">↑ 18.4% vs last year</div>
+    </div>
+    <div class="inv-stat">
+      <div class="inv-stat__icon" style="background:var(--color-amber-glow);color:var(--color-amber);"><i class="fas fa-clock"></i></div>
+      <div class="inv-stat__label">Outstanding Balance</div>
+      <div class="inv-stat__value">$12,340</div>
+      <div class="inv-stat__sub">3 invoices due soon</div>
+    </div>
+    <div class="inv-stat">
+      <div class="inv-stat__icon" style="background:var(--color-rose-glow);color:var(--color-rose);"><i class="fas fa-triangle-exclamation"></i></div>
+      <div class="inv-stat__label">Overdue</div>
+      <div class="inv-stat__value">$0</div>
+      <div class="inv-stat__sub">All clear — great job!</div>
+    </div>
+    <div class="inv-stat">
+      <div class="inv-stat__icon" style="background:var(--color-emerald-glow);color:var(--color-emerald);"><i class="fas fa-check-circle"></i></div>
+      <div class="inv-stat__label">Paid This Month</div>
+      <div class="inv-stat__value">$48,200</div>
+      <div class="inv-stat__sub">14 invoices settled</div>
+    </div>
+  </div>
+
+  <!-- Overdue Banner -->
+  <div class="due-banner fade-in d1" id="dueBanner" style="display:none;">
+    <div>
+      <h3><i class="fas fa-triangle-exclamation"></i> Payment Overdue</h3>
+      <p>You have overdue invoices. Please settle them to avoid suspension of your credit line.</p>
+    </div>
+    <button class="btn btn-white btn-sm" onclick="openPaymentPortal()">Pay Now →</button>
+  </div>
+
+  <!-- ══════════════════════════════════════
+       PAGE-LEVEL SECTION TABS
+  ══════════════════════════════════════ -->
+  <div class="page-section-tabs fade-in d2">
+    <button class="page-section-tab active" data-section="invoices" onclick="switchSection('invoices')">
+      <i class="fas fa-file-invoice-dollar"></i> Invoices
+    </button>
+    <button class="page-section-tab" data-section="payment" onclick="switchSection('payment')">
+      <i class="fas fa-credit-card"></i> Payment Portal
+      <span class="tab-badge">4 outstanding</span>
+    </button>
+  </div>
+
+  <!-- ══════════════════════════════════════
+       SECTION 1: INVOICES
+  ══════════════════════════════════════ -->
+  <div class="page-section active" id="section-invoices">
+
+    <!-- Two-column layout -->
+    <div style="display:grid;grid-template-columns:1fr 320px;gap:20px;align-items:start;" id="mainGrid">
+
+      <!-- LEFT: Invoice List -->
+      <div>
+        <!-- Filter tabs -->
+        <div class="inv-tabs" id="invTabs">
+          <button class="inv-tab active" data-tab="all">All Invoices</button>
+          <button class="inv-tab" data-tab="outstanding">Outstanding</button>
+          <button class="inv-tab" data-tab="paid">Paid</button>
+          <button class="inv-tab" data-tab="upcoming">Upcoming</button>
+        </div>
+
+        <!-- Filters row -->
+        <div style="display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap;">
+          <select class="form-select" style="width:160px;padding:9px 12px;font-size:.82rem;" id="termFilter">
+            <option value="">All Terms</option>
+            <option>Net-30</option>
+            <option>Net-60</option>
+            <option>Net-90</option>
+            <option>BNPL</option>
+          </select>
+          <input type="date" class="form-input" style="width:150px;" />
+          <span style="display:flex;align-items:center;color:var(--color-muted);font-size:.85rem;">to</span>
+          <input type="date" class="form-input" style="width:150px;" />
+          <div style="margin-left:auto;">
+            <span id="invCount" style="font-size:.82rem;color:var(--color-muted);">Showing 15 invoices</span>
+          </div>
+        </div>
+
+        <!-- Invoice Table -->
+        <div class="card">
+          <div class="table-wrap">
+            <table class="data-table" id="invoiceTable">
+              <thead>
+                <tr>
+                  <th>Invoice #</th>
+                  <th>Order Ref</th>
+                  <th>Brand</th>
+                  <th>Amount</th>
+                  <th>Terms</th>
+                  <th>Issue Date</th>
+                  <th>Due Date</th>
+                  <th>Status</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+              <tbody id="invoiceBody"></tbody>
+            </table>
+          </div>
+          <div class="card-footer" style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;">
+            <span style="font-size:.82rem;color:var(--color-muted);">Page 1 of 9 · 132 invoices total</span>
+            <div style="display:flex;gap:6px;">
+              <button class="page-btn" disabled><i class="fas fa-chevron-left"></i></button>
+              <button class="page-btn active">1</button>
+              <button class="page-btn">2</button>
+              <button class="page-btn">3</button>
+              <button class="page-btn"><i class="fas fa-chevron-right"></i></button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- RIGHT: Side panel -->
+      <div style="display:flex;flex-direction:column;gap:20px;">
+
+        <!-- Payment Methods -->
+        <div class="card">
+          <div class="card-header">
+            <h3>Payment Methods</h3>
+            <button class="btn btn-primary btn-xs" onclick="showToast('Add card flow — go to Payment Portal tab.','success')"><i class="fas fa-plus"></i> Add</button>
+          </div>
+          <div class="card-body" style="padding-top:12px;padding-bottom:12px;">
+            <div class="payment-method-card active-card">
+              <div class="card-logo" style="background:linear-gradient(135deg,#1a1f71,#00579f);">VISA</div>
+              <div style="flex:1;">
+                <div style="font-size:.82rem;font-weight:700;color:var(--color-near-black);">•••• •••• •••• 4242</div>
+                <div style="font-size:.72rem;color:var(--color-muted);">Expires 09/2027</div>
+              </div>
+              <span class="badge badge-confirmed">Default</span>
+            </div>
+            <div class="payment-method-card">
+              <div class="card-logo" style="background:linear-gradient(135deg,#eb001b,#f79e1b);">MC</div>
+              <div style="flex:1;">
+                <div style="font-size:.82rem;font-weight:700;color:var(--color-near-black);">•••• •••• •••• 8891</div>
+                <div style="font-size:.72rem;color:var(--color-muted);">Expires 03/2026</div>
+              </div>
+              <button class="btn btn-secondary btn-xs" onclick="showToast('Set as default.','success')">Set</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Credit Overview -->
+        <div class="card">
+          <div class="card-header"><h3>Credit Overview</h3></div>
+          <div class="card-body">
+            <div style="text-align:center;margin-bottom:16px;">
+              <div style="font-family:var(--font-display);font-size:2rem;font-weight:900;color:var(--color-accent);letter-spacing:-.04em;">$45,000</div>
+              <div style="font-size:.75rem;color:var(--color-muted);">Total Credit Line</div>
+            </div>
+            <div class="progress-bar" style="height:10px;margin-bottom:6px;">
+              <div class="progress-fill amber" style="width:27%;"></div>
+            </div>
+            <div style="display:flex;justify-content:space-between;font-size:.72rem;color:var(--color-muted);margin-bottom:16px;">
+              <span>$12,340 used</span><span>$32,660 available</span>
+            </div>
+            <div style="display:flex;justify-content:space-between;padding:8px 0;border-top:1px solid var(--color-border);">
+              <span style="font-size:.82rem;color:var(--color-muted);">Active Terms</span>
+              <span class="badge badge-confirmed">Net-30</span>
+            </div>
+            <div style="display:flex;justify-content:space-between;padding:8px 0;border-top:1px solid var(--color-border);">
+              <span style="font-size:.82rem;color:var(--color-muted);">Next Payment Due</span>
+              <span style="font-size:.82rem;font-weight:700;color:var(--color-amber);">Apr 17, 2026</span>
+            </div>
+            <div style="display:flex;justify-content:space-between;padding:8px 0;border-top:1px solid var(--color-border);">
+              <span style="font-size:.82rem;color:var(--color-muted);">Amount Due</span>
+              <span style="font-size:.82rem;font-weight:700;color:var(--color-near-black);">$3,840.00</span>
+            </div>
+            <button class="btn btn-primary btn-sm btn-full mt-4" onclick="openPaymentPortal('INV-2891')">Pay $3,840 Now</button>
+            <a href="trade-finance.html" class="btn btn-secondary btn-sm btn-full mt-2">Request Credit Increase →</a>
+          </div>
+        </div>
+
+        <!-- Recent Payment Timeline -->
+        <div class="card">
+          <div class="card-header"><h3>Payment History</h3></div>
+          <div class="card-body" style="padding-top:8px;padding-bottom:8px;">
+            <div class="timeline-vertical">
+              <div class="tl-item">
+                <div class="tl-line"><div class="tl-dot paid"><i class="fas fa-check"></i></div><div class="tl-connector"></div></div>
+                <div class="tl-content"><div class="tl-title">INV-2890 — $9,600 paid</div><div class="tl-meta">Charlotte Tilbury · Mar 17, 2026 · Net-30</div></div>
+              </div>
+              <div class="tl-item">
+                <div class="tl-line"><div class="tl-dot paid"><i class="fas fa-check"></i></div><div class="tl-connector"></div></div>
+                <div class="tl-content"><div class="tl-title">INV-2885 — $5,760 paid</div><div class="tl-meta">Chanel · Mar 14, 2026 · Net-60</div></div>
+              </div>
+              <div class="tl-item">
+                <div class="tl-line"><div class="tl-dot pending"><i class="fas fa-clock"></i></div><div class="tl-connector"></div></div>
+                <div class="tl-content"><div class="tl-title">INV-2891 — $3,840 due</div><div class="tl-meta">Maison Margiela · Due Apr 17, 2026</div></div>
+              </div>
+              <div class="tl-item">
+                <div class="tl-line"><div class="tl-dot upcoming"></div></div>
+                <div class="tl-content"><div class="tl-title">INV-2893 — $7,200 upcoming</div><div class="tl-meta">Gucci · Due May 14, 2026</div></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div><!-- end right col -->
+    </div><!-- end mainGrid -->
+  </div><!-- end section-invoices -->
+
+
+  <!-- ══════════════════════════════════════
+       SECTION 2: PAYMENT PORTAL
+  ══════════════════════════════════════ -->
+  <div class="page-section" id="section-payment">
+
+    <!-- Progress Steps bar -->
+    <div class="pp-steps" id="ppSteps">
+      <div class="pp-step active" id="ppStep1">
+        <div class="pp-step__num">1</div>
+        <div class="pp-step__label">Select Invoices<small>Choose what to pay</small></div>
+      </div>
+      <div class="pp-step__line" id="ppLine1"></div>
+      <div class="pp-step" id="ppStep2">
+        <div class="pp-step__num">2</div>
+        <div class="pp-step__label">Payment Method<small>How to pay</small></div>
+      </div>
+      <div class="pp-step__line" id="ppLine2"></div>
+      <div class="pp-step" id="ppStep3">
+        <div class="pp-step__num">3</div>
+        <div class="pp-step__label">Review &amp; Confirm<small>Double-check</small></div>
+      </div>
+      <div class="pp-step__line" id="ppLine3"></div>
+      <div class="pp-step" id="ppStep4">
+        <div class="pp-step__num"><i class="fas fa-check" style="font-size:.6rem;"></i></div>
+        <div class="pp-step__label">Complete<small>Done!</small></div>
+      </div>
+    </div>
+
+    <div class="pp-layout">
+
+      <!-- LEFT PANELS -->
+      <div>
+
+        <!-- ── STEP 1: Select Invoices ── -->
+        <div class="pp-panel active" id="ppPanel1">
+          <div class="card">
+            <div class="card-header">
+              <div>
+                <h3><i class="fas fa-file-invoice" style="color:var(--color-accent);margin-right:6px;"></i>Select Invoices to Pay</h3>
+                <div style="font-size:.75rem;color:var(--color-muted);margin-top:3px;">Choose one or more outstanding invoices to settle in this transaction</div>
+              </div>
+              <button class="btn btn-secondary btn-xs" id="ppSelectAllBtn" onclick="ppToggleSelectAll()">Select All</button>
+            </div>
+            <div class="card-body" style="padding-top:14px;">
+              <div id="ppInvList"></div>
+              <div style="margin-top:16px;padding-top:16px;border-top:1px solid var(--color-border);display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;">
+                <div id="ppSelSummary" style="font-size:.82rem;color:var(--color-muted);font-style:italic;">No invoices selected</div>
+                <button class="btn btn-primary btn-sm" id="pp1Next" onclick="ppGoStep(2)" disabled>
+                  Continue <i class="fas fa-arrow-right"></i>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ── STEP 2: Payment Method ── -->
+        <div class="pp-panel" id="ppPanel2">
+          <div class="card" style="margin-bottom:18px;">
+            <div class="card-header">
+              <h3><i class="fas fa-wallet" style="color:var(--color-accent);margin-right:6px;"></i>Choose Payment Method</h3>
+            </div>
+            <div class="card-body" style="padding-top:14px;">
+              <div class="pm-grid" id="pmGrid">
+                <div class="pm-opt selected" id="pmOpt-card" onclick="ppSelectMethod('card')">
+                  <div class="pm-opt__icon" style="background:linear-gradient(135deg,#1a1f71,#00579f);">VISA</div>
+                  <div><div class="pm-opt__label">Credit / Debit Card</div><div class="pm-opt__sub">Visa · MC · Amex</div></div>
+                </div>
+                <div class="pm-opt" id="pmOpt-ach" onclick="ppSelectMethod('ach')">
+                  <div class="pm-opt__icon" style="background:linear-gradient(135deg,#065f46,#059669);font-size:.55rem;">ACH</div>
+                  <div><div class="pm-opt__label">Bank Transfer (ACH)</div><div class="pm-opt__sub">1–3 business days</div></div>
+                </div>
+                <div class="pm-opt" id="pmOpt-wire" onclick="ppSelectMethod('wire')">
+                  <div class="pm-opt__icon" style="background:linear-gradient(135deg,#1e3a8a,#3b82f6);font-size:.55rem;">WIRE</div>
+                  <div><div class="pm-opt__label">Wire Transfer</div><div class="pm-opt__sub">Same-day settlement</div></div>
+                </div>
+                <div class="pm-opt" id="pmOpt-credit" onclick="ppSelectMethod('credit')">
+                  <div class="pm-opt__icon" style="background:linear-gradient(135deg,#4f46e5,#7c3aed);"><i class="fas fa-wallet" style="font-size:.85rem;"></i></div>
+                  <div><div class="pm-opt__label">BRND Credit</div><div class="pm-opt__sub">$32,660 available</div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Card Form -->
+          <div class="card" id="ppFormCard" style="margin-bottom:18px;">
+            <div class="card-header">
+              <h3><i class="fas fa-credit-card" style="color:var(--color-accent);margin-right:6px;"></i>Card Details</h3>
+              <div class="sec-chip" style="font-size:.64rem;"><i class="fas fa-lock"></i> 256-bit Encrypted</div>
+            </div>
+            <div class="card-body">
+              <div style="margin-bottom:16px;">
+                <div style="font-size:.7rem;font-weight:800;text-transform:uppercase;letter-spacing:.07em;color:var(--color-muted);margin-bottom:10px;">Saved Cards</div>
+                <div class="saved-card selected-sc" id="sc-4242" onclick="ppSelectSavedCard('4242')">
+                  <input type="radio" name="ppSavedCard" value="4242" checked style="accent-color:var(--color-accent);">
+                  <div class="saved-card__logo" style="background:linear-gradient(135deg,#1a1f71,#00579f);">VISA</div>
+                  <div style="flex:1;font-size:.82rem;font-weight:700;color:var(--color-near-black);">•••• •••• •••• 4242</div>
+                  <span class="badge badge-confirmed" style="font-size:.6rem;">Default</span>
+                </div>
+                <div class="saved-card" id="sc-8891" onclick="ppSelectSavedCard('8891')">
+                  <input type="radio" name="ppSavedCard" value="8891" style="accent-color:var(--color-accent);">
+                  <div class="saved-card__logo" style="background:linear-gradient(135deg,#eb001b,#f79e1b);">MC</div>
+                  <div style="flex:1;font-size:.82rem;font-weight:700;color:var(--color-near-black);">•••• •••• •••• 8891</div>
+                  <span style="font-size:.72rem;color:var(--color-muted);">Exp 03/2026</span>
+                </div>
+              </div>
+              <div style="display:flex;align-items:center;gap:10px;margin:16px 0 14px;">
+                <div style="flex:1;height:1px;background:var(--color-border);"></div>
+                <span style="font-size:.68rem;color:var(--color-muted);font-weight:700;white-space:nowrap;">OR ADD A NEW CARD</span>
+                <div style="flex:1;height:1px;background:var(--color-border);"></div>
+              </div>
+              <div class="pp-form-grid">
+                <div class="pp-form-group span2">
+                  <label>Card Number</label>
+                  <div class="card-num-wrap">
+                    <input type="text" id="ppCardNum" placeholder="1234  5678  9012  3456" maxlength="19" oninput="ppFmtCard(this)" />
+                    <span class="card-type-pill" id="ppCardPill"></span>
+                  </div>
+                </div>
+                <div class="pp-form-group span2">
+                  <label>Cardholder Name</label>
+                  <input type="text" id="ppCardName" placeholder="Alex Johnson" />
+                </div>
+                <div class="pp-form-group">
+                  <label>Expiry</label>
+                  <input type="text" id="ppCardExp" placeholder="MM / YY" maxlength="7" oninput="ppFmtExp(this)" />
+                </div>
+                <div class="pp-form-group">
+                  <label>CVV / CVC</label>
+                  <input type="text" id="ppCardCvv" placeholder="•••" maxlength="4" />
+                </div>
+                <div class="pp-form-group span2" style="flex-direction:row;align-items:center;gap:8px;background:var(--color-off-white);border-radius:var(--radius-sm);padding:10px 12px;">
+                  <input type="checkbox" id="ppSaveCard" style="accent-color:var(--color-accent);width:16px;height:16px;flex-shrink:0;">
+                  <label for="ppSaveCard" style="font-size:.78rem;font-weight:600;color:var(--color-near-black);cursor:pointer;text-transform:none;letter-spacing:0;">Save this card for future payments</label>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- ACH Form -->
+          <div class="card" id="ppFormAch" style="display:none;margin-bottom:18px;">
+            <div class="card-header">
+              <h3><i class="fas fa-building-columns" style="color:var(--color-accent);margin-right:6px;"></i>Bank Account (ACH)</h3>
+            </div>
+            <div class="card-body">
+              <div class="pp-form-grid">
+                <div class="pp-form-group span2">
+                  <label>Account Holder Name</label>
+                  <input type="text" placeholder="Johnson Retail Group LLC" />
+                </div>
+                <div class="pp-form-group">
+                  <label>Routing Number</label>
+                  <input type="text" placeholder="021000021" maxlength="9" />
+                </div>
+                <div class="pp-form-group">
+                  <label>Account Number</label>
+                  <input type="text" placeholder="••••••••••••" />
+                </div>
+                <div class="pp-form-group span2">
+                  <label>Account Type</label>
+                  <select>
+                    <option>Business Checking</option>
+                    <option>Checking</option>
+                    <option>Savings</option>
+                  </select>
+                </div>
+              </div>
+              <div style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:var(--radius-sm);padding:10px 14px;margin-top:10px;font-size:.78rem;color:#1e40af;">
+                <i class="fas fa-info-circle"></i> ACH payments settle within <strong>1–3 business days</strong>. No processing fee.
+              </div>
+            </div>
+          </div>
+
+          <!-- Wire Form -->
+          <div class="card" id="ppFormWire" style="display:none;margin-bottom:18px;">
+            <div class="card-header">
+              <h3><i class="fas fa-landmark" style="color:var(--color-accent);margin-right:6px;"></i>Wire Transfer Instructions</h3>
+            </div>
+            <div class="card-body">
+              <div style="background:var(--color-off-white);border:1.5px solid var(--color-border);border-radius:var(--radius-md);padding:18px;margin-bottom:14px;">
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;font-size:.82rem;">
+                  <div><div style="font-size:.66rem;font-weight:800;text-transform:uppercase;letter-spacing:.07em;color:var(--color-muted);margin-bottom:4px;">Bank Name</div><strong>Chase Bank N.A.</strong></div>
+                  <div><div style="font-size:.66rem;font-weight:800;text-transform:uppercase;letter-spacing:.07em;color:var(--color-muted);margin-bottom:4px;">ABA Routing</div><strong style="font-family:monospace;">021000021</strong></div>
+                  <div><div style="font-size:.66rem;font-weight:800;text-transform:uppercase;letter-spacing:.07em;color:var(--color-muted);margin-bottom:4px;">Account Number</div><strong style="font-family:monospace;">4000-0012-3456</strong></div>
+                  <div><div style="font-size:.66rem;font-weight:800;text-transform:uppercase;letter-spacing:.07em;color:var(--color-muted);margin-bottom:4px;">SWIFT / BIC</div><strong style="font-family:monospace;">CHASUS33</strong></div>
+                  <div style="grid-column:span 2;"><div style="font-size:.66rem;font-weight:800;text-transform:uppercase;letter-spacing:.07em;color:var(--color-muted);margin-bottom:4px;">Beneficiary</div><strong>BRND Direct Inc. — Payments</strong></div>
+                </div>
+              </div>
+              <div style="background:#fef3c7;border:1px solid #fde68a;border-radius:var(--radius-sm);padding:10px 14px;font-size:.78rem;color:#92400e;margin-bottom:14px;">
+                <i class="fas fa-triangle-exclamation"></i> Include your <strong>invoice number(s)</strong> in the wire memo. Wires settle <strong>same-day</strong>.
+              </div>
+              <div class="pp-form-group">
+                <label>Wire Memo / Reference</label>
+                <input type="text" id="ppWireMemo" placeholder="e.g. INV-2891, INV-2888" />
+              </div>
+            </div>
+          </div>
+
+          <!-- BRND Credit Form -->
+          <div class="card" id="ppFormCredit" style="display:none;margin-bottom:18px;">
+            <div class="card-header">
+              <h3><i class="fas fa-wallet" style="color:var(--color-accent);margin-right:6px;"></i>BRND Credit Balance</h3>
+            </div>
+            <div class="card-body">
+              <div style="display:flex;justify-content:space-between;align-items:center;padding:18px;background:var(--color-accent-glow);border:1.5px solid rgba(79,70,229,.2);border-radius:var(--radius-md);margin-bottom:14px;">
+                <div>
+                  <div style="font-size:.7rem;font-weight:800;text-transform:uppercase;letter-spacing:.07em;color:var(--color-accent);">Available Credit</div>
+                  <div style="font-family:var(--font-display);font-size:1.9rem;font-weight:900;color:var(--color-accent);letter-spacing:-.04em;">$32,660.00</div>
+                </div>
+                <i class="fas fa-wallet" style="font-size:2.2rem;color:var(--color-accent);opacity:.25;"></i>
+              </div>
+              <div style="font-size:.82rem;color:var(--color-muted);line-height:1.65;">
+                Your BRND credit line will be debited immediately. The amount counts against your <strong style="color:var(--color-near-black);">Net-30</strong> terms and will appear on your next statement. No processing fee.
+              </div>
+            </div>
+          </div>
+
+          <div style="display:flex;justify-content:space-between;margin-top:4px;">
+            <button class="btn btn-secondary btn-sm" onclick="ppGoStep(1)"><i class="fas fa-arrow-left"></i> Back</button>
+            <button class="btn btn-primary btn-sm" onclick="ppGoStep(3)">Review Payment <i class="fas fa-arrow-right"></i></button>
+          </div>
+        </div>
+
+        <!-- ── STEP 3: Review & Confirm ── -->
+        <div class="pp-panel" id="ppPanel3">
+          <div class="card" style="margin-bottom:18px;">
+            <div class="card-header">
+              <h3><i class="fas fa-magnifying-glass-dollar" style="color:var(--color-accent);margin-right:6px;"></i>Review &amp; Confirm Payment</h3>
+            </div>
+            <div class="card-body">
+              <div style="font-size:.7rem;font-weight:800;text-transform:uppercase;letter-spacing:.08em;color:var(--color-muted);margin-bottom:10px;">Invoices Being Settled</div>
+              <div id="ppConfirmInvs" style="margin-bottom:20px;display:flex;flex-direction:column;gap:7px;"></div>
+
+              <div style="font-size:.7rem;font-weight:800;text-transform:uppercase;letter-spacing:.08em;color:var(--color-muted);margin-bottom:10px;border-top:1px solid var(--color-border);padding-top:16px;">Payment Details</div>
+              <div class="card" style="border-color:var(--color-border);box-shadow:none;margin-bottom:16px;">
+                <div id="ppConfirmDetails"></div>
+              </div>
+
+              <div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:var(--radius-sm);padding:12px 16px;font-size:.78rem;color:#065f46;margin-bottom:16px;">
+                <i class="fas fa-shield-halved"></i> This transaction is <strong>SSL-encrypted</strong> and processed via BRND Direct's PCI DSS Level 1 gateway.
+              </div>
+
+              <div style="display:flex;align-items:flex-start;gap:10px;">
+                <input type="checkbox" id="ppTermsCheck" style="accent-color:var(--color-accent);width:16px;height:16px;margin-top:2px;flex-shrink:0;">
+                <label for="ppTermsCheck" style="font-size:.78rem;color:var(--color-muted);cursor:pointer;line-height:1.5;">
+                  I authorise BRND Direct to process this payment as described and agree to the <a href="help.html" style="color:var(--color-accent);">payment terms &amp; conditions</a>.
+                </label>
+              </div>
+            </div>
+          </div>
+
+          <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;">
+            <button class="btn btn-secondary btn-sm" onclick="ppGoStep(2)"><i class="fas fa-arrow-left"></i> Back</button>
+            <button class="btn btn-primary btn-sm" id="ppPayBtn" onclick="ppProcessPayment()" style="min-width:210px;justify-content:center;">
+              <i class="fas fa-lock"></i>&nbsp; Pay <span id="ppPayBtnAmt"></span> Securely
+            </button>
+          </div>
+        </div>
+
+        <!-- ── STEP 4: Success ── -->
+        <div class="pp-panel" id="ppPanel4">
+          <div class="card">
+            <div class="pp-success">
+              <div class="pp-success__icon"><i class="fas fa-check"></i></div>
+              <h2>Payment Successful! 🎉</h2>
+              <p>Your payment has been processed and confirmed. A receipt has been sent to <strong>alex@johnsonretail.com</strong></p>
+              <div class="pp-success__ref">
+                <div class="pp-success__ref-label">Transaction Reference</div>
+                <div class="pp-success__ref-num" id="ppTxRef">TXN-BD-000000</div>
+              </div>
+              <div id="ppSuccessMeta" style="font-size:.82rem;color:var(--color-muted);margin-bottom:20px;line-height:1.6;"></div>
+              <!-- Step 5 next-steps banner -->
+              <div style="background:linear-gradient(135deg,#312e81,#4f46e5);border-radius:12px;padding:16px 18px;margin-bottom:20px;text-align:left;">
+                <div style="color:#a5b4fc;font-size:.63rem;font-weight:800;text-transform:uppercase;letter-spacing:.1em;margin-bottom:10px;"><i class="fas fa-arrow-right"></i> &nbsp;What Happens Next</div>
+                <div style="display:flex;align-items:center;gap:10px;padding:5px 0;font-size:.78rem;">
+                  <div style="width:22px;height:22px;border-radius:50%;background:#10b981;display:flex;align-items:center;justify-content:center;font-size:.55rem;color:#fff;flex-shrink:0;"><i class="fas fa-check"></i></div>
+                  <span style="color:#6ee7b7;text-decoration:line-through;opacity:.8;">Step 4 — Invoice Paid ✓</span>
+                </div>
+                <div style="display:flex;align-items:center;gap:10px;padding:5px 0;font-size:.78rem;">
+                  <div style="width:22px;height:22px;border-radius:50%;background:var(--color-accent);display:flex;align-items:center;justify-content:center;font-size:.65rem;color:#fff;flex-shrink:0;box-shadow:0 0 0 3px rgba(99,102,241,.3);">5</div>
+                  <span style="color:#fff;font-weight:700;">Step 5 — Seller now picks &amp; packs your order (starting now)</span>
+                </div>
+                <div style="display:flex;align-items:center;gap:10px;padding:5px 0;font-size:.78rem;">
+                  <div style="width:22px;height:22px;border-radius:50%;background:rgba(255,255,255,.15);display:flex;align-items:center;justify-content:center;font-size:.65rem;color:#a5b4fc;flex-shrink:0;">6</div>
+                  <span style="color:rgba(255,255,255,.5);">Step 6 — Once packed, you'll schedule shipping via Shipping &amp; Logistics</span>
+                </div>
+              </div>
+              <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;">
+                <button class="btn btn-secondary btn-sm" onclick="showToast('Receipt downloading…','success')"><i class="fas fa-download"></i> Download Receipt</button>
+                <a href="orders.html?tab=step5" class="btn btn-primary btn-sm" style="display:flex;align-items:center;gap:7px;"><i class="fas fa-box-open"></i> Track Packing (Step 5)</a>
+                <a href="shipping-logistics.html" class="btn btn-sm" style="background:linear-gradient(135deg,#4f46e5,#312e81);color:#fff;border:none;font-weight:700;display:flex;align-items:center;gap:7px;"><i class="fas fa-truck-fast"></i> View Shipping (Step 6)</a>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div><!-- end left panels -->
+
+      <!-- RIGHT: Live Summary Sidebar -->
+      <div>
+        <div class="pp-summary" id="ppSummary">
+          <div class="pp-summary__head">
+            <h3><i class="fas fa-receipt" style="margin-right:8px;opacity:.75;"></i>Payment Summary</h3>
+            <p>Live total for this transaction</p>
+          </div>
+          <div class="pp-summary__items" id="ppSumItems">
+            <div style="text-align:center;padding:28px 0;color:var(--color-muted);font-size:.82rem;">
+              <i class="fas fa-file-invoice" style="font-size:1.6rem;display:block;margin-bottom:10px;opacity:.25;"></i>
+              No invoices selected
+            </div>
+          </div>
+          <div class="pp-summary__totals">
+            <div class="pp-sum-row">
+              <span style="color:var(--color-muted);">Subtotal</span>
+              <span id="ppSumSub">$0.00</span>
+            </div>
+            <div class="pp-sum-row">
+              <span style="color:var(--color-muted);">Processing Fee</span>
+              <span id="ppSumFee">$0.00</span>
+            </div>
+            <div class="pp-sum-row grand">
+              <span>Total Due</span>
+              <span id="ppSumTotal" style="color:var(--color-accent);">$0.00</span>
+            </div>
+          </div>
+          <div class="pp-summary__footer">
+            <div style="font-size:.71rem;color:var(--color-muted);line-height:1.55;margin-bottom:10px;">
+              <i class="fas fa-info-circle" style="margin-right:4px;"></i>
+              ACH, wire &amp; BRND Credit: no fee. Card: 2.9% + $0.30 per transaction.
+            </div>
+            <div class="sec-chips">
+              <div class="sec-chip"><i class="fas fa-lock"></i> SSL 256-bit</div>
+              <div class="sec-chip"><i class="fas fa-shield-halved"></i> PCI DSS L1</div>
+              <div class="sec-chip"><i class="fas fa-check-circle"></i> Verified</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- end pp-layout -->
+  </div><!-- end section-payment -->
+
+</main>
+
+<!-- ══════════════════════════════════════
+     INVOICE VIEW MODAL
+══════════════════════════════════════ -->
+<div class="modal-overlay" id="invoiceModal">
+  <div class="modal">
+    <div class="modal-header">
+      <div>
+        <div class="modal-title" id="modInvNum">Invoice INV-2891</div>
+        <div style="margin-top:5px;display:flex;gap:8px;align-items:center;">
+          <span id="modInvStatus" class="badge badge-pending">Outstanding</span>
+          <span id="modInvDate" style="font-size:.78rem;color:var(--color-muted);">Issued Mar 18, 2026</span>
+        </div>
+      </div>
+      <button class="modal-close" id="invModalClose"><i class="fas fa-times"></i></button>
+    </div>
+    <div class="modal-body">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:24px;flex-wrap:wrap;gap:12px;">
+        <div>
+          <div class="logo-mark" style="margin-bottom:8px;"><span class="logo-icon" style="width:28px;height:28px;font-size:.75rem;"><i class="fas fa-chevron-right"></i></span><span class="logo-word logo-word--dark" style="font-size:1rem;">BRND <span class="logo-accent logo-accent--dark">DIRECT</span></span></div>
+          <div style="font-size:.78rem;color:var(--color-muted);">350 Fifth Avenue, Suite 4100<br>New York, NY 10118</div>
+        </div>
+        <div style="text-align:right;">
+          <div style="font-size:.72rem;color:var(--color-muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px;">Invoice #</div>
+          <div id="modInvNum2" style="font-size:1.2rem;font-weight:800;font-family:var(--font-display);color:var(--color-accent);">INV-2891</div>
+          <div id="modInvDue" style="font-size:.8rem;color:var(--color-amber);font-weight:600;margin-top:4px;">Due: Apr 17, 2026</div>
+        </div>
+      </div>
+      <div style="background:var(--color-off-white);border-radius:var(--radius-md);padding:16px;margin-bottom:20px;">
+        <div style="font-size:.72rem;text-transform:uppercase;letter-spacing:.07em;color:var(--color-muted);margin-bottom:10px;">Bill To</div>
+        <div style="font-weight:700;color:var(--color-near-black);">Johnson Retail Group LLC</div>
+        <div style="font-size:.82rem;color:var(--color-muted);">Alex Johnson · alex@johnsonretail.com<br>350 Fifth Avenue, Suite 4100, New York NY 10118</div>
+      </div>
+      <table style="width:100%;border-collapse:collapse;font-size:.875rem;margin-bottom:16px;">
+        <thead><tr style="border-bottom:2px solid var(--color-border);">
+          <th style="text-align:left;padding:8px 0;font-size:.72rem;text-transform:uppercase;letter-spacing:.06em;color:var(--color-muted);">Item</th>
+          <th style="text-align:center;padding:8px 0;font-size:.72rem;text-transform:uppercase;letter-spacing:.06em;color:var(--color-muted);">Qty</th>
+          <th style="text-align:right;padding:8px 0;font-size:.72rem;text-transform:uppercase;letter-spacing:.06em;color:var(--color-muted);">Unit Price</th>
+          <th style="text-align:right;padding:8px 0;font-size:.72rem;text-transform:uppercase;letter-spacing:.06em;color:var(--color-muted);">Total</th>
+        </tr></thead>
+        <tbody id="modInvItems"></tbody>
+      </table>
+      <div style="border-top:1px solid var(--color-border);padding-top:12px;display:flex;flex-direction:column;gap:6px;align-items:flex-end;">
+        <div style="display:flex;gap:60px;font-size:.82rem;"><span style="color:var(--color-muted);">Subtotal</span><span style="font-weight:600;" id="modSubtotal">$3,840.00</span></div>
+        <div style="display:flex;gap:60px;font-size:.82rem;"><span style="color:var(--color-muted);">Tax (0%)</span><span style="font-weight:600;">$0.00</span></div>
+        <div style="display:flex;gap:60px;font-size:1rem;font-weight:800;font-family:var(--font-display);border-top:2px solid var(--color-near-black);padding-top:10px;"><span>Total</span><span id="modTotal2">$3,840.00</span></div>
+      </div>
+      <div style="background:var(--color-accent-glow);border:1px solid rgba(79,70,229,.15);border-radius:var(--radius-md);padding:14px 18px;margin-top:16px;font-size:.82rem;color:var(--color-accent);">
+        <i class="fas fa-info-circle" style="margin-right:6px;"></i> Payment Terms: <strong>Net-30</strong> · Due by <strong id="modDueNote">Apr 17, 2026</strong>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="modal-close btn btn-secondary btn-sm" id="invModalClose2">Close</button>
+      <button class="btn btn-outline btn-sm" onclick="showToast('Invoice downloaded.','success')"><i class="fas fa-download"></i> Download PDF</button>
+      <button class="btn btn-primary btn-sm" id="modalPayNowBtn" onclick="payFromModal()"><i class="fas fa-credit-card"></i> Pay Now</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast-container" id="toastContainer"></div>
+<script src="js/portal.js"></script>
+<script>(function(){try{var c=JSON.parse(sessionStorage.getItem('brnd_cart')||'[]');var b=document.getElementById('sidebarCartBadge');if(b&&c.length>0){b.textContent=c.length;b.style.display='inline-flex';}}catch(e){}})();</script>
+<script>
+/* ════════════════════════════════════════════════════════════
+   DATA
+════════════════════════════════════════════════════════════ */
+/* ════════════════════════════════════════════════════════════
+   INJECT NEW INVOICES FROM CART CHECKOUT (sessionStorage)
+════════════════════════════════════════════════════════════ */
+const newInvsFromCart = JSON.parse(sessionStorage.getItem('brndNewInvoices') || '[]');
+const latestInvId     = sessionStorage.getItem('brndLatestInv') || '';
+
+// Convert cart invoices to the same shape as static invoices
+const cartInvoices = newInvsFromCart.map(ni => ({
+  id:     ni.id,
+  order:  ni.orderId,
+  brand:  ni.brands || (ni.items && ni.items[0] ? ni.items[0].brand : 'BRND Direct'),
+  amount: Math.round(ni.amount * 100) / 100,
+  terms:  ni.terms || 'Net-30',
+  issued: ni.issueDate,
+  due:    ni.dueDate,
+  status: 'outstanding',
+  po:     ni.po,
+  items:  (ni.items || []).map(i => ({ desc: i.name, qty: i.qty, price: i.price })),
+  _isNew: true
+}));
+
+// Show a green banner if arriving from cart checkout
+if (latestInvId) {
+  const banner = document.createElement('div');
+  banner.id = 'newInvBanner';
+  banner.style.cssText = `
+    display:flex; align-items:center; gap:12px; flex-wrap:wrap;
+    background:rgba(16,185,129,.08); border:1.5px solid rgba(16,185,129,.3);
+    border-radius:10px; padding:14px 20px; margin-bottom:20px;
+    font-size:.875rem; font-weight:600; color:#065f46;
+    animation: fadeSlideIn .4s ease;
+  `;
+  banner.innerHTML = `
+    <div style="width:36px;height:36px;border-radius:50%;background:#10b981;display:flex;align-items:center;justify-content:center;color:#fff;font-size:.9rem;flex-shrink:0;">
+      <i class="fas fa-check"></i>
+    </div>
+    <div style="flex:1;">
+      <div style="font-weight:800;font-size:.95rem;margin-bottom:2px;">Order Confirmed — Invoice Created</div>
+      <div style="font-size:.8rem;color:#047857;">Invoice <strong>${latestInvId}</strong> has been generated from your cart order. Pay it below or any time from this page.</div>
+    </div>
+    <a href="payment-portal.html?inv=${latestInvId}" class="btn btn-primary btn-sm" style="flex-shrink:0;"><i class="fas fa-credit-card"></i> Pay Now</a>
+    <button onclick="document.getElementById('newInvBanner').remove();sessionStorage.removeItem('brndLatestInv');" style="background:none;border:none;cursor:pointer;color:#047857;font-size:1rem;flex-shrink:0;"><i class="fas fa-xmark"></i></button>
+  `;
+  // Insert after stats section
+  const mainEl = document.querySelector('.app-main');
+  const statsEl = mainEl.querySelector('.inv-stats');
+  if (statsEl && statsEl.nextSibling) {
+    statsEl.parentNode.insertBefore(banner, statsEl.nextSibling);
+  } else if (mainEl) {
+    mainEl.insertBefore(banner, mainEl.firstChild);
+  }
+  // Clear after showing once
+  setTimeout(() => sessionStorage.removeItem('brndLatestInv'), 500);
+}
+
+const baseInvoices = [
+  { id:'INV-2891', order:'BD-48291', brand:'Maison Margiela', amount:3840,  terms:'Net-30', issued:'Mar 18, 2026', due:'Apr 17, 2026', status:'outstanding', items:[{desc:'Replica Fragrance Set',qty:48,price:80}] },
+  { id:'INV-2890', order:'BD-48290', brand:'Charlotte Tilbury',amount:9600,  terms:'Net-30', issued:'Mar 17, 2026', due:'Apr 16, 2026', status:'paid',        items:[{desc:'Pillow Talk Collection',qty:120,price:80}] },
+  { id:'INV-2889', order:'BD-48289', brand:'New Balance',      amount:2160,  terms:'Net-60', issued:'Mar 16, 2026', due:'May 15, 2026', status:'paid',        items:[{desc:'990v6 Assorted Sizes',qty:36,price:60}] },
+  { id:'INV-2888', order:'BD-48288', brand:'Chanel',           amount:5760,  terms:'Net-60', issued:'Mar 15, 2026', due:'May 14, 2026', status:'outstanding', items:[{desc:'No. 5 EDP 50ml',qty:24,price:240}] },
+  { id:'INV-2887', order:'BD-48287', brand:'Gucci',            amount:7200,  terms:'Net-30', issued:'Mar 14, 2026', due:'Apr 13, 2026', status:'outstanding', items:[{desc:'GG Marmont Mini Bag',qty:12,price:600}] },
+  { id:'INV-2886', order:'BD-48286', brand:'Jordan Brand',     amount:3240,  terms:'Net-30', issued:'Mar 13, 2026', due:'Apr 12, 2026', status:'paid',        items:[{desc:'Air Jordan 1 Retro High OG',qty:18,price:180}] },
+  { id:'INV-2885', order:'BD-48285', brand:'Dior',             amount:5700,  terms:'Net-60', issued:'Mar 10, 2026', due:'May 9, 2026',  status:'paid',        items:[{desc:'Sauvage EDT 100ml',qty:60,price:95}] },
+  { id:'INV-2884', order:'BD-48284', brand:'NARS Cosmetics',   amount:2016,  terms:'BNPL',   issued:'Mar 8, 2026',  due:'Apr 7, 2026',  status:'paid',        items:[{desc:'Iconic Lipstick Set',qty:72,price:28}] },
+  { id:'INV-2883', order:'BD-48283', brand:'Prada',            amount:2880,  terms:'Net-90', issued:'Mar 7, 2026',  due:'Jun 5, 2026',  status:'upcoming',    items:[{desc:'Saffiano Leather Tote',qty:4,price:720}] },
+  { id:'INV-2882', order:'BD-48282', brand:'Versace',          amount:3060,  terms:'Net-30', issued:'Mar 6, 2026',  due:'Apr 5, 2026',  status:'outstanding', items:[{desc:'Jeans Couture Polo SS26',qty:36,price:85}] },
+  { id:'INV-2881', order:'BD-48281', brand:'MAC Cosmetics',    amount:2112,  terms:'BNPL',   issued:'Mar 5, 2026',  due:'Apr 4, 2026',  status:'paid',        items:[{desc:'Studio Fix Foundation',qty:96,price:22}] },
+  { id:'INV-2880', order:'BD-48280', brand:'Ralph Lauren',     amount:1560,  terms:'Net-30', issued:'Mar 4, 2026',  due:'Apr 3, 2026',  status:'paid',        items:[{desc:'Oxford Piqué Polo',qty:24,price:65}] },
+  { id:'INV-2879', order:'BD-48279', brand:'Maison Margiela',  amount:2700,  terms:'Net-30', issued:'Mar 17, 2026', due:'Apr 16, 2026', status:'upcoming',    items:[{desc:'Beach Walk EDP 100ml',qty:30,price:90}] },
+  { id:'INV-2878', order:'BD-48278', brand:'Balenciaga',       amount:2700,  terms:'Net-60', issued:'Mar 16, 2026', due:'May 15, 2026', status:'upcoming',    items:[{desc:'Triple S Sneaker',qty:6,price:450}] },
+  { id:'INV-2877', order:'BD-48277', brand:'YSL Beauty',       amount:2496,  terms:'Net-30', issued:'Mar 11, 2026', due:'Apr 10, 2026', status:'paid',        items:[{desc:'Rouge Pur Couture Set',qty:48,price:52}] },
+];
+
+// Merge cart-generated invoices at the top (newest first)
+const invoices = [...cartInvoices, ...baseInvoices];
+
+const OUTSTANDING = invoices.filter(i => i.status === 'outstanding' || i.status === 'overdue');
+const statusBadgeMap = { outstanding:'badge-pending', paid:'badge-delivered', upcoming:'badge-shipped', overdue:'badge-cancelled' };
+
+/* ════════════════════════════════════════════════════════════
+   SECTION SWITCHING
+════════════════════════════════════════════════════════════ */
+function switchSection(name) {
+  document.querySelectorAll('.page-section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.page-section-tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('section-' + name).classList.add('active');
+  document.querySelector(`[data-section="${name}"]`).classList.add('active');
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+/* ════════════════════════════════════════════════════════════
+   INVOICE TABLE
+════════════════════════════════════════════════════════════ */
+function renderInvoices(data) {
+  const tbody = document.getElementById('invoiceBody');
+  tbody.innerHTML = data.map(inv => `
+    <tr data-status="${inv.status}" style="${inv._isNew ? 'background:rgba(16,185,129,.04);' : ''}">
+      <td>
+        <span class="td-mono">${inv.id}</span>
+        ${inv._isNew ? '<span style="margin-left:6px;background:#10b981;color:#fff;font-size:.58rem;font-weight:800;padding:2px 6px;border-radius:10px;vertical-align:middle;">NEW</span>' : ''}
+      </td>
+      <td><span style="font-size:.78rem;color:var(--color-muted);">${inv.order}</span></td>
+      <td><div class="td-primary">${inv.brand}</div></td>
+      <td><strong>$${inv.amount.toLocaleString('en-US',{minimumFractionDigits:2})}</strong></td>
+      <td><span class="badge badge-shipped" style="font-size:.6rem;">${inv.terms}</span></td>
+      <td style="font-size:.78rem;color:var(--color-muted);">${inv.issued}</td>
+      <td style="font-size:.78rem;font-weight:600;color:${inv.status==='overdue'?'var(--color-rose)':inv.status==='outstanding'?'var(--color-amber)':'var(--color-muted)'};">${inv.due}</td>
+      <td><span class="badge ${statusBadgeMap[inv.status] || 'badge-pending'}">${inv.status}</span></td>
+      <td style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;">
+        <button class="action-btn view-inv-btn" data-id="${inv.id}" style="font-size:.75rem;padding:4px 10px;">View</button>
+        ${(inv.status==='outstanding'||inv.status==='overdue')
+          ? `<button onclick="openPaymentPortal('${inv.id}')" style="font-size:.75rem;padding:4px 10px;border:1.5px solid var(--color-emerald);border-radius:6px;background:var(--color-emerald);color:#fff;cursor:pointer;font-family:var(--font-sans);font-weight:700;transition:opacity .15s;" onmouseover="this.style.opacity='.85'" onmouseout="this.style.opacity='1'"><i class="fas fa-credit-card"></i> Pay</button>`
+          : ''}
+        <button onclick="showToast('Downloading PDF…','success')" style="font-size:.75rem;padding:4px 10px;border:1.5px solid var(--color-border);border-radius:6px;background:transparent;color:var(--color-muted);cursor:pointer;font-family:var(--font-sans);font-weight:600;"><i class="fas fa-download"></i></button>
+      </td>
+    </tr>`).join('');
+  document.querySelectorAll('.view-inv-btn').forEach(btn => btn.addEventListener('click', () => openInvModal(btn.dataset.id)));
+  document.getElementById('invCount').textContent = `Showing ${data.length} invoice${data.length !== 1 ? 's' : ''}`;
+}
+renderInvoices(invoices);
+
+// Highlight the latest invoice row if arriving from cart
+if (latestInvId) {
+  document.addEventListener('DOMContentLoaded', () => {
+    const rows = document.querySelectorAll('#invoiceBody tr');
+    rows.forEach(row => {
+      if (row.textContent.includes(latestInvId)) {
+        row.scrollIntoView({ behavior:'smooth', block:'center' });
+        row.style.outline = '2px solid #10b981';
+        row.style.outlineOffset = '-2px';
+      }
+    });
+  });
+}
+
+// Filter tabs
+document.getElementById('invTabs').querySelectorAll('.inv-tab').forEach(tab => {
+  tab.addEventListener('click', function() {
+    document.querySelectorAll('.inv-tab').forEach(t => t.classList.remove('active'));
+    this.classList.add('active');
+    const t = this.dataset.tab;
+    const filtered = t === 'all' ? invoices : invoices.filter(i => i.status === t);
+    renderInvoices(filtered);
+  });
+});
+
+// Search
+document.getElementById('invSearch').addEventListener('input', function() {
+  const q = this.value.toLowerCase();
+  document.querySelectorAll('#invoiceBody tr').forEach(r => {
+    r.style.display = r.textContent.toLowerCase().includes(q) ? '' : 'none';
+  });
+});
+
+/* ════════════════════════════════════════════════════════════
+   INVOICE MODAL
+════════════════════════════════════════════════════════════ */
+let _modalInv = null;
+
+function openInvModal(id) {
+  const inv = invoices.find(i => i.id === id);
+  if (!inv) return;
+  _modalInv = inv;
+  const payBtn = document.getElementById('modalPayNowBtn');
+  if (payBtn) payBtn.style.display = (inv.status === 'outstanding' || inv.status === 'overdue') ? '' : 'none';
+  document.getElementById('modInvNum').textContent   = `Invoice ${inv.id}`;
+  document.getElementById('modInvNum2').textContent  = inv.id;
+  document.getElementById('modInvStatus').textContent = inv.status;
+  document.getElementById('modInvStatus').className   = `badge ${statusBadgeMap[inv.status]}`;
+  document.getElementById('modInvDate').textContent   = `Issued ${inv.issued}`;
+  document.getElementById('modInvDue').textContent    = `Due: ${inv.due}`;
+  document.getElementById('modDueNote').textContent   = inv.due;
+  document.getElementById('modSubtotal').textContent  = `$${inv.amount.toLocaleString()}.00`;
+  document.getElementById('modTotal2').textContent    = `$${inv.amount.toLocaleString()}.00`;
+  document.getElementById('modInvItems').innerHTML    = inv.items.map(it => `
+    <tr style="border-bottom:1px solid var(--color-border);">
+      <td style="padding:10px 0;">${it.desc}</td>
+      <td style="text-align:center;padding:10px 0;">${it.qty}</td>
+      <td style="text-align:right;padding:10px 0;">$${it.price.toFixed(2)}</td>
+      <td style="text-align:right;padding:10px 0;font-weight:700;">$${(it.qty * it.price).toLocaleString()}.00</td>
+    </tr>`).join('');
+  document.getElementById('invoiceModal').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function payFromModal() {
+  if (_modalInv) {
+    document.getElementById('invoiceModal').classList.remove('open');
+    document.body.style.overflow = '';
+    openPaymentPortal(_modalInv.id);
+  }
+}
+
+['invModalClose','invModalClose2'].forEach(id => {
+  const el = document.getElementById(id);
+  if (el) el.addEventListener('click', () => {
+    document.getElementById('invoiceModal').classList.remove('open');
+    document.body.style.overflow = '';
+  });
+});
+document.getElementById('invoiceModal').addEventListener('click', function(e) {
+  if (e.target === this) { this.classList.remove('open'); document.body.style.overflow = ''; }
+});
+
+function exportInvoices() {
+  const csv = ['Invoice #,Order,Brand,Amount,Terms,Issued,Due,Status',
+    ...invoices.map(i => `${i.id},${i.order},${i.brand},$${i.amount},${i.terms},${i.issued},${i.due},${i.status}`)
+  ].join('\n');
+  const blob = new Blob([csv], { type: 'text/csv' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a'); a.href = url; a.download = 'brnd-invoices.csv'; a.click();
+  URL.revokeObjectURL(url);
+  showToast('Invoices exported!', 'success');
+}
+
+/* ════════════════════════════════════════════════════════════
+   PAYMENT PORTAL STATE
+════════════════════════════════════════════════════════════ */
+let ppSelected   = new Set();   // selected invoice IDs
+let ppMethod     = 'card';      // current payment method
+let ppStep       = 1;           // current step
+
+/* Entry point — call this from any "Pay Now" button */
+function openPaymentPortal(preSelectId) {
+  switchSection('payment');
+  ppRenderInvList();
+  if (preSelectId) {
+    ppSelected.clear();
+    if (OUTSTANDING.find(i => i.id === preSelectId)) ppSelected.add(preSelectId);
+    ppRefreshPickUI();
+  }
+  ppUpdateSummary();
+  ppUpdateStep1Btn();
+  ppGoStep(1);
+}
+
+/* ── Invoice picker ── */
+function ppRenderInvList() {
+  const el = document.getElementById('ppInvList');
+  if (!OUTSTANDING.length) {
+    el.innerHTML = `<div style="text-align:center;padding:32px;color:var(--color-muted);">
+      <i class="fas fa-check-circle" style="font-size:2rem;color:var(--color-emerald);display:block;margin-bottom:10px;"></i>
+      All invoices are settled — nothing to pay!
+    </div>`;
+    return;
+  }
+  el.innerHTML = OUTSTANDING.map(inv => `
+    <div class="inv-pick-item ${ppSelected.has(inv.id)?'selected':''}" id="ppItem-${inv.id}" onclick="ppToggleInv('${inv.id}')">
+      <input type="checkbox" class="pp-inv-cb" data-id="${inv.id}"
+        ${ppSelected.has(inv.id) ? 'checked' : ''}
+        onclick="event.stopPropagation();ppToggleInv('${inv.id}')">
+      <div style="flex:1;">
+        <div class="inv-pick-item__id">${inv.id}</div>
+        <div class="inv-pick-item__meta">${inv.brand} · ${inv.order} · ${inv.terms}</div>
+      </div>
+      <div style="text-align:right;flex-shrink:0;">
+        <div class="inv-pick-item__amount">$${inv.amount.toLocaleString()}</div>
+        <span class="inv-pick-item__due ${inv.status==='overdue'?'overdue':''}">Due ${inv.due}</span>
+      </div>
+    </div>`).join('');
+}
+
+function ppRefreshPickUI() {
+  OUTSTANDING.forEach(inv => {
+    const item = document.getElementById(`ppItem-${inv.id}`);
+    if (!item) return;
+    const cb = item.querySelector('.pp-inv-cb');
+    const sel = ppSelected.has(inv.id);
+    cb.checked = sel;
+    item.classList.toggle('selected', sel);
+  });
+}
+
+function ppToggleInv(id) {
+  if (ppSelected.has(id)) ppSelected.delete(id);
+  else ppSelected.add(id);
+  ppRefreshPickUI();
+  ppUpdateSummary();
+  ppUpdateStep1Btn();
+  // Update select-all button label
+  const allSel = OUTSTANDING.every(i => ppSelected.has(i.id));
+  document.getElementById('ppSelectAllBtn').textContent = allSel ? 'Deselect All' : 'Select All';
+}
+
+function ppToggleSelectAll() {
+  const allSel = OUTSTANDING.every(i => ppSelected.has(i.id));
+  if (allSel) { ppSelected.clear(); document.getElementById('ppSelectAllBtn').textContent = 'Select All'; }
+  else { OUTSTANDING.forEach(i => ppSelected.add(i.id)); document.getElementById('ppSelectAllBtn').textContent = 'Deselect All'; }
+  ppRefreshPickUI();
+  ppUpdateSummary();
+  ppUpdateStep1Btn();
+}
+
+function ppUpdateStep1Btn() {
+  const btn = document.getElementById('pp1Next');
+  const sel = document.getElementById('ppSelSummary');
+  if (ppSelected.size === 0) {
+    btn.disabled = true;
+    sel.textContent = 'No invoices selected';
+    sel.style.color = 'var(--color-muted)';
+  } else {
+    btn.disabled = false;
+    const tot = ppGetSubtotal();
+    sel.innerHTML = `<strong>${ppSelected.size}</strong> invoice${ppSelected.size>1?'s':''} selected &nbsp;·&nbsp; <strong>$${tot.toLocaleString()}.00</strong> total`;
+    sel.style.color = 'var(--color-near-black)';
+  }
+}
+
+/* ── Payment method ── */
+function ppSelectMethod(method) {
+  ppMethod = method;
+  ['card','ach','wire','credit'].forEach(m => {
+    document.getElementById(`pmOpt-${m}`).classList.remove('selected');
+    const f = document.getElementById(`ppForm${m.charAt(0).toUpperCase()+m.slice(1)}`);
+    if (f) f.style.display = 'none';
+  });
+  document.getElementById(`pmOpt-${method}`).classList.add('selected');
+  const activeForm = document.getElementById(`ppForm${method.charAt(0).toUpperCase()+method.slice(1)}`);
+  if (activeForm) activeForm.style.display = '';
+  ppUpdateSummary();
+}
+
+function ppSelectSavedCard(last4) {
+  ['4242','8891'].forEach(n => {
+    document.getElementById(`sc-${n}`).classList.remove('selected-sc');
+    document.querySelector(`#sc-${n} input[type=radio]`).checked = false;
+  });
+  document.getElementById(`sc-${last4}`).classList.add('selected-sc');
+  document.querySelector(`#sc-${last4} input[type=radio]`).checked = true;
+}
+
+/* ── Step navigation ── */
+function ppGoStep(n) {
+  if (n === 3) ppBuildConfirm();
+
+  [1,2,3,4].forEach(i => document.getElementById(`ppPanel${i}`).classList.remove('active'));
+  document.getElementById(`ppPanel${n}`).classList.add('active');
+
+  [1,2,3,4].forEach(i => {
+    const s = document.getElementById(`ppStep${i}`);
+    s.classList.remove('active','done');
+    if (i < n) s.classList.add('done');
+    else if (i === n) s.classList.add('active');
+  });
+  [1,2,3].forEach(i => {
+    document.getElementById(`ppLine${i}`).classList.toggle('done', i < n);
+  });
+  ppStep = n;
+  document.getElementById('section-payment').scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+/* ── Totals ── */
+function ppGetSubtotal() {
+  return OUTSTANDING.filter(i => ppSelected.has(i.id)).reduce((s, i) => s + i.amount, 0);
+}
+function ppGetFee() {
+  if (ppMethod === 'card') {
+    const sub = ppGetSubtotal();
+    return sub > 0 ? Math.round((sub * 0.029 + 0.30) * 100) / 100 : 0;
+  }
+  return 0;
+}
+function ppGetTotal() { return ppGetSubtotal() + ppGetFee(); }
+
+function ppFmtMoney(n) {
+  return '$' + n.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+}
+
+function ppUpdateSummary() {
+  const selected = OUTSTANDING.filter(i => ppSelected.has(i.id));
+  const fee   = ppGetFee();
+  const sub   = ppGetSubtotal();
+  const total = ppGetTotal();
+
+  const itemsEl = document.getElementById('ppSumItems');
+  itemsEl.innerHTML = selected.length ? selected.map(inv => `
+    <div class="pp-sum-item">
+      <div>
+        <div class="pp-sum-item__id">${inv.id}</div>
+        <div class="pp-sum-item__brand">${inv.brand} · ${inv.terms}</div>
+      </div>
+      <div class="pp-sum-item__amt">$${inv.amount.toLocaleString()}.00</div>
+    </div>`).join('') :
+    `<div style="text-align:center;padding:28px 0;color:var(--color-muted);font-size:.82rem;">
+      <i class="fas fa-file-invoice" style="font-size:1.6rem;display:block;margin-bottom:10px;opacity:.25;"></i>
+      No invoices selected
+    </div>`;
+
+  document.getElementById('ppSumSub').textContent   = sub > 0 ? ppFmtMoney(sub) : '$0.00';
+  document.getElementById('ppSumFee').textContent   = fee > 0 ? ppFmtMoney(fee) : 'Free';
+  document.getElementById('ppSumTotal').textContent = ppFmtMoney(total);
+  document.getElementById('ppPayBtnAmt').textContent = ppFmtMoney(total);
+}
+
+/* ── Review step ── */
+function ppBuildConfirm() {
+  const selected = OUTSTANDING.filter(i => ppSelected.has(i.id));
+  const fee = ppGetFee();
+  const total = ppGetTotal();
+
+  document.getElementById('ppConfirmInvs').innerHTML = selected.map(inv => `
+    <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 14px;background:var(--color-off-white);border-radius:var(--radius-sm);border:1px solid var(--color-border);">
+      <div>
+        <span style="font-size:.82rem;font-weight:800;font-family:monospace;color:var(--color-accent);">${inv.id}</span>
+        <span style="font-size:.78rem;color:var(--color-muted);margin-left:10px;">${inv.brand} · ${inv.terms}</span>
+      </div>
+      <strong>$${inv.amount.toLocaleString()}.00</strong>
+    </div>`).join('');
+
+  const methodLabels = {
+    card:   '💳 Credit Card — Visa •••• 4242',
+    ach:    '🏦 ACH Bank Transfer',
+    wire:   '🏛 Wire Transfer (CHASUS33)',
+    credit: '💼 BRND Credit Balance'
+  };
+
+  const rows = [
+    { label: 'Payment Method',  val: methodLabels[ppMethod] },
+    { label: 'Subtotal',        val: ppFmtMoney(ppGetSubtotal()) },
+    { label: 'Processing Fee',  val: fee > 0 ? ppFmtMoney(fee) : '<span style="color:var(--color-emerald);font-weight:700;">Free</span>' },
+    { label: 'Total Amount',    val: `<strong style="font-size:1rem;color:var(--color-accent);">${ppFmtMoney(total)}</strong>` },
+    { label: 'Payment Date',    val: new Date().toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'}) },
+    { label: 'Billing Account', val: 'Johnson Retail Group LLC' },
+  ];
+  document.getElementById('ppConfirmDetails').innerHTML = rows.map(r => `
+    <div class="confirm-row">
+      <span class="confirm-row__label">${r.label}</span>
+      <span class="confirm-row__val">${r.val}</span>
+    </div>`).join('');
+}
+
+/* ── Process ── */
+function ppProcessPayment() {
+  if (!document.getElementById('ppTermsCheck').checked) {
+    showToast('Please agree to the payment terms to continue.', 'error');
+    return;
+  }
+  const btn = document.getElementById('ppPayBtn');
+  btn.disabled = true;
+  btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing…';
+
+  setTimeout(() => {
+    const ref = 'TXN-BD-' + Math.random().toString(36).substr(2,8).toUpperCase();
+    document.getElementById('ppTxRef').textContent = ref;
+    const total = ppGetTotal();
+    const ids   = [...ppSelected].join(', ');
+    document.getElementById('ppSuccessMeta').innerHTML =
+      `<strong>${ppFmtMoney(total)}</strong> paid for ${ids}<br>
+       <span>Processed on ${new Date().toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'})}</span>`;
+    ppGoStep(4);
+    showToast('Payment processed successfully! 🎉', 'success');
+    btn.disabled = false;
+    btn.innerHTML = `<i class="fas fa-lock"></i>&nbsp; Pay ${ppFmtMoney(ppGetTotal())} Securely`;
+  }, 2200);
+}
+
+/* ── Reset portal ── */
+function ppReset() {
+  ppSelected.clear();
+  ppMethod = 'card';
+  ppRenderInvList();
+  ppUpdateSummary();
+  ppUpdateStep1Btn();
+  document.getElementById('ppTermsCheck').checked = false;
+  ppSelectMethod('card');
+  ppGoStep(1);
+}
+
+/* ── Card input helpers ── */
+function ppFmtCard(input) {
+  let v = input.value.replace(/\D/g,'').substr(0,16);
+  input.value = v.replace(/(.{4})/g,'$1 ').trim();
+  const pill = document.getElementById('ppCardPill');
+  if (v.startsWith('4'))      { pill.textContent='VISA'; pill.style.background='#1a1f71'; pill.style.display=''; }
+  else if (v.startsWith('5')) { pill.textContent='MC';   pill.style.background='#eb001b'; pill.style.display=''; }
+  else if (v.startsWith('3')) { pill.textContent='AMEX'; pill.style.background='#006fcf'; pill.style.display=''; }
+  else                        { pill.style.display='none'; }
+}
+function ppFmtExp(input) {
+  let v = input.value.replace(/\D/g,'').substr(0,4);
+  if (v.length >= 3) v = v.substr(0,2) + ' / ' + v.substr(2);
+  input.value = v;
+}
+
+/* ════════════════════════════════════════════════════════════
+   TOAST
+════════════════════════════════════════════════════════════ */
+function showToast(msg, type='success') {
+  const c = document.getElementById('toastContainer');
+  const icon = type === 'success' ? 'fa-check-circle' : type === 'error' ? 'fa-exclamation-circle' : 'fa-info-circle';
+  const t = document.createElement('div');
+  t.className = `toast ${type}`;
+  t.innerHTML = `<i class="fas ${icon}"></i><span>${msg}</span>`;
+  c.appendChild(t);
+  setTimeout(() => {
+    t.style.opacity = '0'; t.style.transform = 'translateX(60px)'; t.style.transition = 'all .3s';
+    setTimeout(() => t.remove(), 350);
+  }, 3500);
+}
+
+// Pagination buttons
+document.querySelectorAll('.page-btn:not([disabled])').forEach(btn => {
+  btn.addEventListener('click', function() {
+    document.querySelectorAll('.page-btn').forEach(b => b.classList.remove('active'));
+    if (!this.querySelector('i')) this.classList.add('active');
+  });
+});
+
+// Init payment portal list on load (so it's ready)
+ppRenderInvList();
+ppUpdateSummary();
+ppUpdateStep1Btn();
+</script>
+</body>
+</html>

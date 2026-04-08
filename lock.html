@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BRND Direct — Secure Access</title>
+
+  <!-- Block all search engines and scrapers -->
+  <meta name="robots" content="noindex, nofollow, noarchive, nosnippet, noimageindex" />
+  <meta name="googlebot" content="noindex, nofollow" />
+  <meta name="bingbot" content="noindex, nofollow" />
+
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.5.0/css/all.min.css"/>
+
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    /* ── Disable right-click, text selection, drag ── */
+    body {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      background: #0a0f1e;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      user-select: none;
+      -webkit-user-select: none;
+      -moz-user-select: none;
+    }
+
+    /* ── Animated background ── */
+    .bg-glow {
+      position: fixed; inset: 0; z-index: 0; overflow: hidden;
+    }
+    .bg-glow::before {
+      content: '';
+      position: absolute;
+      width: 600px; height: 600px;
+      background: radial-gradient(circle, rgba(79,70,229,.25) 0%, transparent 70%);
+      top: -100px; left: -100px;
+      animation: drift1 8s ease-in-out infinite alternate;
+    }
+    .bg-glow::after {
+      content: '';
+      position: absolute;
+      width: 500px; height: 500px;
+      background: radial-gradient(circle, rgba(6,182,212,.15) 0%, transparent 70%);
+      bottom: -100px; right: -100px;
+      animation: drift2 10s ease-in-out infinite alternate;
+    }
+    @keyframes drift1 { from{transform:translate(0,0)} to{transform:translate(60px,40px)} }
+    @keyframes drift2 { from{transform:translate(0,0)} to{transform:translate(-40px,-60px)} }
+
+    /* ── Lock card ── */
+    .lock-card {
+      position: relative; z-index: 10;
+      background: rgba(16, 22, 40, 0.92);
+      border: 1px solid rgba(79, 70, 229, 0.3);
+      border-radius: 20px;
+      padding: 48px 44px;
+      width: 100%;
+      max-width: 440px;
+      box-shadow: 0 32px 80px rgba(0,0,0,.6), 0 0 0 1px rgba(255,255,255,.04);
+      backdrop-filter: blur(20px);
+      animation: slideUp .5s ease;
+    }
+    @keyframes slideUp {
+      from { opacity:0; transform:translateY(20px); }
+      to   { opacity:1; transform:translateY(0); }
+    }
+
+    /* ── Logo ── */
+    .lock-logo {
+      text-align: center;
+      margin-bottom: 32px;
+    }
+    .logo-icon {
+      width: 64px; height: 64px;
+      background: linear-gradient(135deg, #4f46e5, #06b6d4);
+      border-radius: 16px;
+      display: inline-flex; align-items: center; justify-content: center;
+      font-size: 1.8rem; margin-bottom: 16px;
+      box-shadow: 0 8px 32px rgba(79,70,229,.4);
+    }
+    .logo-name {
+      font-size: 1.5rem; font-weight: 900;
+      background: linear-gradient(135deg, #fff, #a5b4fc);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+      letter-spacing: -.02em;
+    }
+    .logo-sub {
+      font-size: .78rem; color: #4b5563;
+      margin-top: 4px; letter-spacing: .1em; text-transform: uppercase;
+    }
+
+    /* ── Lock icon ── */
+    .lock-icon-wrap {
+      text-align: center; margin-bottom: 24px;
+    }
+    .lock-shield {
+      width: 56px; height: 56px;
+      background: rgba(79,70,229,.12);
+      border: 1.5px solid rgba(79,70,229,.3);
+      border-radius: 50%;
+      display: inline-flex; align-items: center; justify-content: center;
+      font-size: 1.3rem; color: #818cf8;
+    }
+
+    .lock-title {
+      text-align: center;
+      font-size: 1.15rem; font-weight: 800;
+      color: #e2e8f0; margin-bottom: 6px;
+    }
+    .lock-sub {
+      text-align: center;
+      font-size: .8rem; color: #4b5563;
+      margin-bottom: 28px; line-height: 1.6;
+    }
+
+    /* ── Form ── */
+    .form-group { margin-bottom: 16px; }
+    .form-label {
+      display: block; font-size: .75rem; font-weight: 700;
+      color: #6b7280; text-transform: uppercase; letter-spacing: .07em;
+      margin-bottom: 7px;
+    }
+    .form-input-wrap { position: relative; }
+    .form-input {
+      width: 100%;
+      background: rgba(255,255,255,.04);
+      border: 1.5px solid rgba(255,255,255,.08);
+      border-radius: 10px;
+      padding: 13px 44px 13px 16px;
+      color: #e2e8f0;
+      font-size: .9rem;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      outline: none;
+      transition: border-color .2s, box-shadow .2s;
+      autocomplete: off;
+    }
+    .form-input:focus {
+      border-color: rgba(79,70,229,.6);
+      box-shadow: 0 0 0 3px rgba(79,70,229,.15);
+    }
+    .form-input.error {
+      border-color: rgba(239,68,68,.5);
+      box-shadow: 0 0 0 3px rgba(239,68,68,.1);
+      animation: shake .4s ease;
+    }
+    @keyframes shake {
+      0%,100%{transform:translateX(0)}
+      20%{transform:translateX(-8px)}
+      40%{transform:translateX(8px)}
+      60%{transform:translateX(-4px)}
+      80%{transform:translateX(4px)}
+    }
+    .toggle-pw {
+      position: absolute; right: 14px; top: 50%; transform: translateY(-50%);
+      color: #4b5563; cursor: pointer; font-size: .85rem;
+      background: none; border: none;
+      transition: color .15s;
+    }
+    .toggle-pw:hover { color: #818cf8; }
+
+    .error-msg {
+      display: none; align-items: center; gap: 7px;
+      background: rgba(239,68,68,.1); border: 1px solid rgba(239,68,68,.25);
+      border-radius: 8px; padding: 10px 14px;
+      font-size: .8rem; color: #fca5a5;
+      margin-bottom: 14px;
+    }
+    .error-msg.show { display: flex; }
+
+    /* ── Submit button ── */
+    .submit-btn {
+      width: 100%;
+      background: linear-gradient(135deg, #4f46e5, #06b6d4);
+      color: #fff;
+      border: none;
+      border-radius: 10px;
+      padding: 14px;
+      font-size: .95rem; font-weight: 800;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      cursor: pointer;
+      transition: opacity .2s, transform .15s;
+      display: flex; align-items: center; justify-content: center; gap: 9px;
+      margin-top: 6px;
+    }
+    .submit-btn:hover  { opacity: .92; transform: translateY(-1px); }
+    .submit-btn:active { transform: translateY(0); }
+    .submit-btn:disabled { opacity: .5; cursor: not-allowed; transform: none; }
+
+    /* ── Lockout warning ── */
+    .lockout-bar {
+      display: none;
+      margin-top: 16px; text-align: center;
+      font-size: .75rem; color: #ef4444;
+    }
+    .lockout-bar.show { display: block; }
+
+    /* ── Footer ── */
+    .lock-footer {
+      margin-top: 28px; padding-top: 20px;
+      border-top: 1px solid rgba(255,255,255,.06);
+      display: flex; align-items: center; justify-content: center; gap: 8px;
+      font-size: .72rem; color: #374151;
+    }
+    .lock-footer i { color: #4f46e5; }
+
+    /* ── Watermark overlay on page (anti-screenshot) ── */
+    .watermark-overlay {
+      position: fixed; inset: 0; z-index: 9999;
+      pointer-events: none;
+      background-image: repeating-linear-gradient(
+        45deg,
+        transparent,
+        transparent 80px,
+        rgba(79,70,229,.015) 80px,
+        rgba(79,70,229,.015) 160px
+      );
+    }
+  </style>
+</head>
+<body>
+
+<div class="bg-glow"></div>
+<div class="watermark-overlay"></div>
+
+<div class="lock-card">
+  <div class="lock-logo">
+    <div class="logo-icon">🔐</div>
+    <div class="logo-name">BRND Direct</div>
+    <div class="logo-sub">Wholesale B2B Platform</div>
+  </div>
+
+  <div class="lock-icon-wrap">
+    <div class="lock-shield"><i class="fas fa-shield-halved"></i></div>
+  </div>
+
+  <div class="lock-title">Authorized Access Only</div>
+  <div class="lock-sub">This portal is private and protected.<br/>Enter your access credentials to continue.</div>
+
+  <div class="error-msg" id="errorMsg">
+    <i class="fas fa-exclamation-circle"></i>
+    <span id="errorText">Incorrect password. Please try again.</span>
+  </div>
+
+  <form id="lockForm" onsubmit="checkAccess(event)" autocomplete="off">
+    <div class="form-group">
+      <label class="form-label">Access Password</label>
+      <div class="form-input-wrap">
+        <input
+          type="password"
+          id="pwInput"
+          class="form-input"
+          placeholder="Enter portal password"
+          autocomplete="new-password"
+          spellcheck="false"
+          required
+        />
+        <button type="button" class="toggle-pw" onclick="togglePw()">
+          <i class="fas fa-eye" id="pwEyeIcon"></i>
+        </button>
+      </div>
+    </div>
+
+    <div class="lockout-bar" id="lockoutBar">
+      <i class="fas fa-clock"></i> Too many attempts. Try again in <span id="lockoutTimer">30</span>s
+    </div>
+
+    <button type="submit" class="submit-btn" id="submitBtn">
+      <i class="fas fa-unlock-keyhole"></i> Enter Portal
+    </button>
+  </form>
+
+  <div class="lock-footer">
+    <i class="fas fa-lock"></i>
+    256-bit encrypted · Private & Confidential · BRND Direct © 2025
+  </div>
+</div>
+
+<script>
+  /* ══════════════════════════════════════════════
+     SECURITY CONFIG
+     Change PORTAL_PASSWORD to your own password
+  ══════════════════════════════════════════════ */
+  const PORTAL_PASSWORD  = 'BRNDdirect2025!';   // ← CHANGE THIS
+  const SESSION_KEY      = 'brnd_portal_auth';
+  const SESSION_DURATION = 8 * 60 * 60 * 1000;  // 8 hours in ms
+  const MAX_ATTEMPTS     = 5;                    // lockout after 5 wrong tries
+  const LOCKOUT_SECONDS  = 30;                   // lockout duration
+
+  /* ── Anti-scraping: disable right-click ── */
+  document.addEventListener('contextmenu', e => e.preventDefault());
+  document.addEventListener('keydown', e => {
+    // Block F12, Ctrl+Shift+I/J/C/U, Ctrl+U (view source)
+    if (e.key === 'F12') { e.preventDefault(); return false; }
+    if (e.ctrlKey && e.shiftKey && ['I','J','C'].includes(e.key)) { e.preventDefault(); return false; }
+    if (e.ctrlKey && e.key === 'U') { e.preventDefault(); return false; }
+    if (e.ctrlKey && e.key === 'S') { e.preventDefault(); return false; } // disable save
+    if (e.ctrlKey && e.key === 'P') { e.preventDefault(); return false; } // disable print
+  });
+
+  /* ── Check if already authenticated ── */
+  function isAuthenticated() {
+    try {
+      const raw = sessionStorage.getItem(SESSION_KEY);
+      if (!raw) return false;
+      const { token, expires } = JSON.parse(raw);
+      if (Date.now() > expires) { sessionStorage.removeItem(SESSION_KEY); return false; }
+      return token === btoa(PORTAL_PASSWORD + '_authenticated');
+    } catch { return false; }
+  }
+
+  /* ── If already logged in, redirect to portal ── */
+  if (isAuthenticated()) {
+    window.location.replace('buyer/index.html');
+  }
+
+  /* ── Attempt tracking ── */
+  let attempts = parseInt(sessionStorage.getItem('brnd_attempts') || '0');
+  let lockedUntil = parseInt(sessionStorage.getItem('brnd_locked') || '0');
+
+  function isLockedOut() {
+    return Date.now() < lockedUntil;
+  }
+
+  function startLockout() {
+    lockedUntil = Date.now() + LOCKOUT_SECONDS * 1000;
+    sessionStorage.setItem('brnd_locked', lockedUntil);
+    showLockoutTimer();
+  }
+
+  function showLockoutTimer() {
+    const bar = document.getElementById('lockoutBar');
+    const timerEl = document.getElementById('lockoutTimer');
+    const btn = document.getElementById('submitBtn');
+    bar.classList.add('show');
+    btn.disabled = true;
+    const interval = setInterval(() => {
+      const remaining = Math.max(0, Math.ceil((lockedUntil - Date.now()) / 1000));
+      timerEl.textContent = remaining;
+      if (remaining <= 0) {
+        clearInterval(interval);
+        bar.classList.remove('show');
+        btn.disabled = false;
+        attempts = 0;
+        sessionStorage.removeItem('brnd_attempts');
+        sessionStorage.removeItem('brnd_locked');
+      }
+    }, 1000);
+  }
+
+  /* ── Main auth check ── */
+  function checkAccess(e) {
+    e.preventDefault();
+
+    if (isLockedOut()) {
+      showLockoutTimer();
+      return;
+    }
+
+    const input = document.getElementById('pwInput');
+    const entered = input.value;
+
+    if (entered === PORTAL_PASSWORD) {
+      /* ✅ Correct — set session and redirect */
+      sessionStorage.setItem(SESSION_KEY, JSON.stringify({
+        token:   btoa(PORTAL_PASSWORD + '_authenticated'),
+        expires: Date.now() + SESSION_DURATION
+      }));
+      sessionStorage.removeItem('brnd_attempts');
+      sessionStorage.removeItem('brnd_locked');
+
+      const btn = document.getElementById('submitBtn');
+      btn.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> Unlocking…';
+      btn.disabled = true;
+
+      setTimeout(() => {
+        window.location.replace('buyer/index.html');
+      }, 800);
+
+    } else {
+      /* ❌ Wrong — increment attempts */
+      attempts++;
+      sessionStorage.setItem('brnd_attempts', attempts);
+      input.value = '';
+      input.classList.add('error');
+      setTimeout(() => input.classList.remove('error'), 600);
+
+      const errMsg  = document.getElementById('errorMsg');
+      const errText = document.getElementById('errorText');
+
+      const remaining = MAX_ATTEMPTS - attempts;
+      if (remaining <= 0) {
+        errText.textContent = `Too many failed attempts. Locked for ${LOCKOUT_SECONDS} seconds.`;
+        errMsg.classList.add('show');
+        startLockout();
+      } else {
+        errText.textContent = `Incorrect password. ${remaining} attempt${remaining === 1 ? '' : 's'} remaining.`;
+        errMsg.classList.add('show');
+      }
+    }
+  }
+
+  /* ── Toggle password visibility ── */
+  function togglePw() {
+    const input = document.getElementById('pwInput');
+    const icon  = document.getElementById('pwEyeIcon');
+    if (input.type === 'password') {
+      input.type = 'text';
+      icon.className = 'fas fa-eye-slash';
+    } else {
+      input.type = 'password';
+      icon.className = 'fas fa-eye';
+    }
+  }
+
+  /* ── If already locked out on page load ── */
+  if (isLockedOut()) {
+    document.getElementById('submitBtn').disabled = true;
+    showLockoutTimer();
+  }
+</script>
+</body>
+</html>

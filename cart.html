@@ -1,0 +1,878 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Order Cart &amp; Checkout – BRND Direct Portal</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&family=Inter:wght@300;400;500;600;700&family=Outfit:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.5.0/css/all.min.css" />
+  <link rel="stylesheet" href="css/portal.css" />
+
+  <style>
+    /* ── Checkout Layout ── */
+    .checkout-grid {
+      display: grid;
+      grid-template-columns: 1fr 380px;
+      gap: 24px;
+      align-items: start;
+    }
+    @media (max-width: 900px) {
+      .checkout-grid { grid-template-columns: 1fr; }
+    }
+
+    /* ── Cart Items Table ── */
+    .cart-table { width: 100%; border-collapse: collapse; }
+    .cart-table th {
+      padding: 10px 14px;
+      text-align: left;
+      font-size: .68rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .07em;
+      color: var(--color-muted);
+      border-bottom: 1.5px solid var(--color-border);
+    }
+    .cart-table td {
+      padding: 16px 14px;
+      border-bottom: 1px solid var(--color-border);
+      vertical-align: middle;
+      font-size: .875rem;
+    }
+    .cart-table tr:last-child td { border-bottom: none; }
+    .cart-item-name { font-weight: 700; color: var(--color-near-black); margin-bottom: 2px; }
+    .cart-item-brand { font-size: .75rem; color: var(--color-muted); }
+    .cart-item-remove {
+      background: none; border: none; cursor: pointer;
+      color: var(--color-muted); font-size: .85rem;
+      padding: 4px 6px; border-radius: var(--radius-sm);
+      transition: all .14s; font-family: var(--font-sans);
+    }
+    .cart-item-remove:hover { background: rgba(239,68,68,.1); color: var(--color-rose); }
+
+    /* Qty adjuster in cart */
+    .cart-qty-wrap {
+      display: flex; align-items: center;
+      border: 1.5px solid var(--color-border);
+      border-radius: var(--radius-sm); overflow: hidden;
+      width: fit-content;
+    }
+    .cart-qty-btn {
+      width: 28px; height: 30px;
+      display: flex; align-items: center; justify-content: center;
+      background: var(--color-off-white);
+      border: none; cursor: pointer; font-size: .85rem; font-weight: 700;
+      color: var(--color-near-black); transition: background .13s;
+    }
+    .cart-qty-btn:hover { background: var(--color-accent); color: white; }
+    .cart-qty-val {
+      width: 44px; text-align: center;
+      border: none; outline: none;
+      font-size: .82rem; font-weight: 700;
+      font-family: var(--font-sans);
+      padding: 0 4px; background: transparent;
+      color: var(--color-near-black);
+    }
+
+    /* ── Order Summary Card ── */
+    .summary-card {
+      background: var(--color-white);
+      border: 1.5px solid var(--color-border);
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+      position: sticky;
+      top: 80px;
+    }
+    .summary-header {
+      padding: 18px 20px 14px;
+      border-bottom: 1.5px solid var(--color-border);
+    }
+    .summary-header h3 { font-size: .95rem; font-weight: 800; font-family: var(--font-display); }
+    .summary-body { padding: 16px 20px; }
+    .summary-line {
+      display: flex; justify-content: space-between;
+      align-items: center; padding: 6px 0;
+      font-size: .875rem;
+    }
+    .summary-line .lbl { color: var(--color-muted); }
+    .summary-line .val { font-weight: 600; color: var(--color-near-black); }
+    .summary-divider { border: none; border-top: 1px solid var(--color-border); margin: 10px 0; }
+    .summary-total {
+      display: flex; justify-content: space-between;
+      align-items: center; padding: 10px 0 4px;
+      font-size: 1.1rem; font-weight: 900;
+      font-family: var(--font-display);
+    }
+
+    /* ── Payment Method Selector ── */
+    .pay-section { padding: 16px 20px; border-top: 1.5px solid var(--color-border); }
+    .pay-section-title {
+      font-size: .68rem; font-weight: 700; text-transform: uppercase;
+      letter-spacing: .07em; color: var(--color-muted); margin-bottom: 12px;
+    }
+    .pay-option {
+      display: flex; align-items: center; gap: 12px;
+      padding: 13px 14px; border-radius: var(--radius-md);
+      border: 2px solid var(--color-border);
+      cursor: pointer; margin-bottom: 8px;
+      transition: all .16s; background: var(--color-white);
+    }
+    .pay-option:hover { border-color: var(--color-accent); }
+    .pay-option.selected { border-color: var(--color-accent); background: var(--color-accent-glow); }
+    .pay-option input[type="radio"] { display: none; }
+    .pay-icon {
+      width: 40px; height: 28px;
+      display: flex; align-items: center; justify-content: center;
+      border-radius: 6px; font-size: 1rem; flex-shrink: 0;
+    }
+    .pay-info { flex: 1; }
+    .pay-name  { font-size: .85rem; font-weight: 700; color: var(--color-near-black); }
+    .pay-desc  { font-size: .72rem; color: var(--color-muted); margin-top: 1px; }
+    .pay-badge {
+      font-size: .65rem; font-weight: 700; padding: 2px 8px;
+      border-radius: 20px; white-space: nowrap; flex-shrink: 0;
+    }
+    .pay-badge.popular { background: var(--color-accent-glow); color: var(--color-accent); }
+    .pay-badge.fast    { background: rgba(16,185,129,.12);      color: var(--color-emerald); }
+    .pay-badge.net30   { background: var(--color-amber-glow);   color: var(--color-amber); }
+
+    .pay-option .pay-check {
+      width: 18px; height: 18px; border-radius: 50%;
+      border: 2px solid var(--color-border);
+      display: flex; align-items: center; justify-content: center;
+      font-size: .6rem; color: transparent; flex-shrink: 0;
+      transition: all .15s;
+    }
+    .pay-option.selected .pay-check {
+      background: var(--color-accent); border-color: var(--color-accent); color: white;
+    }
+
+    /* ── Credit Card Form (expandable) ── */
+    .card-form-wrap {
+      display: none; margin-top: 4px; padding: 14px;
+      background: var(--color-off-white);
+      border-radius: var(--radius-md);
+      border: 1px solid var(--color-border);
+    }
+    .card-form-wrap.open { display: block; }
+    .card-form-row { display: flex; gap: 10px; margin-bottom: 10px; }
+    .card-form-row:last-child { margin-bottom: 0; }
+    .card-form-group { flex: 1; display: flex; flex-direction: column; gap: 4px; }
+    .card-form-group label { font-size: .68rem; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; color: var(--color-muted); }
+    .card-form-group input {
+      padding: 9px 12px; border: 1.5px solid var(--color-border);
+      border-radius: var(--radius-sm); font-size: .875rem;
+      font-family: var(--font-sans); background: var(--color-white);
+      color: var(--color-near-black); outline: none;
+      transition: border-color .14s;
+    }
+    .card-form-group input:focus { border-color: var(--color-accent); }
+
+    /* ACH / Wire form */
+    .ach-form-wrap {
+      display: none; margin-top: 4px; padding: 14px;
+      background: var(--color-off-white);
+      border-radius: var(--radius-md);
+      border: 1px solid var(--color-border);
+    }
+    .ach-form-wrap.open { display: block; }
+
+    /* ── Net-30 Terms Info ── */
+    .terms-info {
+      display: none; margin-top: 4px;
+      padding: 12px 14px;
+      background: var(--color-amber-glow);
+      border-radius: var(--radius-md);
+      border: 1.5px solid rgba(245,158,11,.25);
+      font-size: .78rem; line-height: 1.6; color: var(--color-near-black);
+    }
+    .terms-info.open { display: block; }
+
+    /* ── Place Order Button ── */
+    .place-order-btn {
+      width: 100%; padding: 16px;
+      background: linear-gradient(135deg, var(--color-accent), var(--color-accent-dark));
+      color: white; border: none; border-radius: var(--radius-md);
+      font-size: 1rem; font-weight: 800; font-family: var(--font-display);
+      cursor: pointer; letter-spacing: -.01em;
+      display: flex; align-items: center; justify-content: center; gap: 10px;
+      transition: all .18s; margin: 0 20px 20px;
+      width: calc(100% - 40px);
+    }
+    .place-order-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(99,102,241,.35); }
+    .place-order-btn:disabled { opacity: .5; cursor: not-allowed; transform: none; box-shadow: none; }
+
+    /* Secure badges row */
+    .secure-row {
+      display: flex; align-items: center; justify-content: center;
+      gap: 14px; flex-wrap: wrap;
+      padding: 0 20px 16px;
+      font-size: .7rem; color: var(--color-muted); font-weight: 600;
+    }
+    .secure-row span { display: flex; align-items: center; gap: 4px; }
+
+    /* ── Empty cart ── */
+    .empty-cart {
+      text-align: center; padding: 80px 20px;
+    }
+    .empty-cart__icon { font-size: 3rem; margin-bottom: 16px; opacity: .35; }
+    .empty-cart__title { font-size: 1.1rem; font-weight: 800; font-family: var(--font-display); margin-bottom: 8px; }
+    .empty-cart__sub { font-size: .875rem; color: var(--color-muted); margin-bottom: 24px; }
+
+    /* ── Order Confirmation overlay ── */
+    .confirm-overlay {
+      position: fixed; inset: 0; z-index: 4000;
+      background: rgba(0,0,0,.55);
+      display: none; align-items: center; justify-content: center;
+    }
+    .confirm-overlay.open { display: flex; }
+    .confirm-card {
+      background: var(--color-white);
+      border-radius: var(--radius-xl, 20px);
+      padding: 48px 36px 36px;
+      max-width: 460px; width: 90%;
+      box-shadow: 0 32px 80px rgba(0,0,0,.25);
+      text-align: center;
+      animation: popIn .28s ease;
+    }
+    @keyframes popIn {
+      from { opacity:0; transform:scale(.88) translateY(20px); }
+      to   { opacity:1; transform:scale(1)   translateY(0); }
+    }
+    .confirm-icon {
+      width: 72px; height: 72px; border-radius: 50%;
+      background: linear-gradient(135deg,rgba(16,185,129,.15),rgba(16,185,129,.25));
+      display: flex; align-items: center; justify-content: center;
+      margin: 0 auto 20px; font-size: 2rem; color: var(--color-emerald);
+    }
+    .confirm-title { font-size: 1.4rem; font-weight: 900; font-family: var(--font-display); margin-bottom: 8px; }
+    .confirm-sub { font-size: .875rem; color: var(--color-muted); line-height: 1.6; margin-bottom: 24px; }
+    .confirm-order-num {
+      display: inline-block;
+      font-family: var(--font-mono, monospace); font-size: .95rem; font-weight: 800;
+      color: var(--color-accent); background: var(--color-accent-glow);
+      padding: 6px 18px; border-radius: 20px; margin-bottom: 24px;
+    }
+    .confirm-actions { display: flex; flex-direction: column; gap: 10px; }
+  </style>
+</head>
+<body>
+
+<!-- ===== SIDEBAR ===== -->
+<aside class="sidebar" id="sidebar">
+  <div class="sidebar__logo">
+    <a href="dashboard.html" class="logo-mark">
+      <span class="logo-icon"><i class="fas fa-chevron-right"></i></span>
+      <span class="logo-word">BRND <span class="logo-accent">DIRECT</span></span>
+    </a>
+  </div>
+  <nav class="sidebar__nav">
+    <div class="nav-section">
+      <span class="nav-section-label">Main Menu</span>
+      <a href="dashboard.html" class="nav-item"><i class="fas fa-table-columns"></i><span>Dashboard</span></a>
+      <a href="products.html" class="nav-item"><i class="fas fa-boxes-stacked"></i><span>Products</span></a>
+      <a href="orders.html" class="nav-item"><i class="fas fa-file-invoice"></i><span>Orders</span><span class="nav-badge">18</span></a>
+      <a href="rfq.html" class="nav-item"><i class="fas fa-comment-dollar"></i><span>RFQ</span><span class="nav-badge new">5</span></a>
+      <a href="dropship.html" class="nav-item"><i class="fas fa-rotate"></i><span>Dropship</span></a>
+      <a href="analytics.html" class="nav-item"><i class="fas fa-chart-line"></i><span>Analytics</span></a>
+    </div>
+    <div class="nav-section">
+      <span class="nav-section-label">Finance</span>
+      <a href="invoices.html" class="nav-item"><i class="fas fa-file-invoice-dollar"></i><span>Invoices &amp; Payments</span></a>
+      <a href="trade-finance.html" class="nav-item"><i class="fas fa-credit-card"></i><span>Trade Finance</span></a>
+      <a href="reports.html" class="nav-item"><i class="fas fa-chart-bar"></i><span>Reports</span></a>
+    </div>
+    <div class="nav-section">
+      <span class="nav-section-label">Operations</span>
+      <a href="warehousing.html" class="nav-item"><i class="fas fa-warehouse"></i><span>Warehousing</span></a>
+      <a href="shipping-logistics.html" class="nav-item"><i class="fas fa-truck-fast"></i><span>Shipping &amp; Logistics</span></a>
+    </div>
+    <div class="sidebar__divider"></div>
+    <a href="messages.html" class="nav-item"><i class="fas fa-message"></i><span>Messages</span><span class="nav-badge">3</span></a>
+    <a href="account.html" class="nav-item"><i class="fas fa-gear"></i><span>Settings</span></a>
+    <a href="help.html" class="nav-item"><i class="fas fa-circle-question"></i><span>Help &amp; Support</span></a>
+  </nav>
+  <div class="sidebar__bottom">
+    <div class="sidebar__user">
+      <div class="sidebar__user-avatar">AJ</div>
+      <div class="sidebar__user-info">
+        <div class="sidebar__user-name">Alex Johnson</div>
+        <div class="sidebar__user-role">Wholesale Buyer</div>
+      </div>
+      <button class="sidebar__user-logout" title="Sign out" onclick="window.location.href='index.html'">
+        <i class="fas fa-arrow-right-from-bracket"></i>
+      </button>
+    </div>
+  </div>
+</aside>
+
+<div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+<!-- ===== TOPBAR ===== -->
+<header class="topbar">
+  <div class="topbar__left" style="display:flex;align-items:center;gap:12px;">
+    <button class="topbar__mobile-toggle" id="sidebarToggle"><i class="fas fa-bars"></i></button>
+    <div>
+      <div class="topbar__title">Order Cart &amp; Checkout</div>
+      <div class="topbar__breadcrumb">Review your items and complete payment</div>
+    </div>
+  </div>
+  <div class="topbar__right">
+    <a href="products.html" class="btn btn-secondary btn-sm">
+      <i class="fas fa-arrow-left"></i> Back to Catalog
+    </a>
+    <div class="topbar__btn"><i class="fas fa-bell"></i><span class="notif-dot"></span></div>
+    <div class="topbar__avatar">AJ</div>
+  </div>
+</header>
+
+<!-- ===== MAIN CONTENT ===== -->
+<main class="app-main">
+
+  <!-- Page Header -->
+  <div class="page-header-bar fade-in">
+    <div>
+      <h1>Order Cart</h1>
+      <div class="page-header-sub" id="cartHeaderSub">0 items in your cart</div>
+    </div>
+    <div class="page-header-bar__actions">
+      <button class="btn btn-secondary btn-sm" id="clearCartBtn">
+        <i class="fas fa-trash"></i> Clear Cart
+      </button>
+      <a href="products.html" class="btn btn-outline btn-sm">
+        <i class="fas fa-plus"></i> Add More Products
+      </a>
+    </div>
+  </div>
+
+  <!-- CHECKOUT GRID -->
+  <div class="checkout-grid fade-in d1" id="checkoutGrid">
+
+    <!-- LEFT: Cart Items -->
+    <div>
+      <div class="card" id="cartCardWrap">
+        <div class="card-header">
+          <h3>Your Items</h3>
+          <span id="cartItemCount" style="font-size:.78rem;color:var(--color-muted);"></span>
+        </div>
+        <div id="cartItemsContainer">
+          <!-- Rendered by JS -->
+        </div>
+      </div>
+
+      <!-- Shipping Address -->
+      <div class="card mt-4" style="margin-top:20px;">
+        <div class="card-header">
+          <h3>Shipping Address</h3>
+          <button class="btn btn-secondary btn-xs" onclick="showToast('Address editor coming soon.','')">
+            <i class="fas fa-pen"></i> Edit
+          </button>
+        </div>
+        <div class="card-body">
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;flex-wrap:wrap;">
+            <div>
+              <div style="font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--color-muted);margin-bottom:4px;">Ship To</div>
+              <div style="font-size:.875rem;line-height:1.8;font-weight:600;">
+                Alex Johnson<br>
+                <span style="font-weight:400;color:var(--color-muted);">1540 W Fulton Market<br>Chicago, IL 60607<br>United States</span>
+              </div>
+            </div>
+            <div>
+              <div style="font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--color-muted);margin-bottom:4px;">Shipping Method</div>
+              <div style="display:flex;flex-direction:column;gap:8px;margin-top:4px;">
+                <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:.875rem;">
+                  <input type="radio" name="shipMethod" value="standard" checked style="accent-color:var(--color-accent);">
+                  <span><strong>Standard Freight</strong> <span style="color:var(--color-muted);font-size:.78rem;">· Est. 5–7 days · FREE</span></span>
+                </label>
+                <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:.875rem;">
+                  <input type="radio" name="shipMethod" value="express" style="accent-color:var(--color-accent);">
+                  <span><strong>Express Freight</strong> <span style="color:var(--color-muted);font-size:.78rem;">· Est. 2–3 days · +$85</span></span>
+                </label>
+                <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:.875rem;">
+                  <input type="radio" name="shipMethod" value="overnight" style="accent-color:var(--color-accent);">
+                  <span><strong>Overnight</strong> <span style="color:var(--color-muted);font-size:.78rem;">· Next day · +$220</span></span>
+                </label>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- PO Number + Notes -->
+      <div class="card" style="margin-top:20px;">
+        <div class="card-header"><h3>Order References</h3></div>
+        <div class="card-body">
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
+            <div>
+              <label style="font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--color-muted);display:block;margin-bottom:6px;">Your PO Number <span style="color:var(--color-muted);font-weight:400;text-transform:none;">(optional)</span></label>
+              <input type="text" class="form-input" id="poInput" placeholder="e.g. PO-2026-0045" />
+            </div>
+            <div>
+              <label style="font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--color-muted);display:block;margin-bottom:6px;">Order Notes <span style="color:var(--color-muted);font-weight:400;text-transform:none;">(optional)</span></label>
+              <input type="text" class="form-input" id="notesInput" placeholder="Special instructions…" />
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- RIGHT: Order Summary + Payment -->
+    <div>
+      <div class="summary-card">
+        <!-- Summary -->
+        <div class="summary-header">
+          <h3><i class="fas fa-receipt" style="color:var(--color-accent);margin-right:8px;"></i>Order Summary</h3>
+        </div>
+        <div class="summary-body">
+          <div id="summaryLineItems"><!-- JS renders per-item lines --></div>
+          <hr class="summary-divider">
+          <div class="summary-line">
+            <span class="lbl">Subtotal</span>
+            <span class="val" id="summarySubtotal">$0.00</span>
+          </div>
+          <div class="summary-line" id="shippingLine">
+            <span class="lbl">Shipping</span>
+            <span class="val" style="color:var(--color-emerald);">FREE</span>
+          </div>
+          <div class="summary-line">
+            <span class="lbl">Tax (est.)</span>
+            <span class="val" id="summaryTax">$0.00</span>
+          </div>
+          <hr class="summary-divider">
+          <div class="summary-total">
+            <span>Total</span>
+            <span id="summaryTotal" style="color:var(--color-accent);">$0.00</span>
+          </div>
+          <div style="font-size:.7rem;color:var(--color-muted);margin-top:4px;text-align:right;">
+            <span id="summaryUnits"></span>
+          </div>
+        </div>
+
+        <!-- Payment Method -->
+        <div class="pay-section">
+          <div class="pay-section-title">Payment Method</div>
+
+          <!-- Credit / Debit Card -->
+          <div class="pay-option selected" data-method="card" onclick="selectPayment(this)">
+            <div class="pay-check"><i class="fas fa-check"></i></div>
+            <div class="pay-icon" style="background:linear-gradient(135deg,#4f46e5,#7c3aed);">
+              <i class="fas fa-credit-card" style="color:white;font-size:.9rem;"></i>
+            </div>
+            <div class="pay-info">
+              <div class="pay-name">Credit / Debit Card</div>
+              <div class="pay-desc">Visa, Mastercard, Amex, Discover</div>
+            </div>
+            <span class="pay-badge popular">Popular</span>
+          </div>
+          <div class="card-form-wrap open" id="cardFormWrap">
+            <div class="card-form-row">
+              <div class="card-form-group" style="flex:2;">
+                <label>Card Number</label>
+                <input type="text" placeholder="1234 5678 9012 3456" maxlength="19" id="ccNum" />
+              </div>
+            </div>
+            <div class="card-form-row">
+              <div class="card-form-group">
+                <label>Name on Card</label>
+                <input type="text" placeholder="Alex Johnson" />
+              </div>
+            </div>
+            <div class="card-form-row">
+              <div class="card-form-group">
+                <label>Expiry</label>
+                <input type="text" placeholder="MM / YY" maxlength="7" />
+              </div>
+              <div class="card-form-group">
+                <label>CVV</label>
+                <input type="text" placeholder="•••" maxlength="4" />
+              </div>
+            </div>
+          </div>
+
+          <!-- ACH / Bank Transfer -->
+          <div class="pay-option" data-method="ach" onclick="selectPayment(this)">
+            <div class="pay-check"><i class="fas fa-check"></i></div>
+            <div class="pay-icon" style="background:linear-gradient(135deg,#064e3b,#10b981);">
+              <i class="fas fa-university" style="color:white;font-size:.9rem;"></i>
+            </div>
+            <div class="pay-info">
+              <div class="pay-name">ACH / Bank Transfer</div>
+              <div class="pay-desc">Direct debit from your bank account</div>
+            </div>
+            <span class="pay-badge fast">0% Fee</span>
+          </div>
+          <div class="ach-form-wrap" id="achFormWrap">
+            <div class="card-form-row">
+              <div class="card-form-group">
+                <label>Account Holder Name</label>
+                <input type="text" placeholder="Business or Personal Name" />
+              </div>
+            </div>
+            <div class="card-form-row">
+              <div class="card-form-group">
+                <label>Routing Number</label>
+                <input type="text" placeholder="9 digits" maxlength="9" />
+              </div>
+              <div class="card-form-group">
+                <label>Account Number</label>
+                <input type="text" placeholder="Account #" />
+              </div>
+            </div>
+          </div>
+
+          <!-- Wire Transfer -->
+          <div class="pay-option" data-method="wire" onclick="selectPayment(this)">
+            <div class="pay-check"><i class="fas fa-check"></i></div>
+            <div class="pay-icon" style="background:linear-gradient(135deg,#1e3a5f,#2563eb);">
+              <i class="fas fa-building-columns" style="color:white;font-size:.9rem;"></i>
+            </div>
+            <div class="pay-info">
+              <div class="pay-name">Wire Transfer</div>
+              <div class="pay-desc">International &amp; domestic wire</div>
+            </div>
+            <span class="pay-badge fast">Secure</span>
+          </div>
+          <div class="ach-form-wrap" id="wireFormWrap">
+            <div style="padding:10px;background:rgba(37,99,235,.06);border-radius:var(--radius-sm);font-size:.78rem;line-height:1.7;color:var(--color-near-black);">
+              <strong>Wire Instructions will be emailed</strong> after you place your order.<br>
+              Payment must be received within <strong>3 business days</strong> to confirm the order.
+              <div style="margin-top:8px;padding:8px;background:var(--color-white);border-radius:var(--radius-sm);border:1px solid var(--color-border);">
+                <div style="font-size:.7rem;color:var(--color-muted);">Beneficiary Bank</div>
+                <div style="font-weight:700;">Chase Bank — Chicago, IL</div>
+                <div style="font-size:.7rem;color:var(--color-muted);margin-top:4px;">ABA / Routing</div>
+                <div style="font-family:monospace;font-weight:700;">021000021</div>
+                <div style="font-size:.7rem;color:var(--color-muted);margin-top:4px;">Account</div>
+                <div style="font-family:monospace;font-weight:700;">••••••••4409</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Net-30 Terms -->
+          <div class="pay-option" data-method="net30" onclick="selectPayment(this)">
+            <div class="pay-check"><i class="fas fa-check"></i></div>
+            <div class="pay-icon" style="background:linear-gradient(135deg,#78350f,#f59e0b);">
+              <i class="fas fa-file-invoice-dollar" style="color:white;font-size:.9rem;"></i>
+            </div>
+            <div class="pay-info">
+              <div class="pay-name">Net-30 Terms</div>
+              <div class="pay-desc">Pay within 30 days of delivery</div>
+            </div>
+            <span class="pay-badge net30">Pre-approved</span>
+          </div>
+          <div class="terms-info" id="net30Info">
+            <i class="fas fa-info-circle" style="color:var(--color-amber);margin-right:6px;"></i>
+            Your account is approved for <strong>Net-30 terms</strong> up to <strong>$45,000</strong>.<br>
+            An invoice will be issued on the ship date and payment is due within 30 days.<br>
+            <span style="color:var(--color-muted);">Current credit utilization: $12,360 of $45,000.</span>
+          </div>
+
+          <!-- PayPal -->
+          <div class="pay-option" data-method="paypal" onclick="selectPayment(this)">
+            <div class="pay-check"><i class="fas fa-check"></i></div>
+            <div class="pay-icon" style="background:linear-gradient(135deg,#003087,#009cde);">
+              <i class="fab fa-paypal" style="color:white;font-size:1rem;"></i>
+            </div>
+            <div class="pay-info">
+              <div class="pay-name">PayPal</div>
+              <div class="pay-desc">Pay with your PayPal account</div>
+            </div>
+            <span class="pay-badge fast">Instant</span>
+          </div>
+
+        </div><!-- /pay-section -->
+
+        <!-- Place Order Button -->
+        <button class="place-order-btn" id="placeOrderBtn" onclick="placeOrder()">
+          <i class="fas fa-lock"></i>
+          <span id="placeOrderLabel">Place Secure Order</span>
+        </button>
+
+        <!-- Secure badges -->
+        <div class="secure-row">
+          <span><i class="fas fa-lock" style="color:var(--color-emerald);"></i> SSL Encrypted</span>
+          <span><i class="fas fa-shield-halved" style="color:var(--color-accent);"></i> PCI Compliant</span>
+          <span><i class="fas fa-rotate-left" style="color:var(--color-sky);"></i> 30-day Returns</span>
+        </div>
+
+      </div><!-- /summary-card -->
+    </div>
+
+  </div><!-- /checkout-grid -->
+
+</main>
+
+<!-- ===== ORDER CONFIRMATION OVERLAY ===== -->
+<div class="confirm-overlay" id="confirmOverlay">
+  <div class="confirm-card">
+    <div class="confirm-icon"><i class="fas fa-check"></i></div>
+    <div class="confirm-title">Order Placed! 🎉</div>
+    <div class="confirm-order-num" id="confirmOrderNum">BD-48292</div>
+    <div class="confirm-sub" id="confirmSub">
+      Your order has been submitted and is being reviewed.<br>
+      You'll receive an email confirmation shortly at <strong>alex@brandstore.com</strong>.
+    </div>
+    <div class="confirm-actions">
+      <a href="orders.html" class="btn btn-primary btn-sm" style="display:flex;align-items:center;justify-content:center;gap:8px;">
+        <i class="fas fa-file-invoice"></i> Track Your Order
+      </a>
+      <a href="products.html" class="btn btn-secondary btn-sm" style="display:flex;align-items:center;justify-content:center;gap:8px;">
+        <i class="fas fa-boxes-stacked"></i> Continue Shopping
+      </a>
+      <button class="btn btn-outline btn-sm" onclick="showToast('Invoice sent to your email.','success');"
+        style="display:flex;align-items:center;justify-content:center;gap:8px;">
+        <i class="fas fa-download"></i> Download Invoice
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="toast-container" id="toastContainer"></div>
+
+<script src="js/portal.js"></script>
+<script>
+  /* ================================================================
+     LOAD CART FROM SESSION STORAGE
+  ================================================================ */
+  let cartItems = JSON.parse(sessionStorage.getItem('brndCart') || '[]');
+  let selectedPayMethod = 'card';
+  let shippingCost = 0;
+
+  /* ── Shipping method change ── */
+  document.querySelectorAll('input[name="shipMethod"]').forEach(radio => {
+    radio.addEventListener('change', function () {
+      const costs = { standard: 0, express: 85, overnight: 220 };
+      shippingCost = costs[this.value] || 0;
+      const shippingLine = document.getElementById('shippingLine');
+      shippingLine.querySelector('.val').textContent =
+        shippingCost === 0 ? 'FREE' : '$' + shippingCost.toFixed(2);
+      shippingLine.querySelector('.val').style.color =
+        shippingCost === 0 ? 'var(--color-emerald)' : 'var(--color-near-black)';
+      renderSummary();
+    });
+  });
+
+  /* ── Render cart items ── */
+  function renderCart() {
+    const container = document.getElementById('cartItemsContainer');
+    const totalQty  = cartItems.reduce((s, i) => s + i.qty, 0);
+
+    document.getElementById('cartHeaderSub').textContent =
+      `${cartItems.length} item${cartItems.length !== 1 ? 's' : ''} · ${totalQty} units in your cart`;
+    document.getElementById('cartItemCount').textContent =
+      `${cartItems.length} line item${cartItems.length !== 1 ? 's' : ''}`;
+
+    if (cartItems.length === 0) {
+      container.innerHTML = `
+        <div class="empty-cart">
+          <div class="empty-cart__icon">🛒</div>
+          <div class="empty-cart__title">Your cart is empty</div>
+          <div class="empty-cart__sub">Browse the product catalog and add items to get started.</div>
+          <a href="products.html" class="btn btn-primary btn-sm">
+            <i class="fas fa-boxes-stacked"></i> Browse Products
+          </a>
+        </div>`;
+      document.getElementById('placeOrderBtn').disabled = true;
+      renderSummary();
+      return;
+    }
+
+    document.getElementById('placeOrderBtn').disabled = false;
+
+    container.innerHTML = `
+      <div class="table-wrap">
+        <table class="cart-table">
+          <thead>
+            <tr>
+              <th>Product</th>
+              <th>Qty</th>
+              <th style="text-align:right;">Unit Price</th>
+              <th style="text-align:right;">Subtotal</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            ${cartItems.map((item, idx) => `
+              <tr>
+                <td>
+                  <div class="cart-item-name">${item.name}</div>
+                  <div class="cart-item-brand">${item.brand}</div>
+                </td>
+                <td>
+                  <div class="cart-qty-wrap">
+                    <button class="cart-qty-btn" onclick="adjustCartQty(${idx}, -1)">−</button>
+                    <input type="number" class="cart-qty-val" value="${item.qty}" min="${item.price > 0 ? 1 : 1}"
+                      onchange="setCartQty(${idx}, this.value)" />
+                    <button class="cart-qty-btn" onclick="adjustCartQty(${idx}, 1)">+</button>
+                  </div>
+                </td>
+                <td style="text-align:right;">$${item.price.toFixed(2)}</td>
+                <td style="text-align:right;font-weight:700;">$${(item.qty * item.price).toLocaleString('en-US',{minimumFractionDigits:2})}</td>
+                <td>
+                  <button class="cart-item-remove" onclick="removeCartItem(${idx})" title="Remove">
+                    <i class="fas fa-trash-can"></i>
+                  </button>
+                </td>
+              </tr>`).join('')}
+          </tbody>
+        </table>
+      </div>`;
+
+    renderSummary();
+  }
+
+  function renderSummary() {
+    const subtotal   = cartItems.reduce((s, i) => s + i.qty * i.price, 0);
+    const taxRate    = 0.00;  // B2B wholesale — tax exempt by default
+    const tax        = subtotal * taxRate;
+    const total      = subtotal + shippingCost + tax;
+    const totalUnits = cartItems.reduce((s, i) => s + i.qty, 0);
+
+    document.getElementById('summarySubtotal').textContent = fmt(subtotal);
+    document.getElementById('summaryTax').textContent      = tax === 0 ? 'Tax Exempt' : fmt(tax);
+    document.getElementById('summaryTotal').textContent    = fmt(total);
+    document.getElementById('summaryUnits').textContent    = `${totalUnits} unit${totalUnits !== 1 ? 's' : ''} total`;
+
+    // Per-item lines
+    const linesEl = document.getElementById('summaryLineItems');
+    linesEl.innerHTML = cartItems.map(i => `
+      <div class="summary-line">
+        <span class="lbl" style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"
+              title="${i.name}">${i.name}</span>
+        <span class="val">×${i.qty} · ${fmt(i.qty * i.price)}</span>
+      </div>`).join('');
+
+    // Update place order label
+    if (cartItems.length > 0) {
+      document.getElementById('placeOrderLabel').textContent = `Place Secure Order · ${fmt(total)}`;
+    }
+  }
+
+  /* ── Cart mutation helpers ── */
+  function adjustCartQty(idx, delta) {
+    const item = cartItems[idx];
+    const newQty = Math.max(1, item.qty + delta);
+    item.qty = newQty;
+    item.subtotal = newQty * item.price;
+    saveCart();
+    renderCart();
+  }
+  function setCartQty(idx, val) {
+    const newQty = Math.max(1, parseInt(val) || 1);
+    cartItems[idx].qty = newQty;
+    cartItems[idx].subtotal = newQty * cartItems[idx].price;
+    saveCart();
+    renderCart();
+  }
+  function removeCartItem(idx) {
+    cartItems.splice(idx, 1);
+    saveCart();
+    renderCart();
+    showToast('Item removed from cart.', '');
+  }
+  function saveCart() {
+    sessionStorage.setItem('brndCart', JSON.stringify(cartItems));
+  }
+
+  // Clear cart button
+  document.getElementById('clearCartBtn').addEventListener('click', () => {
+    if (cartItems.length === 0) { showToast('Cart is already empty.', ''); return; }
+    if (confirm('Remove all items from cart?')) {
+      cartItems = [];
+      saveCart();
+      renderCart();
+      showToast('Cart cleared.', '');
+    }
+  });
+
+  /* ── Payment method selector ── */
+  function selectPayment(el) {
+    document.querySelectorAll('.pay-option').forEach(o => o.classList.remove('selected'));
+    el.classList.add('selected');
+    selectedPayMethod = el.dataset.method;
+
+    // Hide all expandable forms
+    document.getElementById('cardFormWrap').classList.remove('open');
+    document.getElementById('achFormWrap').classList.remove('open');
+    document.getElementById('wireFormWrap').classList.remove('open');
+    document.getElementById('net30Info').classList.remove('open');
+
+    if (selectedPayMethod === 'card')   document.getElementById('cardFormWrap').classList.add('open');
+    if (selectedPayMethod === 'ach')    document.getElementById('achFormWrap').classList.add('open');
+    if (selectedPayMethod === 'wire')   document.getElementById('wireFormWrap').classList.add('open');
+    if (selectedPayMethod === 'net30')  document.getElementById('net30Info').classList.add('open');
+  }
+
+  /* ── Card number formatter ── */
+  document.getElementById('ccNum').addEventListener('input', function () {
+    let v = this.value.replace(/\D/g,'').substring(0,16);
+    this.value = v.match(/.{1,4}/g)?.join(' ') || v;
+  });
+
+  /* ── Place Order ── */
+  function placeOrder() {
+    if (cartItems.length === 0) {
+      showToast('Your cart is empty!', '');
+      return;
+    }
+    const btn = document.getElementById('placeOrderBtn');
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing…';
+
+    // Simulate processing
+    setTimeout(() => {
+      // Generate a fake order number
+      const orderNum = 'BD-' + (48292 + Math.floor(Math.random() * 100));
+      const subtotal = cartItems.reduce((s, i) => s + i.qty * i.price, 0);
+      const total    = subtotal + shippingCost;
+      const method   = {
+        card: 'Credit Card', ach: 'ACH Transfer',
+        wire: 'Wire Transfer', net30: 'Net-30 Terms', paypal: 'PayPal'
+      }[selectedPayMethod] || 'Card';
+
+      document.getElementById('confirmOrderNum').textContent = orderNum;
+      document.getElementById('confirmSub').innerHTML = `
+        Your order has been submitted via <strong>${method}</strong>.<br>
+        Total: <strong>${fmt(total)}</strong> · ${cartItems.reduce((s,i)=>s+i.qty,0)} units<br><br>
+        You'll receive an email confirmation at <strong>alex@brandstore.com</strong>.`;
+
+      // Clear cart
+      cartItems = [];
+      saveCart();
+
+      // Show confirmation
+      document.getElementById('confirmOverlay').classList.add('open');
+
+      btn.disabled = false;
+      btn.innerHTML = '<i class="fas fa-lock"></i> <span id="placeOrderLabel">Place Secure Order</span>';
+    }, 1800);
+  }
+
+  /* ── Format currency ── */
+  function fmt(n) {
+    return '$' + n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  }
+
+  /* ── Toast ── */
+  function showToast(msg, type = 'success') {
+    const container = document.getElementById('toastContainer');
+    const icon  = type === 'success' ? 'fa-check-circle' : 'fa-info-circle';
+    const toast = document.createElement('div');
+    toast.className = `toast ${type}`;
+    toast.innerHTML = `<i class="fas ${icon}"></i><span>${msg}</span>`;
+    container.appendChild(toast);
+    setTimeout(() => {
+      toast.style.opacity = '0'; toast.style.transform = 'translateX(60px)';
+      toast.style.transition = 'all .3s';
+      setTimeout(() => toast.remove(), 350);
+    }, 3200);
+  }
+
+  /* ── Initial render ── */
+  renderCart();
+</script>
+
+</body>
+</html>

@@ -1,0 +1,2366 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BRND Direct — Developer Brief & Technical Specification</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.5.0/css/all.min.css" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --brand:       #6366f1;
+      --brand-dark:  #4f46e5;
+      --brand-light: #818cf8;
+      --accent:      #10b981;
+      --warn:        #f59e0b;
+      --danger:      #ef4444;
+      --blue:        #3b82f6;
+      --purple:      #8b5cf6;
+      --dark:        #0f172a;
+      --dark2:       #1e293b;
+      --dark3:       #334155;
+      --mid:         #475569;
+      --light:       #94a3b8;
+      --lighter:     #cbd5e1;
+      --bg:          #f8fafc;
+      --white:       #ffffff;
+      --card:        #ffffff;
+      --border:      #e2e8f0;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--bg);
+      color: var(--dark);
+      line-height: 1.6;
+      font-size: 14px;
+    }
+
+    /* ── TOP NAV ── */
+    .top-nav {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: var(--dark);
+      border-bottom: 2px solid var(--brand);
+      padding: 0 32px;
+      display: flex;
+      align-items: center;
+      gap: 20px;
+      height: 56px;
+    }
+    .top-nav .logo {
+      font-size: 15px;
+      font-weight: 800;
+      color: var(--white);
+      letter-spacing: 1px;
+      white-space: nowrap;
+    }
+    .top-nav .logo span { color: var(--brand-light); }
+    .top-nav .nav-links {
+      display: flex;
+      gap: 4px;
+      overflow-x: auto;
+      flex: 1;
+    }
+    .top-nav .nav-links a {
+      color: var(--lighter);
+      text-decoration: none;
+      font-size: 12px;
+      font-weight: 500;
+      padding: 6px 12px;
+      border-radius: 6px;
+      white-space: nowrap;
+      transition: all 0.2s;
+    }
+    .top-nav .nav-links a:hover { background: rgba(99,102,241,0.2); color: var(--white); }
+    .top-nav .badge {
+      background: var(--brand);
+      color: white;
+      font-size: 10px;
+      padding: 2px 8px;
+      border-radius: 20px;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+
+    /* ── HERO ── */
+    .hero {
+      background: linear-gradient(135deg, var(--dark) 0%, #1a1040 50%, #0d2040 100%);
+      padding: 64px 40px;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+    .hero::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(ellipse 800px 400px at 50% 0%, rgba(99,102,241,0.15), transparent);
+    }
+    .hero-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(99,102,241,0.15);
+      border: 1px solid rgba(99,102,241,0.4);
+      color: var(--brand-light);
+      padding: 6px 16px;
+      border-radius: 30px;
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 0.5px;
+      margin-bottom: 20px;
+    }
+    .hero h1 {
+      font-size: clamp(28px, 4vw, 48px);
+      font-weight: 800;
+      color: var(--white);
+      margin-bottom: 16px;
+      position: relative;
+    }
+    .hero h1 span { color: var(--brand-light); }
+    .hero p {
+      font-size: 16px;
+      color: #94a3b8;
+      max-width: 700px;
+      margin: 0 auto 32px;
+      position: relative;
+    }
+    .hero-meta {
+      display: flex;
+      justify-content: center;
+      gap: 32px;
+      flex-wrap: wrap;
+      position: relative;
+    }
+    .hero-meta-item {
+      text-align: center;
+    }
+    .hero-meta-item .val {
+      font-size: 28px;
+      font-weight: 800;
+      color: var(--white);
+    }
+    .hero-meta-item .lbl {
+      font-size: 11px;
+      color: var(--light);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    /* ── MAIN LAYOUT ── */
+    .main-wrap {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 48px 24px;
+    }
+
+    /* ── SECTION HEADERS ── */
+    .section {
+      margin-bottom: 60px;
+    }
+    .section-header {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      margin-bottom: 28px;
+      padding-bottom: 16px;
+      border-bottom: 2px solid var(--border);
+    }
+    .section-icon {
+      width: 44px;
+      height: 44px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      flex-shrink: 0;
+    }
+    .section-icon.purple { background: rgba(139,92,246,0.12); color: #8b5cf6; }
+    .section-icon.blue   { background: rgba(59,130,246,0.12);  color: #3b82f6; }
+    .section-icon.green  { background: rgba(16,185,129,0.12);  color: #10b981; }
+    .section-icon.orange { background: rgba(245,158,11,0.12);  color: #f59e0b; }
+    .section-icon.red    { background: rgba(239,68,68,0.12);   color: #ef4444; }
+    .section-icon.indigo { background: rgba(99,102,241,0.12);  color: #6366f1; }
+    .section-icon.cyan   { background: rgba(6,182,212,0.12);   color: #06b6d4; }
+    .section-icon.pink   { background: rgba(236,72,153,0.12);  color: #ec4899; }
+
+    .section-title {
+      font-size: 22px;
+      font-weight: 700;
+      color: var(--dark);
+    }
+    .section-title span {
+      display: block;
+      font-size: 13px;
+      font-weight: 400;
+      color: var(--mid);
+      margin-top: 2px;
+    }
+    .section-num {
+      background: var(--brand);
+      color: white;
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      font-weight: 700;
+      flex-shrink: 0;
+    }
+
+    /* ── CARDS ── */
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 24px;
+      margin-bottom: 16px;
+    }
+    .card-title {
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--dark);
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .card-title i { color: var(--brand); }
+    .card p { color: var(--mid); font-size: 13px; line-height: 1.7; }
+
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+    .grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+
+    /* ── FLOW DIAGRAM ── */
+    .flow-steps {
+      display: flex;
+      align-items: flex-start;
+      gap: 0;
+      flex-wrap: wrap;
+      margin-bottom: 32px;
+    }
+    .flow-step {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      flex: 1;
+      min-width: 120px;
+      position: relative;
+    }
+    .flow-step::after {
+      content: '';
+      position: absolute;
+      top: 20px;
+      right: -20px;
+      width: 40px;
+      height: 2px;
+      background: linear-gradient(90deg, var(--brand), var(--accent));
+    }
+    .flow-step:last-child::after { display: none; }
+    .flow-step-num {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 800;
+      font-size: 14px;
+      color: white;
+      margin-bottom: 8px;
+      position: relative;
+      z-index: 1;
+    }
+    .flow-step-label {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--dark);
+      line-height: 1.3;
+    }
+    .flow-step-sub {
+      font-size: 10px;
+      color: var(--light);
+      margin-top: 2px;
+    }
+
+    /* ── TABLES ── */
+    .data-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+    }
+    .data-table th {
+      background: var(--dark2);
+      color: var(--lighter);
+      padding: 10px 14px;
+      text-align: left;
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .data-table th:first-child { border-radius: 8px 0 0 0; }
+    .data-table th:last-child  { border-radius: 0 8px 0 0; }
+    .data-table td {
+      padding: 10px 14px;
+      border-bottom: 1px solid var(--border);
+      vertical-align: top;
+      line-height: 1.5;
+    }
+    .data-table tr:hover td { background: #f8fafc; }
+    .data-table code {
+      background: #f1f5f9;
+      border: 1px solid var(--border);
+      padding: 2px 7px;
+      border-radius: 4px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11.5px;
+      color: var(--brand-dark);
+    }
+
+    /* ── CODE BLOCKS ── */
+    .code-block {
+      background: var(--dark2);
+      border: 1px solid var(--dark3);
+      border-radius: 10px;
+      padding: 20px 24px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+      line-height: 1.7;
+      color: #e2e8f0;
+      overflow-x: auto;
+      margin-bottom: 16px;
+    }
+    .code-block .comment { color: #64748b; }
+    .code-block .keyword { color: #818cf8; }
+    .code-block .string  { color: #34d399; }
+    .code-block .key     { color: #fb923c; }
+    .code-block .val     { color: #60a5fa; }
+
+    /* ── BADGES ── */
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 3px 10px;
+      border-radius: 20px;
+      font-size: 11px;
+      font-weight: 600;
+    }
+    .badge-green  { background: #dcfce7; color: #166534; }
+    .badge-blue   { background: #dbeafe; color: #1e40af; }
+    .badge-purple { background: #ede9fe; color: #5b21b6; }
+    .badge-orange { background: #fef3c7; color: #92400e; }
+    .badge-red    { background: #fee2e2; color: #991b1b; }
+    .badge-gray   { background: #f1f5f9; color: #475569; }
+    .badge-indigo { background: #e0e7ff; color: #3730a3; }
+    .badge-phase  { background: linear-gradient(135deg, #6366f1, #8b5cf6); color: white; }
+    .badge-new    { background: linear-gradient(135deg, #10b981, #059669); color: white; }
+
+    /* ── PRIORITY / STATUS ROWS ── */
+    .priority-row {
+      display: flex;
+      align-items: flex-start;
+      gap: 14px;
+      padding: 14px;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      margin-bottom: 10px;
+      background: white;
+    }
+    .priority-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      margin-top: 4px;
+      flex-shrink: 0;
+    }
+    .priority-dot.high   { background: var(--danger); box-shadow: 0 0 6px rgba(239,68,68,0.5); }
+    .priority-dot.med    { background: var(--warn); box-shadow: 0 0 6px rgba(245,158,11,0.5); }
+    .priority-dot.low    { background: var(--accent); box-shadow: 0 0 6px rgba(16,185,129,0.5); }
+
+    /* ── TECH STACK ── */
+    .tech-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: var(--dark2);
+      color: var(--lighter);
+      padding: 6px 14px;
+      border-radius: 8px;
+      font-size: 12px;
+      font-weight: 500;
+      margin: 4px;
+    }
+    .tech-pill i { color: var(--brand-light); }
+
+    /* ── API ENDPOINTS ── */
+    .endpoint {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      padding: 12px 16px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      margin-bottom: 8px;
+      background: white;
+    }
+    .method {
+      padding: 3px 10px;
+      border-radius: 5px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      font-weight: 700;
+      min-width: 54px;
+      text-align: center;
+      flex-shrink: 0;
+    }
+    .method.get    { background: #dcfce7; color: #166534; }
+    .method.post   { background: #dbeafe; color: #1e40af; }
+    .method.put    { background: #fef3c7; color: #92400e; }
+    .method.patch  { background: #ede9fe; color: #5b21b6; }
+    .method.delete { background: #fee2e2; color: #991b1b; }
+    .endpoint-path {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12.5px;
+      font-weight: 600;
+      color: var(--dark);
+    }
+    .endpoint-desc {
+      font-size: 12px;
+      color: var(--mid);
+      margin-top: 2px;
+    }
+
+    /* ── PORTAL PAGES ── */
+    .page-card {
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      overflow: hidden;
+      background: white;
+    }
+    .page-card-header {
+      padding: 12px 16px;
+      background: var(--dark2);
+      color: var(--lighter);
+      font-size: 12px;
+      font-weight: 700;
+      font-family: 'JetBrains Mono', monospace;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .page-card-body {
+      padding: 16px;
+    }
+    .page-card-body ul {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .page-card-body li {
+      font-size: 12px;
+      color: var(--mid);
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+    }
+    .page-card-body li::before {
+      content: '✓';
+      color: var(--accent);
+      font-weight: 700;
+      flex-shrink: 0;
+    }
+
+    /* ── DB SCHEMA ── */
+    .schema-table {
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      overflow: hidden;
+      margin-bottom: 16px;
+    }
+    .schema-table-header {
+      background: var(--dark);
+      padding: 10px 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .schema-table-name {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--brand-light);
+    }
+    .schema-field {
+      display: grid;
+      grid-template-columns: 160px 120px 1fr;
+      gap: 8px;
+      padding: 8px 16px;
+      border-bottom: 1px solid var(--border);
+      align-items: center;
+      font-size: 12px;
+    }
+    .schema-field:last-child { border-bottom: none; }
+    .schema-field:hover { background: #f8fafc; }
+    .schema-field-name {
+      font-family: 'JetBrains Mono', monospace;
+      font-weight: 600;
+      color: var(--dark);
+    }
+    .schema-field-type {
+      font-family: 'JetBrains Mono', monospace;
+      color: #8b5cf6;
+      font-size: 11px;
+    }
+    .schema-field-desc { color: var(--mid); }
+
+    /* ── TIMELINE ── */
+    .timeline {
+      position: relative;
+      padding-left: 32px;
+    }
+    .timeline::before {
+      content: '';
+      position: absolute;
+      left: 7px;
+      top: 0;
+      bottom: 0;
+      width: 2px;
+      background: linear-gradient(180deg, var(--brand), var(--accent));
+    }
+    .timeline-item {
+      position: relative;
+      margin-bottom: 24px;
+    }
+    .timeline-item::before {
+      content: '';
+      position: absolute;
+      left: -29px;
+      top: 4px;
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background: var(--brand);
+      border: 2px solid white;
+      box-shadow: 0 0 0 2px var(--brand);
+    }
+    .timeline-title {
+      font-weight: 700;
+      color: var(--dark);
+      font-size: 14px;
+    }
+    .timeline-sub {
+      font-size: 12px;
+      color: var(--mid);
+      margin-top: 4px;
+      line-height: 1.5;
+    }
+
+    /* ── CALLOUT ── */
+    .callout {
+      border-radius: 10px;
+      padding: 16px 20px;
+      margin-bottom: 16px;
+      display: flex;
+      gap: 14px;
+      align-items: flex-start;
+    }
+    .callout i { font-size: 18px; flex-shrink: 0; margin-top: 1px; }
+    .callout-body h4 { font-size: 14px; font-weight: 700; margin-bottom: 4px; }
+    .callout-body p  { font-size: 12.5px; line-height: 1.6; }
+    .callout.info    { background: #eff6ff; border: 1px solid #bfdbfe; }
+    .callout.info i  { color: #3b82f6; }
+    .callout.info h4 { color: #1e40af; }
+    .callout.info p  { color: #1e3a8a; }
+    .callout.warn    { background: #fffbeb; border: 1px solid #fde68a; }
+    .callout.warn i  { color: #f59e0b; }
+    .callout.warn h4 { color: #92400e; }
+    .callout.warn p  { color: #78350f; }
+    .callout.success { background: #f0fdf4; border: 1px solid #bbf7d0; }
+    .callout.success i  { color: #10b981; }
+    .callout.success h4 { color: #166534; }
+    .callout.success p  { color: #14532d; }
+    .callout.danger  { background: #fef2f2; border: 1px solid #fecaca; }
+    .callout.danger i  { color: #ef4444; }
+    .callout.danger h4 { color: #991b1b; }
+    .callout.danger p  { color: #7f1d1d; }
+
+    /* ── PRINT ── */
+    @media print {
+      .top-nav { position: relative; }
+      .section { page-break-inside: avoid; }
+    }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width: 768px) {
+      .grid-2, .grid-3, .grid-4 { grid-template-columns: 1fr; }
+      .flow-steps { flex-direction: column; gap: 16px; }
+      .flow-step::after { display: none; }
+      .schema-field { grid-template-columns: 1fr; }
+    }
+
+    /* ── MISC ── */
+    ul.feat-list {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    ul.feat-list li {
+      font-size: 13px;
+      color: var(--mid);
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      padding: 8px 12px;
+      border-radius: 8px;
+      background: #f8fafc;
+    }
+    ul.feat-list li i { color: var(--brand); flex-shrink: 0; margin-top: 1px; }
+
+    .divider {
+      height: 1px;
+      background: linear-gradient(90deg, transparent, var(--border), transparent);
+      margin: 40px 0;
+    }
+
+    .toc {
+      background: white;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 24px;
+      margin-bottom: 48px;
+    }
+    .toc h3 {
+      font-size: 13px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--mid);
+      margin-bottom: 16px;
+    }
+    .toc-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+    }
+    .toc-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 12px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      text-decoration: none;
+      color: var(--dark);
+      font-size: 12.5px;
+      font-weight: 500;
+      transition: all 0.2s;
+    }
+    .toc-item:hover {
+      background: var(--brand);
+      color: white;
+      border-color: var(--brand);
+    }
+    .toc-item span {
+      width: 22px;
+      height: 22px;
+      background: var(--brand);
+      color: white;
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 10px;
+      font-weight: 700;
+      flex-shrink: 0;
+    }
+    .toc-item:hover span { background: rgba(255,255,255,0.25); }
+
+    @media (max-width: 768px) {
+      .toc-grid { grid-template-columns: 1fr 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ── TOP NAV ── -->
+<nav class="top-nav">
+  <div class="logo">BRND <span>DIRECT</span></div>
+  <div class="nav-links">
+    <a href="#overview">Overview</a>
+    <a href="#portal-architecture">Architecture</a>
+    <a href="#buyer-portal">Buyer Portal</a>
+    <a href="#seller-portal">Seller Portal</a>
+    <a href="#admin-portal">Admin Portal</a>
+    <a href="#dropship">Dropship</a>
+    <a href="#api">API Layer</a>
+    <a href="#database">Database</a>
+    <a href="#integrations">Integrations</a>
+    <a href="#backend-requirements">Backend Build</a>
+    <a href="#roadmap">Roadmap</a>
+  </div>
+  <div class="badge">v1.0 — March 2025</div>
+</nav>
+
+<!-- ── HERO ── -->
+<div class="hero">
+  <div class="hero-tag"><i class="fas fa-file-code"></i> Full Developer Technical Brief</div>
+  <h1>BRND Direct Portal<br/><span>Developer Specification & Architecture</span></h1>
+  <p>Complete frontend, backend, database, and integration specification for the BRND Direct B2B Wholesale &amp; Dropship Platform. Hand this document to your development team for backend and frontend implementation.</p>
+  <div class="hero-meta">
+    <div class="hero-meta-item"><div class="val">3</div><div class="lbl">Portal Roles</div></div>
+    <div class="hero-meta-item"><div class="val">29</div><div class="lbl">Frontend Pages</div></div>
+    <div class="hero-meta-item"><div class="val">13</div><div class="lbl">DB Tables</div></div>
+    <div class="hero-meta-item"><div class="val">40+</div><div class="lbl">API Endpoints</div></div>
+    <div class="hero-meta-item"><div class="val">8</div><div class="lbl">3rd Party Integrations</div></div>
+    <div class="hero-meta-item"><div class="val">6</div><div class="lbl">Order Flow Steps</div></div>
+  </div>
+</div>
+
+<!-- ── MAIN ── -->
+<div class="main-wrap">
+
+  <!-- TABLE OF CONTENTS -->
+  <div class="toc">
+    <h3><i class="fas fa-list"></i> &nbsp; Table of Contents</h3>
+    <div class="toc-grid">
+      <a href="#overview" class="toc-item"><span>1</span>Platform Overview</a>
+      <a href="#portal-architecture" class="toc-item"><span>2</span>Architecture</a>
+      <a href="#order-flow" class="toc-item"><span>3</span>6-Step Order Flow</a>
+      <a href="#buyer-portal" class="toc-item"><span>4</span>Buyer Portal Pages</a>
+      <a href="#seller-portal" class="toc-item"><span>5</span>Seller Portal Pages</a>
+      <a href="#admin-portal" class="toc-item"><span>6</span>Admin Portal</a>
+      <a href="#dropship" class="toc-item"><span>7</span>Dropship Module</a>
+      <a href="#api" class="toc-item"><span>8</span>API Endpoints</a>
+      <a href="#database" class="toc-item"><span>9</span>Database Schema</a>
+      <a href="#auth" class="toc-item"><span>10</span>Auth & Security</a>
+      <a href="#integrations" class="toc-item"><span>11</span>Integrations</a>
+      <a href="#backend-requirements" class="toc-item"><span>12</span>Backend Build List</a>
+      <a href="#frontend-status" class="toc-item"><span>13</span>Frontend Status</a>
+      <a href="#roadmap" class="toc-item"><span>14</span>Roadmap</a>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════════════════
+       SECTION 1 — PLATFORM OVERVIEW
+  ═══════════════════════════════════════════════════════════ -->
+  <section class="section" id="overview">
+    <div class="section-header">
+      <div class="section-icon purple"><i class="fas fa-building-columns"></i></div>
+      <div class="section-title">Platform Overview<span>What BRND Direct is and what it needs to do</span></div>
+      <div class="section-num">1</div>
+    </div>
+
+    <div class="callout info">
+      <i class="fas fa-info-circle"></i>
+      <div class="callout-body">
+        <h4>What is BRND Direct?</h4>
+        <p>BRND Direct is a private, invitation-only B2B wholesale &amp; dropship marketplace. It connects <strong>approved buyers</strong> (retailers, boutiques, e-commerce stores) with <strong>premium brand sellers</strong> (Chanel, Dior, Maison Margiela, etc.) for wholesale purchasing AND dropship order fulfillment. There is also a <strong>Shopify integration layer</strong> that allows buyers who have Shopify stores to auto-sync product catalogs and have orders fulfilled directly from BRND Direct into their Shopify storefront.</p>
+      </div>
+    </div>
+
+    <div class="grid-3">
+      <div class="card">
+        <div class="card-title"><i class="fas fa-user-tie"></i> Buyer (Retailer)</div>
+        <p>Approved wholesale buyers who purchase products in bulk or use dropship mode. They browse the catalog, build orders, pay invoices on Net-30/60/90 terms, and track fulfillment. They may also connect their Shopify store to automate the entire dropship pipeline.</p>
+      </div>
+      <div class="card">
+        <div class="card-title"><i class="fas fa-store"></i> Seller (Brand)</div>
+        <p>Premium brands or their distributors who list products in the BRND Direct catalog. They receive and confirm orders, manage their product listings and pricing, pick-pack and ship, enter tracking info, and receive weekly/monthly payouts via Stripe Connect.</p>
+      </div>
+      <div class="card">
+        <div class="card-title"><i class="fas fa-shield-halved"></i> Admin (BRND Direct)</div>
+        <p>Internal BRND Direct staff who manage platform operations: approve buyers and sellers, oversee all orders, handle disputes, manage credit limits, configure platform settings, view all analytics, and manage payouts to sellers.</p>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title"><i class="fas fa-layer-group"></i> Two Fulfillment Models</div>
+      <div class="grid-2">
+        <div>
+          <p><strong style="color:#6366f1">Wholesale Model</strong><br/>
+          Buyer browses catalog → adds to cart → confirms order → pays invoice (Net-30/60/90 or prepay) → seller packs → buyer books shipment via Freightos (LTL freight) or Shippo (parcel) → goods delivered to buyer's warehouse.</p>
+        </div>
+        <div>
+          <p><strong style="color:#10b981">Dropship Model</strong><br/>
+          Buyer connects their Shopify store → end customers place orders on buyer's Shopify → orders automatically route to BRND Direct → BRND Direct fulfills and ships directly to end customer → tracking pushed back to Shopify → daily invoice auto-generated for buyer.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="divider"></div>
+
+  <!-- ══════════════════════════════════════════════════════════
+       SECTION 2 — ARCHITECTURE
+  ═══════════════════════════════════════════════════════════ -->
+  <section class="section" id="portal-architecture">
+    <div class="section-header">
+      <div class="section-icon blue"><i class="fas fa-diagram-project"></i></div>
+      <div class="section-title">System Architecture<span>Tech stack, hosting, data flow</span></div>
+      <div class="section-num">2</div>
+    </div>
+
+    <div class="code-block">
+<span class="comment">// ─── BRND DIRECT ARCHITECTURE OVERVIEW ───────────────────────────────────────</span>
+
+<span class="comment">// LAYER 1: Frontend (already built as static HTML/CSS/JS)</span>
+<span class="key">Cloudflare Pages</span>  →  Static HTML/CSS/JS files (buyer/, seller/, admin/)
+                    Served globally via CDN
+                    Protected by _redirects rules + auth-guard.js
+
+<span class="comment">// LAYER 2: API Layer (Cloudflare Workers — partially built)</span>
+<span class="key">Cloudflare Worker</span> →  workers/api.js  (REST API)
+                    Handles: Stripe payments, carrier APIs, Supabase queries
+                    Needs: order CRUD, auth endpoints, Shopify webhook handler
+
+<span class="comment">// LAYER 3: Database (Supabase — schema designed, not connected)</span>
+<span class="key">Supabase</span>          →  PostgreSQL 15 database
+                    supabase/schema.sql  (complete schema ready to deploy)
+                    Supabase Auth (email/password, magic link)
+                    Supabase Realtime (orders, messages, notifications)
+                    Supabase Storage (product images, invoices, docs)
+
+<span class="comment">// LAYER 4: Third-Party Services</span>
+<span class="key">Stripe</span>            →  Buyer invoice payments + Seller payouts (Stripe Connect)
+<span class="key">Shopify API</span>       →  Dropship: catalog sync, order import, tracking push
+<span class="key">Freightos API</span>     →  LTL/FTL freight quotes, booking, tracking
+<span class="key">Shippo API</span>        →  Parcel shipping labels, rates, tracking
+<span class="key">SendGrid / Resend</span> →  Transactional emails (order confirm, invoice, tracking)
+<span class="key">OpenAI API</span>        →  PO document parsing (AI-powered PO upload feature)
+    </div>
+
+    <div class="grid-2">
+      <div class="card">
+        <div class="card-title"><i class="fas fa-check-circle"></i> Already Built (Frontend)</div>
+        <ul class="feat-list">
+          <li><i class="fas fa-check"></i> All 29 HTML pages (buyer, seller, admin)</li>
+          <li><i class="fas fa-check"></i> Complete UI for all flows and features</li>
+          <li><i class="fas fa-check"></i> Auth guard (session-based, preview mode enabled)</li>
+          <li><i class="fas fa-check"></i> Full database schema (supabase/schema.sql)</li>
+          <li><i class="fas fa-check"></i> Cloudflare Worker scaffold (workers/api.js)</li>
+          <li><i class="fas fa-check"></i> Stripe + carrier API handlers in Worker</li>
+          <li><i class="fas fa-check"></i> Wrangler config (wrangler.toml)</li>
+        </ul>
+      </div>
+      <div class="card">
+        <div class="card-title"><i class="fas fa-tools"></i> Needs to Be Built (Backend)</div>
+        <ul class="feat-list">
+          <li><i class="fas fa-wrench"></i> Connect Supabase to Cloudflare Worker</li>
+          <li><i class="fas fa-wrench"></i> Real auth (Supabase Auth + JWT validation)</li>
+          <li><i class="fas fa-wrench"></i> Order CRUD API endpoints</li>
+          <li><i class="fas fa-wrench"></i> Shopify integration (webhook + sync)</li>
+          <li><i class="fas fa-wrench"></i> Email notification triggers</li>
+          <li><i class="fas fa-wrench"></i> Real-time order status updates</li>
+          <li><i class="fas fa-wrench"></i> PDF invoice generation</li>
+          <li><i class="fas fa-wrench"></i> Seller payout automation</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <div class="divider"></div>
+
+  <!-- ══════════════════════════════════════════════════════════
+       SECTION 3 — ORDER FLOW
+  ═══════════════════════════════════════════════════════════ -->
+  <section class="section" id="order-flow">
+    <div class="section-header">
+      <div class="section-icon green"><i class="fas fa-route"></i></div>
+      <div class="section-title">Wholesale Order Flow<span>The 6-step buyer journey — every page follows this sequence</span></div>
+      <div class="section-num">3</div>
+    </div>
+
+    <div class="flow-steps">
+      <div class="flow-step">
+        <div class="flow-step-num" style="background:linear-gradient(135deg,#6366f1,#8b5cf6)">1</div>
+        <div class="flow-step-label">Browse &<br/>Add to Cart</div>
+        <div class="flow-step-sub">products.html</div>
+      </div>
+      <div class="flow-step">
+        <div class="flow-step-num" style="background:linear-gradient(135deg,#3b82f6,#6366f1)">2</div>
+        <div class="flow-step-label">Confirm<br/>Order</div>
+        <div class="flow-step-sub">cart.html</div>
+      </div>
+      <div class="flow-step">
+        <div class="flow-step-num" style="background:linear-gradient(135deg,#f59e0b,#ef4444)">3</div>
+        <div class="flow-step-label">Seller<br/>Confirms</div>
+        <div class="flow-step-sub">orders.html#step3</div>
+      </div>
+      <div class="flow-step">
+        <div class="flow-step-num" style="background:linear-gradient(135deg,#10b981,#06b6d4)">4</div>
+        <div class="flow-step-label">Pay<br/>Invoice</div>
+        <div class="flow-step-sub">invoices.html</div>
+      </div>
+      <div class="flow-step">
+        <div class="flow-step-num" style="background:linear-gradient(135deg,#8b5cf6,#ec4899)">5</div>
+        <div class="flow-step-label">Seller<br/>Packs</div>
+        <div class="flow-step-sub">orders.html#step5</div>
+      </div>
+      <div class="flow-step">
+        <div class="flow-step-num" style="background:linear-gradient(135deg,#ec4899,#f59e0b)">6</div>
+        <div class="flow-step-label">Schedule<br/>Shipment</div>
+        <div class="flow-step-sub">shipping-logistics.html</div>
+      </div>
+    </div>
+
+    <table class="data-table" style="border:1px solid var(--border); border-radius:10px; overflow:hidden;">
+      <thead>
+        <tr>
+          <th>Step</th>
+          <th>Actor</th>
+          <th>Page (Frontend)</th>
+          <th>Action Required</th>
+          <th>Backend Triggers</th>
+          <th>Status Change</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><span class="badge badge-indigo">Step 1</span></td>
+          <td>Buyer</td>
+          <td><code>buyer/products.html</code></td>
+          <td>Browse catalog, add to cart (MOQ enforced), view product details</td>
+          <td>Cart stored in sessionStorage → needs real cart API</td>
+          <td>N/A (pre-order)</td>
+        </tr>
+        <tr>
+          <td><span class="badge badge-blue">Step 2</span></td>
+          <td>Buyer</td>
+          <td><code>buyer/cart.html</code></td>
+          <td>Review cart, select shipping method, enter PO#, select Net-30/60/90, confirm order</td>
+          <td>POST /api/orders → create order + invoice records in DB. Send confirmation email to buyer + seller.</td>
+          <td><code>pending</code></td>
+        </tr>
+        <tr>
+          <td><span class="badge badge-orange">Step 3</span></td>
+          <td>Seller</td>
+          <td><code>seller/orders.html</code></td>
+          <td>Seller reviews new order and confirms availability. Can partially fill or reject.</td>
+          <td>PATCH /api/orders/:id {status: "confirmed"}. Send "Confirmed" email to buyer. Issue invoice.</td>
+          <td><code>confirmed</code></td>
+        </tr>
+        <tr>
+          <td><span class="badge badge-green">Step 4</span></td>
+          <td>Buyer</td>
+          <td><code>buyer/invoices.html</code></td>
+          <td>Pay invoice via card, ACH, or use Net-30/60/90 credit. Must pay (or have credit) to unlock packing.</td>
+          <td>Stripe PaymentIntent. On success → PATCH invoice {payment_status: "paid"}. Trigger packing notification.</td>
+          <td><code>processing</code></td>
+        </tr>
+        <tr>
+          <td><span class="badge badge-purple">Step 5</span></td>
+          <td>Seller</td>
+          <td><code>seller/orders.html</code></td>
+          <td>Seller picks, packs items. Enters box dimensions &amp; weight. Marks as "Packed &amp; Ready".</td>
+          <td>PATCH /api/orders/:id {status: "processing", packed: true, dimensions: {...}}. Notify buyer to book shipment.</td>
+          <td><code>processing</code></td>
+        </tr>
+        <tr>
+          <td><span class="badge badge-phase">Step 6</span></td>
+          <td>Buyer</td>
+          <td><code>buyer/shipping-logistics.html</code></td>
+          <td>Book carrier (Freightos for freight, Shippo for parcels). Print label/BOL. Arrange pickup.</td>
+          <td>POST /api/freight/book or /api/parcel/purchase. Store tracking. PATCH order {status: "shipped", tracking_info: {...}}. Email tracking to buyer.</td>
+          <td><code>shipped</code></td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="card" style="margin-top:16px">
+      <div class="card-title"><i class="fas fa-robot"></i> Three Ways to Create an Order</div>
+      <div class="grid-3">
+        <div>
+          <strong style="color:#6366f1">1. Cart Checkout</strong><br/>
+          <p style="font-size:12px;margin-top:6px">Standard e-commerce flow. Browse products → add to cart → proceed to cart.html → confirm order. Generates order + invoice automatically.</p>
+        </div>
+        <div>
+          <strong style="color:#10b981">2. AI PO Upload</strong><br/>
+          <p style="font-size:12px;margin-top:6px">Upload PDF/XLSX/CSV purchase order. AI parses the document → matches products to catalog → shows editable line items → generate order + invoice with one click.</p>
+        </div>
+        <div>
+          <strong style="color:#f59e0b">3. Manual Order Builder</strong><br/>
+          <p style="font-size:12px;margin-top:6px">Search and select products manually via product picker grid. Set quantities, PO reference, shipping, payment terms → generate order + invoice.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="divider"></div>
+
+  <!-- ══════════════════════════════════════════════════════════
+       SECTION 4 — BUYER PORTAL
+  ═══════════════════════════════════════════════════════════ -->
+  <section class="section" id="buyer-portal">
+    <div class="section-header">
+      <div class="section-icon indigo"><i class="fas fa-user-tie"></i></div>
+      <div class="section-title">Buyer Portal — All Pages<span>19 pages under buyer/ directory</span></div>
+      <div class="section-num">4</div>
+    </div>
+
+    <div class="grid-2">
+
+      <div class="page-card">
+        <div class="page-card-header">
+          buyer/dashboard.html
+          <span class="badge badge-green">UI Complete</span>
+        </div>
+        <div class="page-card-body">
+          <ul>
+            <li>KPI strip: Revenue MTD, Orders MTD, Outstanding Invoices, Avg Order Value</li>
+            <li>Recent orders table with status indicators</li>
+            <li>Quick action buttons (New Order, Pay Invoice, View Catalog)</li>
+            <li>Journey progress widget (which step buyer is on)</li>
+            <li>Low stock alerts for favorite products</li>
+            <li>Notification feed</li>
+            <li><strong>Backend needed:</strong> GET /api/buyer/dashboard (aggregated KPIs)</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="page-card">
+        <div class="page-card-header">
+          buyer/products.html
+          <span class="badge badge-green">UI Complete</span>
+        </div>
+        <div class="page-card-body">
+          <ul>
+            <li>Full product catalog with search, filter by brand/category/price</li>
+            <li>Product cards with wholesale price, MSRP, MOQ, stock level</li>
+            <li>Add to cart with MOQ validation (can't add below MOQ)</li>
+            <li>Cart slide-out panel with item count badge</li>
+            <li>API integration: falls back to demo data if API unavailable</li>
+            <li>Pagination (50 products/page, max 200)</li>
+            <li><strong>Backend needed:</strong> GET /api/products (paginated, filterable)</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="page-card">
+        <div class="page-card-header">
+          buyer/cart.html — <strong>STEP 2</strong>
+          <span class="badge badge-green">UI Complete</span>
+        </div>
+        <div class="page-card-body">
+          <ul>
+            <li>Cart table with quantity steppers, MOQ re-validation, remove items</li>
+            <li>Shipping method selector (Standard/Express/Overnight/Pickup)</li>
+            <li>PO reference number field</li>
+            <li>Payment terms selector (Net-30, Net-60, Prepay, COD)</li>
+            <li>Order total calculation (subtotal + shipping + tax)</li>
+            <li>Confirm & Place Order → success overlay with order # + invoice #</li>
+            <li>Auto-redirect to invoices.html after 12 seconds</li>
+            <li><strong>Backend needed:</strong> POST /api/orders (create order + invoice)</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="page-card">
+        <div class="page-card-header">
+          buyer/orders.html — STEP 1–6 Hub
+          <span class="badge badge-green">UI Complete</span>
+        </div>
+        <div class="page-card-body">
+          <ul>
+            <li>6-step flow tracker (tabs 1–6 in order + Upload PO + All Orders)</li>
+            <li>Step 3: Seller Confirms view (pending orders, send reminder)</li>
+            <li>Step 5: Seller Packs view (monitor packing progress)</li>
+            <li>All Orders tab: full order list with status filter chips</li>
+            <li>Order detail overlay: timeline, items, tracking, payment status</li>
+            <li>AI PO Upload: drag-drop, parse, edit line items, generate order</li>
+            <li>Manual Order Builder: product search, picker, live summary panel</li>
+            <li>Export CSV, AI Assistant FAB</li>
+            <li><strong>Backend needed:</strong> GET/POST/PATCH /api/orders</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="page-card">
+        <div class="page-card-header">
+          buyer/invoices.html — <strong>STEP 4</strong>
+          <span class="badge badge-green">UI Complete</span>
+        </div>
+        <div class="page-card-body">
+          <ul>
+            <li>Outstanding balance banner with "Pay Now" CTA</li>
+            <li>Invoice list with Outstanding/Paid/Upcoming filter tabs</li>
+            <li>4-step payment wizard: Select invoice → Payment method → Review → Complete</li>
+            <li>Payment methods: Credit card (Stripe), ACH bank transfer, Net-30 credit line</li>
+            <li>Payment success → "Step 5 Starting Now" overlay with CTAs</li>
+            <li>Invoice detail: line items, shipping, tracking reference, due date</li>
+            <li><strong>Backend needed:</strong> GET /api/invoices, POST /api/create-payment-intent</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="page-card">
+        <div class="page-card-header">
+          buyer/shipping-logistics.html — <strong>STEP 6</strong>
+          <span class="badge badge-green">UI Complete</span>
+        </div>
+        <div class="page-card-body">
+          <ul>
+            <li>"Packed & Ready to Ship" banner showing orders needing shipment booking</li>
+            <li>Book Shipment tab (default active): carrier selector, address fields, dimensions</li>
+            <li>Freightos integration (LTL/FTL freight > 150 lbs)</li>
+            <li>Shippo integration (parcel shipping ≤ 150 lbs)</li>
+            <li>Auto-routing: system picks Freightos or Shippo based on weight</li>
+            <li>My Shipments, Live Tracking, Rate Compare, Documents tabs</li>
+            <li>KPI strip: Active, Delivered, Avg Transit, Freight Cost, Exceptions</li>
+            <li><strong>Backend needed:</strong> POST /api/freight/quote, /api/parcel/rates, /api/freight/book</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="page-card">
+        <div class="page-card-header">
+          buyer/analytics.html
+          <span class="badge badge-green">UI Complete</span>
+        </div>
+        <div class="page-card-body">
+          <ul>
+            <li>KPI cards: Total Spend, Orders, Avg Order Value, Fulfillment Rate</li>
+            <li>Monthly spend trend line chart (12 months)</li>
+            <li>Spend by category doughnut chart</li>
+            <li>Top brands by order volume bar chart</li>
+            <li>Order status breakdown chart</li>
+            <li><strong>Backend needed:</strong> GET /api/buyer/analytics?period=30d</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="page-card">
+        <div class="page-card-header">
+          buyer/rfq.html
+          <span class="badge badge-green">UI Complete</span>
+        </div>
+        <div class="page-card-body">
+          <ul>
+            <li>Submit RFQ: product search, quantity, target price, notes, expiry</li>
+            <li>RFQ list with status badges (Open, Quoted, Accepted, Rejected, Expired)</li>
+            <li>RFQ detail overlay: timeline, quoted price, accept/counter actions</li>
+            <li><strong>Backend needed:</strong> GET/POST /api/rfqs, PATCH /api/rfqs/:id</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="page-card">
+        <div class="page-card-header">
+          buyer/dropship.html
+          <span class="badge badge-orange">UI Complete — Backend Priority</span>
+        </div>
+        <div class="page-card-body">
+          <ul>
+            <li>Shopify store connection wizard (5-step)</li>
+            <li>Catalog sync settings & pricing rules</li>
+            <li>Automation mode: Full Auto vs Daily Confirm</li>
+            <li>Daily orders review & bulk confirm</li>
+            <li>Credit/Net-Terms selector for auto-ship</li>
+            <li>Auto-invoice settings & invoice history</li>
+            <li>Analytics: 8 KPI cards, 6 charts, top customers table</li>
+            <li><strong>Backend needed:</strong> Full Shopify integration (see Section 7)</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="page-card">
+        <div class="page-card-header">
+          buyer/trade-finance.html
+          <span class="badge badge-green">UI Complete</span>
+        </div>
+        <div class="page-card-body">
+          <ul>
+            <li>BNPL (Buy Now Pay Later) application flow</li>
+            <li>Credit limit display and utilization bar</li>
+            <li>Net-30/60/90 term activation</li>
+            <li>Payment history and upcoming payments</li>
+            <li><strong>Backend needed:</strong> Credit limit management, BNPL provider integration</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="page-card">
+        <div class="page-card-header">
+          buyer/warehousing.html
+          <span class="badge badge-green">UI Complete</span>
+        </div>
+        <div class="page-card-body">
+          <ul>
+            <li>Inventory at warehouse view (buyer-owned stock stored at BRND Direct warehouse)</li>
+            <li>Stock levels, reserved qty, available qty</li>
+            <li>Inbound shipments tracker</li>
+            <li>Transfer/withdrawal requests</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="page-card">
+        <div class="page-card-header">
+          buyer/messages.html
+          <span class="badge badge-green">UI Complete</span>
+        </div>
+        <div class="page-card-body">
+          <ul>
+            <li>Conversation list (buyer ↔ seller or buyer ↔ BRND Direct support)</li>
+            <li>Chat view with message bubbles and timestamps</li>
+            <li>File attachment support (docs, images)</li>
+            <li>Unread message badge in sidebar</li>
+            <li><strong>Backend needed:</strong> Supabase Realtime for live messages</li>
+          </ul>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="callout info" style="margin-top:16px">
+      <i class="fas fa-info-circle"></i>
+      <div class="callout-body">
+        <h4>Additional Buyer Pages</h4>
+        <p><code>buyer/reports.html</code> — Detailed P&amp;L reports, export CSV/PDF &nbsp;|&nbsp;
+        <code>buyer/account.html</code> — Profile, business info, billing address, team members, notification preferences, API keys &nbsp;|&nbsp;
+        <code>buyer/help.html</code> — FAQ, support tickets, live chat widget &nbsp;|&nbsp;
+        <code>buyer/payment-portal.html</code> — Standalone payment page (shareable link) &nbsp;|&nbsp;
+        <code>buyer/reset-password.html</code> — Password reset flow</p>
+      </div>
+    </div>
+  </section>
+
+  <div class="divider"></div>
+
+  <!-- ══════════════════════════════════════════════════════════
+       SECTION 5 — SELLER PORTAL
+  ═══════════════════════════════════════════════════════════ -->
+  <section class="section" id="seller-portal">
+    <div class="section-header">
+      <div class="section-icon orange"><i class="fas fa-store"></i></div>
+      <div class="section-title">Seller (Brand) Portal — All Pages<span>11 pages under seller/ directory</span></div>
+      <div class="section-num">5</div>
+    </div>
+
+    <div class="callout warn">
+      <i class="fas fa-triangle-exclamation"></i>
+      <div class="callout-body">
+        <h4>Seller Portal — UI Built, Backend Not Connected</h4>
+        <p>All seller portal pages have complete UI but currently operate with demo/static data. The seller portal is the #1 backend priority because sellers must confirm orders, update packing status, and submit tracking numbers — all of which unblock the buyer's order flow.</p>
+      </div>
+    </div>
+
+    <div class="grid-2">
+
+      <div class="page-card">
+        <div class="page-card-header">
+          seller/dashboard.html
+          <span class="badge badge-green">UI Complete</span>
+        </div>
+        <div class="page-card-body">
+          <ul>
+            <li>Revenue, orders, payout KPI strip</li>
+            <li>Pending orders requiring confirmation</li>
+            <li>Orders needing packing action</li>
+            <li>Recent payout history</li>
+            <li>Quick links to product management</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="page-card">
+        <div class="page-card-header">
+          seller/orders.html — <strong>CRITICAL</strong>
+          <span class="badge badge-red">Backend Priority #1</span>
+        </div>
+        <div class="page-card-body">
+          <ul>
+            <li><strong>Confirm Orders tab:</strong> New orders from buyers waiting for seller confirmation. Accept / Partially Fill / Reject with reason.</li>
+            <li><strong>Pack Orders tab:</strong> Confirmed orders ready for packing. Enter weight, dimensions, number of boxes.</li>
+            <li><strong>Enter Tracking tab:</strong> After pickup, enter carrier + tracking number. This pushes tracking to buyer AND to Shopify (if dropship).</li>
+            <li><strong>Completed Orders tab:</strong> Shipped/delivered orders history.</li>
+            <li><strong>Backend needed:</strong> PATCH /api/orders/:id for confirm/pack/tracking updates</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="page-card">
+        <div class="page-card-header">
+          seller/products.html
+          <span class="badge badge-green">UI Complete</span>
+        </div>
+        <div class="page-card-body">
+          <ul>
+            <li>Product list with edit, enable/disable, archive</li>
+            <li>Add new product: name, SKU, UPC, description, category, images, wholesale price, MSRP, MOQ, stock qty</li>
+            <li>Bulk price update (CSV upload)</li>
+            <li>Stock level management</li>
+            <li><strong>Backend needed:</strong> GET/POST/PUT/DELETE /api/seller/products</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="page-card">
+        <div class="page-card-header">
+          seller/wholesale-pricing.html
+          <span class="badge badge-green">UI Complete</span>
+        </div>
+        <div class="page-card-body">
+          <ul>
+            <li>Price tier management (standard, VIP, distributor)</li>
+            <li>Volume discount rules (e.g., 10+ units = 5% off)</li>
+            <li>MAP (Minimum Advertised Price) settings</li>
+            <li>Price change history log</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="page-card">
+        <div class="page-card-header">
+          seller/analytics.html
+          <span class="badge badge-green">UI Complete</span>
+        </div>
+        <div class="page-card-body">
+          <ul>
+            <li>Revenue by month, top products, top buyers</li>
+            <li>Order fulfillment rate and average ship time</li>
+            <li>Return rate, cancellation rate</li>
+            <li>Inventory turnover metrics</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="page-card">
+        <div class="page-card-header">
+          seller/payouts.html
+          <span class="badge badge-green">UI Complete</span>
+        </div>
+        <div class="page-card-body">
+          <ul>
+            <li>Payout history (weekly/monthly Stripe Connect transfers)</li>
+            <li>Commission breakdown (BRND Direct takes 12% default)</li>
+            <li>Net earnings after commissions</li>
+            <li>Stripe Connect account setup / onboarding</li>
+            <li><strong>Backend needed:</strong> Stripe Connect transfers + payout records</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="page-card">
+        <div class="page-card-header">
+          seller/brand-hub.html
+          <span class="badge badge-green">UI Complete</span>
+        </div>
+        <div class="page-card-body">
+          <ul>
+            <li>Brand profile page management (what buyers see)</li>
+            <li>Logo, banner, description, website, category</li>
+            <li>Featured products selection</li>
+            <li>Brand story / marketing assets</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="page-card">
+        <div class="page-card-header">
+          seller/messages.html
+          <span class="badge badge-green">UI Complete</span>
+        </div>
+        <div class="page-card-body">
+          <ul>
+            <li>Conversations with buyers (order inquiries, RFQ responses)</li>
+            <li>Broadcast message to all buyers (announcements)</li>
+            <li>File attachments support</li>
+          </ul>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <div class="divider"></div>
+
+  <!-- ══════════════════════════════════════════════════════════
+       SECTION 6 — ADMIN PORTAL
+  ═══════════════════════════════════════════════════════════ -->
+  <section class="section" id="admin-portal">
+    <div class="section-header">
+      <div class="section-icon red"><i class="fas fa-shield-halved"></i></div>
+      <div class="section-title">Admin Portal<span>admin/index.html — 73KB single-page admin dashboard</span></div>
+      <div class="section-num">6</div>
+    </div>
+
+    <div class="card">
+      <div class="card-title"><i class="fas fa-tachometer-alt"></i> Admin Dashboard Features (UI Complete)</div>
+      <div class="grid-3">
+        <div>
+          <strong>User Management</strong><br/>
+          <ul class="feat-list" style="margin-top:8px">
+            <li><i class="fas fa-check"></i> Approve/reject buyer applications</li>
+            <li><i class="fas fa-check"></i> Approve/reject seller (brand) applications</li>
+            <li><i class="fas fa-check"></i> Set buyer credit limits</li>
+            <li><i class="fas fa-check"></i> View buyer order history</li>
+            <li><i class="fas fa-check"></i> Suspend/reactivate accounts</li>
+          </ul>
+        </div>
+        <div>
+          <strong>Order Oversight</strong><br/>
+          <ul class="feat-list" style="margin-top:8px">
+            <li><i class="fas fa-check"></i> All orders across all buyers/sellers</li>
+            <li><i class="fas fa-check"></i> Override order status manually</li>
+            <li><i class="fas fa-check"></i> Dispute management</li>
+            <li><i class="fas fa-check"></i> Refund/cancellation processing</li>
+            <li><i class="fas fa-check"></i> Export orders CSV</li>
+          </ul>
+        </div>
+        <div>
+          <strong>Finance & Analytics</strong><br/>
+          <ul class="feat-list" style="margin-top:8px">
+            <li><i class="fas fa-check"></i> Platform revenue (commissions)</li>
+            <li><i class="fas fa-check"></i> Pending seller payouts</li>
+            <li><i class="fas fa-check"></i> GMV (gross merchandise value)</li>
+            <li><i class="fas fa-check"></i> Top buyers and sellers</li>
+            <li><i class="fas fa-check"></i> Platform settings (commission rate, etc.)</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="callout info">
+      <i class="fas fa-info-circle"></i>
+      <div class="callout-body">
+        <h4>Admin Backend: Key Queries Needed</h4>
+        <p>The admin uses the <code>admin_overview</code> DB view (already in schema.sql) which returns total buyers, sellers, pending approvals, active products, total orders, total revenue, pending orders, orders today, revenue MTD, open RFQs, pending payouts, and payouts owed. The admin panel needs direct Supabase access using the service role key (never expose to buyer/seller clients).</p>
+      </div>
+    </div>
+  </section>
+
+  <div class="divider"></div>
+
+  <!-- ══════════════════════════════════════════════════════════
+       SECTION 7 — DROPSHIP MODULE
+  ═══════════════════════════════════════════════════════════ -->
+  <section class="section" id="dropship">
+    <div class="section-header">
+      <div class="section-icon cyan"><i class="fab fa-shopify"></i></div>
+      <div class="section-title">Dropship Automation Module<span>buyer/dropship.html — Full Shopify integration spec</span></div>
+      <div class="section-num">7</div>
+    </div>
+
+    <div class="callout success">
+      <i class="fas fa-circle-check"></i>
+      <div class="callout-body">
+        <h4>Phase 1: Shopify Only (Current Focus)</h4>
+        <p>The Dropship module is designed for Phase 1 Shopify integration. Phase 2 will add WooCommerce, Amazon, TikTok Shop, and Manual CSV Upload. The full UI is already built — only the backend/integration layer needs to be built.</p>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title"><i class="fas fa-plug"></i> Shopify Integration — 5-Step Setup Flow</div>
+      <div class="timeline">
+        <div class="timeline-item">
+          <div class="timeline-title">Step 1 — Install Shopify App</div>
+          <div class="timeline-sub">Buyer visits the BRND Direct Shopify App listing on the Shopify App Store and clicks "Install". OAuth flow grants BRND Direct access to the merchant's store. Alternatively, buyer enters API credentials manually (Admin API Token + Secret).</div>
+        </div>
+        <div class="timeline-item">
+          <div class="timeline-title">Step 2 — API Credentials & Verification</div>
+          <div class="timeline-sub">Store the Shopify Admin API Token server-side (never in the browser). Required scopes: <code>read_orders</code>, <code>write_orders</code>, <code>read_products</code>, <code>write_products</code>, <code>write_fulfillments</code>. Validate by calling the Shopify API and confirming connection.</div>
+        </div>
+        <div class="timeline-item">
+          <div class="timeline-title">Step 3 — Catalog Sync to Shopify</div>
+          <div class="timeline-sub">Push the full BRND Direct product catalog to the merchant's Shopify store. Each product is created with wholesale price as cost, and Shopify retail price is set using the buyer's selected pricing rule (keystone ×2, 2.5×, 3×, custom markup, or MAP). Images, descriptions, SKUs, and barcodes are synced. Stock levels are updated in real time.</div>
+        </div>
+        <div class="timeline-item">
+          <div class="timeline-title">Step 4 — Automation Mode Selection</div>
+          <div class="timeline-sub">
+            <strong>Full Auto:</strong> When a customer orders on the Shopify store, BRND Direct automatically ships the next business day. Requires active credit line (Net-30 or pre-pay). No manual confirmation needed. Auto-invoice generated daily.<br/>
+            <strong>Daily Confirm:</strong> Buyer receives email at 6 AM with a list of new orders. Must confirm by 11 AM EST. BRND Direct ships at 3 PM. Invoice generated at midnight. If buyer misses deadline, orders are held (configurable: hold / auto-confirm / cancel).
+          </div>
+        </div>
+        <div class="timeline-item">
+          <div class="timeline-title">Step 5 — Go Live & Webhook Install</div>
+          <div class="timeline-sub">Install Shopify webhooks: <code>orders/create</code>, <code>orders/updated</code>, <code>orders/cancelled</code>. Begin listening for new orders. Confirm catalog sync completion (1,240 products, ~10 min). Enable tracking push webhook.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="grid-2">
+      <div class="card">
+        <div class="card-title"><i class="fas fa-sync-alt"></i> Order Import Flow (Shopify → BRND Direct)</div>
+        <ul class="feat-list">
+          <li><i class="fas fa-arrow-right"></i> Customer orders on buyer's Shopify store</li>
+          <li><i class="fas fa-arrow-right"></i> Shopify fires <code>orders/create</code> webhook to BRND Direct Worker</li>
+          <li><i class="fas fa-arrow-right"></i> Worker maps Shopify line items to BRND Direct SKUs</li>
+          <li><i class="fas fa-arrow-right"></i> Creates order record in DB with <code>source: 'shopify'</code></li>
+          <li><i class="fas fa-arrow-right"></i> If Full Auto: marks as processing immediately</li>
+          <li><i class="fas fa-arrow-right"></i> If Daily Confirm: adds to today's confirmation queue</li>
+          <li><i class="fas fa-arrow-right"></i> At confirmation / auto-approval: begins fulfillment</li>
+        </ul>
+      </div>
+      <div class="card">
+        <div class="card-title"><i class="fas fa-truck"></i> Tracking Push (BRND Direct → Shopify)</div>
+        <ul class="feat-list">
+          <li><i class="fas fa-arrow-right"></i> BRND Direct ships order, gets tracking number</li>
+          <li><i class="fas fa-arrow-right"></i> Calls Shopify Fulfillment API for that order</li>
+          <li><i class="fas fa-arrow-right"></i> Creates fulfillment with carrier + tracking number</li>
+          <li><i class="fas fa-arrow-right"></i> Shopify automatically emails end customer with tracking</li>
+          <li><i class="fas fa-arrow-right"></i> Order marked as "Fulfilled" on Shopify</li>
+          <li><i class="fas fa-arrow-right"></i> Target: &lt;30 second delay after label creation</li>
+          <li><i class="fas fa-arrow-right"></i> Success rate target: 99.9%+</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title"><i class="fas fa-file-invoice-dollar"></i> Auto-Invoice Generation (Daily)</div>
+      <p>At midnight each day (or configurable time), BRND Direct generates a consolidated invoice for all dropship orders fulfilled that day. The invoice includes: wholesale cost per product, shipping fee per order, any applied credit, total due. Invoice is emailed as PDF + visible in dropship.html Auto-Invoices tab. If buyer has Net-30 credit, the due date is set 30 days out. If pre-pay, the card is charged automatically.</p>
+    </div>
+
+    <div class="card" style="margin-top:0">
+      <div class="card-title"><i class="fas fa-credit-card"></i> Credit / Net-Terms for Auto-Ship</div>
+      <div class="grid-2">
+        <div>
+          <strong>Full Auto Mode Requirements:</strong>
+          <ul class="feat-list" style="margin-top:8px">
+            <li><i class="fas fa-check"></i> Active Net-30, Net-60, or Net-90 credit line</li>
+            <li><i class="fas fa-check"></i> OR pre-pay (card on file charged daily)</li>
+            <li><i class="fas fa-check"></i> Good standing (no overdue invoices)</li>
+            <li><i class="fas fa-check"></i> Manager approval required</li>
+          </ul>
+        </div>
+        <div>
+          <strong>Credit Line Management:</strong>
+          <ul class="feat-list" style="margin-top:8px">
+            <li><i class="fas fa-check"></i> Credit limit stored in buyer_profiles.credit_limit</li>
+            <li><i class="fas fa-check"></i> Used credit tracked in buyer_profiles.credit_used</li>
+            <li><i class="fas fa-check"></i> Available = limit - used</li>
+            <li><i class="fas fa-check"></i> Admin sets and adjusts credit limits</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" style="margin-top:0">
+      <div class="card-title"><i class="fas fa-chart-bar"></i> Dropship Analytics (8 KPIs + 6 Charts)</div>
+      <div class="grid-4">
+        <div style="font-size:12px;padding:10px;background:#f8fafc;border-radius:8px;text-align:center"><strong>Revenue MTD</strong><br/><span style="color:#6366f1">+18.4%</span></div>
+        <div style="font-size:12px;padding:10px;background:#f8fafc;border-radius:8px;text-align:center"><strong>Orders Fulfilled</strong><br/><span style="color:#6366f1">847 MTD</span></div>
+        <div style="font-size:12px;padding:10px;background:#f8fafc;border-radius:8px;text-align:center"><strong>Avg Order Value</strong><br/><span style="color:#6366f1">$109.18</span></div>
+        <div style="font-size:12px;padding:10px;background:#f8fafc;border-radius:8px;text-align:center"><strong>Fulfillment Rate</strong><br/><span style="color:#10b981">99.2%</span></div>
+        <div style="font-size:12px;padding:10px;background:#f8fafc;border-radius:8px;text-align:center"><strong>Credit Used</strong><br/><span style="color:#f59e0b">36.5%</span></div>
+        <div style="font-size:12px;padding:10px;background:#f8fafc;border-radius:8px;text-align:center"><strong>Avg Delivery Time</strong><br/><span style="color:#6366f1">2.1 days</span></div>
+        <div style="font-size:12px;padding:10px;background:#f8fafc;border-radius:8px;text-align:center"><strong>Orders Today</strong><br/><span style="color:#6366f1">31</span></div>
+        <div style="font-size:12px;padding:10px;background:#f8fafc;border-radius:8px;text-align:center"><strong>Today's Invoice</strong><br/><span style="color:#6366f1">$4,820</span></div>
+      </div>
+      <p style="font-size:12px;color:var(--mid);margin-top:12px">Charts: Daily Orders bar chart, Revenue by Category doughnut, Top 5 Products by Orders, Monthly Revenue Trend line, Order Status Breakdown, Daily Invoice Amounts. Plus Top Customers table (customer name, orders, revenue, AOV).</p>
+    </div>
+  </section>
+
+  <div class="divider"></div>
+
+  <!-- ══════════════════════════════════════════════════════════
+       SECTION 8 — API ENDPOINTS
+  ═══════════════════════════════════════════════════════════ -->
+  <section class="section" id="api">
+    <div class="section-header">
+      <div class="section-icon blue"><i class="fas fa-code"></i></div>
+      <div class="section-title">API Endpoints — Complete List<span>Cloudflare Worker (workers/api.js) — all required endpoints</span></div>
+      <div class="section-num">8</div>
+    </div>
+
+    <div class="card">
+      <div class="card-title"><i class="fas fa-check-circle"></i> Already Built in workers/api.js</div>
+      <div class="endpoint"><span class="method get">GET</span><div><div class="endpoint-path">/api/health</div><div class="endpoint-desc">Health check — returns {status: "ok", ts: timestamp}</div></div></div>
+      <div class="endpoint"><span class="method get">GET</span><div><div class="endpoint-path">/api/products</div><div class="endpoint-desc">Paginated product list. Params: page, limit, search, category, brand_id, sort, fulfillment_type</div></div></div>
+      <div class="endpoint"><span class="method get">GET</span><div><div class="endpoint-path">/api/products/:id</div><div class="endpoint-desc">Single product by UUID</div></div></div>
+      <div class="endpoint"><span class="method get">GET</span><div><div class="endpoint-path">/api/brands</div><div class="endpoint-desc">All active brands</div></div></div>
+      <div class="endpoint"><span class="method post">POST</span><div><div class="endpoint-path">/api/create-payment-intent</div><div class="endpoint-desc">Stripe PaymentIntent for invoice payment</div></div></div>
+      <div class="endpoint"><span class="method post">POST</span><div><div class="endpoint-path">/api/create-setup-intent</div><div class="endpoint-desc">Stripe SetupIntent (save card for future use)</div></div></div>
+      <div class="endpoint"><span class="method post">POST</span><div><div class="endpoint-path">/api/stripe-webhook</div><div class="endpoint-desc">Stripe webhook handler (payment_intent.succeeded, invoice.paid, etc.)</div></div></div>
+      <div class="endpoint"><span class="method post">POST</span><div><div class="endpoint-path">/api/create-connect-account</div><div class="endpoint-desc">Stripe Connect onboarding for sellers</div></div></div>
+      <div class="endpoint"><span class="method post">POST</span><div><div class="endpoint-path">/api/freight/token</div><div class="endpoint-desc">Freightos OAuth2 token</div></div></div>
+      <div class="endpoint"><span class="method post">POST</span><div><div class="endpoint-path">/api/freight/quote</div><div class="endpoint-desc">LTL/FTL freight rate quotes from Freightos</div></div></div>
+      <div class="endpoint"><span class="method post">POST</span><div><div class="endpoint-path">/api/freight/book</div><div class="endpoint-desc">Book a freight shipment</div></div></div>
+      <div class="endpoint"><span class="method get">GET</span><div><div class="endpoint-path">/api/freight/track?id=xxx</div><div class="endpoint-desc">Track freight shipment by ID</div></div></div>
+      <div class="endpoint"><span class="method post">POST</span><div><div class="endpoint-path">/api/parcel/rates</div><div class="endpoint-desc">Parcel shipping rates from Shippo (FedEx, UPS, USPS, DHL)</div></div></div>
+      <div class="endpoint"><span class="method post">POST</span><div><div class="endpoint-path">/api/parcel/purchase</div><div class="endpoint-desc">Purchase shipping label via Shippo</div></div></div>
+      <div class="endpoint"><span class="method get">GET</span><div><div class="endpoint-path">/api/parcel/track?carrier=x&tracking=x</div><div class="endpoint-desc">Track parcel shipment</div></div></div>
+    </div>
+
+    <div class="card" style="margin-top:0">
+      <div class="card-title"><i class="fas fa-wrench"></i> Needs to Be Built — Order & Auth APIs</div>
+      <div class="endpoint"><span class="method post">POST</span><div><div class="endpoint-path">/api/auth/register</div><div class="endpoint-desc">Register new buyer or seller. Creates Supabase auth user + profile + buyer_profile/seller_profile record.</div></div></div>
+      <div class="endpoint"><span class="method post">POST</span><div><div class="endpoint-path">/api/auth/login</div><div class="endpoint-desc">Login with email/password via Supabase Auth. Returns JWT access token.</div></div></div>
+      <div class="endpoint"><span class="method post">POST</span><div><div class="endpoint-path">/api/auth/logout</div><div class="endpoint-desc">Invalidate session token.</div></div></div>
+      <div class="endpoint"><span class="method post">POST</span><div><div class="endpoint-path">/api/auth/reset-password</div><div class="endpoint-desc">Send password reset email via Supabase Auth.</div></div></div>
+      <div class="endpoint"><span class="method get">GET</span><div><div class="endpoint-path">/api/orders</div><div class="endpoint-desc">List orders for current buyer or seller (role-based). Params: status, page, limit, sort.</div></div></div>
+      <div class="endpoint"><span class="method get">GET</span><div><div class="endpoint-path">/api/orders/:id</div><div class="endpoint-desc">Single order with line items, tracking info, invoice reference.</div></div></div>
+      <div class="endpoint"><span class="method post">POST</span><div><div class="endpoint-path">/api/orders</div><div class="endpoint-desc">Create new order. Body: {items[], shipping_method, payment_terms, po_number, shipping_address}. Auto-creates invoice record.</div></div></div>
+      <div class="endpoint"><span class="method patch">PATCH</span><div><div class="endpoint-path">/api/orders/:id</div><div class="endpoint-desc">Update order status. Seller: confirm/pack/tracking. Admin: any status. Buyer: cancel (if still draft/pending).</div></div></div>
+      <div class="endpoint"><span class="method get">GET</span><div><div class="endpoint-path">/api/invoices</div><div class="endpoint-desc">List invoices for current buyer. Params: status (unpaid/paid/all), page, limit.</div></div></div>
+      <div class="endpoint"><span class="method get">GET</span><div><div class="endpoint-path">/api/invoices/:id</div><div class="endpoint-desc">Single invoice with line items, order reference, payment history.</div></div></div>
+      <div class="endpoint"><span class="method get">GET</span><div><div class="endpoint-path">/api/rfqs</div><div class="endpoint-desc">List RFQs for current buyer/seller.</div></div></div>
+      <div class="endpoint"><span class="method post">POST</span><div><div class="endpoint-path">/api/rfqs</div><div class="endpoint-desc">Submit new RFQ.</div></div></div>
+      <div class="endpoint"><span class="method patch">PATCH</span><div><div class="endpoint-path">/api/rfqs/:id</div><div class="endpoint-desc">Seller quotes / buyer accepts or rejects.</div></div></div>
+      <div class="endpoint"><span class="method get">GET</span><div><div class="endpoint-path">/api/buyer/dashboard</div><div class="endpoint-desc">Aggregated KPIs for buyer dashboard (revenue MTD, orders MTD, outstanding invoices, avg order value).</div></div></div>
+      <div class="endpoint"><span class="method get">GET</span><div><div class="endpoint-path">/api/buyer/analytics</div><div class="endpoint-desc">Analytics data for buyer. Params: period (7d/30d/90d/1y).</div></div></div>
+      <div class="endpoint"><span class="method get">GET</span><div><div class="endpoint-path">/api/seller/dashboard</div><div class="endpoint-desc">Aggregated KPIs for seller dashboard.</div></div></div>
+      <div class="endpoint"><span class="method get">GET</span><div><div class="endpoint-path">/api/admin/overview</div><div class="endpoint-desc">Platform-wide stats for admin (uses admin_overview DB view).</div></div></div>
+      <div class="endpoint"><span class="method patch">PATCH</span><div><div class="endpoint-path">/api/admin/buyers/:id/approve</div><div class="endpoint-desc">Approve buyer account. Sets profile.status = 'approved'.</div></div></div>
+      <div class="endpoint"><span class="method patch">PATCH</span><div><div class="endpoint-path">/api/admin/sellers/:id/approve</div><div class="endpoint-desc">Approve seller account.</div></div></div>
+      <div class="endpoint"><span class="method patch">PATCH</span><div><div class="endpoint-path">/api/admin/buyers/:id/credit-limit</div><div class="endpoint-desc">Set buyer credit limit. Body: {credit_limit: number, net_terms: 30|60|90}.</div></div></div>
+    </div>
+
+    <div class="card" style="margin-top:0">
+      <div class="card-title"><i class="fab fa-shopify"></i> Needs to Be Built — Shopify / Dropship APIs</div>
+      <div class="endpoint"><span class="method post">POST</span><div><div class="endpoint-path">/api/shopify/connect</div><div class="endpoint-desc">Store Shopify credentials (encrypted) and test connection. Body: {store_url, api_token, store_name, automation_mode}.</div></div></div>
+      <div class="endpoint"><span class="method post">POST</span><div><div class="endpoint-path">/api/shopify/sync-catalog</div><div class="endpoint-desc">Push BRND Direct product catalog to merchant's Shopify store. Apply pricing rule. Sync images, descriptions, stock.</div></div></div>
+      <div class="endpoint"><span class="method post">POST</span><div><div class="endpoint-path">/api/shopify/webhook/orders-create</div><div class="endpoint-desc">Inbound webhook from Shopify when customer places an order. Map line items to BRND SKUs, create internal order.</div></div></div>
+      <div class="endpoint"><span class="method post">POST</span><div><div class="endpoint-path">/api/shopify/webhook/orders-updated</div><div class="endpoint-desc">Handle Shopify order updates (cancellations, edits).</div></div></div>
+      <div class="endpoint"><span class="method post">POST</span><div><div class="endpoint-path">/api/shopify/fulfill/:order_id</div><div class="endpoint-desc">Push tracking number to Shopify. Creates Fulfillment object with carrier + tracking on the Shopify order.</div></div></div>
+      <div class="endpoint"><span class="method get">GET</span><div><div class="endpoint-path">/api/dropship/orders</div><div class="endpoint-desc">List all dropship orders for this buyer across all connected stores. Status filter.</div></div></div>
+      <div class="endpoint"><span class="method post">POST</span><div><div class="endpoint-path">/api/dropship/confirm-today</div><div class="endpoint-desc">Buyer confirms all today's pending dropship orders for shipment.</div></div></div>
+      <div class="endpoint"><span class="method post">POST</span><div><div class="endpoint-path">/api/dropship/generate-invoice</div><div class="endpoint-desc">Trigger daily invoice generation for all fulfilled dropship orders. Creates invoice PDF and record.</div></div></div>
+      <div class="endpoint"><span class="method get">GET</span><div><div class="endpoint-path">/api/dropship/analytics</div><div class="endpoint-desc">Dropship analytics: orders fulfilled, revenue, avg order value, fulfillment rate, daily order/revenue trends.</div></div></div>
+    </div>
+  </section>
+
+  <div class="divider"></div>
+
+  <!-- ══════════════════════════════════════════════════════════
+       SECTION 9 — DATABASE SCHEMA
+  ═══════════════════════════════════════════════════════════ -->
+  <section class="section" id="database">
+    <div class="section-header">
+      <div class="section-icon green"><i class="fas fa-database"></i></div>
+      <div class="section-title">Database Schema<span>Supabase (PostgreSQL 15) — supabase/schema.sql — ready to deploy</span></div>
+      <div class="section-num">9</div>
+    </div>
+
+    <div class="callout success">
+      <i class="fas fa-circle-check"></i>
+      <div class="callout-body">
+        <h4>Schema is Complete — Ready to Deploy</h4>
+        <p>The full PostgreSQL schema is in <code>supabase/schema.sql</code>. Run the entire file in Supabase SQL Editor to create all 13 tables, enums, RLS policies, triggers, indexes, admin views, realtime subscriptions, and seed data. No modifications needed to get started.</p>
+      </div>
+    </div>
+
+    <div class="grid-2">
+
+      <div class="schema-table">
+        <div class="schema-table-header">
+          <span class="schema-table-name">profiles</span>
+          <span class="badge badge-green">extends auth.users</span>
+        </div>
+        <div class="schema-field"><span class="schema-field-name">id</span><span class="schema-field-type">UUID PK</span><span class="schema-field-desc">Links to Supabase auth.users</span></div>
+        <div class="schema-field"><span class="schema-field-name">role</span><span class="schema-field-type">user_role</span><span class="schema-field-desc">buyer / seller / admin</span></div>
+        <div class="schema-field"><span class="schema-field-name">status</span><span class="schema-field-type">account_status</span><span class="schema-field-desc">pending / approved / suspended</span></div>
+        <div class="schema-field"><span class="schema-field-name">first_name</span><span class="schema-field-type">TEXT</span><span class="schema-field-desc">From registration</span></div>
+        <div class="schema-field"><span class="schema-field-name">onboarding_done</span><span class="schema-field-type">BOOLEAN</span><span class="schema-field-desc">Has completed setup wizard</span></div>
+      </div>
+
+      <div class="schema-table">
+        <div class="schema-table-header">
+          <span class="schema-table-name">buyer_profiles</span>
+          <span class="badge badge-blue">1:1 with profiles</span>
+        </div>
+        <div class="schema-field"><span class="schema-field-name">business_name</span><span class="schema-field-type">TEXT</span><span class="schema-field-desc">Company / store name</span></div>
+        <div class="schema-field"><span class="schema-field-name">credit_limit</span><span class="schema-field-type">NUMERIC</span><span class="schema-field-desc">Max credit allowed (USD)</span></div>
+        <div class="schema-field"><span class="schema-field-name">credit_used</span><span class="schema-field-type">NUMERIC</span><span class="schema-field-desc">Current credit in use</span></div>
+        <div class="schema-field"><span class="schema-field-name">net_terms</span><span class="schema-field-type">INTEGER</span><span class="schema-field-desc">30, 60, or 90 days</span></div>
+        <div class="schema-field"><span class="schema-field-name">annual_spend_range</span><span class="schema-field-type">TEXT</span><span class="schema-field-desc">under_1m / 1m_10m / 10m_plus</span></div>
+      </div>
+
+      <div class="schema-table">
+        <div class="schema-table-header">
+          <span class="schema-table-name">products</span>
+          <span class="badge badge-purple">1,240+ products</span>
+        </div>
+        <div class="schema-field"><span class="schema-field-name">sku</span><span class="schema-field-type">TEXT UNIQUE</span><span class="schema-field-desc">Unique product SKU</span></div>
+        <div class="schema-field"><span class="schema-field-name">wholesale_price</span><span class="schema-field-type">NUMERIC</span><span class="schema-field-desc">Buyer purchase price</span></div>
+        <div class="schema-field"><span class="schema-field-name">msrp</span><span class="schema-field-type">NUMERIC</span><span class="schema-field-desc">Suggested retail price</span></div>
+        <div class="schema-field"><span class="schema-field-name">moq</span><span class="schema-field-type">INTEGER</span><span class="schema-field-desc">Minimum order quantity</span></div>
+        <div class="schema-field"><span class="schema-field-name">fulfillment_type</span><span class="schema-field-type">fulfill_type</span><span class="schema-field-desc">wholesale / dropship / both</span></div>
+        <div class="schema-field"><span class="schema-field-name">stock_qty</span><span class="schema-field-type">INTEGER</span><span class="schema-field-desc">Current inventory</span></div>
+        <div class="schema-field"><span class="schema-field-name">meta</span><span class="schema-field-type">JSONB</span><span class="schema-field-desc">concentration, size, gender, etc.</span></div>
+      </div>
+
+      <div class="schema-table">
+        <div class="schema-table-header">
+          <span class="schema-table-name">orders</span>
+          <span class="badge badge-orange">Core transaction table</span>
+        </div>
+        <div class="schema-field"><span class="schema-field-name">order_number</span><span class="schema-field-type">TEXT UNIQUE</span><span class="schema-field-desc">Auto-generated (BD-XXXXXX)</span></div>
+        <div class="schema-field"><span class="schema-field-name">status</span><span class="schema-field-type">order_status</span><span class="schema-field-desc">draft→pending→confirmed→processing→shipped→delivered</span></div>
+        <div class="schema-field"><span class="schema-field-name">payment_status</span><span class="schema-field-type">payment_status</span><span class="schema-field-desc">unpaid / paid / failed</span></div>
+        <div class="schema-field"><span class="schema-field-name">tracking_info</span><span class="schema-field-type">JSONB</span><span class="schema-field-desc">{carrier, tracking_number, url, estimated_delivery}</span></div>
+        <div class="schema-field"><span class="schema-field-name">shipping_address</span><span class="schema-field-type">JSONB</span><span class="schema-field-desc">Full ship-to address</span></div>
+        <div class="schema-field"><span class="schema-field-name">net_terms</span><span class="schema-field-type">INTEGER</span><span class="schema-field-desc">Payment terms in days</span></div>
+      </div>
+
+      <div class="schema-table">
+        <div class="schema-table-header">
+          <span class="schema-table-name">invoices</span>
+          <span class="badge badge-green">1:1 with orders</span>
+        </div>
+        <div class="schema-field"><span class="schema-field-name">invoice_number</span><span class="schema-field-type">TEXT UNIQUE</span><span class="schema-field-desc">Auto-generated (INV-XXXXXX)</span></div>
+        <div class="schema-field"><span class="schema-field-name">amount</span><span class="schema-field-type">NUMERIC</span><span class="schema-field-desc">Total invoice amount</span></div>
+        <div class="schema-field"><span class="schema-field-name">payment_status</span><span class="schema-field-type">payment_status</span><span class="schema-field-desc">unpaid / paid / failed</span></div>
+        <div class="schema-field"><span class="schema-field-name">due_date</span><span class="schema-field-type">DATE</span><span class="schema-field-desc">Calculated from net_terms</span></div>
+        <div class="schema-field"><span class="schema-field-name">stripe_invoice_id</span><span class="schema-field-type">TEXT</span><span class="schema-field-desc">Stripe invoice reference</span></div>
+      </div>
+
+      <div class="schema-table">
+        <div class="schema-table-header">
+          <span class="schema-table-name">rfqs + conversations + messages</span>
+          <span class="badge badge-purple">Communication</span>
+        </div>
+        <div class="schema-field"><span class="schema-field-name">rfqs.status</span><span class="schema-field-type">rfq_status</span><span class="schema-field-desc">open / quoted / accepted / rejected / expired</span></div>
+        <div class="schema-field"><span class="schema-field-name">rfqs.expires_at</span><span class="schema-field-type">TIMESTAMPTZ</span><span class="schema-field-desc">Default: NOW() + 14 days</span></div>
+        <div class="schema-field"><span class="schema-field-name">messages.body</span><span class="schema-field-type">TEXT</span><span class="schema-field-desc">Message content</span></div>
+        <div class="schema-field"><span class="schema-field-name">messages.status</span><span class="schema-field-type">message_status</span><span class="schema-field-desc">sent / delivered / read</span></div>
+      </div>
+
+    </div>
+
+    <div class="callout info" style="margin-top:4px">
+      <i class="fas fa-info-circle"></i>
+      <div class="callout-body">
+        <h4>Additional Tables in Schema</h4>
+        <p><strong>seller_profiles</strong> — commission_rate (default 12%), stripe_account_id, fulfillment_type &nbsp;|&nbsp;
+        <strong>brands</strong> — logo_url, banner_url, is_verified, country_of_origin &nbsp;|&nbsp;
+        <strong>order_items</strong> — line_total (computed column: qty × unit_price), auto-recalculates order total via trigger &nbsp;|&nbsp;
+        <strong>payouts</strong> — net_amount (computed: amount - commission), payout_status, stripe_transfer_id &nbsp;|&nbsp;
+        <strong>notifications</strong> — notification_type ENUM (order/payment/message/system/rfq/shipment) &nbsp;|&nbsp;
+        <strong>analytics_events</strong> — append-only event log (page_view, add_to_cart, order_placed, etc.) &nbsp;|&nbsp;
+        <strong>app_settings</strong> — key/value config (commission rate, platform name, max credit limit, etc.)</p>
+      </div>
+    </div>
+
+    <div class="callout warn">
+      <i class="fas fa-triangle-exclamation"></i>
+      <div class="callout-body">
+        <h4>Shopify Integration: Additional Tables Needed</h4>
+        <p>The current schema.sql does not include Shopify-specific tables. You'll need to add: <br/>
+        <code>shopify_stores</code> — {buyer_profile_id, store_url, api_token_encrypted, store_name, automation_mode, last_sync_at, webhook_id, products_synced_count, is_active} <br/>
+        <code>shopify_orders</code> — {shopify_order_id, shopify_order_number, internal_order_id, store_id, shopify_fulfillment_id, status, raw_payload JSONB} <br/>
+        <code>dropship_invoices</code> — {buyer_profile_id, invoice_date, orders_count, wholesale_total, shipping_total, credit_applied, total_due, payment_status, pdf_url}</p>
+      </div>
+    </div>
+  </section>
+
+  <div class="divider"></div>
+
+  <!-- ══════════════════════════════════════════════════════════
+       SECTION 10 — AUTH & SECURITY
+  ═══════════════════════════════════════════════════════════ -->
+  <section class="section" id="auth">
+    <div class="section-header">
+      <div class="section-icon red"><i class="fas fa-lock"></i></div>
+      <div class="section-title">Authentication & Security<span>Current implementation + what needs to be built</span></div>
+      <div class="section-num">10</div>
+    </div>
+
+    <div class="grid-2">
+      <div class="card">
+        <div class="card-title"><i class="fas fa-check-circle"></i> Current Frontend Auth</div>
+        <ul class="feat-list">
+          <li><i class="fas fa-check"></i> Auth guard script on every protected page</li>
+          <li><i class="fas fa-check"></i> Portal password: <code>BRNDdirect2025!</code></li>
+          <li><i class="fas fa-check"></i> Session stored in sessionStorage (24h expiry)</li>
+          <li><i class="fas fa-check"></i> Preview bypass for Genspark/localhost</li>
+          <li><i class="fas fa-check"></i> Cloudflare _redirects gates all pages to lock.html</li>
+          <li><i class="fas fa-check"></i> Right-click disabled, DevTools detection</li>
+          <li><i class="fas fa-check"></i> Price element text-select disabled</li>
+        </ul>
+      </div>
+      <div class="card">
+        <div class="card-title"><i class="fas fa-wrench"></i> Real Auth — Needs to Be Built</div>
+        <ul class="feat-list">
+          <li><i class="fas fa-wrench"></i> Supabase Auth email/password sign-in</li>
+          <li><i class="fas fa-wrench"></i> JWT token validation on every API call</li>
+          <li><i class="fas fa-wrench"></i> Role-based access: buyer/seller/admin routing</li>
+          <li><i class="fas fa-wrench"></i> Session token stored in httpOnly cookie (not sessionStorage)</li>
+          <li><i class="fas fa-wrench"></i> Password reset email flow</li>
+          <li><i class="fas fa-wrench"></i> Account approval gating (pending → approved)</li>
+          <li><i class="fas fa-wrench"></i> Admin-only route protection</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title"><i class="fas fa-key"></i> Environment Secrets Required</div>
+      <div class="code-block">
+<span class="comment"># Cloudflare Worker Secrets (wrangler secret put VARIABLE_NAME)</span>
+<span class="key">SUPABASE_URL</span>                = <span class="string">https://xxx.supabase.co</span>
+<span class="key">SUPABASE_SERVICE_ROLE_KEY</span>   = <span class="string">eyJ...  (from Supabase Settings → API)</span>
+<span class="key">STRIPE_SECRET_KEY</span>           = <span class="string">sk_live_xxx  (or sk_test_xxx for testing)</span>
+<span class="key">STRIPE_WEBHOOK_SECRET</span>       = <span class="string">whsec_xxx</span>
+<span class="key">FREIGHTOS_CLIENT_ID</span>         = <span class="string">from Freightos Terminal API dashboard</span>
+<span class="key">FREIGHTOS_CLIENT_SECRET</span>     = <span class="string">from Freightos Terminal API dashboard</span>
+<span class="key">FREIGHTOS_BASE_URL</span>          = <span class="string">https://api.freightos.com</span>
+<span class="key">SHIPPO_API_TOKEN</span>            = <span class="string">shippo_live_xxx</span>
+<span class="key">SHOPIFY_APP_SECRET</span>          = <span class="string">for webhook signature verification</span>
+<span class="key">SENDGRID_API_KEY</span>            = <span class="string">or RESEND_API_KEY</span>
+<span class="key">OPENAI_API_KEY</span>              = <span class="string">for AI PO parsing</span>
+<span class="key">SHIP_FROM_NAME</span>              = <span class="string">BRND Direct Warehouse</span>
+<span class="key">SHIP_FROM_STREET1</span>           = <span class="string">Warehouse address</span>
+<span class="key">SHIP_FROM_CITY</span>              = <span class="string">City</span>
+<span class="key">SHIP_FROM_STATE</span>             = <span class="string">State (2-letter)</span>
+<span class="key">SHIP_FROM_ZIP</span>               = <span class="string">ZIP code</span>
+<span class="key">SHIP_FROM_COUNTRY</span>           = <span class="string">US</span>
+      </div>
+    </div>
+
+    <div class="card" style="margin-top:0">
+      <div class="card-title"><i class="fas fa-shield-alt"></i> Row Level Security (RLS) — Already Defined</div>
+      <p>All 13 database tables have RLS enabled with pre-written policies in schema.sql. Key rules: <br/><br/>
+      • <strong>Buyers</strong> can only see/modify their own orders, invoices, RFQs, and buyer_profile record.<br/>
+      • <strong>Sellers</strong> can see order items for their products, manage their own products/brands/payouts.<br/>
+      • <strong>Anyone</strong> can read active brands and products (public catalog).<br/>
+      • <strong>Admins</strong> have full access to all tables (via is_admin() helper function).<br/>
+      • Messages are only visible to conversation participants.<br/>
+      • Analytics events are write-only for the submitting user; admins can read all.</p>
+    </div>
+  </section>
+
+  <div class="divider"></div>
+
+  <!-- ══════════════════════════════════════════════════════════
+       SECTION 11 — INTEGRATIONS
+  ═══════════════════════════════════════════════════════════ -->
+  <section class="section" id="integrations">
+    <div class="section-header">
+      <div class="section-icon pink"><i class="fas fa-plug"></i></div>
+      <div class="section-title">Third-Party Integrations<span>All external services and APIs required</span></div>
+      <div class="section-num">11</div>
+    </div>
+
+    <table class="data-table" style="border:1px solid var(--border); border-radius:10px; overflow:hidden;">
+      <thead>
+        <tr>
+          <th>Service</th>
+          <th>Purpose</th>
+          <th>Endpoints Used</th>
+          <th>Status</th>
+          <th>Priority</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>Supabase</strong></td>
+          <td>PostgreSQL DB, Auth, Realtime, Storage</td>
+          <td>REST API + Realtime WebSockets + Storage API</td>
+          <td><span class="badge badge-orange">Schema ready, not connected</span></td>
+          <td><span class="badge badge-red">Critical</span></td>
+        </tr>
+        <tr>
+          <td><strong>Stripe</strong></td>
+          <td>Buyer invoice payments + seller payouts via Stripe Connect</td>
+          <td>PaymentIntents, SetupIntents, Stripe Connect, Webhooks</td>
+          <td><span class="badge badge-orange">Worker scaffold ready</span></td>
+          <td><span class="badge badge-red">Critical</span></td>
+        </tr>
+        <tr>
+          <td><strong>Shopify Admin API</strong></td>
+          <td>Dropship: catalog push, order import, tracking push</td>
+          <td>Products, Orders, Fulfillments, Webhooks</td>
+          <td><span class="badge badge-gray">UI only, not built</span></td>
+          <td><span class="badge badge-red">High</span></td>
+        </tr>
+        <tr>
+          <td><strong>Freightos Terminal API</strong></td>
+          <td>LTL/FTL freight quotes, booking, BOL, tracking</td>
+          <td>/api/freight/* (all built in Worker)</td>
+          <td><span class="badge badge-orange">Worker built, needs keys</span></td>
+          <td><span class="badge badge-orange">Medium</span></td>
+        </tr>
+        <tr>
+          <td><strong>Shippo API</strong></td>
+          <td>Parcel shipping labels, rates (FedEx/UPS/USPS/DHL)</td>
+          <td>/api/parcel/* (all built in Worker)</td>
+          <td><span class="badge badge-orange">Worker built, needs keys</span></td>
+          <td><span class="badge badge-orange">Medium</span></td>
+        </tr>
+        <tr>
+          <td><strong>SendGrid / Resend</strong></td>
+          <td>Transactional emails (order confirm, invoice, tracking, reset password)</td>
+          <td>Email send API + templates</td>
+          <td><span class="badge badge-gray">Not built</span></td>
+          <td><span class="badge badge-red">High</span></td>
+        </tr>
+        <tr>
+          <td><strong>OpenAI / Claude API</strong></td>
+          <td>AI-powered PO document parsing (Upload PO feature)</td>
+          <td>Chat completions API with structured output</td>
+          <td><span class="badge badge-gray">UI simulated, not connected</span></td>
+          <td><span class="badge badge-orange">Medium</span></td>
+        </tr>
+        <tr>
+          <td><strong>Cloudflare Pages</strong></td>
+          <td>Frontend hosting + CDN + _redirects security</td>
+          <td>Static file serving + Pages Functions</td>
+          <td><span class="badge badge-green">Deployed</span></td>
+          <td><span class="badge badge-green">Done</span></td>
+        </tr>
+        <tr>
+          <td><strong>Cloudflare Workers</strong></td>
+          <td>Serverless API layer (workers/api.js)</td>
+          <td>All /api/* routes</td>
+          <td><span class="badge badge-orange">Scaffold deployed, needs Supabase</span></td>
+          <td><span class="badge badge-red">Critical</span></td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="card" style="margin-top:16px">
+      <div class="card-title"><i class="fab fa-shopify"></i> Shopify API Scopes Required</div>
+      <div class="grid-2">
+        <div>
+          <strong>Read Scopes:</strong>
+          <div style="margin-top:8px">
+            <code style="background:#f1f5f9;padding:4px 8px;border-radius:4px;font-size:12px;display:inline-block;margin:3px">read_orders</code>
+            <code style="background:#f1f5f9;padding:4px 8px;border-radius:4px;font-size:12px;display:inline-block;margin:3px">read_products</code>
+            <code style="background:#f1f5f9;padding:4px 8px;border-radius:4px;font-size:12px;display:inline-block;margin:3px">read_inventory</code>
+            <code style="background:#f1f5f9;padding:4px 8px;border-radius:4px;font-size:12px;display:inline-block;margin:3px">read_fulfillments</code>
+            <code style="background:#f1f5f9;padding:4px 8px;border-radius:4px;font-size:12px;display:inline-block;margin:3px">read_shipping</code>
+          </div>
+        </div>
+        <div>
+          <strong>Write Scopes:</strong>
+          <div style="margin-top:8px">
+            <code style="background:#f1f5f9;padding:4px 8px;border-radius:4px;font-size:12px;display:inline-block;margin:3px">write_orders</code>
+            <code style="background:#f1f5f9;padding:4px 8px;border-radius:4px;font-size:12px;display:inline-block;margin:3px">write_products</code>
+            <code style="background:#f1f5f9;padding:4px 8px;border-radius:4px;font-size:12px;display:inline-block;margin:3px">write_inventory</code>
+            <code style="background:#f1f5f9;padding:4px 8px;border-radius:4px;font-size:12px;display:inline-block;margin:3px">write_fulfillments</code>
+            <code style="background:#f1f5f9;padding:4px 8px;border-radius:4px;font-size:12px;display:inline-block;margin:3px">write_shipping</code>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" style="margin-top:0">
+      <div class="card-title"><i class="fas fa-envelope"></i> Required Email Templates</div>
+      <div class="grid-3">
+        <div style="font-size:12px;padding:10px;background:#f8fafc;border-radius:8px">
+          <strong>Order Confirmation</strong><br/>
+          <span style="color:var(--mid)">Sent to buyer when order is placed. Includes order #, items, total, estimated ship date.</span>
+        </div>
+        <div style="font-size:12px;padding:10px;background:#f8fafc;border-radius:8px">
+          <strong>Seller New Order Alert</strong><br/>
+          <span style="color:var(--mid)">Sent to seller when buyer places new order. Includes items, buyer info, confirm CTA link.</span>
+        </div>
+        <div style="font-size:12px;padding:10px;background:#f8fafc;border-radius:8px">
+          <strong>Invoice Issued</strong><br/>
+          <span style="color:var(--mid)">Invoice PDF attachment + payment link. Shows amount due and due date.</span>
+        </div>
+        <div style="font-size:12px;padding:10px;background:#f8fafc;border-radius:8px">
+          <strong>Payment Received</strong><br/>
+          <span style="color:var(--mid)">Confirmation that payment was processed. Receipt with Stripe reference.</span>
+        </div>
+        <div style="font-size:12px;padding:10px;background:#f8fafc;border-radius:8px">
+          <strong>Tracking Pushed</strong><br/>
+          <span style="color:var(--mid)">Sent when tracking number is submitted. Carrier + tracking # + estimated delivery.</span>
+        </div>
+        <div style="font-size:12px;padding:10px;background:#f8fafc;border-radius:8px">
+          <strong>Dropship Daily Digest</strong><br/>
+          <span style="color:var(--mid)">Sent at 6 AM to Daily Confirm buyers. Lists today's orders pending confirmation by 11 AM.</span>
+        </div>
+        <div style="font-size:12px;padding:10px;background:#f8fafc;border-radius:8px">
+          <strong>Dropship Daily Invoice</strong><br/>
+          <span style="color:var(--mid)">Midnight invoice for all dropship orders fulfilled that day. PDF attachment.</span>
+        </div>
+        <div style="font-size:12px;padding:10px;background:#f8fafc;border-radius:8px">
+          <strong>Account Approved</strong><br/>
+          <span style="color:var(--mid)">Welcome email when admin approves buyer/seller application. Login CTA.</span>
+        </div>
+        <div style="font-size:12px;padding:10px;background:#f8fafc;border-radius:8px">
+          <strong>Password Reset</strong><br/>
+          <span style="color:var(--mid)">Supabase Auth handles this. Custom template with BRND Direct branding.</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="divider"></div>
+
+  <!-- ══════════════════════════════════════════════════════════
+       SECTION 12 — BACKEND BUILD LIST
+  ═══════════════════════════════════════════════════════════ -->
+  <section class="section" id="backend-requirements">
+    <div class="section-header">
+      <div class="section-icon orange"><i class="fas fa-list-check"></i></div>
+      <div class="section-title">Backend Build Checklist<span>Everything the developer needs to build, in priority order</span></div>
+      <div class="section-num">12</div>
+    </div>
+
+    <div class="callout danger">
+      <i class="fas fa-circle-exclamation"></i>
+      <div class="callout-body">
+        <h4>Start Here — Critical Path</h4>
+        <p>Items marked <span class="badge badge-red">P0 — Critical</span> must be done first. They are dependencies for everything else. The frontend is fully built and will "just work" once the backend is connected — the HTML/JS already calls the correct API endpoints and expects JSON in the correct format.</p>
+      </div>
+    </div>
+
+    <div class="section-title" style="font-size:16px;margin-bottom:16px">Phase 1 — Core Infrastructure</div>
+
+    <div class="priority-row">
+      <div class="priority-dot high"></div>
+      <div>
+        <strong>P0 — Deploy Supabase Schema</strong><br/>
+        <span style="font-size:12px;color:var(--mid)">Run supabase/schema.sql in Supabase SQL Editor. Creates all 13 tables, RLS policies, triggers, indexes, seed data. Takes ~2 minutes. No code needed — just copy-paste and run.</span>
+      </div>
+      <span class="badge badge-red" style="margin-left:auto;white-space:nowrap">30 min</span>
+    </div>
+
+    <div class="priority-row">
+      <div class="priority-dot high"></div>
+      <div>
+        <strong>P0 — Connect Cloudflare Worker to Supabase</strong><br/>
+        <span style="font-size:12px;color:var(--mid)">Add SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY as Worker secrets. Update workers/api.js to initialize Supabase client and use it in all existing handlers (GET /api/products already references handleGetProducts which calls Supabase).</span>
+      </div>
+      <span class="badge badge-red" style="margin-left:auto;white-space:nowrap">2 hours</span>
+    </div>
+
+    <div class="priority-row">
+      <div class="priority-dot high"></div>
+      <div>
+        <strong>P0 — Implement Supabase Auth (Login / Register / Logout)</strong><br/>
+        <span style="font-size:12px;color:var(--mid)">Replace the current sessionStorage password gate with real Supabase Auth. buyer/index.html and seller/index.html already have the login form UI — connect them to Supabase Auth JS SDK. Store JWT in httpOnly cookie. Add middleware to Workers API to validate JWT on every request. Role-based redirects: buyer → buyer/dashboard.html, seller → seller/dashboard.html, admin → admin/index.html.</span>
+      </div>
+      <span class="badge badge-red" style="margin-left:auto;white-space:nowrap">1 day</span>
+    </div>
+
+    <div class="priority-row">
+      <div class="priority-dot high"></div>
+      <div>
+        <strong>P0 — Order CRUD API (POST, GET, PATCH)</strong><br/>
+        <span style="font-size:12px;color:var(--mid)">Build POST /api/orders (cart checkout → creates order + invoice record), GET /api/orders (buyer's order list), GET /api/orders/:id (detail), PATCH /api/orders/:id (status updates). This unblocks the entire 6-step order flow.</span>
+      </div>
+      <span class="badge badge-red" style="margin-left:auto;white-space:nowrap">2 days</span>
+    </div>
+
+    <div class="priority-row">
+      <div class="priority-dot high"></div>
+      <div>
+        <strong>P0 — Invoice API + Stripe Payment</strong><br/>
+        <span style="font-size:12px;color:var(--mid)">GET /api/invoices, POST /api/create-payment-intent (already partially built in Worker), Stripe webhook → mark invoice as paid → update order status to "processing". The invoices.html payment wizard already calls the correct endpoints.</span>
+      </div>
+      <span class="badge badge-red" style="margin-left:auto;white-space:nowrap">2 days</span>
+    </div>
+
+    <div class="priority-row">
+      <div class="priority-dot high"></div>
+      <div>
+        <strong>P0 — Seller Order Confirmation Flow</strong><br/>
+        <span style="font-size:12px;color:var(--mid)">Seller sees new orders in seller/orders.html → clicks Confirm → PATCH /api/orders/:id {status: "confirmed"}. This is the most critical seller action — without it, orders are stuck. Also needs: reject with reason, partial fill.</span>
+      </div>
+      <span class="badge badge-red" style="margin-left:auto;white-space:nowrap">1 day</span>
+    </div>
+
+    <div class="divider" style="margin: 20px 0"></div>
+    <div class="section-title" style="font-size:16px;margin-bottom:16px">Phase 2 — Fulfillment & Shipping</div>
+
+    <div class="priority-row">
+      <div class="priority-dot med"></div>
+      <div>
+        <strong>P1 — Seller Pack & Tracking Entry</strong><br/>
+        <span style="font-size:12px;color:var(--mid)">Seller marks order as packed (PATCH with dimensions/weight). Buyer then sees order in shipping-logistics.html ready to book. After shipment is booked, seller enters tracking number → PATCH order with tracking_info → email buyer.</span>
+      </div>
+      <span class="badge badge-orange" style="margin-left:auto;white-space:nowrap">1 day</span>
+    </div>
+
+    <div class="priority-row">
+      <div class="priority-dot med"></div>
+      <div>
+        <strong>P1 — Carrier Integration (Freightos + Shippo)</strong><br/>
+        <span style="font-size:12px;color:var(--mid)">Connect Freightos and Shippo API keys. The Worker handlers are already written — just need the secrets. Test: get freight quote → book shipment → get BOL PDF. Test: get parcel rates → purchase label → get label PDF. Add auto-routing logic (>150 lbs → Freightos, else → Shippo).</span>
+      </div>
+      <span class="badge badge-orange" style="margin-left:auto;white-space:nowrap">2 days</span>
+    </div>
+
+    <div class="priority-row">
+      <div class="priority-dot med"></div>
+      <div>
+        <strong>P1 — Email Notifications (SendGrid / Resend)</strong><br/>
+        <span style="font-size:12px;color:var(--mid)">Trigger emails at key events: order placed, order confirmed, invoice issued, payment received, order shipped with tracking, account approved. 9 email templates needed (see Section 11). Integrate with Supabase DB triggers or Worker event handlers.</span>
+      </div>
+      <span class="badge badge-orange" style="margin-left:auto;white-space:nowrap">2 days</span>
+    </div>
+
+    <div class="priority-row">
+      <div class="priority-dot med"></div>
+      <div>
+        <strong>P1 — Admin Panel Backend</strong><br/>
+        <span style="font-size:12px;color:var(--mid)">Connect admin/index.html to real data. GET /api/admin/overview (uses admin_overview DB view). PATCH /api/admin/buyers/:id/approve. PATCH /api/admin/sellers/:id/approve. PATCH /api/admin/buyers/:id/credit-limit. Full order list across all buyers.</span>
+      </div>
+      <span class="badge badge-orange" style="margin-left:auto;white-space:nowrap">2 days</span>
+    </div>
+
+    <div class="priority-row">
+      <div class="priority-dot med"></div>
+      <div>
+        <strong>P1 — Seller Payouts via Stripe Connect</strong><br/>
+        <span style="font-size:12px;color:var(--mid)">Seller onboards to Stripe Connect (seller/payouts.html already has UI). When buyer pays invoice → split: BRND Direct takes 12% commission, 88% transferred to seller's Stripe Connect account. Weekly payout batch job. Track in payouts table.</span>
+      </div>
+      <span class="badge badge-orange" style="margin-left:auto;white-space:nowrap">2 days</span>
+    </div>
+
+    <div class="divider" style="margin: 20px 0"></div>
+    <div class="section-title" style="font-size:16px;margin-bottom:16px">Phase 3 — Dropship & Advanced Features</div>
+
+    <div class="priority-row">
+      <div class="priority-dot low"></div>
+      <div>
+        <strong>P2 — Shopify App (Phase 1 Dropship)</strong><br/>
+        <span style="font-size:12px;color:var(--mid)">Build the Shopify App (or custom OAuth integration). Store encrypted API tokens. Implement catalog sync to Shopify (push products, prices, images, stock). Install order webhooks. Implement Full Auto and Daily Confirm automation modes. Push tracking to Shopify fulfillments API. Generate daily invoices.</span>
+      </div>
+      <span class="badge badge-green" style="margin-left:auto;white-space:nowrap">1–2 weeks</span>
+    </div>
+
+    <div class="priority-row">
+      <div class="priority-dot low"></div>
+      <div>
+        <strong>P2 — AI PO Parsing (OpenAI / Claude)</strong><br/>
+        <span style="font-size:12px;color:var(--mid)">Connect OpenAI API to the Upload PO feature. Parse uploaded PDF/XLSX/CSV purchase orders. Match line items to BRND Direct SKUs by product name, UPC, or SKU. Return structured JSON: {items: [{sku, name, qty, unit_price, match_confidence}]}. The UI is already built and expects this exact format.</span>
+      </div>
+      <span class="badge badge-green" style="margin-left:auto;white-space:nowrap">3 days</span>
+    </div>
+
+    <div class="priority-row">
+      <div class="priority-dot low"></div>
+      <div>
+        <strong>P2 — PDF Invoice Generation</strong><br/>
+        <span style="font-size:12px;color:var(--mid)">Generate branded PDF invoices. Store in Supabase Storage (documents bucket, private). Return signed URL valid for 24 hours. Include: invoice #, order items, wholesale prices, shipping, taxes, total, payment terms, BRND Direct logo and address, buyer's business info.</span>
+      </div>
+      <span class="badge badge-green" style="margin-left:auto;white-space:nowrap">2 days</span>
+    </div>
+
+    <div class="priority-row">
+      <div class="priority-dot low"></div>
+      <div>
+        <strong>P2 — RFQ System Backend</strong><br/>
+        <span style="font-size:12px;color:var(--mid)">Build RFQ CRUD. Buyer submits RFQ → seller receives notification → seller quotes → buyer accepts/rejects → if accepted, auto-creates order at quoted price. rfq.html and seller RFQ view are already built.</span>
+      </div>
+      <span class="badge badge-green" style="margin-left:auto;white-space:nowrap">2 days</span>
+    </div>
+
+    <div class="priority-row">
+      <div class="priority-dot low"></div>
+      <div>
+        <strong>P2 — Realtime Messaging (Supabase Realtime)</strong><br/>
+        <span style="font-size:12px;color:var(--mid)">Enable Supabase Realtime on messages table. Connect messages.html to real-time WebSocket. New messages appear instantly without page refresh. Unread badge updates in real time across all pages.</span>
+      </div>
+      <span class="badge badge-green" style="margin-left:auto;white-space:nowrap">1 day</span>
+    </div>
+
+    <div class="priority-row">
+      <div class="priority-dot low"></div>
+      <div>
+        <strong>P3 — Analytics (Buyer + Seller + Admin)</strong><br/>
+        <span style="font-size:12px;color:var(--mid)">Build analytics API endpoints that aggregate DB data. Buyer: spend by month, top brands, order status breakdown. Seller: revenue, top products, top buyers, fulfillment metrics. Admin: GMV, revenue by month, top buyers, top sellers, platform commission. Connect to Chart.js in analytics.html (charts are already built with static data).</span>
+      </div>
+      <span class="badge badge-green" style="margin-left:auto;white-space:nowrap">2 days</span>
+    </div>
+  </section>
+
+  <div class="divider"></div>
+
+  <!-- ══════════════════════════════════════════════════════════
+       SECTION 13 — FRONTEND STATUS
+  ═══════════════════════════════════════════════════════════ -->
+  <section class="section" id="frontend-status">
+    <div class="section-header">
+      <div class="section-icon green"><i class="fas fa-laptop-code"></i></div>
+      <div class="section-title">Frontend Status — All Pages<span>What's built, what needs backend connection</span></div>
+      <div class="section-num">13</div>
+    </div>
+
+    <table class="data-table" style="border:1px solid var(--border); border-radius:10px; overflow:hidden;">
+      <thead>
+        <tr>
+          <th>Page</th>
+          <th>File Path</th>
+          <th>UI Status</th>
+          <th>Backend Needed</th>
+          <th>Priority</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td>Buyer Login</td><td><code>buyer/index.html</code></td><td><span class="badge badge-green">✓ Complete</span></td><td>Supabase Auth login endpoint</td><td><span class="badge badge-red">P0</span></td></tr>
+        <tr><td>Buyer Register</td><td><code>buyer/register.html</code></td><td><span class="badge badge-green">✓ Complete</span></td><td>POST /api/auth/register</td><td><span class="badge badge-red">P0</span></td></tr>
+        <tr><td>Buyer Dashboard</td><td><code>buyer/dashboard.html</code></td><td><span class="badge badge-green">✓ Complete</span></td><td>GET /api/buyer/dashboard</td><td><span class="badge badge-red">P0</span></td></tr>
+        <tr><td>Products Catalog</td><td><code>buyer/products.html</code></td><td><span class="badge badge-green">✓ Complete</span></td><td>GET /api/products (partial — connect Supabase)</td><td><span class="badge badge-red">P0</span></td></tr>
+        <tr><td>Cart / Step 2</td><td><code>buyer/cart.html</code></td><td><span class="badge badge-green">✓ Complete</span></td><td>POST /api/orders</td><td><span class="badge badge-red">P0</span></td></tr>
+        <tr><td>Orders Hub</td><td><code>buyer/orders.html</code></td><td><span class="badge badge-green">✓ Complete</span></td><td>GET/PATCH /api/orders, OpenAI for PO parsing</td><td><span class="badge badge-red">P0</span></td></tr>
+        <tr><td>Invoices / Step 4</td><td><code>buyer/invoices.html</code></td><td><span class="badge badge-green">✓ Complete</span></td><td>GET /api/invoices, Stripe PaymentIntent</td><td><span class="badge badge-red">P0</span></td></tr>
+        <tr><td>Shipping / Step 6</td><td><code>buyer/shipping-logistics.html</code></td><td><span class="badge badge-green">✓ Complete</span></td><td>Freightos + Shippo API keys</td><td><span class="badge badge-orange">P1</span></td></tr>
+        <tr><td>Analytics</td><td><code>buyer/analytics.html</code></td><td><span class="badge badge-green">✓ Complete</span></td><td>GET /api/buyer/analytics</td><td><span class="badge badge-green">P3</span></td></tr>
+        <tr><td>RFQ</td><td><code>buyer/rfq.html</code></td><td><span class="badge badge-green">✓ Complete</span></td><td>GET/POST/PATCH /api/rfqs</td><td><span class="badge badge-green">P2</span></td></tr>
+        <tr><td>Dropship</td><td><code>buyer/dropship.html</code></td><td><span class="badge badge-green">✓ Complete</span></td><td>Full Shopify integration (see Section 7)</td><td><span class="badge badge-orange">P2</span></td></tr>
+        <tr><td>Trade Finance</td><td><code>buyer/trade-finance.html</code></td><td><span class="badge badge-green">✓ Complete</span></td><td>Credit limit management</td><td><span class="badge badge-green">P2</span></td></tr>
+        <tr><td>Warehousing</td><td><code>buyer/warehousing.html</code></td><td><span class="badge badge-green">✓ Complete</span></td><td>Inventory management API</td><td><span class="badge badge-green">P3</span></td></tr>
+        <tr><td>Messages</td><td><code>buyer/messages.html</code></td><td><span class="badge badge-green">✓ Complete</span></td><td>Supabase Realtime WebSocket</td><td><span class="badge badge-green">P2</span></td></tr>
+        <tr><td>Reports</td><td><code>buyer/reports.html</code></td><td><span class="badge badge-green">✓ Complete</span></td><td>Reporting API + CSV export</td><td><span class="badge badge-green">P3</span></td></tr>
+        <tr><td>Account Settings</td><td><code>buyer/account.html</code></td><td><span class="badge badge-green">✓ Complete</span></td><td>GET/PATCH /api/profiles/:id</td><td><span class="badge badge-orange">P1</span></td></tr>
+        <tr><td>Help & Support</td><td><code>buyer/help.html</code></td><td><span class="badge badge-green">✓ Complete</span></td><td>Support ticket system</td><td><span class="badge badge-green">P3</span></td></tr>
+        <tr><td>Payment Portal</td><td><code>buyer/payment-portal.html</code></td><td><span class="badge badge-green">✓ Complete</span></td><td>Stripe PaymentIntent (same as invoices)</td><td><span class="badge badge-orange">P1</span></td></tr>
+        <tr><td>Reset Password</td><td><code>buyer/reset-password.html</code></td><td><span class="badge badge-green">✓ Complete</span></td><td>Supabase Auth reset password</td><td><span class="badge badge-orange">P1</span></td></tr>
+        <tr><td>Seller Login</td><td><code>seller/index.html</code></td><td><span class="badge badge-green">✓ Complete</span></td><td>Supabase Auth (seller role)</td><td><span class="badge badge-red">P0</span></td></tr>
+        <tr><td>Seller Dashboard</td><td><code>seller/dashboard.html</code></td><td><span class="badge badge-green">✓ Complete</span></td><td>GET /api/seller/dashboard</td><td><span class="badge badge-red">P0</span></td></tr>
+        <tr><td>Seller Orders</td><td><code>seller/orders.html</code></td><td><span class="badge badge-green">✓ Complete</span></td><td>PATCH /api/orders/:id — confirm/pack/tracking</td><td><span class="badge badge-red">P0 Critical</span></td></tr>
+        <tr><td>Seller Products</td><td><code>seller/products.html</code></td><td><span class="badge badge-green">✓ Complete</span></td><td>GET/POST/PUT/DELETE /api/seller/products</td><td><span class="badge badge-orange">P1</span></td></tr>
+        <tr><td>Seller Analytics</td><td><code>seller/analytics.html</code></td><td><span class="badge badge-green">✓ Complete</span></td><td>GET /api/seller/analytics</td><td><span class="badge badge-green">P3</span></td></tr>
+        <tr><td>Seller Payouts</td><td><code>seller/payouts.html</code></td><td><span class="badge badge-green">✓ Complete</span></td><td>Stripe Connect + payouts table</td><td><span class="badge badge-orange">P1</span></td></tr>
+        <tr><td>Seller Brand Hub</td><td><code>seller/brand-hub.html</code></td><td><span class="badge badge-green">✓ Complete</span></td><td>GET/PUT /api/seller/brand</td><td><span class="badge badge-green">P2</span></td></tr>
+        <tr><td>Seller Pricing</td><td><code>seller/wholesale-pricing.html</code></td><td><span class="badge badge-green">✓ Complete</span></td><td>Price tier management API</td><td><span class="badge badge-orange">P1</span></td></tr>
+        <tr><td>Seller Messages</td><td><code>seller/messages.html</code></td><td><span class="badge badge-green">✓ Complete</span></td><td>Supabase Realtime</td><td><span class="badge badge-green">P2</span></td></tr>
+        <tr><td>Admin Dashboard</td><td><code>admin/index.html</code></td><td><span class="badge badge-green">✓ Complete</span></td><td>GET /api/admin/overview + all admin APIs</td><td><span class="badge badge-orange">P1</span></td></tr>
+        <tr><td>Portal Launcher</td><td><code>index.html</code></td><td><span class="badge badge-green">✓ Complete</span></td><td>None (links only)</td><td><span class="badge badge-green">Done</span></td></tr>
+        <tr><td>Lock / Password Gate</td><td><code>lock.html</code></td><td><span class="badge badge-green">✓ Complete</span></td><td>Replace with real auth</td><td><span class="badge badge-red">P0</span></td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <div class="divider"></div>
+
+  <!-- ══════════════════════════════════════════════════════════
+       SECTION 14 — ROADMAP
+  ═══════════════════════════════════════════════════════════ -->
+  <section class="section" id="roadmap">
+    <div class="section-header">
+      <div class="section-icon purple"><i class="fas fa-map-signs"></i></div>
+      <div class="section-title">Development Roadmap<span>Recommended build sequence with estimated timelines</span></div>
+      <div class="section-num">14</div>
+    </div>
+
+    <div class="grid-2">
+      <div class="card" style="border-left: 4px solid var(--danger)">
+        <div class="card-title"><i class="fas fa-rocket"></i> Sprint 1 — Core Infrastructure (Week 1–2)</div>
+        <ul class="feat-list">
+          <li><i class="fas fa-circle" style="color:#ef4444;font-size:8px;margin-top:4px"></i> Deploy Supabase schema + connect Worker</li>
+          <li><i class="fas fa-circle" style="color:#ef4444;font-size:8px;margin-top:4px"></i> Implement Supabase Auth (login/register/logout)</li>
+          <li><i class="fas fa-circle" style="color:#ef4444;font-size:8px;margin-top:4px"></i> Products API (GET /api/products from Supabase)</li>
+          <li><i class="fas fa-circle" style="color:#ef4444;font-size:8px;margin-top:4px"></i> Order creation API (POST /api/orders)</li>
+          <li><i class="fas fa-circle" style="color:#ef4444;font-size:8px;margin-top:4px"></i> Invoice API + Stripe payment</li>
+          <li><i class="fas fa-circle" style="color:#ef4444;font-size:8px;margin-top:4px"></i> Seller order confirmation (PATCH status)</li>
+          <li><i class="fas fa-circle" style="color:#ef4444;font-size:8px;margin-top:4px"></i> Basic email notifications (order + invoice)</li>
+        </ul>
+        <p style="margin-top:12px;font-size:12px;color:var(--mid)"><strong>Outcome:</strong> The full 6-step order flow works end-to-end with real data. Buyers can place, pay, and receive orders. Sellers can confirm and pack.</p>
+      </div>
+
+      <div class="card" style="border-left: 4px solid var(--warn)">
+        <div class="card-title"><i class="fas fa-layer-group"></i> Sprint 2 — Fulfillment & Payments (Week 3–4)</div>
+        <ul class="feat-list">
+          <li><i class="fas fa-circle" style="color:#f59e0b;font-size:8px;margin-top:4px"></i> Freightos + Shippo API key integration</li>
+          <li><i class="fas fa-circle" style="color:#f59e0b;font-size:8px;margin-top:4px"></i> Tracking push from seller to buyer</li>
+          <li><i class="fas fa-circle" style="color:#f59e0b;font-size:8px;margin-top:4px"></i> Stripe Connect + seller payout system</li>
+          <li><i class="fas fa-circle" style="color:#f59e0b;font-size:8px;margin-top:4px"></i> Admin panel backend (approvals, credit limits)</li>
+          <li><i class="fas fa-circle" style="color:#f59e0b;font-size:8px;margin-top:4px"></i> All email templates (9 templates)</li>
+          <li><i class="fas fa-circle" style="color:#f59e0b;font-size:8px;margin-top:4px"></i> PDF invoice generation</li>
+          <li><i class="fas fa-circle" style="color:#f59e0b;font-size:8px;margin-top:4px"></i> Account settings CRUD</li>
+        </ul>
+        <p style="margin-top:12px;font-size:12px;color:var(--mid)"><strong>Outcome:</strong> Full money flow works. Buyers pay, sellers get paid. Shipments booked. Admin can approve users and manage credit.</p>
+      </div>
+
+      <div class="card" style="border-left: 4px solid var(--accent)">
+        <div class="card-title"><i class="fab fa-shopify"></i> Sprint 3 — Shopify Dropship (Week 5–7)</div>
+        <ul class="feat-list">
+          <li><i class="fas fa-circle" style="color:#10b981;font-size:8px;margin-top:4px"></i> Shopify OAuth app or manual API token flow</li>
+          <li><i class="fas fa-circle" style="color:#10b981;font-size:8px;margin-top:4px"></i> Catalog sync to Shopify (push 1,240+ products)</li>
+          <li><i class="fas fa-circle" style="color:#10b981;font-size:8px;margin-top:4px"></i> Shopify order webhook (import to BRND Direct)</li>
+          <li><i class="fas fa-circle" style="color:#10b981;font-size:8px;margin-top:4px"></i> Full Auto mode (auto-ship daily)</li>
+          <li><i class="fas fa-circle" style="color:#10b981;font-size:8px;margin-top:4px"></i> Daily Confirm mode (6 AM email, 11 AM deadline)</li>
+          <li><i class="fas fa-circle" style="color:#10b981;font-size:8px;margin-top:4px"></i> Tracking push back to Shopify</li>
+          <li><i class="fas fa-circle" style="color:#10b981;font-size:8px;margin-top:4px"></i> Daily invoice auto-generation</li>
+          <li><i class="fas fa-circle" style="color:#10b981;font-size:8px;margin-top:4px"></i> Dropship analytics API</li>
+        </ul>
+        <p style="margin-top:12px;font-size:12px;color:var(--mid)"><strong>Outcome:</strong> Complete Shopify dropship pipeline working end-to-end. Buyer connects Shopify, catalog syncs, orders flow automatically, tracking pushed back, invoices generated daily.</p>
+      </div>
+
+      <div class="card" style="border-left: 4px solid var(--brand)">
+        <div class="card-title"><i class="fas fa-star"></i> Sprint 4 — Advanced Features (Week 8–10)</div>
+        <ul class="feat-list">
+          <li><i class="fas fa-circle" style="color:#6366f1;font-size:8px;margin-top:4px"></i> AI PO parsing (OpenAI / Claude API)</li>
+          <li><i class="fas fa-circle" style="color:#6366f1;font-size:8px;margin-top:4px"></i> RFQ system backend</li>
+          <li><i class="fas fa-circle" style="color:#6366f1;font-size:8px;margin-top:4px"></i> Realtime messaging (Supabase Realtime)</li>
+          <li><i class="fas fa-circle" style="color:#6366f1;font-size:8px;margin-top:4px"></i> Analytics dashboards (buyer + seller + admin)</li>
+          <li><i class="fas fa-circle" style="color:#6366f1;font-size:8px;margin-top:4px"></i> Reports with CSV/PDF export</li>
+          <li><i class="fas fa-circle" style="color:#6366f1;font-size:8px;margin-top:4px"></i> Warehousing module</li>
+          <li><i class="fas fa-circle" style="color:#6366f1;font-size:8px;margin-top:4px"></i> Trade finance / BNPL integration</li>
+          <li><i class="fas fa-circle" style="color:#6366f1;font-size:8px;margin-top:4px"></i> Phase 2: WooCommerce, Amazon, TikTok Shop</li>
+        </ul>
+        <p style="margin-top:12px;font-size:12px;color:var(--mid)"><strong>Outcome:</strong> Platform is feature-complete. All advanced features working. Ready for additional marketplace integrations.</p>
+      </div>
+    </div>
+
+    <div class="card" style="background: linear-gradient(135deg, #0f172a, #1a1040); border-color: rgba(99,102,241,0.3); margin-top:0">
+      <div class="card-title" style="color:white"><i class="fas fa-file-code"></i> File Handoff — What the Developer Receives</div>
+      <div class="grid-3">
+        <div>
+          <div style="color:#818cf8;font-weight:700;font-size:12px;margin-bottom:8px">FRONTEND (Built)</div>
+          <ul style="list-style:none;font-size:12px;color:#cbd5e1">
+            <li>📄 buyer/ — 19 HTML pages</li>
+            <li>📄 seller/ — 11 HTML pages</li>
+            <li>📄 admin/ — 1 HTML page (73KB)</li>
+            <li>📄 css/portal.css</li>
+            <li>📄 js/portal.js + catalog-api.js</li>
+            <li>📄 index.html (portal launcher)</li>
+            <li>📄 lock.html (password gate)</li>
+          </ul>
+        </div>
+        <div>
+          <div style="color:#818cf8;font-weight:700;font-size:12px;margin-bottom:8px">BACKEND SCAFFOLD (Partial)</div>
+          <ul style="list-style:none;font-size:12px;color:#cbd5e1">
+            <li>📄 workers/api.js (Cloudflare Worker)</li>
+            <li>📄 supabase/schema.sql (full DB schema)</li>
+            <li>📄 wrangler.toml (Worker config)</li>
+            <li>📄 _redirects (Cloudflare Pages)</li>
+            <li>📄 _headers (security headers)</li>
+            <li>📄 robots.txt</li>
+            <li>📄 setup/connect-catalog.html (guide)</li>
+          </ul>
+        </div>
+        <div>
+          <div style="color:#818cf8;font-weight:700;font-size:12px;margin-bottom:8px">DOCUMENTATION</div>
+          <ul style="list-style:none;font-size:12px;color:#cbd5e1">
+            <li>📄 README.md (feature list + URLs)</li>
+            <li>📄 developer-brief.html (this doc)</li>
+            <li>✅ DB schema: 13 tables, all RLS</li>
+            <li>✅ All API endpoints specified</li>
+            <li>✅ All email templates specified</li>
+            <li>✅ Integration specs (Shopify, Stripe)</li>
+            <li>✅ Prioritized build checklist</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="divider"></div>
+
+  <!-- FOOTER -->
+  <div style="text-align:center;padding:32px 0;color:var(--light);font-size:12px">
+    <div style="font-size:20px;font-weight:800;color:var(--dark);margin-bottom:8px">BRND DIRECT PORTAL</div>
+    <div>Developer Brief — Version 1.0 — March 2025</div>
+    <div style="margin-top:8px">
+      <span class="tech-pill"><i class="fas fa-cloud"></i> Cloudflare Pages + Workers</span>
+      <span class="tech-pill"><i class="fas fa-database"></i> Supabase (PostgreSQL)</span>
+      <span class="tech-pill"><i class="fab fa-stripe"></i> Stripe Connect</span>
+      <span class="tech-pill"><i class="fab fa-shopify"></i> Shopify Admin API</span>
+      <span class="tech-pill"><i class="fas fa-truck"></i> Freightos + Shippo</span>
+    </div>
+  </div>
+
+</div>
+</body>
+</html>

@@ -1,0 +1,500 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Brand Hub – BRND Direct Partner Portal</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&family=Inter:wght@300;400;500;600;700&family=Outfit:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.5.0/css/all.min.css" />
+  <link rel="stylesheet" href="css/portal.css" />
+  <style>
+    :root { --seller-accent:#10b981; }
+    .sidebar { background:linear-gradient(180deg,#0d1a14 0%,#0f1f18 40%,#111a15 100%); }
+    .sidebar .nav-item.active { background:rgba(16,185,129,.15);color:#34d399;border-left-color:#10b981; }
+    .sidebar .nav-item:hover { background:rgba(16,185,129,.08); }
+    .sidebar .nav-badge { background:var(--seller-accent); }
+    .sidebar .nav-badge.new { background:#f59e0b; }
+
+    /* Tabs */
+    .hub-tabs { display:flex;gap:0;border-bottom:2px solid var(--color-border);margin-bottom:24px; }
+    .hub-tab { padding:10px 20px;font-size:.82rem;font-weight:700;cursor:pointer;border-bottom:2px solid transparent;color:var(--color-muted);transition:all .18s;margin-bottom:-2px; }
+    .hub-tab.active, .hub-tab:hover { color:var(--seller-accent);border-bottom-color:var(--seller-accent); }
+    .hub-panel { display:none; }
+    .hub-panel.active { display:block; }
+
+    /* Asset grid */
+    .asset-grid { display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:14px; }
+    .asset-card { border:1.5px solid var(--color-border);border-radius:var(--radius-md);overflow:hidden;transition:all .2s;cursor:pointer; }
+    .asset-card:hover { box-shadow:var(--shadow-md);border-color:var(--seller-accent); }
+    .asset-thumb { height:120px;background:var(--color-off-white);display:flex;align-items:center;justify-content:center;font-size:2rem;position:relative; }
+    .asset-type { position:absolute;top:6px;right:6px;font-size:.6rem;font-weight:800;text-transform:uppercase;padding:2px 7px;border-radius:100px;background:rgba(0,0,0,.5);color:white; }
+    .asset-body { padding:10px 12px; }
+    .asset-name { font-size:.78rem;font-weight:700;color:var(--color-near-black);white-space:nowrap;overflow:hidden;text-overflow:ellipsis; }
+    .asset-meta { font-size:.68rem;color:var(--color-muted);margin-top:2px; }
+    .asset-actions { display:flex;gap:6px;margin-top:8px; }
+    .asset-btn { flex:1;padding:5px;font-size:.68rem;font-weight:700;cursor:pointer;border:1.5px solid var(--color-border);background:white;color:var(--color-muted);border-radius:var(--radius-xs);transition:all .15s;text-align:center; }
+    .asset-btn:hover { border-color:var(--seller-accent);color:var(--seller-accent); }
+
+    /* MAP table */
+    .map-row { display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--color-border); }
+    .map-row:last-child { border-bottom:none; }
+    .map-product { flex:1;min-width:0; }
+    .map-product-name { font-size:.82rem;font-weight:600;color:var(--color-near-black);white-space:nowrap;overflow:hidden;text-overflow:ellipsis; }
+    .map-product-sku { font-size:.7rem;color:var(--color-muted); }
+    .map-price { font-family:var(--font-outfit);font-size:.88rem;font-weight:700;width:72px;text-align:right; }
+    .map-status-dot { width:8px;height:8px;border-radius:50%;flex-shrink:0; }
+    .map-status-ok { background:var(--color-emerald); }
+    .map-status-violation { background:var(--color-rose);box-shadow:0 0 0 3px rgba(244,63,94,.2); }
+
+    /* Violation alert */
+    .violation-card { border:1.5px solid rgba(244,63,94,.3);background:rgba(244,63,94,.04);border-radius:var(--radius-md);padding:16px 20px; }
+    .violation-header { display:flex;align-items:center;gap:10px;margin-bottom:12px; }
+    .violation-icon { width:36px;height:36px;border-radius:8px;background:rgba(244,63,94,.1);color:var(--color-rose);display:flex;align-items:center;justify-content:center;font-size:.9rem;flex-shrink:0; }
+    .violation-title { font-size:.88rem;font-weight:800;color:var(--color-rose); }
+    .violation-detail { font-size:.78rem;color:var(--color-near-black);line-height:1.6; }
+
+    /* Upload drop zone */
+    .upload-zone { border:2px dashed var(--color-border);border-radius:var(--radius-md);padding:40px;text-align:center;cursor:pointer;transition:border-color .2s; }
+    .upload-zone:hover { border-color:var(--seller-accent); }
+    .upload-zone i { font-size:2rem;color:var(--color-muted);margin-bottom:12px; }
+    .upload-zone h4 { font-family:var(--font-display);font-size:.92rem;font-weight:800;margin-bottom:6px; }
+    .upload-zone p { font-size:.78rem;color:var(--color-muted); }
+
+    /* Guideline card */
+    .guideline-card { border:1.5px solid var(--color-border);border-radius:var(--radius-md);padding:16px 20px;display:flex;align-items:center;gap:14px; }
+    .guideline-card:hover { border-color:var(--seller-accent); }
+    .guideline-icon { width:44px;height:44px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:1rem;flex-shrink:0; }
+    .guideline-info { flex:1; }
+    .guideline-title { font-size:.85rem;font-weight:700;color:var(--color-near-black); }
+    .guideline-desc { font-size:.72rem;color:var(--color-muted);margin-top:2px; }
+
+    .toggle-row { display:flex;align-items:center;justify-content:space-between;padding:14px 0;border-bottom:1px solid var(--color-border); }
+    .toggle-row:last-child { border-bottom:none; }
+    .toggle-label { font-size:.85rem;font-weight:600;color:var(--color-near-black); }
+    .toggle-sub { font-size:.75rem;color:var(--color-muted);margin-top:2px; }
+    .toggle-switch { position:relative;width:44px;height:24px;flex-shrink:0; }
+    .toggle-switch input { opacity:0;width:0;height:0; }
+    .toggle-slider { position:absolute;cursor:pointer;top:0;left:0;right:0;bottom:0;background:var(--color-border);border-radius:100px;transition:.3s; }
+    .toggle-slider::before { content:'';position:absolute;width:18px;height:18px;left:3px;bottom:3px;background:white;border-radius:50%;box-shadow:var(--shadow-xs);transition:.3s; }
+    .toggle-switch input:checked+.toggle-slider { background:var(--seller-accent); }
+    .toggle-switch input:checked+.toggle-slider::before { transform:translateX(20px); }
+
+    @media (max-width:768px) { .hub-tabs { overflow-x:auto; } .asset-grid { grid-template-columns:repeat(2,1fr); } }
+  </style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<aside class="sidebar" id="sidebar">
+  <div class="sidebar__logo">
+    <a href="seller-dashboard.html" class="logo-mark">
+      <span class="logo-icon" style="background:linear-gradient(135deg,#10b981,#059669);"><i class="fas fa-chevron-right"></i></span>
+      <span class="logo-word">BRND <span class="logo-accent">DIRECT</span></span>
+    </a>
+  </div>
+  <nav class="sidebar__nav">
+    <div class="nav-section">
+      <span class="nav-section-label">Brand HQ</span>
+      <a href="seller-dashboard.html" class="nav-item"><i class="fas fa-table-columns"></i><span>Dashboard</span></a>
+      <a href="seller-products.html" class="nav-item"><i class="fas fa-boxes-stacked"></i><span>Products</span></a>
+      <a href="seller-orders.html" class="nav-item"><i class="fas fa-file-invoice"></i><span>Orders</span><span class="nav-badge">7</span></a>
+      <a href="seller-analytics.html" class="nav-item"><i class="fas fa-chart-line"></i><span>Analytics</span></a>
+    </div>
+    <div class="nav-section">
+      <span class="nav-section-label">Brand Tools</span>
+      <a href="seller-brand-hub.html" class="nav-item active"><i class="fas fa-gem"></i><span>Brand Hub</span></a>
+      <a href="seller-wholesale-pricing.html" class="nav-item"><i class="fas fa-tags"></i><span>Wholesale Pricing</span></a>
+      <a href="seller-payouts.html" class="nav-item"><i class="fas fa-wallet"></i><span>Payouts</span><span class="nav-badge new">!</span></a>
+    </div>
+    <div class="nav-section">
+      <span class="nav-section-label">Account</span>
+      <a href="seller-messages.html" class="nav-item"><i class="fas fa-message"></i><span>Messages</span><span class="nav-badge">3</span></a>
+      <a href="seller-account.html" class="nav-item"><i class="fas fa-gear"></i><span>Settings</span></a>
+      <a href="help.html" class="nav-item"><i class="fas fa-circle-question"></i><span>Help & Support</span></a>
+    </div>
+  </nav>
+  <div class="sidebar__bottom">
+    <div class="divider"></div>
+    <div class="sidebar__user">
+      <div class="sidebar__avatar" style="background:linear-gradient(135deg,#10b981,#059669);">AP</div>
+      <div class="sidebar__user-info"><div class="sidebar__user-name">Apex Apparel Co.</div><div class="sidebar__user-role">Brand Partner</div></div>
+      <a href="seller-login.html" class="sidebar__user-logout" title="Sign out"><i class="fas fa-arrow-right-from-bracket"></i></a>
+    </div>
+  </div>
+</aside>
+<div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+<!-- TOPBAR -->
+<header class="topbar" id="topbar">
+  <div class="topbar__left">
+    <button class="topbar__mobile-toggle" id="sidebarToggle"><i class="fas fa-bars"></i></button>
+    <div><div class="topbar__title">Brand Hub</div><div class="topbar__breadcrumb">Brand assets, MAP pricing &amp; protection</div></div>
+  </div>
+  <div class="topbar__right">
+    <div class="search-bar">
+      <i class="fas fa-magnifying-glass search-bar__icon"></i>
+      <input class="search-bar__input" type="text" placeholder="Search assets…" />
+    </div>
+    <button class="topbar__btn" style="position:relative;"><i class="fas fa-bell"></i><span class="notif-dot"></span></button>
+    <a href="seller-messages.html" class="topbar__btn"><i class="fas fa-message"></i></a>
+    <div class="topbar__avatar" style="background:linear-gradient(135deg,#10b981,#059669);">AP</div>
+  </div>
+</header>
+
+<!-- MAIN -->
+<main class="app-main">
+
+  <div class="page-header-bar fade-in">
+    <div>
+      <h1>Brand Hub</h1>
+      <p class="page-header-sub">Manage your brand identity, assets, MAP policies &amp; channel controls</p>
+    </div>
+    <div style="display:flex;gap:10px;">
+      <button class="btn btn-outline" onclick="showToast('Downloading brand kit…','success')"><i class="fas fa-download"></i> Download Brand Kit</button>
+      <button class="btn btn-primary" style="background:var(--seller-accent);" onclick="document.getElementById('assetUploadTab').click()"><i class="fas fa-cloud-arrow-up"></i> Upload Assets</button>
+    </div>
+  </div>
+
+  <!-- Brand Overview Card -->
+  <div class="card mb-6 fade-in">
+    <div class="card__body">
+      <div style="display:flex;align-items:center;gap:20px;flex-wrap:wrap;">
+        <div style="width:72px;height:72px;border-radius:16px;background:linear-gradient(135deg,#10b981,#059669);display:flex;align-items:center;justify-content:center;color:white;font-size:1.6rem;font-weight:900;font-family:var(--font-display);flex-shrink:0;">A</div>
+        <div style="flex:1;min-width:200px;">
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:4px;">
+            <h2 style="font-family:var(--font-display);font-size:1.2rem;font-weight:800;">Apex Apparel Co.</h2>
+            <span style="font-size:.68rem;font-weight:800;background:rgba(16,185,129,.12);color:var(--color-emerald);padding:3px 10px;border-radius:100px;">✓ VERIFIED BRAND</span>
+          </div>
+          <p style="font-size:.82rem;color:var(--color-muted);">Premium streetwear &amp; athletic apparel · Apparel &amp; Fashion · Est. 2018</p>
+        </div>
+        <div style="display:flex;gap:20px;flex-wrap:wrap;">
+          <div style="text-align:center;"><div style="font-size:1.2rem;font-weight:800;font-family:var(--font-outfit);">68</div><div style="font-size:.68rem;color:var(--color-muted);text-transform:uppercase;letter-spacing:.04em;">SKUs</div></div>
+          <div style="text-align:center;"><div style="font-size:1.2rem;font-weight:800;font-family:var(--font-outfit);">34</div><div style="font-size:.68rem;color:var(--color-muted);text-transform:uppercase;letter-spacing:.04em;">Buyers</div></div>
+          <div style="text-align:center;"><div style="font-size:1.2rem;font-weight:800;font-family:var(--font-outfit);">4.8★</div><div style="font-size:.68rem;color:var(--color-muted);text-transform:uppercase;letter-spacing:.04em;">Rating</div></div>
+          <div style="text-align:center;"><div style="font-size:1.2rem;font-weight:800;font-family:var(--font-outfit);">4</div><div style="font-size:.68rem;color:var(--color-muted);text-transform:uppercase;letter-spacing:.04em;">Channels</div></div>
+        </div>
+        <button class="btn btn-outline" style="font-size:.78rem;" onclick="showToast('Opening brand profile editor…','success')"><i class="fas fa-pencil"></i> Edit Profile</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Violation Alert -->
+  <div class="violation-card mb-6 fade-in">
+    <div class="violation-header">
+      <div class="violation-icon"><i class="fas fa-shield-exclamation"></i></div>
+      <div>
+        <div class="violation-title">⚠️ MAP Violation Detected</div>
+      </div>
+      <button class="btn btn-outline" style="margin-left:auto;font-size:.75rem;border-color:var(--color-rose);color:var(--color-rose);" onclick="showToast('Violation report sent to buyer.','success')">Send Alert</button>
+    </div>
+    <div class="violation-detail">
+      <strong>Premium Graphic Tee</strong> is listed at <strong>$24.99</strong> on TikTok Shop by buyer <strong>Boutique District</strong> — which is <strong>$4.00 below your MAP of $28.99</strong>. This violates your MAP policy. BRND Direct will automatically notify the seller.
+    </div>
+  </div>
+
+  <!-- Tabs -->
+  <div class="hub-tabs fade-in">
+    <button class="hub-tab active" onclick="switchTab(this,'assets')" id="assetUploadTab">Brand Assets</button>
+    <button class="hub-tab" onclick="switchTab(this,'map')">MAP Controls</button>
+    <button class="hub-tab" onclick="switchTab(this,'guidelines')">Brand Guidelines</button>
+    <button class="hub-tab" onclick="switchTab(this,'protection')">Brand Protection</button>
+  </div>
+
+  <!-- ASSETS Panel -->
+  <div class="hub-panel active fade-in" id="panel-assets">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
+      <div style="display:flex;gap:8px;">
+        <select class="form-input" style="width:auto;font-size:.78rem;padding:6px 12px;"><option>All Assets</option><option>Logos</option><option>Product Images</option><option>Look Books</option><option>Videos</option><option>Documents</option></select>
+      </div>
+      <button class="btn btn-primary" style="background:var(--seller-accent);font-size:.8rem;" onclick="showToast('Asset upload ready.','success')"><i class="fas fa-plus"></i> Upload</button>
+    </div>
+
+    <div class="asset-grid">
+      <div class="asset-card">
+        <div class="asset-thumb" style="background:linear-gradient(135deg,#0d1a14,#065f46);">
+          <span>🖼️</span>
+          <span class="asset-type">PNG</span>
+        </div>
+        <div class="asset-body">
+          <div class="asset-name">Apex Logo – Primary</div>
+          <div class="asset-meta">PNG · 2.4 MB · Uploaded Mar 1</div>
+          <div class="asset-actions">
+            <button class="asset-btn" onclick="showToast('Downloading logo…','success')"><i class="fas fa-download"></i></button>
+            <button class="asset-btn" onclick="showToast('Link copied!','success')"><i class="fas fa-link"></i></button>
+            <button class="asset-btn" onclick="showToast('Asset deleted.','error')"><i class="fas fa-trash"></i></button>
+          </div>
+        </div>
+      </div>
+      <div class="asset-card">
+        <div class="asset-thumb" style="background:linear-gradient(135deg,#1e293b,#334155);">
+          <span>👕</span>
+          <span class="asset-type">JPG</span>
+        </div>
+        <div class="asset-body">
+          <div class="asset-name">Classic Hoodie – Product Shot</div>
+          <div class="asset-meta">JPG · 5.1 MB · Uploaded Mar 5</div>
+          <div class="asset-actions">
+            <button class="asset-btn" onclick="showToast('Downloading image…','success')"><i class="fas fa-download"></i></button>
+            <button class="asset-btn" onclick="showToast('Link copied!','success')"><i class="fas fa-link"></i></button>
+            <button class="asset-btn" onclick="showToast('Asset deleted.','error')"><i class="fas fa-trash"></i></button>
+          </div>
+        </div>
+      </div>
+      <div class="asset-card">
+        <div class="asset-thumb" style="background:linear-gradient(135deg,#1e3a5f,#1d4ed8);">
+          <span>📄</span>
+          <span class="asset-type">PDF</span>
+        </div>
+        <div class="asset-body">
+          <div class="asset-name">Spring 2026 Look Book</div>
+          <div class="asset-meta">PDF · 12 MB · Uploaded Mar 10</div>
+          <div class="asset-actions">
+            <button class="asset-btn" onclick="showToast('Downloading look book…','success')"><i class="fas fa-download"></i></button>
+            <button class="asset-btn" onclick="showToast('Link copied!','success')"><i class="fas fa-link"></i></button>
+            <button class="asset-btn" onclick="showToast('Asset deleted.','error')"><i class="fas fa-trash"></i></button>
+          </div>
+        </div>
+      </div>
+      <div class="asset-card">
+        <div class="asset-thumb" style="background:linear-gradient(135deg,#3b1f08,#78350f);">
+          <span>🎬</span>
+          <span class="asset-type">MP4</span>
+        </div>
+        <div class="asset-body">
+          <div class="asset-name">Brand Story Video</div>
+          <div class="asset-meta">MP4 · 48 MB · Uploaded Feb 28</div>
+          <div class="asset-actions">
+            <button class="asset-btn" onclick="showToast('Downloading video…','success')"><i class="fas fa-download"></i></button>
+            <button class="asset-btn" onclick="showToast('Link copied!','success')"><i class="fas fa-link"></i></button>
+            <button class="asset-btn" onclick="showToast('Asset deleted.','error')"><i class="fas fa-trash"></i></button>
+          </div>
+        </div>
+      </div>
+      <div class="asset-card" style="border-style:dashed;cursor:pointer;" onclick="showToast('Upload window opening…','success')">
+        <div class="asset-thumb" style="background:white;flex-direction:column;gap:8px;">
+          <i class="fas fa-plus" style="font-size:1.5rem;color:var(--color-muted);"></i>
+          <span style="font-size:.72rem;color:var(--color-muted);">Add Asset</span>
+        </div>
+        <div class="asset-body">
+          <div class="asset-name" style="color:var(--color-muted);">Upload new file</div>
+          <div class="asset-meta">PNG, JPG, PDF, MP4</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="upload-zone" style="margin-top:20px;" onclick="showToast('File upload ready.','success')">
+      <i class="fas fa-cloud-arrow-up"></i>
+      <h4>Drag &amp; drop files here</h4>
+      <p>PNG, JPG, PDF, MP4, AI, EPS — max 50 MB per file</p>
+      <button class="btn btn-outline" style="margin-top:12px;font-size:.78rem;" onclick="event.stopPropagation();showToast('Browse dialog opening…','success')">Browse Files</button>
+    </div>
+  </div>
+
+  <!-- MAP Controls Panel -->
+  <div class="hub-panel" id="panel-map">
+    <div style="display:grid;grid-template-columns:1fr 320px;gap:20px;">
+      <div class="card">
+        <div class="card__header">
+          <span class="card__title">MAP Price List</span>
+          <button class="btn btn-primary" style="background:var(--seller-accent);font-size:.78rem;padding:6px 14px;" onclick="showToast('Bulk MAP update saved.','success')"><i class="fas fa-save"></i> Save All</button>
+        </div>
+        <div class="card__body">
+          <div class="map-row">
+            <div class="map-status-dot map-status-ok"></div>
+            <div class="map-product"><div class="map-product-name">Apex Classic Hoodie</div><div class="map-product-sku">APX-CHD-001</div></div>
+            <div style="display:flex;align-items:center;gap:4px;"><span style="font-size:.72rem;color:var(--color-muted);">MAP $</span><input type="number" class="form-input" value="49.99" style="width:80px;font-size:.82rem;padding:5px 8px;font-family:var(--font-outfit);" /></div>
+            <span style="font-size:.68rem;font-weight:700;background:rgba(16,185,129,.1);color:var(--color-emerald);padding:2px 8px;border-radius:100px;">Compliant</span>
+          </div>
+          <div class="map-row">
+            <div class="map-status-dot map-status-violation"></div>
+            <div class="map-product"><div class="map-product-name">Premium Graphic Tee</div><div class="map-product-sku">APX-PGT-002</div></div>
+            <div style="display:flex;align-items:center;gap:4px;"><span style="font-size:.72rem;color:var(--color-muted);">MAP $</span><input type="number" class="form-input" value="28.99" style="width:80px;font-size:.82rem;padding:5px 8px;font-family:var(--font-outfit);border-color:var(--color-rose);" /></div>
+            <span style="font-size:.68rem;font-weight:700;background:rgba(244,63,94,.1);color:var(--color-rose);padding:2px 8px;border-radius:100px;">Violation ↓</span>
+          </div>
+          <div class="map-row">
+            <div class="map-status-dot map-status-ok"></div>
+            <div class="map-product"><div class="map-product-name">Performance Jogger Set</div><div class="map-product-sku">APX-PJS-004</div></div>
+            <div style="display:flex;align-items:center;gap:4px;"><span style="font-size:.72rem;color:var(--color-muted);">MAP $</span><input type="number" class="form-input" value="59.99" style="width:80px;font-size:.82rem;padding:5px 8px;font-family:var(--font-outfit);" /></div>
+            <span style="font-size:.68rem;font-weight:700;background:rgba(16,185,129,.1);color:var(--color-emerald);padding:2px 8px;border-radius:100px;">Compliant</span>
+          </div>
+          <div class="map-row">
+            <div class="map-status-dot map-status-ok"></div>
+            <div class="map-product"><div class="map-product-name">Summer Linen Shirt</div><div class="map-product-sku">APX-SLS-005</div></div>
+            <div style="display:flex;align-items:center;gap:4px;"><span style="font-size:.72rem;color:var(--color-muted);">MAP $</span><input type="number" class="form-input" value="42.99" style="width:80px;font-size:.82rem;padding:5px 8px;font-family:var(--font-outfit);" /></div>
+            <span style="font-size:.68rem;font-weight:700;background:rgba(16,185,129,.1);color:var(--color-emerald);padding:2px 8px;border-radius:100px;">Compliant</span>
+          </div>
+          <div class="map-row">
+            <div class="map-status-dot map-status-ok"></div>
+            <div class="map-product"><div class="map-product-name">Varsity Bomber Jacket</div><div class="map-product-sku">APX-VBJ-003</div></div>
+            <div style="display:flex;align-items:center;gap:4px;"><span style="font-size:.72rem;color:var(--color-muted);">MAP $</span><input type="number" class="form-input" value="119.99" style="width:80px;font-size:.82rem;padding:5px 8px;font-family:var(--font-outfit);" /></div>
+            <span style="font-size:.68rem;font-weight:700;background:rgba(16,185,129,.1);color:var(--color-emerald);padding:2px 8px;border-radius:100px;">Compliant</span>
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card__header"><span class="card__title">MAP Policy Settings</span></div>
+        <div class="card__body">
+          <div class="toggle-row">
+            <div><div class="toggle-label">Auto-Enforce MAP</div><div class="toggle-sub">Automatically alert buyers when MAP is violated</div></div>
+            <label class="toggle-switch"><input type="checkbox" checked /><span class="toggle-slider"></span></label>
+          </div>
+          <div class="toggle-row">
+            <div><div class="toggle-label">Automatic Buyer Warning</div><div class="toggle-sub">Send warning email on first violation</div></div>
+            <label class="toggle-switch"><input type="checkbox" checked /><span class="toggle-slider"></span></label>
+          </div>
+          <div class="toggle-row">
+            <div><div class="toggle-label">Suspend on Repeat Violation</div><div class="toggle-sub">Suspend buyer ordering rights after 3 violations</div></div>
+            <label class="toggle-switch"><input type="checkbox" /></span></label>
+          </div>
+          <div class="toggle-row">
+            <div><div class="toggle-label">Holiday MAP Override</div><div class="toggle-sub">Allow 10% MAP reduction during sale periods</div></div>
+            <label class="toggle-switch"><input type="checkbox" /></span></label>
+          </div>
+          <div class="toggle-row">
+            <div><div class="toggle-label">MAP Monitoring Reports</div><div class="toggle-sub">Weekly MAP compliance report via email</div></div>
+            <label class="toggle-switch"><input type="checkbox" checked /><span class="toggle-slider"></span></label>
+          </div>
+          <button class="btn btn-primary btn-full" style="background:var(--seller-accent);margin-top:16px;" onclick="showToast('MAP policy settings saved.','success')"><i class="fas fa-shield-halved"></i> Save Policy</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Brand Guidelines Panel -->
+  <div class="hub-panel" id="panel-guidelines">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+      <div class="guideline-card" style="cursor:pointer;" onclick="showToast('Opening brand style guide…','success')">
+        <div class="guideline-icon" style="background:rgba(79,70,229,.12);color:var(--color-accent);"><i class="fas fa-palette"></i></div>
+        <div class="guideline-info">
+          <div class="guideline-title">Brand Style Guide</div>
+          <div class="guideline-desc">Colors, typography, logo usage rules — PDF, 4.2 MB</div>
+        </div>
+        <i class="fas fa-arrow-right" style="color:var(--color-muted);font-size:.8rem;"></i>
+      </div>
+      <div class="guideline-card" style="cursor:pointer;" onclick="showToast('Opening logo pack…','success')">
+        <div class="guideline-icon" style="background:rgba(16,185,129,.12);color:var(--color-emerald);"><i class="fas fa-gem"></i></div>
+        <div class="guideline-info">
+          <div class="guideline-title">Logo Package</div>
+          <div class="guideline-desc">PNG, SVG, AI formats — light and dark variants</div>
+        </div>
+        <i class="fas fa-arrow-right" style="color:var(--color-muted);font-size:.8rem;"></i>
+      </div>
+      <div class="guideline-card" style="cursor:pointer;" onclick="showToast('Opening photography guide…','success')">
+        <div class="guideline-icon" style="background:rgba(245,158,11,.12);color:var(--color-amber);"><i class="fas fa-camera"></i></div>
+        <div class="guideline-info">
+          <div class="guideline-title">Photography Standards</div>
+          <div class="guideline-desc">Product photography requirements for all channels</div>
+        </div>
+        <i class="fas fa-arrow-right" style="color:var(--color-muted);font-size:.8rem;"></i>
+      </div>
+      <div class="guideline-card" style="cursor:pointer;" onclick="showToast('Opening copy guide…','success')">
+        <div class="guideline-icon" style="background:rgba(14,165,233,.1);color:var(--color-sky);"><i class="fas fa-pen-to-square"></i></div>
+        <div class="guideline-info">
+          <div class="guideline-title">Copywriting Guide</div>
+          <div class="guideline-desc">Tone of voice, product description templates</div>
+        </div>
+        <i class="fas fa-arrow-right" style="color:var(--color-muted);font-size:.8rem;"></i>
+      </div>
+      <div class="guideline-card" style="cursor:pointer;" onclick="showToast('Opening social media kit…','success')">
+        <div class="guideline-icon" style="background:rgba(244,63,94,.1);color:var(--color-rose);"><i class="fas fa-hashtag"></i></div>
+        <div class="guideline-info">
+          <div class="guideline-title">Social Media Kit</div>
+          <div class="guideline-desc">Post templates, hashtag strategy, content calendar</div>
+        </div>
+        <i class="fas fa-arrow-right" style="color:var(--color-muted);font-size:.8rem;"></i>
+      </div>
+      <div class="guideline-card" style="border-style:dashed;cursor:pointer;" onclick="showToast('Upload guideline document…','success')">
+        <div class="guideline-icon" style="background:var(--color-off-white);color:var(--color-muted);"><i class="fas fa-plus"></i></div>
+        <div class="guideline-info">
+          <div class="guideline-title" style="color:var(--color-muted);">Add Guideline Document</div>
+          <div class="guideline-desc">Upload PDF, DOC, or ZIP file</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Brand Protection Panel -->
+  <div class="hub-panel" id="panel-protection">
+    <div style="display:grid;grid-template-columns:1fr 320px;gap:20px;">
+      <div class="card">
+        <div class="card__header"><span class="card__title">Protection Settings</span></div>
+        <div class="card__body">
+          <div class="toggle-row">
+            <div><div class="toggle-label">Trademark Monitoring</div><div class="toggle-sub">Scan all buyer listings for unauthorized use of brand name</div></div>
+            <label class="toggle-switch"><input type="checkbox" checked /><span class="toggle-slider"></span></label>
+          </div>
+          <div class="toggle-row">
+            <div><div class="toggle-label">Counterfeit Detection</div><div class="toggle-sub">AI-powered scan for counterfeit product listings</div></div>
+            <label class="toggle-switch"><input type="checkbox" checked /><span class="toggle-slider"></span></label>
+          </div>
+          <div class="toggle-row">
+            <div><div class="toggle-label">Unauthorized Reseller Alerts</div><div class="toggle-sub">Alert when your products appear on non-authorized channels</div></div>
+            <label class="toggle-switch"><input type="checkbox" checked /><span class="toggle-slider"></span></label>
+          </div>
+          <div class="toggle-row">
+            <div><div class="toggle-label">Image Fingerprinting</div><div class="toggle-sub">Detect unauthorized use of your product images online</div></div>
+            <label class="toggle-switch"><input type="checkbox" /></span></label>
+          </div>
+          <div class="toggle-row">
+            <div><div class="toggle-label">Channel Restriction</div><div class="toggle-sub">Restrict which channels buyers can resell your products on</div></div>
+            <label class="toggle-switch"><input type="checkbox" /></span></label>
+          </div>
+          <button class="btn btn-primary btn-full" style="background:var(--seller-accent);margin-top:16px;" onclick="showToast('Brand protection settings saved.','success')"><i class="fas fa-shield-halved"></i> Save Settings</button>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card__header"><span class="card__title">Protection Summary</span></div>
+        <div class="card__body">
+          <div style="display:flex;flex-direction:column;gap:14px;">
+            <div style="padding:14px;background:rgba(16,185,129,.06);border:1px solid rgba(16,185,129,.2);border-radius:var(--radius-md);text-align:center;">
+              <div style="font-size:1.6rem;font-weight:900;font-family:var(--font-outfit);color:var(--color-emerald);">98%</div>
+              <div style="font-size:.75rem;color:var(--color-muted);">Compliance Rate</div>
+            </div>
+            <div style="display:flex;justify-content:space-between;font-size:.82rem;padding:8px 0;border-bottom:1px solid var(--color-border);">
+              <span style="color:var(--color-muted);">Active Violations</span>
+              <span style="font-weight:700;color:var(--color-rose);">1</span>
+            </div>
+            <div style="display:flex;justify-content:space-between;font-size:.82rem;padding:8px 0;border-bottom:1px solid var(--color-border);">
+              <span style="color:var(--color-muted);">Alerts This Month</span>
+              <span style="font-weight:700;">4</span>
+            </div>
+            <div style="display:flex;justify-content:space-between;font-size:.82rem;padding:8px 0;border-bottom:1px solid var(--color-border);">
+              <span style="color:var(--color-muted);">Resolved</span>
+              <span style="font-weight:700;color:var(--color-emerald);">3</span>
+            </div>
+            <div style="display:flex;justify-content:space-between;font-size:.82rem;padding:8px 0;">
+              <span style="color:var(--color-muted);">Channels Monitored</span>
+              <span style="font-weight:700;">6 channels</span>
+            </div>
+          </div>
+          <button class="btn btn-outline btn-full" style="margin-top:16px;font-size:.8rem;" onclick="showToast('Generating full protection report…','success')"><i class="fas fa-file-export"></i> Export Report</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</main>
+
+<div class="toast-container" id="toastContainer"></div>
+<script src="js/portal.js"></script>
+<script>
+  function switchTab(btn, panel) {
+    document.querySelectorAll('.hub-tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.hub-panel').forEach(p => p.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('panel-' + panel).classList.add('active');
+  }
+
+  function showToast(msg, type = 'success') {
+    const c = document.getElementById('toastContainer');
+    const icon = type === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle';
+    const t = document.createElement('div'); t.className = `toast ${type}`;
+    t.innerHTML = `<i class="fas ${icon}"></i><span>${msg}</span>`;
+    c.appendChild(t);
+    setTimeout(() => { t.style.opacity='0'; t.style.transform='translateX(60px)'; t.style.transition='all .3s'; setTimeout(() => t.remove(), 350); }, 3500);
+  }
+</script>
+</body>
+</html>

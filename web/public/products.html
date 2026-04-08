@@ -1,0 +1,1711 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Product Catalog – BRND Direct Portal</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&family=Inter:wght@300;400;500;600;700&family=Outfit:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.5.0/css/all.min.css" />
+  <link rel="stylesheet" href="css/portal.css" />
+
+  <style>
+    /* ── Products Layout ── */
+    .products-layout { display: flex; gap: 20px; align-items: flex-start; }
+    .products-main { flex: 1; min-width: 0; }
+
+    /* ── Product Grid ── */
+    .product-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 18px;
+    }
+    .product-grid.list-view { grid-template-columns: 1fr; }
+    .product-grid.list-view .product-card { flex-direction: row; }
+    .product-grid.list-view .product-card .product-card__img {
+      height: 130px !important; width: 150px; flex-shrink: 0;
+      border-radius: var(--radius-md) 0 0 var(--radius-md);
+    }
+    .product-grid.list-view .product-card__body { padding: 14px 16px; }
+    .product-grid.list-view .product-qty-row { flex-wrap: nowrap; }
+
+    /* ── Text-only view ── */
+    .product-grid.text-view { display: block; }
+    .product-grid.text-view .product-card {
+      display: flex; flex-direction: row;
+      align-items: center; border-radius: 0;
+      border-left: none; border-right: none; border-top: none;
+      border-bottom: 1px solid var(--color-border);
+      padding: 0; gap: 0;
+    }
+    .product-grid.text-view .product-card:first-child { border-top: 1px solid var(--color-border); }
+    .product-grid.text-view .product-card .product-card__img { display: none; }
+    .product-grid.text-view .product-card .product-card__body {
+      display: grid;
+      grid-template-columns: 2fr 1fr 1fr 1fr 1fr 1fr 160px 120px;
+      align-items: center;
+      gap: 8px; padding: 10px 14px; width: 100%;
+    }
+    .product-grid.text-view .product-card .product-card__category,
+    .product-grid.text-view .product-card .product-card__moq { display: block; }
+    .product-grid.text-view .product-card .product-qty-row { margin: 0; }
+    .product-grid.text-view .product-card .product-card__brand { margin-bottom: 0; }
+    .text-view-header {
+      display: none;
+      grid-template-columns: 2fr 1fr 1fr 1fr 1fr 1fr 160px 120px;
+      gap: 8px; padding: 8px 14px;
+      background: var(--color-off-white);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-sm);
+      margin-bottom: 0;
+      font-size: .65rem; font-weight: 700; text-transform: uppercase;
+      letter-spacing: .07em; color: var(--color-muted);
+    }
+    .text-view-header.visible { display: grid; }
+
+    /* Override card hover lift in text view */
+    .product-grid.text-view .product-card:hover { transform: none; box-shadow: none; background: var(--color-off-white); }
+
+    /* Card image height — reduced so qty bar always visible */
+    .product-card .product-card__img { height: 150px !important; }
+
+    /* Price row — remove auto-margin so qty row always visible */
+    .product-card .product-card__price-row { margin-top: 8px !important; margin-bottom: 10px !important; }
+
+    /* ── Retail / Wholesale Price Block ── */
+    .price-block { display: flex; flex-direction: column; gap: 2px; }
+    .price-wholesale {
+      font-size: 1rem; font-weight: 800; color: var(--color-accent);
+      letter-spacing: -.02em; font-family: var(--font-display);
+    }
+    .price-retail {
+      font-size: .72rem; color: var(--color-muted); font-weight: 500;
+    }
+    .price-retail strong { color: var(--color-near-black); font-weight: 700; }
+    .price-margin {
+      display: inline-block;
+      font-size: .65rem; font-weight: 700; padding: 1px 6px;
+      border-radius: 20px; background: rgba(16,185,129,.12); color: var(--color-emerald);
+      margin-top: 2px;
+    }
+
+    /* ── Fulfillment Badge ── */
+    .fulfillment-badge {
+      display: inline-flex; align-items: center; gap: 4px;
+      font-size: .65rem; font-weight: 700; padding: 2px 7px;
+      border-radius: 20px; margin-bottom: 6px;
+    }
+    .fulfillment-badge.dropship { background: rgba(99,102,241,.1); color: var(--color-accent); }
+    .fulfillment-badge.wholesale { background: rgba(16,185,129,.1); color: var(--color-emerald); }
+    .fulfillment-badge.both { background: rgba(245,158,11,.1); color: var(--color-amber); }
+
+    /* ── New Arrival Ribbon ── */
+    .new-ribbon {
+      position: absolute; top: 10px; left: 10px;
+      background: var(--color-emerald); color: white;
+      font-size: .62rem; font-weight: 800; padding: 3px 8px;
+      border-radius: 20px; letter-spacing: .04em; text-transform: uppercase;
+      z-index: 2;
+    }
+
+    /* ── Bulk Select Checkbox ── */
+    .bulk-checkbox-wrap {
+      position: absolute; top: 10px; right: 10px; z-index: 3;
+      display: none;
+    }
+    .bulk-mode-on .bulk-checkbox-wrap { display: block; }
+    .bulk-checkbox-wrap input[type="checkbox"] {
+      width: 18px; height: 18px; accent-color: var(--color-accent);
+      cursor: pointer;
+    }
+    .product-card.selected { border-color: var(--color-accent) !important; box-shadow: 0 0 0 2px rgba(99,102,241,.25); }
+
+    /* ── Bulk Actions Bar ── */
+    .bulk-actions-bar {
+      position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%);
+      background: var(--color-near-black); color: white;
+      padding: 12px 20px; border-radius: 100px;
+      display: none; align-items: center; gap: 12px;
+      z-index: 500; box-shadow: 0 8px 32px rgba(0,0,0,.35);
+      font-size: .85rem; font-weight: 600;
+      white-space: nowrap;
+    }
+    .bulk-actions-bar.open { display: flex; }
+    .bulk-action-btn {
+      padding: 6px 14px; border-radius: 20px; border: none; cursor: pointer;
+      font-size: .78rem; font-weight: 700; font-family: var(--font-sans);
+      transition: all .15s;
+    }
+    .bulk-action-btn.primary { background: var(--color-accent); color: white; }
+    .bulk-action-btn.primary:hover { background: var(--color-accent-dark); }
+    .bulk-action-btn.ghost { background: rgba(255,255,255,.12); color: white; }
+    .bulk-action-btn.ghost:hover { background: rgba(255,255,255,.22); }
+
+    /* ── View toggle ── */
+    .view-toggle {
+      display: flex; border: 1.5px solid var(--color-border);
+      border-radius: var(--radius-sm); overflow: hidden;
+    }
+    .view-btn {
+      width: 36px; height: 36px;
+      display: flex; align-items: center; justify-content: center;
+      background: var(--color-white); color: var(--color-muted);
+      cursor: pointer; font-size: .85rem; transition: all .15s;
+      border: none; font-family: var(--font-sans);
+    }
+    .view-btn:hover { background: var(--color-off-white); color: var(--color-near-black); }
+    .view-btn.active { background: var(--color-accent); color: white; }
+
+    /* ── Pagination ── */
+    .pagination {
+      display: flex; align-items: center; justify-content: center;
+      gap: 6px; padding: 24px 0 8px;
+    }
+    .page-btn {
+      min-width: 36px; height: 36px;
+      display: flex; align-items: center; justify-content: center;
+      border-radius: var(--radius-sm); border: 1.5px solid var(--color-border);
+      background: var(--color-white); color: var(--color-muted);
+      font-size: .875rem; font-weight: 600; cursor: pointer;
+      transition: all .15s; font-family: var(--font-sans); padding: 0 10px;
+    }
+    .page-btn:hover { border-color: var(--color-accent); color: var(--color-accent); }
+    .page-btn.active { background: var(--color-accent); border-color: var(--color-accent); color: white; }
+    .page-btn:disabled { opacity: .4; cursor: default; }
+
+    /* ── Cart chip ── */
+    .cart-chip {
+      display: flex; align-items: center; gap: 8px;
+      background: var(--color-accent); color: white;
+      padding: 8px 16px; border-radius: 100px;
+      font-size: .82rem; font-weight: 700; cursor: pointer; transition: background .18s;
+    }
+    .cart-chip:hover { background: var(--color-accent-dark); }
+    .cart-chip .cart-count {
+      background: white; color: var(--color-accent);
+      width: 20px; height: 20px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: .7rem; font-weight: 800;
+    }
+
+    /* ── Image placeholders ── */
+    .prod-img-fragrance { background: linear-gradient(135deg,#1a1a2e,#16213e,#0f3460); }
+    .prod-img-beauty    { background: linear-gradient(135deg,#2c1654,#3d2b69,#c5467b); }
+    .prod-img-bags      { background: linear-gradient(135deg,#1a1a1a,#2d3436,#636e72); }
+    .prod-img-sneakers  { background: linear-gradient(135deg,#0f2027,#203a43,#2c5364); }
+    .prod-img-apparel   { background: linear-gradient(135deg,#1e272e,#2d3436,#485460); }
+    .prod-img-cosmetics { background: linear-gradient(135deg,#2c1654,#f06292,#e91e8c); }
+
+    /* ── Qty Selector on Card ── */
+    .product-card .product-card__price-row { margin-top: 8px !important; margin-bottom: 8px !important; }
+    .product-qty-row {
+      display: flex; align-items: center; gap: 6px;
+      margin: 0 0 10px; flex-wrap: nowrap;
+      background: var(--color-off-white);
+      border: 1.5px solid var(--color-border);
+      border-radius: var(--radius-sm); padding: 5px 7px;
+    }
+    .qty-mode-tabs {
+      display: flex; border: 1.5px solid var(--color-border);
+      border-radius: 4px; overflow: hidden; flex-shrink: 0; background: var(--color-white);
+    }
+    .qty-mode-tab {
+      padding: 4px 9px; font-size: .68rem; font-weight: 700; cursor: pointer;
+      background: transparent; color: var(--color-muted); border: none;
+      font-family: var(--font-sans); transition: all .14s;
+      text-transform: uppercase; letter-spacing: .04em; line-height: 1.4;
+    }
+    .qty-mode-tab.active { background: var(--color-accent); color: white; border-radius: 3px; }
+    .qty-mode-tab:hover:not(.active) { color: var(--color-near-black); }
+    .qty-input-wrap {
+      display: flex; align-items: center; border: 1.5px solid var(--color-border);
+      border-radius: 4px; overflow: hidden; flex: 1; min-width: 80px; background: var(--color-white);
+    }
+    .qty-btn {
+      width: 26px; height: 28px; display: flex; align-items: center; justify-content: center;
+      background: var(--color-off-white); border: none; cursor: pointer;
+      font-size: .95rem; font-weight: 700; color: var(--color-near-black);
+      transition: background .13s; flex-shrink: 0; user-select: none;
+    }
+    .qty-btn:hover { background: var(--color-accent); color: white; }
+    .qty-field {
+      flex: 1; text-align: center; border: none; outline: none;
+      font-size: .82rem; font-weight: 800; color: var(--color-near-black);
+      font-family: var(--font-sans); padding: 0 2px; background: transparent;
+      min-width: 32px; max-width: 52px;
+    }
+    .qty-field::-webkit-inner-spin-button,
+    .qty-field::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+    .qty-field { -moz-appearance: textfield; }
+    .qty-hint {
+      font-size: .64rem; color: var(--color-muted);
+      white-space: nowrap; flex-shrink: 0; display: none;
+    }
+    .product-qty-row:hover .qty-hint { display: block; }
+
+    /* ── Add-to-cart popup ── */
+    .cart-popup-overlay {
+      position: fixed; inset: 0; z-index: 3000;
+      background: rgba(0,0,0,.45);
+      display: none; align-items: center; justify-content: center;
+    }
+    .cart-popup-overlay.open { display: flex; }
+    .cart-popup {
+      background: var(--color-white); border-radius: var(--radius-lg);
+      padding: 32px 28px 24px; max-width: 400px; width: 90%;
+      box-shadow: 0 24px 60px rgba(0,0,0,.22); animation: popIn .22s ease; text-align: center;
+    }
+    @keyframes popIn {
+      from { opacity:0; transform:scale(.92) translateY(16px); }
+      to   { opacity:1; transform:scale(1) translateY(0); }
+    }
+    .cart-popup__icon {
+      width: 56px; height: 56px; border-radius: 50%;
+      background: rgba(16,185,129,.12);
+      display: flex; align-items: center; justify-content: center;
+      margin: 0 auto 16px; font-size: 1.5rem; color: var(--color-emerald);
+    }
+    .cart-popup__title { font-size: 1rem; font-weight: 800; font-family: var(--font-display); margin-bottom: 6px; }
+    .cart-popup__sub   { font-size: .82rem; color: var(--color-muted); margin-bottom: 24px; line-height: 1.5; }
+    .cart-popup__actions { display: flex; flex-direction: column; gap: 10px; }
+    .cart-popup__btn {
+      display: flex; align-items: center; justify-content: center; gap: 8px;
+      padding: 13px 20px; border-radius: var(--radius-md);
+      font-size: .875rem; font-weight: 700; cursor: pointer; border: none;
+      font-family: var(--font-sans); transition: all .16s; text-decoration: none;
+    }
+    .cart-popup__btn.primary { background: var(--color-accent); color: white; }
+    .cart-popup__btn.primary:hover { background: var(--color-accent-dark); }
+    .cart-popup__btn.secondary {
+      background: var(--color-off-white); color: var(--color-near-black);
+      border: 1.5px solid var(--color-border);
+    }
+    .cart-popup__btn.secondary:hover { border-color: var(--color-accent); color: var(--color-accent); }
+    .cart-popup__item-name {
+      font-size: .78rem; color: var(--color-accent); font-weight: 700;
+      background: var(--color-accent-glow); padding: 3px 10px; border-radius: 20px;
+      display: inline-block; margin-bottom: 12px;
+    }
+
+    /* ── Product Detail Modal ── */
+    .modal-overlay { position: fixed; inset: 0; z-index: 2000; background: rgba(0,0,0,.5); display: none; align-items: center; justify-content: center; padding: 20px; }
+    .modal-overlay.open { display: flex; }
+    .modal { background: var(--color-white); border-radius: var(--radius-lg); max-width: 820px; width: 100%; max-height: 90vh; overflow-y: auto; box-shadow: 0 32px 80px rgba(0,0,0,.25); animation: popIn .22s ease; }
+    .modal-header { display: flex; align-items: flex-start; justify-content: space-between; padding: 24px 28px 16px; border-bottom: 1.5px solid var(--color-border); gap: 16px; }
+    .modal-title { font-size: 1.2rem; font-weight: 800; font-family: var(--font-display); color: var(--color-near-black); }
+    .modal-close { width: 32px; height: 32px; border-radius: 50%; background: var(--color-off-white); border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: .85rem; color: var(--color-muted); flex-shrink: 0; transition: all .15s; }
+    .modal-close:hover { background: var(--color-rose); color: white; }
+    .modal-body { padding: 24px 28px; }
+    .modal-footer { padding: 16px 28px; border-top: 1.5px solid var(--color-border); display: flex; gap: 10px; justify-content: flex-end; flex-wrap: wrap; }
+
+    /* Detail modal layout */
+    .detail-grid { display: grid; grid-template-columns: 220px 1fr; gap: 24px; margin-bottom: 20px; }
+    @media (max-width: 600px) { .detail-grid { grid-template-columns: 1fr; } }
+    .detail-img {
+      height: 220px; border-radius: var(--radius-md);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 4rem; position: relative;
+    }
+    .detail-info { display: flex; flex-direction: column; gap: 10px; }
+    .detail-name { font-size: 1.15rem; font-weight: 800; font-family: var(--font-display); color: var(--color-near-black); line-height: 1.3; }
+    .detail-brand { font-size: .82rem; color: var(--color-muted); font-weight: 600; margin-bottom: 4px; }
+
+    /* Price block in detail */
+    .detail-price-block {
+      display: flex; gap: 20px; align-items: flex-end; flex-wrap: wrap;
+      padding: 14px; background: var(--color-off-white); border-radius: var(--radius-md);
+      border: 1.5px solid var(--color-border);
+    }
+    .detail-price-item { display: flex; flex-direction: column; gap: 2px; }
+    .detail-price-label { font-size: .65rem; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: var(--color-muted); }
+    .detail-price-value { font-size: 1.15rem; font-weight: 900; font-family: var(--font-display); letter-spacing: -.03em; }
+    .detail-price-value.wholesale { color: var(--color-accent); }
+    .detail-price-value.retail { color: var(--color-near-black); }
+    .detail-margin-chip {
+      padding: 4px 10px; border-radius: 20px;
+      background: rgba(16,185,129,.12); color: var(--color-emerald);
+      font-size: .72rem; font-weight: 700; align-self: center;
+    }
+
+    /* Identifiers row */
+    .detail-ids {
+      display: flex; gap: 8px; flex-wrap: wrap; align-items: center;
+    }
+    .detail-id-chip {
+      display: flex; flex-direction: column; padding: 6px 10px;
+      background: var(--color-off-white); border: 1px solid var(--color-border);
+      border-radius: var(--radius-sm); min-width: 80px;
+    }
+    .detail-id-label { font-size: .58rem; font-weight: 700; text-transform: uppercase; letter-spacing: .07em; color: var(--color-muted); margin-bottom: 2px; }
+    .detail-id-value { font-family: var(--font-mono, monospace); font-size: .78rem; font-weight: 700; color: var(--color-near-black); }
+
+    /* Detail qty selector */
+    .detail-qty-block { display: flex; flex-direction: column; gap: 8px; }
+    .detail-qty-label { font-size: .68rem; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: var(--color-muted); }
+    .detail-qty-row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+    .detail-qty-tabs { display: flex; border: 1.5px solid var(--color-border); border-radius: var(--radius-sm); overflow: hidden; }
+    .detail-qty-tab {
+      padding: 7px 14px; font-size: .75rem; font-weight: 700; cursor: pointer;
+      background: var(--color-white); color: var(--color-muted); border: none;
+      font-family: var(--font-sans); transition: all .14s; text-transform: uppercase; letter-spacing: .04em;
+    }
+    .detail-qty-tab.active { background: var(--color-accent); color: white; }
+    .detail-qty-tab:hover:not(.active) { background: var(--color-off-white); color: var(--color-near-black); }
+    .detail-qty-input {
+      display: flex; align-items: center; border: 1.5px solid var(--color-border);
+      border-radius: var(--radius-sm); overflow: hidden; background: var(--color-white);
+    }
+    .detail-qty-btn {
+      width: 36px; height: 38px; display: flex; align-items: center; justify-content: center;
+      background: var(--color-off-white); border: none; cursor: pointer;
+      font-size: 1rem; font-weight: 700; transition: background .13s; user-select: none;
+    }
+    .detail-qty-btn:hover { background: var(--color-accent); color: white; }
+    .detail-qty-field {
+      width: 60px; text-align: center; border: none; outline: none;
+      font-size: .95rem; font-weight: 800; font-family: var(--font-sans);
+      padding: 0 4px; background: transparent; color: var(--color-near-black);
+    }
+    .detail-qty-field::-webkit-inner-spin-button,
+    .detail-qty-field::-webkit-outer-spin-button { -webkit-appearance: none; }
+    .detail-qty-field { -moz-appearance: textfield; }
+    .detail-qty-subtotal {
+      font-size: .82rem; color: var(--color-muted); font-weight: 600;
+    }
+    .detail-qty-subtotal strong { color: var(--color-near-black); font-size: .95rem; }
+
+    /* Description + meta */
+    .detail-desc { font-size: .875rem; color: var(--color-muted); line-height: 1.65; margin-bottom: 14px; }
+    .detail-meta-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+    .detail-meta-item { display: flex; align-items: center; gap: 8px; font-size: .8rem; }
+    .detail-meta-icon { width: 28px; height: 28px; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: .75rem; flex-shrink: 0; }
+
+    /* Responsive */
+    @media (max-width: 1100px) { .product-grid { grid-template-columns: repeat(2,1fr); } }
+    @media (max-width: 768px) {
+      .products-layout { flex-direction: column; }
+      .filter-panel { width: 100%; position: static; }
+      .product-grid { grid-template-columns: 1fr 1fr; }
+    }
+    @media (max-width: 540px) { .product-grid { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+
+<!-- ===== SIDEBAR ===== -->
+<aside class="sidebar" id="sidebar">
+  <div class="sidebar__logo">
+    <a href="dashboard.html" class="logo-mark">
+      <span class="logo-icon"><i class="fas fa-chevron-right"></i></span>
+      <span class="logo-word">BRND <span class="logo-accent">DIRECT</span></span>
+    </a>
+  </div>
+  <nav class="sidebar__nav">
+    <div class="nav-section">
+      <span class="nav-section-label">Main Menu</span>
+      <a href="dashboard.html" class="nav-item"><i class="fas fa-table-columns"></i><span>Dashboard</span></a>
+      <a href="products.html" class="nav-item active"><i class="fas fa-boxes-stacked"></i><span>Products</span></a>
+      <a href="orders.html" class="nav-item"><i class="fas fa-file-invoice"></i><span>Orders</span><span class="nav-badge">18</span></a>
+      <a href="rfq.html" class="nav-item"><i class="fas fa-comment-dollar"></i><span>RFQ</span><span class="nav-badge new">5</span></a>
+      <a href="dropship.html" class="nav-item"><i class="fas fa-rotate"></i><span>Dropship</span></a>
+      <a href="analytics.html" class="nav-item"><i class="fas fa-chart-line"></i><span>Analytics</span></a>
+    </div>
+    <div class="nav-section">
+      <span class="nav-section-label">Finance</span>
+      <a href="invoices.html" class="nav-item"><i class="fas fa-file-invoice-dollar"></i><span>Invoices &amp; Payments</span></a>
+      <a href="trade-finance.html" class="nav-item"><i class="fas fa-credit-card"></i><span>Trade Finance</span></a>
+      <a href="reports.html" class="nav-item"><i class="fas fa-chart-bar"></i><span>Reports</span></a>
+    </div>
+    <div class="nav-section">
+      <span class="nav-section-label">Operations</span>
+      <a href="warehousing.html" class="nav-item"><i class="fas fa-warehouse"></i><span>Warehousing</span></a>
+      <a href="shipping-logistics.html" class="nav-item"><i class="fas fa-truck-fast"></i><span>Shipping &amp; Logistics</span></a>
+    </div>
+    <div class="sidebar__divider"></div>
+    <a href="messages.html" class="nav-item"><i class="fas fa-message"></i><span>Messages</span><span class="nav-badge">3</span></a>
+    <a href="account.html" class="nav-item"><i class="fas fa-gear"></i><span>Settings</span></a>
+    <a href="help.html" class="nav-item"><i class="fas fa-circle-question"></i><span>Help &amp; Support</span></a>
+  </nav>
+  <div class="sidebar__bottom">
+    <div class="sidebar__user">
+      <div class="sidebar__user-avatar">AJ</div>
+      <div class="sidebar__user-info">
+        <div class="sidebar__user-name">Alex Johnson</div>
+        <div class="sidebar__user-role">Wholesale Buyer</div>
+      </div>
+      <button class="sidebar__user-logout" title="Sign out" onclick="window.location.href='index.html'">
+        <i class="fas fa-arrow-right-from-bracket"></i>
+      </button>
+    </div>
+  </div>
+</aside>
+<div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+<!-- ===== TOPBAR ===== -->
+<header class="topbar">
+  <div class="topbar__left" style="display:flex;align-items:center;gap:12px;">
+    <button class="topbar__mobile-toggle" id="sidebarToggle"><i class="fas fa-bars"></i></button>
+    <div>
+      <div class="topbar__title">Product Catalog</div>
+      <div class="topbar__breadcrumb">Browse &amp; order from 500+ verified brands</div>
+    </div>
+  </div>
+  <div class="topbar__right">
+    <div class="search-bar">
+      <i class="fas fa-magnifying-glass"></i>
+      <input type="text" id="searchInput" placeholder="Search brands, products, SKU…" />
+    </div>
+    <div class="topbar__btn"><i class="fas fa-bell"></i><span class="notif-dot"></span></div>
+    <div class="topbar__avatar">AJ</div>
+  </div>
+</header>
+
+<!-- ===== MAIN CONTENT ===== -->
+<main class="app-main">
+
+  <!-- Page Header -->
+  <div class="page-header-bar fade-in">
+    <div>
+      <h1>Product Catalog</h1>
+      <div class="page-header-sub">510 products across 6 categories</div>
+    </div>
+    <div class="page-header-bar__actions">
+      <!-- Export Catalog -->
+      <div style="position:relative;">
+        <button class="btn btn-secondary btn-sm" id="exportCatalogBtn">
+          <i class="fas fa-download"></i> Export Catalog
+        </button>
+        <div id="exportMenu" style="display:none;position:absolute;right:0;top:38px;background:var(--color-white);border:1.5px solid var(--color-border);border-radius:var(--radius-md);box-shadow:var(--shadow-md);min-width:140px;z-index:100;overflow:hidden;">
+          <button class="btn btn-secondary btn-sm btn-full" style="border-radius:0;justify-content:flex-start;" onclick="exportCatalog('csv')"><i class="fas fa-file-csv"></i> Export CSV</button>
+          <button class="btn btn-secondary btn-sm btn-full" style="border-radius:0;justify-content:flex-start;" onclick="exportCatalog('json')"><i class="fas fa-file-code"></i> Export JSON</button>
+        </div>
+      </div>
+      <!-- Bulk Template -->
+      <button class="btn btn-secondary btn-sm" id="downloadTemplateBtn" title="Download bulk order CSV template">
+        <i class="fas fa-file-arrow-down"></i> Bulk Template
+      </button>
+      <!-- Bulk Select toggle -->
+      <button class="btn btn-outline btn-sm" id="bulkSelectBtn">
+        <i class="fas fa-check-square"></i> Bulk Select
+      </button>
+      <!-- Cart chip -->
+      <div class="cart-chip" id="cartChip" onclick="goToCart()">
+        <i class="fas fa-shopping-cart"></i> Order Cart
+        <span class="cart-count" id="cartCount">0</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Filter + Toolbar Row -->
+  <div style="display:flex;align-items:center;gap:10px;margin-bottom:20px;flex-wrap:wrap;" class="fade-in d1">
+    <div class="filter-pills" id="catPills">
+      <button class="filter-pill active" data-cat="all">All</button>
+      <button class="filter-pill" data-cat="fragrances">🌸 Fragrances</button>
+      <button class="filter-pill" data-cat="beauty">💄 Luxury Beauty</button>
+      <button class="filter-pill" data-cat="bags">👜 Bags</button>
+      <button class="filter-pill" data-cat="sneakers">👟 Sneakers</button>
+      <button class="filter-pill" data-cat="apparel">👔 Apparel</button>
+      <button class="filter-pill" data-cat="cosmetics">✨ Cosmetics</button>
+      <button class="filter-pill" data-cat="new" style="border-color:var(--color-emerald);color:var(--color-emerald);">🆕 New Arrivals</button>
+    </div>
+    <div style="margin-left:auto;display:flex;gap:8px;align-items:center;">
+      <select class="form-select" style="width:160px;padding:8px 12px;font-size:.82rem;" id="sortSelect">
+        <option value="featured">Featured</option>
+        <option value="price-asc">Price: Low → High</option>
+        <option value="price-desc">Price: High → Low</option>
+        <option value="name-asc">Name: A → Z</option>
+      </select>
+      <div class="view-toggle">
+        <button class="view-btn active" id="gridViewBtn" title="Grid view"><i class="fas fa-th"></i></button>
+        <button class="view-btn" id="listViewBtn" title="List view"><i class="fas fa-list"></i></button>
+        <button class="view-btn" id="textViewBtn" title="Text-only (compact)"><i class="fas fa-bars"></i></button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Text-view header (shown only in text mode) -->
+  <div class="text-view-header" id="textViewHeader">
+    <span>Product / Brand</span>
+    <span>Category</span>
+    <span>SKU</span>
+    <span>UPC</span>
+    <span>ASIN</span>
+    <span>Wholesale</span>
+    <span>Qty</span>
+    <span>Action</span>
+  </div>
+
+  <!-- Products Layout -->
+  <div class="products-layout fade-in d2">
+
+    <!-- Filter Sidebar -->
+    <div class="filter-panel">
+      <div class="filter-section">
+        <div class="filter-section__title">Categories</div>
+        <div class="filter-item"><label class="filter-item__label"><input type="checkbox" checked style="accent-color:var(--color-accent)"> All Categories</label><span class="filter-item__count">510</span></div>
+        <div class="filter-item"><label class="filter-item__label"><input type="checkbox" style="accent-color:var(--color-accent)"> 🌸 Fragrances</label><span class="filter-item__count">148</span></div>
+        <div class="filter-item"><label class="filter-item__label"><input type="checkbox" style="accent-color:var(--color-accent)"> 💄 Luxury Beauty</label><span class="filter-item__count">92</span></div>
+        <div class="filter-item"><label class="filter-item__label"><input type="checkbox" style="accent-color:var(--color-accent)"> 👜 Designer Bags</label><span class="filter-item__count">64</span></div>
+        <div class="filter-item"><label class="filter-item__label"><input type="checkbox" style="accent-color:var(--color-accent)"> 👟 Sneakers</label><span class="filter-item__count">87</span></div>
+        <div class="filter-item"><label class="filter-item__label"><input type="checkbox" style="accent-color:var(--color-accent)"> 👔 Fashion Apparel</label><span class="filter-item__count">43</span></div>
+        <div class="filter-item"><label class="filter-item__label"><input type="checkbox" style="accent-color:var(--color-accent)"> ✨ Cosmetics</label><span class="filter-item__count">76</span></div>
+      </div>
+      <div class="divider"></div>
+      <div class="filter-section">
+        <div class="filter-section__title">Availability</div>
+        <div class="filter-item"><label class="filter-item__label"><input type="checkbox" style="accent-color:var(--color-emerald)"> 🆕 New Arrivals</label></div>
+        <div class="filter-item"><label class="filter-item__label"><input type="checkbox" style="accent-color:var(--color-accent)"> ⭐ Top Sellers</label></div>
+        <div class="filter-item"><label class="filter-item__label"><input type="checkbox" style="accent-color:var(--color-accent)"> In Stock</label></div>
+      </div>
+      <div class="divider"></div>
+      <div class="filter-section">
+        <div class="filter-section__title">Fulfillment</div>
+        <div class="filter-item"><label class="filter-item__label"><input type="checkbox" style="accent-color:var(--color-accent)"> Dropship</label></div>
+        <div class="filter-item"><label class="filter-item__label"><input type="checkbox" style="accent-color:var(--color-accent)"> Wholesale</label></div>
+      </div>
+      <div class="divider"></div>
+      <div class="filter-section">
+        <div class="filter-section__title">Price Range (per unit)</div>
+        <div class="range-inputs">
+          <input type="number" class="form-input" placeholder="Min $" min="0" />
+          <input type="number" class="form-input" placeholder="Max $" min="0" />
+        </div>
+      </div>
+      <div class="divider"></div>
+      <div class="filter-section">
+        <div class="filter-section__title">Brand Search</div>
+        <div class="input-group mb-3">
+          <i class="fas fa-magnifying-glass input-icon"></i>
+          <input type="text" class="form-input" placeholder="Search brands…" />
+        </div>
+        <div class="filter-item"><label class="filter-item__label"><input type="checkbox" style="accent-color:var(--color-accent)"> Chanel</label></div>
+        <div class="filter-item"><label class="filter-item__label"><input type="checkbox" style="accent-color:var(--color-accent)"> Dior</label></div>
+        <div class="filter-item"><label class="filter-item__label"><input type="checkbox" style="accent-color:var(--color-accent)"> Maison Margiela</label></div>
+        <div class="filter-item"><label class="filter-item__label"><input type="checkbox" style="accent-color:var(--color-accent)"> Charlotte Tilbury</label></div>
+        <div class="filter-item"><label class="filter-item__label"><input type="checkbox" style="accent-color:var(--color-accent)"> Gucci</label></div>
+        <div class="filter-item"><label class="filter-item__label"><input type="checkbox" style="accent-color:var(--color-accent)"> Nike / Jordan</label></div>
+      </div>
+      <div class="divider"></div>
+      <button class="btn btn-primary btn-sm btn-full" onclick="showToast('Filters applied!','success')">Apply Filters</button>
+      <button class="btn btn-secondary btn-sm btn-full mt-2" onclick="showToast('Filters cleared.','')">Clear All</button>
+    </div>
+
+    <!-- Product Grid -->
+    <div class="products-main">
+      <div class="product-grid" id="productGrid">
+
+        <!-- FRAGRANCES -->
+        <div class="product-card fade-in" data-cat="fragrances" data-price="80" data-retail="160" data-moq="12" data-case="24" data-sku="SKU-4821" data-upc="012345678901" data-asin="B08XYZ1234" data-fulfill="wholesale" data-new="false" data-desc="A collection of 10 signature Replica scents in a premium gift-ready assortment. Perfect for fragrance boutiques and lifestyle retailers." data-name="Replica Fragrance Set" data-brand="Maison Margiela">
+          <div class="product-card__img prod-img-fragrance">
+            <span style="font-size:2.5rem;">🌸</span>
+            <div class="bulk-checkbox-wrap"><input type="checkbox" class="bulk-checkbox"></div>
+          </div>
+          <div class="product-card__body">
+            <span class="fulfillment-badge wholesale"><i class="fas fa-boxes-stacked"></i> Wholesale</span>
+            <div class="product-card__category">Fragrances</div>
+            <div class="product-card__name">Replica Fragrance Set</div>
+            <div class="product-card__brand">Maison Margiela</div>
+            <div class="product-card__price-row">
+              <div class="price-block">
+                <div class="price-wholesale">$80.00<span style="font-size:.7rem;font-weight:500;color:var(--color-muted);">/unit</span></div>
+                <div class="price-retail">Retail <strong>$160.00</strong></div>
+                <span class="price-margin">50% margin</span>
+              </div>
+              <div class="product-card__moq">MOQ: 12</div>
+            </div>
+            <div class="product-qty-row">
+              <div class="qty-mode-tabs">
+                <button class="qty-mode-tab active" data-mode="unit">Unit</button>
+                <button class="qty-mode-tab" data-mode="case">Case</button>
+              </div>
+              <div class="qty-input-wrap">
+                <button class="qty-btn qty-minus">−</button>
+                <input type="number" class="qty-field" value="12" min="12" step="1">
+                <button class="qty-btn qty-plus">+</button>
+              </div>
+              <span class="qty-hint">Min 12 · 1 case=24</span>
+            </div>
+            <div style="display:flex;gap:6px;">
+              <button class="btn btn-primary btn-sm btn-full add-to-cart" style="flex:1;">Add to Order →</button>
+              <button class="btn btn-secondary btn-sm view-detail-btn" title="View details"><i class="fas fa-eye"></i></button>
+            </div>
+          </div>
+        </div>
+
+        <div class="product-card fade-in d1" data-cat="fragrances" data-price="140" data-retail="285" data-moq="6" data-case="12" data-sku="SKU-5510" data-upc="023456789012" data-asin="B09ABC5678" data-fulfill="wholesale" data-new="true" data-desc="The iconic No.5 in a classic 50ml Eau de Parfum concentration. One of the world's best-selling fragrances. Consistent bestseller for beauty retailers." data-name="No. 5 Eau de Parfum 50ml" data-brand="Chanel">
+          <div class="product-card__img prod-img-fragrance" style="background:linear-gradient(135deg,#0a0a0a,#1a1a2e,#000080);">
+            <span style="font-size:2.5rem;">🏵️</span>
+            <div class="new-ribbon">New</div>
+            <div class="bulk-checkbox-wrap"><input type="checkbox" class="bulk-checkbox"></div>
+          </div>
+          <div class="product-card__body">
+            <span class="fulfillment-badge wholesale"><i class="fas fa-boxes-stacked"></i> Wholesale</span>
+            <div class="product-card__category">Fragrances</div>
+            <div class="product-card__name">No. 5 Eau de Parfum 50ml</div>
+            <div class="product-card__brand">Chanel</div>
+            <div class="product-card__price-row">
+              <div class="price-block">
+                <div class="price-wholesale">$140.00<span style="font-size:.7rem;font-weight:500;color:var(--color-muted);">/unit</span></div>
+                <div class="price-retail">Retail <strong>$285.00</strong></div>
+                <span class="price-margin">51% margin</span>
+              </div>
+              <div class="product-card__moq">MOQ: 6</div>
+            </div>
+            <div class="product-qty-row">
+              <div class="qty-mode-tabs">
+                <button class="qty-mode-tab active" data-mode="unit">Unit</button>
+                <button class="qty-mode-tab" data-mode="case">Case</button>
+              </div>
+              <div class="qty-input-wrap">
+                <button class="qty-btn qty-minus">−</button>
+                <input type="number" class="qty-field" value="6" min="6" step="1">
+                <button class="qty-btn qty-plus">+</button>
+              </div>
+              <span class="qty-hint">Min 6 · 1 case=12</span>
+            </div>
+            <div style="display:flex;gap:6px;">
+              <button class="btn btn-primary btn-sm btn-full add-to-cart" style="flex:1;">Add to Order →</button>
+              <button class="btn btn-secondary btn-sm view-detail-btn" title="View details"><i class="fas fa-eye"></i></button>
+            </div>
+          </div>
+        </div>
+
+        <div class="product-card fade-in d2" data-cat="fragrances" data-price="95" data-retail="196" data-moq="12" data-case="24" data-sku="SKU-6688" data-upc="034567890123" data-asin="B07DEF9012" data-fulfill="both" data-new="false" data-desc="Sauvage EDT 100ml — the freshest, most radiant, wild interpretation. The best-selling men's fragrance in the US. Ideal for fragrance specialists." data-name="Sauvage EDT 100ml" data-brand="Dior">
+          <div class="product-card__img prod-img-fragrance" style="background:linear-gradient(135deg,#1a0a00,#3d1a00,#8B4513);">
+            <span style="font-size:2.5rem;">🌹</span>
+            <div class="bulk-checkbox-wrap"><input type="checkbox" class="bulk-checkbox"></div>
+          </div>
+          <div class="product-card__body">
+            <span class="fulfillment-badge both"><i class="fas fa-rotate"></i> Dropship + WS</span>
+            <div class="product-card__category">Fragrances</div>
+            <div class="product-card__name">Sauvage EDT 100ml</div>
+            <div class="product-card__brand">Dior</div>
+            <div class="product-card__price-row">
+              <div class="price-block">
+                <div class="price-wholesale">$95.00<span style="font-size:.7rem;font-weight:500;color:var(--color-muted);">/unit</span></div>
+                <div class="price-retail">Retail <strong>$196.00</strong></div>
+                <span class="price-margin">52% margin</span>
+              </div>
+              <div class="product-card__moq">MOQ: 12</div>
+            </div>
+            <div class="product-qty-row">
+              <div class="qty-mode-tabs">
+                <button class="qty-mode-tab active" data-mode="unit">Unit</button>
+                <button class="qty-mode-tab" data-mode="case">Case</button>
+              </div>
+              <div class="qty-input-wrap">
+                <button class="qty-btn qty-minus">−</button>
+                <input type="number" class="qty-field" value="12" min="12" step="1">
+                <button class="qty-btn qty-plus">+</button>
+              </div>
+              <span class="qty-hint">Min 12 · 1 case=24</span>
+            </div>
+            <div style="display:flex;gap:6px;">
+              <button class="btn btn-primary btn-sm btn-full add-to-cart" style="flex:1;">Add to Order →</button>
+              <button class="btn btn-secondary btn-sm view-detail-btn" title="View details"><i class="fas fa-eye"></i></button>
+            </div>
+          </div>
+        </div>
+
+        <!-- LUXURY BEAUTY -->
+        <div class="product-card fade-in d1" data-cat="beauty" data-price="55" data-retail="110" data-moq="24" data-case="48" data-sku="SKU-2290" data-upc="045678901234" data-asin="B08GHI3456" data-fulfill="wholesale" data-new="true" data-desc="The full Pillow Talk universe in one luxurious set — lip liner, lipstick, eyeshadow palette, and blush. A consistent sell-out for beauty retailers." data-name="Pillow Talk Collection" data-brand="Charlotte Tilbury">
+          <div class="product-card__img prod-img-beauty">
+            <span style="font-size:2.5rem;">💄</span>
+            <div class="new-ribbon">New</div>
+            <div class="bulk-checkbox-wrap"><input type="checkbox" class="bulk-checkbox"></div>
+          </div>
+          <div class="product-card__body">
+            <span class="fulfillment-badge wholesale"><i class="fas fa-boxes-stacked"></i> Wholesale</span>
+            <div class="product-card__category">Luxury Beauty</div>
+            <div class="product-card__name">Pillow Talk Collection</div>
+            <div class="product-card__brand">Charlotte Tilbury</div>
+            <div class="product-card__price-row">
+              <div class="price-block">
+                <div class="price-wholesale">$55.00<span style="font-size:.7rem;font-weight:500;color:var(--color-muted);">/unit</span></div>
+                <div class="price-retail">Retail <strong>$110.00</strong></div>
+                <span class="price-margin">50% margin</span>
+              </div>
+              <div class="product-card__moq">MOQ: 24</div>
+            </div>
+            <div class="product-qty-row">
+              <div class="qty-mode-tabs">
+                <button class="qty-mode-tab active" data-mode="unit">Unit</button>
+                <button class="qty-mode-tab" data-mode="case">Case</button>
+              </div>
+              <div class="qty-input-wrap">
+                <button class="qty-btn qty-minus">−</button>
+                <input type="number" class="qty-field" value="24" min="24" step="1">
+                <button class="qty-btn qty-plus">+</button>
+              </div>
+              <span class="qty-hint">Min 24 · 1 case=48</span>
+            </div>
+            <div style="display:flex;gap:6px;">
+              <button class="btn btn-primary btn-sm btn-full add-to-cart" style="flex:1;">Add to Order →</button>
+              <button class="btn btn-secondary btn-sm view-detail-btn" title="View details"><i class="fas fa-eye"></i></button>
+            </div>
+          </div>
+        </div>
+
+        <div class="product-card fade-in d2" data-cat="beauty" data-price="28" data-retail="58" data-moq="36" data-case="72" data-sku="SKU-7742" data-upc="056789012345" data-asin="B09JKL7890" data-fulfill="dropship" data-new="false" data-desc="Six bestselling NARS shades in a curated lipstick assortment — ideal for beauty boutiques and department stores." data-name="Iconic Lipstick Set — 6 Shades" data-brand="NARS Cosmetics">
+          <div class="product-card__img prod-img-beauty" style="background:linear-gradient(135deg,#1a0020,#4a0060,#9c27b0);">
+            <span style="font-size:2.5rem;">🎨</span>
+            <div class="bulk-checkbox-wrap"><input type="checkbox" class="bulk-checkbox"></div>
+          </div>
+          <div class="product-card__body">
+            <span class="fulfillment-badge dropship"><i class="fas fa-rotate"></i> Dropship</span>
+            <div class="product-card__category">Luxury Beauty</div>
+            <div class="product-card__name">Iconic Lipstick Set — 6 Shades</div>
+            <div class="product-card__brand">NARS Cosmetics</div>
+            <div class="product-card__price-row">
+              <div class="price-block">
+                <div class="price-wholesale">$28.00<span style="font-size:.7rem;font-weight:500;color:var(--color-muted);">/unit</span></div>
+                <div class="price-retail">Retail <strong>$58.00</strong></div>
+                <span class="price-margin">52% margin</span>
+              </div>
+              <div class="product-card__moq">MOQ: 36</div>
+            </div>
+            <div class="product-qty-row">
+              <div class="qty-mode-tabs">
+                <button class="qty-mode-tab active" data-mode="unit">Unit</button>
+                <button class="qty-mode-tab" data-mode="case">Case</button>
+              </div>
+              <div class="qty-input-wrap">
+                <button class="qty-btn qty-minus">−</button>
+                <input type="number" class="qty-field" value="36" min="36" step="1">
+                <button class="qty-btn qty-plus">+</button>
+              </div>
+              <span class="qty-hint">Min 36 · 1 case=72</span>
+            </div>
+            <div style="display:flex;gap:6px;">
+              <button class="btn btn-primary btn-sm btn-full add-to-cart" style="flex:1;">Add to Order →</button>
+              <button class="btn btn-secondary btn-sm view-detail-btn" title="View details"><i class="fas fa-eye"></i></button>
+            </div>
+          </div>
+        </div>
+
+        <div class="product-card fade-in d3" data-cat="beauty" data-price="22" data-retail="46" data-moq="48" data-case="96" data-sku="SKU-8823" data-upc="067890123456" data-asin="B08MNO1234" data-fulfill="wholesale" data-new="false" data-desc="MAC's #1 foundation in a 40-shade assortment pack. Buildable, long-lasting coverage — a staple for any beauty retailer." data-name="Studio Fix Foundation Range" data-brand="MAC Cosmetics">
+          <div class="product-card__img prod-img-beauty" style="background:linear-gradient(135deg,#1a0010,#3d0030,#c2185b);">
+            <span style="font-size:2.5rem;">✨</span>
+            <div class="bulk-checkbox-wrap"><input type="checkbox" class="bulk-checkbox"></div>
+          </div>
+          <div class="product-card__body">
+            <span class="fulfillment-badge wholesale"><i class="fas fa-boxes-stacked"></i> Wholesale</span>
+            <div class="product-card__category">Luxury Beauty</div>
+            <div class="product-card__name">Studio Fix Foundation Range</div>
+            <div class="product-card__brand">MAC Cosmetics</div>
+            <div class="product-card__price-row">
+              <div class="price-block">
+                <div class="price-wholesale">$22.00<span style="font-size:.7rem;font-weight:500;color:var(--color-muted);">/unit</span></div>
+                <div class="price-retail">Retail <strong>$46.00</strong></div>
+                <span class="price-margin">52% margin</span>
+              </div>
+              <div class="product-card__moq">MOQ: 48</div>
+            </div>
+            <div class="product-qty-row">
+              <div class="qty-mode-tabs">
+                <button class="qty-mode-tab active" data-mode="unit">Unit</button>
+                <button class="qty-mode-tab" data-mode="case">Case</button>
+              </div>
+              <div class="qty-input-wrap">
+                <button class="qty-btn qty-minus">−</button>
+                <input type="number" class="qty-field" value="48" min="48" step="1">
+                <button class="qty-btn qty-plus">+</button>
+              </div>
+              <span class="qty-hint">Min 48 · 1 case=96</span>
+            </div>
+            <div style="display:flex;gap:6px;">
+              <button class="btn btn-primary btn-sm btn-full add-to-cart" style="flex:1;">Add to Order →</button>
+              <button class="btn btn-secondary btn-sm view-detail-btn" title="View details"><i class="fas fa-eye"></i></button>
+            </div>
+          </div>
+        </div>
+
+        <!-- DESIGNER BAGS -->
+        <div class="product-card fade-in" data-cat="bags" data-price="580" data-retail="1290" data-moq="2" data-case="6" data-sku="SKU-3381" data-upc="078901234567" data-asin="B07PQR5678" data-fulfill="wholesale" data-new="false" data-desc="The GG Marmont Mini in matelassé chevron leather with a Double G gold-toned hardware. One of Gucci's most coveted styles." data-name="GG Marmont Mini Bag" data-brand="Gucci">
+          <div class="product-card__img prod-img-bags">
+            <span style="font-size:2.5rem;">👜</span>
+            <div class="bulk-checkbox-wrap"><input type="checkbox" class="bulk-checkbox"></div>
+          </div>
+          <div class="product-card__body">
+            <span class="fulfillment-badge wholesale"><i class="fas fa-boxes-stacked"></i> Wholesale</span>
+            <div class="product-card__category">Designer Bags</div>
+            <div class="product-card__name">GG Marmont Mini Bag</div>
+            <div class="product-card__brand">Gucci</div>
+            <div class="product-card__price-row">
+              <div class="price-block">
+                <div class="price-wholesale">$580.00<span style="font-size:.7rem;font-weight:500;color:var(--color-muted);">/unit</span></div>
+                <div class="price-retail">Retail <strong>$1,290.00</strong></div>
+                <span class="price-margin">55% margin</span>
+              </div>
+              <div class="product-card__moq">MOQ: 2</div>
+            </div>
+            <div class="product-qty-row">
+              <div class="qty-mode-tabs">
+                <button class="qty-mode-tab active" data-mode="unit">Unit</button>
+                <button class="qty-mode-tab" data-mode="case">Case</button>
+              </div>
+              <div class="qty-input-wrap">
+                <button class="qty-btn qty-minus">−</button>
+                <input type="number" class="qty-field" value="2" min="2" step="1">
+                <button class="qty-btn qty-plus">+</button>
+              </div>
+              <span class="qty-hint">Min 2 · 1 case=6</span>
+            </div>
+            <div style="display:flex;gap:6px;">
+              <button class="btn btn-primary btn-sm btn-full add-to-cart" style="flex:1;">Add to Order →</button>
+              <button class="btn btn-secondary btn-sm view-detail-btn" title="View details"><i class="fas fa-eye"></i></button>
+            </div>
+          </div>
+        </div>
+
+        <div class="product-card fade-in d1" data-cat="bags" data-price="720" data-retail="1550" data-moq="1" data-case="3" data-sku="SKU-9021" data-upc="089012345678" data-asin="B08STU9012" data-fulfill="wholesale" data-new="true" data-desc="The iconic Prada Saffiano Leather Tote in a medium format — durable saffiano texture with gunmetal hardware and interior zip pocket." data-name="Saffiano Leather Tote" data-brand="Prada">
+          <div class="product-card__img prod-img-bags" style="background:linear-gradient(135deg,#0d1117,#21262d,#424a53);">
+            <span style="font-size:2.5rem;">🎒</span>
+            <div class="new-ribbon">New</div>
+            <div class="bulk-checkbox-wrap"><input type="checkbox" class="bulk-checkbox"></div>
+          </div>
+          <div class="product-card__body">
+            <span class="fulfillment-badge wholesale"><i class="fas fa-boxes-stacked"></i> Wholesale</span>
+            <div class="product-card__category">Designer Bags</div>
+            <div class="product-card__name">Saffiano Leather Tote</div>
+            <div class="product-card__brand">Prada</div>
+            <div class="product-card__price-row">
+              <div class="price-block">
+                <div class="price-wholesale">$720.00<span style="font-size:.7rem;font-weight:500;color:var(--color-muted);">/unit</span></div>
+                <div class="price-retail">Retail <strong>$1,550.00</strong></div>
+                <span class="price-margin">54% margin</span>
+              </div>
+              <div class="product-card__moq">MOQ: 1</div>
+            </div>
+            <div class="product-qty-row">
+              <div class="qty-mode-tabs">
+                <button class="qty-mode-tab active" data-mode="unit">Unit</button>
+                <button class="qty-mode-tab" data-mode="case">Case</button>
+              </div>
+              <div class="qty-input-wrap">
+                <button class="qty-btn qty-minus">−</button>
+                <input type="number" class="qty-field" value="1" min="1" step="1">
+                <button class="qty-btn qty-plus">+</button>
+              </div>
+              <span class="qty-hint">Min 1 · 1 case=3</span>
+            </div>
+            <div style="display:flex;gap:6px;">
+              <button class="btn btn-primary btn-sm btn-full add-to-cart" style="flex:1;">Add to Order →</button>
+              <button class="btn btn-secondary btn-sm view-detail-btn" title="View details"><i class="fas fa-eye"></i></button>
+            </div>
+          </div>
+        </div>
+
+        <!-- SNEAKERS -->
+        <div class="product-card fade-in d2" data-cat="sneakers" data-price="110" data-retail="215" data-moq="6" data-case="12" data-sku="SKU-0033" data-upc="090123456789" data-asin="B09VWX3456" data-fulfill="wholesale" data-new="false" data-desc="New Balance 990v6 in an assorted size run. Premium Made-in-USA craftsmanship — one of the most sought-after lifestyle sneakers of 2026." data-name="990v6 — Assorted Sizes" data-brand="New Balance">
+          <div class="product-card__img prod-img-sneakers">
+            <span style="font-size:2.5rem;">👟</span>
+            <div class="bulk-checkbox-wrap"><input type="checkbox" class="bulk-checkbox"></div>
+          </div>
+          <div class="product-card__body">
+            <span class="fulfillment-badge wholesale"><i class="fas fa-boxes-stacked"></i> Wholesale</span>
+            <div class="product-card__category">Sneakers &amp; Sportswear</div>
+            <div class="product-card__name">990v6 — Assorted Sizes</div>
+            <div class="product-card__brand">New Balance</div>
+            <div class="product-card__price-row">
+              <div class="price-block">
+                <div class="price-wholesale">$110.00<span style="font-size:.7rem;font-weight:500;color:var(--color-muted);">/unit</span></div>
+                <div class="price-retail">Retail <strong>$215.00</strong></div>
+                <span class="price-margin">49% margin</span>
+              </div>
+              <div class="product-card__moq">MOQ: 6</div>
+            </div>
+            <div class="product-qty-row">
+              <div class="qty-mode-tabs">
+                <button class="qty-mode-tab active" data-mode="unit">Unit</button>
+                <button class="qty-mode-tab" data-mode="case">Case</button>
+              </div>
+              <div class="qty-input-wrap">
+                <button class="qty-btn qty-minus">−</button>
+                <input type="number" class="qty-field" value="6" min="6" step="1">
+                <button class="qty-btn qty-plus">+</button>
+              </div>
+              <span class="qty-hint">Min 6 · 1 case=12</span>
+            </div>
+            <div style="display:flex;gap:6px;">
+              <button class="btn btn-primary btn-sm btn-full add-to-cart" style="flex:1;">Add to Order →</button>
+              <button class="btn btn-secondary btn-sm view-detail-btn" title="View details"><i class="fas fa-eye"></i></button>
+            </div>
+          </div>
+        </div>
+
+        <div class="product-card fade-in d3" data-cat="sneakers" data-price="180" data-retail="360" data-moq="2" data-case="6" data-sku="SKU-0123" data-upc="001234567890" data-asin="B08YZA7890" data-fulfill="both" data-new="false" data-desc="The Air Jordan 1 Retro High OG — the original that started it all. Limited colorways with high resale value. Essential for sneaker boutiques." data-name="Air Jordan 1 Retro High OG" data-brand="Jordan Brand / Nike">
+          <div class="product-card__img prod-img-sneakers" style="background:linear-gradient(135deg,#0f2027,#1a3a4a,#c62828);">
+            <span style="font-size:2.5rem;">🏆</span>
+            <div class="bulk-checkbox-wrap"><input type="checkbox" class="bulk-checkbox"></div>
+          </div>
+          <div class="product-card__body">
+            <span class="fulfillment-badge both"><i class="fas fa-rotate"></i> Dropship + WS</span>
+            <div class="product-card__category">Sneakers &amp; Sportswear</div>
+            <div class="product-card__name">Air Jordan 1 Retro High OG</div>
+            <div class="product-card__brand">Jordan Brand / Nike</div>
+            <div class="product-card__price-row">
+              <div class="price-block">
+                <div class="price-wholesale">$180.00<span style="font-size:.7rem;font-weight:500;color:var(--color-muted);">/unit</span></div>
+                <div class="price-retail">Retail <strong>$360.00</strong></div>
+                <span class="price-margin">50% margin</span>
+              </div>
+              <div class="product-card__moq">MOQ: 2</div>
+            </div>
+            <div class="product-qty-row">
+              <div class="qty-mode-tabs">
+                <button class="qty-mode-tab active" data-mode="unit">Unit</button>
+                <button class="qty-mode-tab" data-mode="case">Case</button>
+              </div>
+              <div class="qty-input-wrap">
+                <button class="qty-btn qty-minus">−</button>
+                <input type="number" class="qty-field" value="2" min="2" step="1">
+                <button class="qty-btn qty-plus">+</button>
+              </div>
+              <span class="qty-hint">Min 2 · 1 case=6</span>
+            </div>
+            <div style="display:flex;gap:6px;">
+              <button class="btn btn-primary btn-sm btn-full add-to-cart" style="flex:1;">Add to Order →</button>
+              <button class="btn btn-secondary btn-sm view-detail-btn" title="View details"><i class="fas fa-eye"></i></button>
+            </div>
+          </div>
+        </div>
+
+        <!-- APPAREL -->
+        <div class="product-card fade-in d1" data-cat="apparel" data-price="85" data-retail="175" data-moq="12" data-case="24" data-sku="SKU-4455" data-upc="012345000001" data-asin="B09BCD1111" data-fulfill="wholesale" data-new="false" data-desc="The Versace Jeans Couture Spring/Summer 2026 polo — iconic baroque-inspired logo embroidery on premium piqué cotton." data-name="Jeans Couture Polo — SS26" data-brand="Versace">
+          <div class="product-card__img prod-img-apparel">
+            <span style="font-size:2.5rem;">👔</span>
+            <div class="bulk-checkbox-wrap"><input type="checkbox" class="bulk-checkbox"></div>
+          </div>
+          <div class="product-card__body">
+            <span class="fulfillment-badge wholesale"><i class="fas fa-boxes-stacked"></i> Wholesale</span>
+            <div class="product-card__category">Fashion Apparel</div>
+            <div class="product-card__name">Jeans Couture Polo — SS26</div>
+            <div class="product-card__brand">Versace</div>
+            <div class="product-card__price-row">
+              <div class="price-block">
+                <div class="price-wholesale">$85.00<span style="font-size:.7rem;font-weight:500;color:var(--color-muted);">/unit</span></div>
+                <div class="price-retail">Retail <strong>$175.00</strong></div>
+                <span class="price-margin">51% margin</span>
+              </div>
+              <div class="product-card__moq">MOQ: 12</div>
+            </div>
+            <div class="product-qty-row">
+              <div class="qty-mode-tabs">
+                <button class="qty-mode-tab active" data-mode="unit">Unit</button>
+                <button class="qty-mode-tab" data-mode="case">Case</button>
+              </div>
+              <div class="qty-input-wrap">
+                <button class="qty-btn qty-minus">−</button>
+                <input type="number" class="qty-field" value="12" min="12" step="1">
+                <button class="qty-btn qty-plus">+</button>
+              </div>
+              <span class="qty-hint">Min 12 · 1 case=24</span>
+            </div>
+            <div style="display:flex;gap:6px;">
+              <button class="btn btn-primary btn-sm btn-full add-to-cart" style="flex:1;">Add to Order →</button>
+              <button class="btn btn-secondary btn-sm view-detail-btn" title="View details"><i class="fas fa-eye"></i></button>
+            </div>
+          </div>
+        </div>
+
+        <div class="product-card fade-in d2" data-cat="apparel" data-price="65" data-retail="135" data-moq="12" data-case="24" data-sku="SKU-6654" data-upc="012345000002" data-asin="B09EFG2222" data-fulfill="wholesale" data-new="false" data-desc="Ralph Lauren's timeless Oxford Piqué Polo in a classic fit. Available in 8 core colors — a wardrobe essential with evergreen demand." data-name="Oxford Piqué Polo — Classic" data-brand="Polo Ralph Lauren">
+          <div class="product-card__img prod-img-apparel" style="background:linear-gradient(135deg,#1a0a2e,#2d1b4e,#4a2c7e);">
+            <span style="font-size:2.5rem;">🧥</span>
+            <div class="bulk-checkbox-wrap"><input type="checkbox" class="bulk-checkbox"></div>
+          </div>
+          <div class="product-card__body">
+            <span class="fulfillment-badge wholesale"><i class="fas fa-boxes-stacked"></i> Wholesale</span>
+            <div class="product-card__category">Fashion Apparel</div>
+            <div class="product-card__name">Oxford Piqué Polo — Classic</div>
+            <div class="product-card__brand">Polo Ralph Lauren</div>
+            <div class="product-card__price-row">
+              <div class="price-block">
+                <div class="price-wholesale">$65.00<span style="font-size:.7rem;font-weight:500;color:var(--color-muted);">/unit</span></div>
+                <div class="price-retail">Retail <strong>$135.00</strong></div>
+                <span class="price-margin">52% margin</span>
+              </div>
+              <div class="product-card__moq">MOQ: 12</div>
+            </div>
+            <div class="product-qty-row">
+              <div class="qty-mode-tabs">
+                <button class="qty-mode-tab active" data-mode="unit">Unit</button>
+                <button class="qty-mode-tab" data-mode="case">Case</button>
+              </div>
+              <div class="qty-input-wrap">
+                <button class="qty-btn qty-minus">−</button>
+                <input type="number" class="qty-field" value="12" min="12" step="1">
+                <button class="qty-btn qty-plus">+</button>
+              </div>
+              <span class="qty-hint">Min 12 · 1 case=24</span>
+            </div>
+            <div style="display:flex;gap:6px;">
+              <button class="btn btn-primary btn-sm btn-full add-to-cart" style="flex:1;">Add to Order →</button>
+              <button class="btn btn-secondary btn-sm view-detail-btn" title="View details"><i class="fas fa-eye"></i></button>
+            </div>
+          </div>
+        </div>
+
+      </div><!-- /product-grid -->
+
+      <!-- Pagination -->
+      <div class="pagination fade-in d4">
+        <button class="page-btn" disabled><i class="fas fa-chevron-left"></i></button>
+        <button class="page-btn active">1</button>
+        <button class="page-btn">2</button>
+        <button class="page-btn">3</button>
+        <span style="color:var(--color-muted);padding:0 4px;">…</span>
+        <button class="page-btn">12</button>
+        <button class="page-btn"><i class="fas fa-chevron-right"></i></button>
+      </div>
+    </div><!-- /products-main -->
+  </div><!-- /products-layout -->
+
+</main>
+
+<!-- ===== BULK ACTIONS BAR ===== -->
+<div class="bulk-actions-bar" id="bulkActionsBar">
+  <span id="bulkCount">0 selected</span>
+  <button class="bulk-action-btn primary" id="bulkAddBtn"><i class="fas fa-cart-plus"></i> Add All to Order</button>
+  <button class="bulk-action-btn ghost" id="bulkRfqBtn"><i class="fas fa-comment-dollar"></i> Bulk RFQ</button>
+  <button class="bulk-action-btn ghost" id="bulkExportSelBtn"><i class="fas fa-download"></i> Export Selected</button>
+  <button class="bulk-action-btn ghost" id="bulkClearBtn"><i class="fas fa-times"></i> Clear</button>
+</div>
+
+<!-- ===== ADD-TO-CART POPUP ===== -->
+<div class="cart-popup-overlay" id="cartPopupOverlay">
+  <div class="cart-popup">
+    <div class="cart-popup__icon"><i class="fas fa-check"></i></div>
+    <div class="cart-popup__title">Added to Order Cart!</div>
+    <div class="cart-popup__item-name" id="popupItemName">Product Name</div>
+    <div class="cart-popup__sub" id="popupItemMeta">12 units · $80.00/unit · $960.00 subtotal</div>
+    <div class="cart-popup__actions">
+      <a href="cart.html" class="cart-popup__btn primary">
+        <i class="fas fa-shopping-cart"></i> Go to Order Cart &amp; Checkout
+      </a>
+      <button class="cart-popup__btn secondary" id="continueShoppingBtn">
+        <i class="fas fa-arrow-left"></i> Continue Browsing Products
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== PRODUCT DETAIL MODAL ===== -->
+<div class="modal-overlay" id="detailModal">
+  <div class="modal">
+    <div class="modal-header">
+      <div>
+        <div class="modal-title" id="detailName">Product Name</div>
+        <div style="display:flex;align-items:center;gap:8px;margin-top:6px;flex-wrap:wrap;">
+          <span id="detailFulfill" class="fulfillment-badge wholesale"></span>
+          <span id="detailCat" style="font-size:.75rem;color:var(--color-muted);"></span>
+        </div>
+      </div>
+      <button class="modal-close" id="detailClose"><i class="fas fa-times"></i></button>
+    </div>
+    <div class="modal-body">
+      <div class="detail-grid">
+        <!-- Image -->
+        <div class="detail-img" id="detailImg"></div>
+        <!-- Info -->
+        <div class="detail-info">
+          <div>
+            <div class="detail-name" id="detailName2"></div>
+            <div class="detail-brand" id="detailBrand"></div>
+          </div>
+          <!-- Price block -->
+          <div class="detail-price-block">
+            <div class="detail-price-item">
+              <div class="detail-price-label">Wholesale Price</div>
+              <div class="detail-price-value wholesale" id="detailWholesale"></div>
+            </div>
+            <div class="detail-price-item">
+              <div class="detail-price-label">Retail Price</div>
+              <div class="detail-price-value retail" id="detailRetail"></div>
+            </div>
+            <div class="detail-margin-chip" id="detailMargin"></div>
+          </div>
+          <!-- Identifiers: SKU / UPC / ASIN -->
+          <div class="detail-ids">
+            <div class="detail-id-chip">
+              <div class="detail-id-label">SKU</div>
+              <div class="detail-id-value" id="detailSku"></div>
+            </div>
+            <div class="detail-id-chip">
+              <div class="detail-id-label">UPC</div>
+              <div class="detail-id-value" id="detailUpc"></div>
+            </div>
+            <div class="detail-id-chip">
+              <div class="detail-id-label">ASIN</div>
+              <div class="detail-id-value" id="detailAsin"></div>
+            </div>
+          </div>
+          <!-- Qty selector in detail -->
+          <div class="detail-qty-block">
+            <div class="detail-qty-label">Order Quantity</div>
+            <div class="detail-qty-row">
+              <div class="detail-qty-tabs">
+                <button class="detail-qty-tab active" data-dmode="unit">Unit</button>
+                <button class="detail-qty-tab" data-dmode="case">Case</button>
+              </div>
+              <div class="detail-qty-input">
+                <button class="detail-qty-btn" id="detailMinus">−</button>
+                <input type="number" class="detail-qty-field" id="detailQtyField" value="1" min="1" />
+                <button class="detail-qty-btn" id="detailPlus">+</button>
+              </div>
+            </div>
+            <div class="detail-qty-subtotal" id="detailSubtotal">Subtotal: <strong>$0.00</strong></div>
+            <div style="font-size:.7rem;color:var(--color-muted);margin-top:2px;" id="detailQtyHint"></div>
+          </div>
+        </div>
+      </div>
+      <!-- Description -->
+      <div class="detail-desc" id="detailDesc"></div>
+      <!-- Meta grid -->
+      <div class="detail-meta-grid">
+        <div class="detail-meta-item">
+          <div class="detail-meta-icon" style="background:rgba(99,102,241,.1);color:var(--color-accent);"><i class="fas fa-box"></i></div>
+          <span>MOQ: <strong id="detailMoq"></strong></span>
+        </div>
+        <div class="detail-meta-item">
+          <div class="detail-meta-icon" style="background:rgba(16,185,129,.1);color:var(--color-emerald);"><i class="fas fa-cubes"></i></div>
+          <span>Case: <strong id="detailCaseSize"></strong> units</span>
+        </div>
+        <div class="detail-meta-item">
+          <div class="detail-meta-icon" style="background:rgba(245,158,11,.1);color:var(--color-amber);"><i class="fas fa-truck-fast"></i></div>
+          <span>Ships in 2–5 business days</span>
+        </div>
+        <div class="detail-meta-item">
+          <div class="detail-meta-icon" style="background:rgba(99,102,241,.1);color:var(--color-accent);"><i class="fas fa-rotate-left"></i></div>
+          <span>30-day return policy</span>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary btn-sm" id="detailCloseBtn">Close</button>
+      <button class="btn btn-outline btn-sm" onclick="showToast('Added to RFQ list.','success')">
+        <i class="fas fa-comment-dollar"></i> Submit RFQ
+      </button>
+      <button class="btn btn-primary btn-sm" id="detailAddToCart">
+        <i class="fas fa-cart-plus"></i> Add to Order
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="toast-container" id="toastContainer"></div>
+
+<script src="js/portal.js"></script>
+<script>
+/* ================================================================
+   PRODUCT DATA — pulled from card data-attributes
+================================================================ */
+let currentDetailCard = null;
+let detailMode = 'unit';
+
+/* ── Cart state ── */
+let cartItems = JSON.parse(sessionStorage.getItem('brndCart') || '[]');
+updateCartChip();
+
+function saveCart() { sessionStorage.setItem('brndCart', JSON.stringify(cartItems)); updateCartChip(); }
+function updateCartChip() {
+  const total = cartItems.reduce((s,i) => s + i.qty, 0);
+  document.getElementById('cartCount').textContent = total;
+}
+function goToCart() { window.location.href = 'cart.html'; }
+
+/* ================================================================
+   FRONT-CARD QTY SELECTOR — Unit / Case tabs + ± buttons
+================================================================ */
+document.querySelectorAll('.product-card').forEach(card => {
+  const moq     = parseInt(card.dataset.moq  || '1');
+  const caseQty = parseInt(card.dataset.case || (moq * 2));
+  const qtyField = card.querySelector('.qty-field');
+  const tabs     = card.querySelectorAll('.qty-mode-tab');
+  const hint     = card.querySelector('.qty-hint');
+  let mode = 'unit';
+
+  function getMin()  { return mode === 'case' ? 1 : moq; }
+  function refreshHint() {
+    if (!hint) return;
+    if (mode === 'unit') hint.textContent = `Min ${moq} · 1 case=${caseQty}`;
+    else {
+      const c = parseInt(qtyField.value)||1;
+      hint.textContent = `${c} case${c>1?'s':''}=${c*caseQty} units`;
+    }
+  }
+
+  tabs.forEach(tab => {
+    tab.addEventListener('click', e => {
+      e.stopPropagation();
+      tabs.forEach(t => t.classList.remove('active'));
+      tab.classList.add('active');
+      mode = tab.dataset.mode;
+      qtyField.value = mode === 'case' ? 1 : moq;
+      qtyField.min   = mode === 'case' ? 1 : moq;
+      refreshHint();
+    });
+  });
+
+  card.querySelector('.qty-minus')?.addEventListener('click', e => {
+    e.stopPropagation();
+    const cur = parseInt(qtyField.value)||getMin();
+    qtyField.value = Math.max(getMin(), cur - 1);
+    refreshHint();
+  });
+  card.querySelector('.qty-plus')?.addEventListener('click', e => {
+    e.stopPropagation();
+    qtyField.value = (parseInt(qtyField.value)||getMin()) + 1;
+    refreshHint();
+  });
+  qtyField?.addEventListener('change', () => {
+    if (isNaN(parseInt(qtyField.value)) || parseInt(qtyField.value) < getMin())
+      qtyField.value = getMin();
+    refreshHint();
+  });
+  qtyField?.addEventListener('click', e => e.stopPropagation());
+  qtyField?.addEventListener('input', refreshHint);
+});
+
+/* ================================================================
+   ADD TO CART (from front card)
+================================================================ */
+document.querySelectorAll('.add-to-cart').forEach(btn => {
+  btn.addEventListener('click', function(e) {
+    e.stopPropagation();
+    const card     = this.closest('.product-card');
+    const name     = card.dataset.name  || card.querySelector('.product-card__name').textContent.trim();
+    const brand    = card.dataset.brand || card.querySelector('.product-card__brand').textContent.trim();
+    const price    = parseFloat(card.dataset.price || '0');
+    const caseSize = parseInt(card.dataset.case || '1');
+    const qtyField = card.querySelector('.qty-field');
+    const activeTab = card.querySelector('.qty-mode-tab.active');
+    const mode     = activeTab ? activeTab.dataset.mode : 'unit';
+    const rawQty   = parseInt(qtyField.value) || 1;
+    const units    = mode === 'case' ? rawQty * caseSize : rawQty;
+    const subtotal = units * price;
+
+    addToCartData(name, brand, price, units, subtotal, card.dataset.cat || '');
+
+    const origHTML = this.innerHTML;
+    this.innerHTML = '<i class="fas fa-check"></i> Added!';
+    this.style.background = 'var(--color-emerald)';
+    setTimeout(() => { this.innerHTML = origHTML; this.style.background = ''; }, 1800);
+
+    showCartPopup(name, units, price, subtotal);
+  });
+});
+
+function addToCartData(name, brand, price, units, subtotal, cat) {
+  const ex = cartItems.find(i => i.name === name && i.brand === brand);
+  if (ex) { ex.qty += units; ex.subtotal += subtotal; }
+  else cartItems.push({ name, brand, qty: units, price, subtotal, cat });
+  saveCart();
+}
+
+function showCartPopup(name, units, price, subtotal) {
+  document.getElementById('popupItemName').textContent = name;
+  document.getElementById('popupItemMeta').textContent =
+    `${units} unit${units>1?'s':''} · $${price.toFixed(2)}/unit · $${subtotal.toLocaleString('en-US',{minimumFractionDigits:2})} subtotal`;
+  document.getElementById('cartPopupOverlay').classList.add('open');
+}
+
+document.getElementById('continueShoppingBtn').addEventListener('click', () => {
+  document.getElementById('cartPopupOverlay').classList.remove('open');
+});
+document.getElementById('cartPopupOverlay').addEventListener('click', function(e) {
+  if (e.target === this) this.classList.remove('open');
+});
+
+/* ================================================================
+   PRODUCT DETAIL MODAL
+================================================================ */
+function openDetailModal(card) {
+  currentDetailCard = card;
+  detailMode = 'unit';
+
+  const name     = card.dataset.name;
+  const brand    = card.dataset.brand;
+  const price    = parseFloat(card.dataset.price);
+  const retail   = parseFloat(card.dataset.retail);
+  const moq      = parseInt(card.dataset.moq);
+  const caseSize = parseInt(card.dataset.case);
+  const sku      = card.dataset.sku;
+  const upc      = card.dataset.upc;
+  const asin     = card.dataset.asin;
+  const desc     = card.dataset.desc;
+  const fulfill  = card.dataset.fulfill;
+  const cat      = card.dataset.cat;
+  const margin   = Math.round(((retail - price) / retail) * 100);
+
+  // Populate fields
+  document.getElementById('detailName').textContent  = name;
+  document.getElementById('detailName2').textContent = name;
+  document.getElementById('detailBrand').textContent = brand;
+  document.getElementById('detailWholesale').textContent = `$${price.toFixed(2)}`;
+  document.getElementById('detailRetail').textContent    = `$${retail.toFixed(2)}`;
+  document.getElementById('detailMargin').textContent    = `${margin}% margin`;
+  document.getElementById('detailSku').textContent  = sku;
+  document.getElementById('detailUpc').textContent  = upc;
+  document.getElementById('detailAsin').textContent = asin;
+  document.getElementById('detailDesc').textContent = desc;
+  document.getElementById('detailMoq').textContent  = `${moq} units`;
+  document.getElementById('detailCaseSize').textContent = caseSize;
+  document.getElementById('detailCat').textContent  = cat.charAt(0).toUpperCase() + cat.slice(1);
+
+  // Fulfillment badge
+  const fulfillEl = document.getElementById('detailFulfill');
+  const fMap = { wholesale:'wholesale', dropship:'dropship', both:'both' };
+  const fLabel = { wholesale:'Wholesale', dropship:'Dropship', both:'Dropship + WS' };
+  fulfillEl.className = `fulfillment-badge ${fMap[fulfill]||'wholesale'}`;
+  fulfillEl.innerHTML = `<i class="fas fa-boxes-stacked"></i> ${fLabel[fulfill]||'Wholesale'}`;
+
+  // Image (copy background from card img)
+  const cardImg = card.querySelector('.product-card__img');
+  const detailImg = document.getElementById('detailImg');
+  detailImg.style.background = cardImg.style.background || window.getComputedStyle(cardImg).background;
+  const emoji = cardImg.querySelector('span');
+  detailImg.innerHTML = emoji ? emoji.outerHTML : '';
+
+  // Qty selector reset
+  const qtyField = document.getElementById('detailQtyField');
+  qtyField.value = moq; qtyField.min = moq;
+  document.querySelectorAll('.detail-qty-tab').forEach(t => {
+    t.classList.toggle('active', t.dataset.dmode === 'unit');
+  });
+  detailMode = 'unit';
+  updateDetailSubtotal(price, moq, moq, caseSize, 'unit');
+
+  // Store refs on modal for add-to-cart
+  document.getElementById('detailModal').dataset.price     = price;
+  document.getElementById('detailModal').dataset.moq       = moq;
+  document.getElementById('detailModal').dataset.caseSize  = caseSize;
+  document.getElementById('detailModal').dataset.name      = name;
+  document.getElementById('detailModal').dataset.brand     = brand;
+  document.getElementById('detailModal').dataset.cat       = cat;
+
+  document.getElementById('detailModal').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function updateDetailSubtotal(price, qty, moq, caseSize, mode) {
+  const units    = mode === 'case' ? qty * caseSize : qty;
+  const subtotal = units * price;
+  document.getElementById('detailSubtotal').innerHTML =
+    `Subtotal: <strong>$${subtotal.toLocaleString('en-US',{minimumFractionDigits:2})}</strong>`;
+  const hint = mode === 'unit'
+    ? `Min ${moq} units · 1 case = ${caseSize} units`
+    : `${qty} case${qty>1?'s':''} = ${qty * caseSize} units`;
+  document.getElementById('detailQtyHint').textContent = hint;
+}
+
+// Detail qty tabs
+document.querySelectorAll('.detail-qty-tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    document.querySelectorAll('.detail-qty-tab').forEach(t => t.classList.remove('active'));
+    tab.classList.add('active');
+    detailMode = tab.dataset.dmode;
+    const modal    = document.getElementById('detailModal');
+    const price    = parseFloat(modal.dataset.price);
+    const moq      = parseInt(modal.dataset.moq);
+    const caseSize = parseInt(modal.dataset.caseSize);
+    const qtyField = document.getElementById('detailQtyField');
+    if (detailMode === 'case') { qtyField.value = 1; qtyField.min = 1; }
+    else                       { qtyField.value = moq; qtyField.min = moq; }
+    updateDetailSubtotal(price, parseInt(qtyField.value), moq, caseSize, detailMode);
+  });
+});
+
+// Detail ± buttons
+document.getElementById('detailMinus').addEventListener('click', () => {
+  const modal    = document.getElementById('detailModal');
+  const price    = parseFloat(modal.dataset.price);
+  const moq      = parseInt(modal.dataset.moq);
+  const caseSize = parseInt(modal.dataset.caseSize);
+  const qtyField = document.getElementById('detailQtyField');
+  const minV     = detailMode === 'case' ? 1 : moq;
+  qtyField.value = Math.max(minV, parseInt(qtyField.value) - 1);
+  updateDetailSubtotal(price, parseInt(qtyField.value), moq, caseSize, detailMode);
+});
+document.getElementById('detailPlus').addEventListener('click', () => {
+  const modal    = document.getElementById('detailModal');
+  const price    = parseFloat(modal.dataset.price);
+  const moq      = parseInt(modal.dataset.moq);
+  const caseSize = parseInt(modal.dataset.caseSize);
+  const qtyField = document.getElementById('detailQtyField');
+  qtyField.value = parseInt(qtyField.value) + 1;
+  updateDetailSubtotal(price, parseInt(qtyField.value), moq, caseSize, detailMode);
+});
+document.getElementById('detailQtyField').addEventListener('input', () => {
+  const modal    = document.getElementById('detailModal');
+  const price    = parseFloat(modal.dataset.price);
+  const moq      = parseInt(modal.dataset.moq);
+  const caseSize = parseInt(modal.dataset.caseSize);
+  const v        = parseInt(document.getElementById('detailQtyField').value) || 1;
+  updateDetailSubtotal(price, v, moq, caseSize, detailMode);
+});
+
+// Add to cart from detail modal
+document.getElementById('detailAddToCart').addEventListener('click', () => {
+  const modal    = document.getElementById('detailModal');
+  const price    = parseFloat(modal.dataset.price);
+  const moq      = parseInt(modal.dataset.moq);
+  const caseSize = parseInt(modal.dataset.caseSize);
+  const name     = modal.dataset.name;
+  const brand    = modal.dataset.brand;
+  const cat      = modal.dataset.cat;
+  const rawQty   = parseInt(document.getElementById('detailQtyField').value) || moq;
+  const units    = detailMode === 'case' ? rawQty * caseSize : rawQty;
+  const subtotal = units * price;
+
+  addToCartData(name, brand, price, units, subtotal, cat);
+  closeDetailModal();
+  showCartPopup(name, units, price, subtotal);
+});
+
+function closeDetailModal() {
+  document.getElementById('detailModal').classList.remove('open');
+  document.body.style.overflow = '';
+}
+document.getElementById('detailClose').addEventListener('click', closeDetailModal);
+document.getElementById('detailCloseBtn').addEventListener('click', closeDetailModal);
+document.getElementById('detailModal').addEventListener('click', function(e) {
+  if (e.target === this) closeDetailModal();
+});
+
+// Wire view-detail buttons
+document.querySelectorAll('.view-detail-btn').forEach(btn => {
+  btn.addEventListener('click', function(e) {
+    e.stopPropagation();
+    openDetailModal(this.closest('.product-card'));
+  });
+});
+
+/* ================================================================
+   BULK SELECT
+================================================================ */
+let bulkMode = false;
+let selectedIds = new Set();
+
+document.getElementById('bulkSelectBtn').addEventListener('click', () => {
+  bulkMode = !bulkMode;
+  document.getElementById('productGrid').classList.toggle('bulk-mode-on', bulkMode);
+  document.getElementById('bulkSelectBtn').innerHTML = bulkMode
+    ? '<i class="fas fa-times"></i> Cancel Select'
+    : '<i class="fas fa-check-square"></i> Bulk Select';
+  if (!bulkMode) { selectedIds.clear(); updateBulkBar(); }
+});
+
+document.querySelectorAll('.bulk-checkbox').forEach((cb, i) => {
+  cb.addEventListener('change', function() {
+    const card = this.closest('.product-card');
+    if (this.checked) { selectedIds.add(i); card.classList.add('selected'); }
+    else              { selectedIds.delete(i); card.classList.remove('selected'); }
+    updateBulkBar();
+  });
+});
+
+function updateBulkBar() {
+  const bar = document.getElementById('bulkActionsBar');
+  if (selectedIds.size > 0) {
+    bar.classList.add('open');
+    document.getElementById('bulkCount').textContent = `${selectedIds.size} selected`;
+  } else {
+    bar.classList.remove('open');
+  }
+}
+
+document.getElementById('bulkAddBtn').addEventListener('click', () => {
+  let added = 0;
+  document.querySelectorAll('.bulk-checkbox').forEach((cb, i) => {
+    if (selectedIds.has(i)) {
+      const card  = cb.closest('.product-card');
+      const name  = card.dataset.name  || card.querySelector('.product-card__name').textContent.trim();
+      const brand = card.dataset.brand || card.querySelector('.product-card__brand').textContent.trim();
+      const price = parseFloat(card.dataset.price || '0');
+      const moq   = parseInt(card.dataset.moq || '1');
+      addToCartData(name, brand, price, moq, moq*price, card.dataset.cat||'');
+      added++;
+    }
+  });
+  showToast(`${added} products added to cart!`, 'success');
+  clearBulk();
+});
+document.getElementById('bulkRfqBtn').addEventListener('click', () => {
+  showToast(`RFQ submitted for ${selectedIds.size} products.`, 'success');
+  clearBulk();
+});
+document.getElementById('bulkExportSelBtn').addEventListener('click', () => {
+  exportSelectedCSV();
+  clearBulk();
+});
+document.getElementById('bulkClearBtn').addEventListener('click', clearBulk);
+
+function clearBulk() {
+  selectedIds.clear();
+  document.querySelectorAll('.bulk-checkbox').forEach(cb => { cb.checked = false; });
+  document.querySelectorAll('.product-card').forEach(c => c.classList.remove('selected'));
+  updateBulkBar();
+}
+
+function exportSelectedCSV() {
+  const headers = ['Brand','Product','SKU','UPC','ASIN','Category','Wholesale Price','Retail Price','MOQ','Case Size','Fulfillment'];
+  const rows = [];
+  document.querySelectorAll('.bulk-checkbox').forEach((cb, i) => {
+    if (selectedIds.has(i)) {
+      const d = cb.closest('.product-card').dataset;
+      rows.push([d.brand, d.name, d.sku, d.upc, d.asin, d.cat,
+        `$${d.price}`, `$${d.retail}`, d.moq, d.case, d.fulfill]);
+    }
+  });
+  downloadCSV([headers,...rows], 'BRND-Selected-Products.csv');
+}
+
+/* ================================================================
+   CATEGORY FILTER PILLS (incl. New Arrivals)
+================================================================ */
+document.getElementById('catPills').querySelectorAll('.filter-pill').forEach(pill => {
+  pill.addEventListener('click', function() {
+    document.querySelectorAll('.filter-pill').forEach(p => p.classList.remove('active'));
+    this.classList.add('active');
+    const cat = this.dataset.cat;
+    document.querySelectorAll('.product-card').forEach(card => {
+      if (cat === 'all') {
+        card.style.display = '';
+      } else if (cat === 'new') {
+        card.style.display = card.dataset.new === 'true' ? '' : 'none';
+      } else {
+        card.style.display = card.dataset.cat === cat ? '' : 'none';
+      }
+    });
+  });
+});
+
+/* ================================================================
+   VIEW TOGGLE — Grid / List / Text
+================================================================ */
+const gridBtn = document.getElementById('gridViewBtn');
+const listBtn = document.getElementById('listViewBtn');
+const textBtn = document.getElementById('textViewBtn');
+const grid    = document.getElementById('productGrid');
+const textHdr = document.getElementById('textViewHeader');
+
+gridBtn.addEventListener('click', () => {
+  grid.className = 'product-grid'; textHdr.classList.remove('visible');
+  [gridBtn,listBtn,textBtn].forEach(b=>b.classList.remove('active')); gridBtn.classList.add('active');
+});
+listBtn.addEventListener('click', () => {
+  grid.className = 'product-grid list-view'; textHdr.classList.remove('visible');
+  [gridBtn,listBtn,textBtn].forEach(b=>b.classList.remove('active')); listBtn.classList.add('active');
+});
+textBtn.addEventListener('click', () => {
+  grid.className = 'product-grid text-view'; textHdr.classList.add('visible');
+  [gridBtn,listBtn,textBtn].forEach(b=>b.classList.remove('active')); textBtn.classList.add('active');
+});
+
+/* ================================================================
+   SEARCH
+================================================================ */
+document.getElementById('searchInput').addEventListener('input', function() {
+  const q = this.value.toLowerCase();
+  document.querySelectorAll('.product-card').forEach(card => {
+    card.style.display = card.textContent.toLowerCase().includes(q) ? '' : 'none';
+  });
+});
+
+/* ================================================================
+   EXPORT CATALOG
+================================================================ */
+document.getElementById('exportCatalogBtn').addEventListener('click', () => {
+  const menu = document.getElementById('exportMenu');
+  menu.style.display = menu.style.display === 'none' ? 'block' : 'none';
+});
+document.addEventListener('click', e => {
+  if (!e.target.closest('#exportCatalogBtn') && !e.target.closest('#exportMenu'))
+    document.getElementById('exportMenu').style.display = 'none';
+});
+
+function exportCatalog(fmt) {
+  document.getElementById('exportMenu').style.display = 'none';
+  const cards = document.querySelectorAll('.product-card');
+  const data = Array.from(cards).map(c => ({
+    name: c.dataset.name, brand: c.dataset.brand, category: c.dataset.cat,
+    sku: c.dataset.sku, upc: c.dataset.upc, asin: c.dataset.asin,
+    wholesale_price: c.dataset.price, retail_price: c.dataset.retail,
+    moq: c.dataset.moq, case_size: c.dataset.case,
+    fulfillment: c.dataset.fulfill, new_arrival: c.dataset.new
+  }));
+  if (fmt === 'csv') {
+    const headers = Object.keys(data[0]);
+    const rows = data.map(r => headers.map(h => `"${r[h]}"`).join(','));
+    downloadCSV([headers, ...data.map(r => Object.values(r))], 'BRND-Catalog.csv');
+    showToast('Catalog exported as CSV!', 'success');
+  } else {
+    const blob = new Blob([JSON.stringify(data, null, 2)], {type:'application/json'});
+    const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
+    a.download = 'BRND-Catalog.json'; a.click();
+    showToast('Catalog exported as JSON!', 'success');
+  }
+}
+
+function downloadCSV(rows, filename) {
+  const csv = rows.map(r => r.map(c=>`"${String(c).replace(/"/g,'""')}"`).join(',')).join('\n');
+  const blob = new Blob([csv], {type:'text/csv'});
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
+  a.download = filename; a.click(); URL.revokeObjectURL(a.href);
+}
+
+/* ================================================================
+   BULK TEMPLATE DOWNLOAD
+================================================================ */
+document.getElementById('downloadTemplateBtn').addEventListener('click', () => {
+  const headers = ['Brand','Product Name','SKU','Category','Order Mode (unit/case)','Quantity','Case Size (units per case)','Notes'];
+  const samples = [
+    ['Maison Margiela','Replica Fragrance Set','SKU-4821','Fragrances','unit','24','24',''],
+    ['Chanel','No. 5 Eau de Parfum 50ml','SKU-5510','Fragrances','case','2','12','2 cases = 24 units'],
+    ['Dior','Sauvage EDT 100ml','SKU-6688','Fragrances','unit','12','24',''],
+    ['Charlotte Tilbury','Pillow Talk Collection','SKU-2290','Luxury Beauty','unit','24','48',''],
+    ['Gucci','GG Marmont Mini Bag','SKU-3381','Designer Bags','unit','2','6',''],
+    ['Jordan Brand','Air Jordan 1 Retro High OG','SKU-0123','Sneakers','case','1','6',''],
+  ];
+  const notes = [
+    ['--- INSTRUCTIONS ---','','','','','','',''],
+    ['"unit" = order individual units. "case" = order full cases.','','','','','','',''],
+    ['Quantity = number of units OR cases per Order Mode.','','','','','','',''],
+  ];
+  downloadCSV([headers,...samples,[],...notes], 'BRND-Direct-Bulk-Order-Template.csv');
+  showToast('Bulk order template downloaded!', 'success');
+});
+
+/* ================================================================
+   PAGINATION
+================================================================ */
+document.querySelectorAll('.page-btn:not([disabled])').forEach(btn => {
+  btn.addEventListener('click', function() {
+    document.querySelectorAll('.page-btn').forEach(b => b.classList.remove('active'));
+    if (!this.querySelector('i')) this.classList.add('active');
+  });
+});
+
+/* ================================================================
+   TOAST
+================================================================ */
+function showToast(msg, type = 'success') {
+  const container = document.getElementById('toastContainer');
+  const icon = type === 'success' ? 'fa-check-circle' : 'fa-info-circle';
+  const toast = document.createElement('div');
+  toast.className = `toast ${type}`;
+  toast.innerHTML = `<i class="fas ${icon}"></i><span>${msg}</span>`;
+  container.appendChild(toast);
+  setTimeout(() => {
+    toast.style.opacity = '0'; toast.style.transform = 'translateX(60px)';
+    toast.style.transition = 'all .3s'; setTimeout(() => toast.remove(), 350);
+  }, 3200);
+}
+</script>
+
+</body>
+</html>

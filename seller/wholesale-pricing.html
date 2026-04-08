@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Wholesale Pricing – BRND Direct Brand Portal</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&family=Inter:wght@300;400;500;600;700&family=Outfit:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.5.0/css/all.min.css" />
+  <link rel="stylesheet" href="css/portal.css" />
+  <style>
+    :root { --seller-accent:#10b981; }
+    .sidebar { background:linear-gradient(180deg,#0d1a14 0%,#0f1f18 40%,#111a15 100%); }
+    .sidebar .nav-item.active { background:rgba(16,185,129,.15);color:#34d399;border-left-color:#10b981; }
+    .sidebar .nav-item:hover { background:rgba(16,185,129,.08); }
+    .sidebar .nav-badge { background:var(--seller-accent); }
+    .sidebar .nav-badge.new { background:#f59e0b; }
+
+    .tier-card { border:1.5px solid var(--color-border);border-radius:var(--radius-md);padding:20px;transition:all .2s;cursor:pointer; }
+    .tier-card:hover, .tier-card.selected { border-color:var(--seller-accent);background:rgba(16,185,129,.03); }
+    .tier-card.selected .tier-header { color:var(--seller-accent); }
+    .tier-header { display:flex;align-items:center;gap:10px;margin-bottom:12px; }
+    .tier-icon { width:36px;height:36px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:.9rem;flex-shrink:0; }
+    .tier-name { font-size:.88rem;font-weight:800;font-family:var(--font-display); }
+    .tier-desc { font-size:.75rem;color:var(--color-muted);margin-bottom:14px;line-height:1.5; }
+    .tier-range { display:flex;align-items:center;gap:6px;font-size:.82rem;margin-bottom:8px; }
+    .tier-range strong { font-family:var(--font-outfit);font-weight:700; }
+    .tier-disc { font-size:1.1rem;font-weight:900;font-family:var(--font-outfit);color:var(--seller-accent); }
+
+    .price-row { display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--color-border); }
+    .price-row:last-child { border-bottom:none; }
+    .price-product { flex:1;min-width:0; }
+    .price-product-name { font-size:.82rem;font-weight:600;color:var(--color-near-black);white-space:nowrap;overflow:hidden;text-overflow:ellipsis; }
+    .price-product-sku { font-size:.7rem;color:var(--color-muted); }
+    .price-inputs { display:flex;gap:8px;align-items:center; }
+    .price-inputs input { width:80px;font-size:.82rem;padding:5px 8px;font-family:var(--font-outfit);text-align:right; }
+    .price-label { font-size:.68rem;color:var(--color-muted);text-align:center; }
+
+    .promo-card { border:1.5px solid var(--color-border);border-radius:var(--radius-md);padding:16px;transition:all .2s; }
+    .promo-card:hover { border-color:var(--seller-accent); }
+    .promo-header { display:flex;align-items:center;justify-content:space-between;margin-bottom:10px; }
+    .promo-name { font-size:.88rem;font-weight:700; }
+    .promo-type { font-size:.65rem;font-weight:800;text-transform:uppercase;letter-spacing:.06em;padding:2px 8px;border-radius:100px; }
+    .promo-type.volume { background:rgba(79,70,229,.1);color:var(--color-accent); }
+    .promo-type.seasonal { background:rgba(245,158,11,.1);color:var(--color-amber); }
+    .promo-type.buyer { background:rgba(16,185,129,.1);color:var(--color-emerald); }
+    .promo-detail { font-size:.78rem;color:var(--color-muted);margin-bottom:8px;line-height:1.5; }
+    .promo-meta { display:flex;gap:12px;font-size:.72rem;color:var(--color-muted); }
+    .promo-meta strong { color:var(--color-near-black); }
+  </style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<aside class="sidebar" id="sidebar">
+  <div class="sidebar__logo">
+    <a href="dashboard.html" class="logo-mark">
+      <span class="logo-icon" style="background:linear-gradient(135deg,#10b981,#059669);"><i class="fas fa-chevron-right"></i></span>
+      <span class="logo-word">BRND <span class="logo-accent">DIRECT</span></span>
+    </a>
+  </div>
+  <nav class="sidebar__nav">
+    <div class="nav-section">
+      <span class="nav-section-label">Brand HQ</span>
+      <a href="dashboard.html" class="nav-item"><i class="fas fa-table-columns"></i><span>Dashboard</span></a>
+      <a href="products.html" class="nav-item"><i class="fas fa-boxes-stacked"></i><span>Products</span></a>
+      <a href="orders.html" class="nav-item"><i class="fas fa-file-invoice"></i><span>Orders</span><span class="nav-badge">7</span></a>
+      <a href="analytics.html" class="nav-item"><i class="fas fa-chart-line"></i><span>Analytics</span></a>
+    </div>
+    <div class="nav-section">
+      <span class="nav-section-label">Brand Tools</span>
+      <a href="brand-hub.html" class="nav-item"><i class="fas fa-gem"></i><span>Brand Hub</span></a>
+      <a href="wholesale-pricing.html" class="nav-item active"><i class="fas fa-tags"></i><span>Wholesale Pricing</span></a>
+      <a href="payouts.html" class="nav-item"><i class="fas fa-wallet"></i><span>Payouts</span><span class="nav-badge new">!</span></a>
+    </div>
+    <div class="nav-section">
+      <span class="nav-section-label">Account</span>
+      <a href="messages.html" class="nav-item"><i class="fas fa-message"></i><span>Messages</span><span class="nav-badge">3</span></a>
+      <a href="account.html" class="nav-item"><i class="fas fa-gear"></i><span>Settings</span></a>
+      <a href="help.html" class="nav-item"><i class="fas fa-circle-question"></i><span>Help & Support</span></a>
+    </div>
+  </nav>
+  <div class="sidebar__bottom">
+    <div class="divider"></div>
+    <div class="sidebar__user">
+      <div class="sidebar__avatar" style="background:linear-gradient(135deg,#10b981,#059669);">AP</div>
+      <div class="sidebar__user-info"><div class="sidebar__user-name">Apex Apparel Co.</div><div class="sidebar__user-role">Brand Partner</div></div>
+      <a href="index.html" class="sidebar__user-logout" title="Sign out"><i class="fas fa-arrow-right-from-bracket"></i></a>
+    </div>
+  </div>
+</aside>
+<div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+<!-- TOPBAR -->
+<header class="topbar" id="topbar">
+  <div class="topbar__left">
+    <button class="topbar__mobile-toggle" id="sidebarToggle"><i class="fas fa-bars"></i></button>
+    <div><div class="topbar__title">Wholesale Pricing</div><div class="topbar__breadcrumb">Set tiers, volume discounts &amp; promotions</div></div>
+  </div>
+  <div class="topbar__right">
+    <div class="search-bar">
+      <i class="fas fa-magnifying-glass search-bar__icon"></i>
+      <input class="search-bar__input" type="text" placeholder="Search products…" />
+    </div>
+    <button class="topbar__btn" style="position:relative;"><i class="fas fa-bell"></i><span class="notif-dot"></span></button>
+    <a href="messages.html" class="topbar__btn"><i class="fas fa-message"></i></a>
+    <div class="topbar__avatar" style="background:linear-gradient(135deg,#10b981,#059669);">AP</div>
+  </div>
+</header>
+
+<!-- MAIN -->
+<main class="app-main">
+
+  <div class="page-header-bar fade-in">
+    <div><h1>Wholesale Pricing</h1><p class="page-header-sub">Configure pricing tiers, MOQ discounts and special buyer promotions</p></div>
+    <div style="display:flex;gap:10px;">
+      <button class="btn btn-outline" onclick="showToast('Price list exporting…','success')"><i class="fas fa-download"></i> Export Price List</button>
+      <button class="btn btn-primary" style="background:var(--seller-accent);" onclick="showToast('All prices saved!','success')"><i class="fas fa-save"></i> Save All Changes</button>
+    </div>
+  </div>
+
+  <!-- Volume Tiers -->
+  <div class="card mb-6 fade-in">
+    <div class="card__header"><span class="card__title">Volume Discount Tiers</span><span style="font-size:.78rem;color:var(--color-muted);">Automatically applied based on order quantity</span></div>
+    <div class="card__body">
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px;">
+        <div class="tier-card selected" onclick="selectTier(this)">
+          <div class="tier-header">
+            <div class="tier-icon" style="background:rgba(107,114,128,.1);color:var(--color-muted);"><i class="fas fa-box"></i></div>
+            <span class="tier-name">Standard</span>
+          </div>
+          <div class="tier-desc">Base wholesale rate for all orders below minimum volume</div>
+          <div class="tier-range"><strong>1 – 49</strong> units → <span class="tier-disc">0% off</span></div>
+          <div class="tier-range">Standard wholesale price</div>
+        </div>
+        <div class="tier-card" onclick="selectTier(this)">
+          <div class="tier-header">
+            <div class="tier-icon" style="background:rgba(79,70,229,.12);color:var(--color-accent);"><i class="fas fa-boxes-stacked"></i></div>
+            <span class="tier-name">Bronze</span>
+          </div>
+          <div class="tier-desc">Moderate volume discount for mid-size buyers</div>
+          <div class="tier-range"><strong>50 – 199</strong> units → <span class="tier-disc">5% off</span></div>
+          <div class="tier-range">Applied at checkout</div>
+        </div>
+        <div class="tier-card" onclick="selectTier(this)">
+          <div class="tier-header">
+            <div class="tier-icon" style="background:rgba(245,158,11,.12);color:var(--color-amber);"><i class="fas fa-star-half-stroke"></i></div>
+            <span class="tier-name">Silver</span>
+          </div>
+          <div class="tier-desc">Preferred buyer rate for high-volume repeat orders</div>
+          <div class="tier-range"><strong>200 – 499</strong> units → <span class="tier-disc">10% off</span></div>
+          <div class="tier-range">Auto-applied for qualifying orders</div>
+        </div>
+        <div class="tier-card" onclick="selectTier(this)">
+          <div class="tier-header">
+            <div class="tier-icon" style="background:rgba(16,185,129,.12);color:var(--color-emerald);"><i class="fas fa-crown"></i></div>
+            <span class="tier-name">Gold</span>
+          </div>
+          <div class="tier-desc">Top-tier exclusive pricing for strategic bulk buyers</div>
+          <div class="tier-range"><strong>500+</strong> units → <span class="tier-disc">15% off</span></div>
+          <div class="tier-range">Requires account approval</div>
+        </div>
+      </div>
+      <div style="display:flex;justify-content:flex-end;margin-top:16px;gap:10px;">
+        <button class="btn btn-outline" onclick="showToast('Custom tier form opening…','success')"><i class="fas fa-plus"></i> Add Custom Tier</button>
+        <button class="btn btn-primary" style="background:var(--seller-accent);" onclick="showToast('Tier settings saved.','success')"><i class="fas fa-save"></i> Save Tiers</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Product Prices -->
+  <div class="card mb-6 fade-in">
+    <div class="card__header">
+      <span class="card__title">Product Price Matrix</span>
+      <div style="display:flex;gap:8px;">
+        <select class="form-input" style="width:auto;font-size:.78rem;padding:6px 12px;" onchange="showToast('Filter applied.','success')"><option>All Products</option><option>Hoodies</option><option>Tees</option><option>Bottoms</option></select>
+      </div>
+    </div>
+    <div class="card__body" style="padding:0;">
+      <div style="display:grid;grid-template-columns:1fr repeat(4,80px);gap:0;padding:10px 20px;background:var(--color-off-white);font-size:.7rem;font-weight:800;text-transform:uppercase;letter-spacing:.06em;color:var(--color-muted);">
+        <span>Product</span><span style="text-align:right;">Standard</span><span style="text-align:right;">Bronze</span><span style="text-align:right;">Silver</span><span style="text-align:right;">Gold</span>
+      </div>
+      <div style="padding:0 20px;">
+        <div class="price-row">
+          <div class="price-product"><div class="price-product-name">Apex Classic Hoodie</div><div class="price-product-sku">APX-CHD-001 · MSRP $65</div></div>
+          <div class="price-inputs">
+            <div style="text-align:right;"><input type="number" class="form-input" value="18.50" /><div class="price-label">Standard</div></div>
+            <div style="text-align:right;"><input type="number" class="form-input" value="17.58" /><div class="price-label">Bronze</div></div>
+            <div style="text-align:right;"><input type="number" class="form-input" value="16.65" /><div class="price-label">Silver</div></div>
+            <div style="text-align:right;"><input type="number" class="form-input" value="15.73" /><div class="price-label">Gold</div></div>
+          </div>
+        </div>
+        <div class="price-row">
+          <div class="price-product"><div class="price-product-name">Premium Graphic Tee</div><div class="price-product-sku">APX-PGT-002 · MSRP $38</div></div>
+          <div class="price-inputs">
+            <div style="text-align:right;"><input type="number" class="form-input" value="12.00" /><div class="price-label">Standard</div></div>
+            <div style="text-align:right;"><input type="number" class="form-input" value="11.40" /><div class="price-label">Bronze</div></div>
+            <div style="text-align:right;"><input type="number" class="form-input" value="10.80" /><div class="price-label">Silver</div></div>
+            <div style="text-align:right;"><input type="number" class="form-input" value="10.20" /><div class="price-label">Gold</div></div>
+          </div>
+        </div>
+        <div class="price-row">
+          <div class="price-product"><div class="price-product-name">Performance Jogger Set</div><div class="price-product-sku">APX-PJS-004 · MSRP $75</div></div>
+          <div class="price-inputs">
+            <div style="text-align:right;"><input type="number" class="form-input" value="22.50" /><div class="price-label">Standard</div></div>
+            <div style="text-align:right;"><input type="number" class="form-input" value="21.38" /><div class="price-label">Bronze</div></div>
+            <div style="text-align:right;"><input type="number" class="form-input" value="20.25" /><div class="price-label">Silver</div></div>
+            <div style="text-align:right;"><input type="number" class="form-input" value="19.13" /><div class="price-label">Gold</div></div>
+          </div>
+        </div>
+        <div class="price-row">
+          <div class="price-product"><div class="price-product-name">Varsity Bomber Jacket</div><div class="price-product-sku">APX-VBJ-003 · MSRP $149</div></div>
+          <div class="price-inputs">
+            <div style="text-align:right;"><input type="number" class="form-input" value="42.00" /><div class="price-label">Standard</div></div>
+            <div style="text-align:right;"><input type="number" class="form-input" value="39.90" /><div class="price-label">Bronze</div></div>
+            <div style="text-align:right;"><input type="number" class="form-input" value="37.80" /><div class="price-label">Silver</div></div>
+            <div style="text-align:right;"><input type="number" class="form-input" value="35.70" /><div class="price-label">Gold</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Promotions -->
+  <div class="card fade-in">
+    <div class="card__header">
+      <span class="card__title">Active Promotions</span>
+      <button class="btn btn-primary" style="background:var(--seller-accent);font-size:.78rem;" onclick="showToast('New promotion form opening…','success')"><i class="fas fa-plus"></i> New Promo</button>
+    </div>
+    <div class="card__body">
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:14px;">
+        <div class="promo-card">
+          <div class="promo-header"><span class="promo-name">Spring Kickoff Bundle</span><span class="promo-type volume">Volume</span></div>
+          <div class="promo-detail">Buy 300+ units of any Spring collection item and receive an additional 8% off. Valid for all verified buyers.</div>
+          <div class="promo-meta"><span>Ends: <strong>Apr 15, 2026</strong></span><span>Uses: <strong>12/50</strong></span></div>
+          <div style="display:flex;gap:8px;margin-top:10px;">
+            <button class="btn btn-outline" style="flex:1;font-size:.72rem;" onclick="showToast('Editing promo…','success')"><i class="fas fa-pencil"></i> Edit</button>
+            <button class="btn btn-outline" style="font-size:.72rem;color:var(--color-rose);border-color:var(--color-rose);" onclick="showToast('Promo deactivated.','error')"><i class="fas fa-pause"></i></button>
+          </div>
+        </div>
+        <div class="promo-card">
+          <div class="promo-header"><span class="promo-name">New Buyer Welcome Discount</span><span class="promo-type buyer">Buyer</span></div>
+          <div class="promo-detail">First-time buyers receive 12% off their first order on any product. Applied automatically at checkout.</div>
+          <div class="promo-meta"><span>Ongoing</span><span>Uses: <strong>18 buyers</strong></span></div>
+          <div style="display:flex;gap:8px;margin-top:10px;">
+            <button class="btn btn-outline" style="flex:1;font-size:.72rem;" onclick="showToast('Editing promo…','success')"><i class="fas fa-pencil"></i> Edit</button>
+            <button class="btn btn-outline" style="font-size:.72rem;color:var(--color-rose);border-color:var(--color-rose);" onclick="showToast('Promo deactivated.','error')"><i class="fas fa-pause"></i></button>
+          </div>
+        </div>
+        <div class="promo-card" style="border-style:dashed;cursor:pointer;" onclick="showToast('New promotion form opening…','success')">
+          <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;min-height:100px;gap:8px;color:var(--color-muted);">
+            <i class="fas fa-plus" style="font-size:1.4rem;"></i>
+            <span style="font-size:.82rem;font-weight:600;">Create Promotion</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</main>
+
+<div class="toast-container" id="toastContainer"></div>
+<script src="js/portal.js"></script>
+<script>
+  function selectTier(card) {
+    document.querySelectorAll('.tier-card').forEach(c => c.classList.remove('selected'));
+    card.classList.add('selected');
+    showToast('Tier selected. Remember to save changes.', 'success');
+  }
+
+  function showToast(msg, type = 'success') {
+    const c = document.getElementById('toastContainer');
+    const icon = type === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle';
+    const t = document.createElement('div'); t.className = `toast ${type}`;
+    t.innerHTML = `<i class="fas ${icon}"></i><span>${msg}</span>`;
+    c.appendChild(t);
+    setTimeout(() => { t.style.opacity='0'; t.style.transform='translateX(60px)'; t.style.transition='all .3s'; setTimeout(() => t.remove(), 350); }, 3500);
+  }
+</script>
+</body>
+</html>

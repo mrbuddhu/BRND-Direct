@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Messages – BRND Direct Brand Portal</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&family=Inter:wght@300;400;500;600;700&family=Outfit:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.5.0/css/all.min.css" />
+  <link rel="stylesheet" href="css/portal.css" />
+  <style>
+    :root { --seller-accent:#10b981; }
+    .sidebar { background:linear-gradient(180deg,#0d1a14 0%,#0f1f18 40%,#111a15 100%); }
+    .sidebar .nav-item.active { background:rgba(16,185,129,.15);color:#34d399;border-left-color:#10b981; }
+    .sidebar .nav-item:hover { background:rgba(16,185,129,.08); }
+    .sidebar .nav-badge { background:var(--seller-accent); }
+    .sidebar .nav-badge.new { background:#f59e0b; }
+
+    .msg-layout { display:grid;grid-template-columns:300px 1fr;gap:0;border:1.5px solid var(--color-border);border-radius:var(--radius-md);overflow:hidden;background:white;height:calc(100vh - 180px);min-height:500px; }
+    .msg-list { border-right:1.5px solid var(--color-border);overflow-y:auto;display:flex;flex-direction:column; }
+    .msg-list-header { padding:16px;border-bottom:1px solid var(--color-border);display:flex;align-items:center;gap:10px; }
+    .msg-search { flex:1;display:flex;align-items:center;gap:8px;background:var(--color-off-white);border-radius:var(--radius-sm);padding:6px 10px; }
+    .msg-search input { border:none;background:none;outline:none;font-size:.8rem;width:100%; }
+    .conv-item { padding:14px 16px;cursor:pointer;border-bottom:1px solid var(--color-border);transition:background .15s;display:flex;gap:10px;align-items:flex-start; }
+    .conv-item:hover { background:rgba(16,185,129,.04); }
+    .conv-item.active { background:rgba(16,185,129,.08);border-left:3px solid var(--seller-accent); }
+    .conv-avatar { width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:.82rem;font-weight:800;color:white;flex-shrink:0; }
+    .conv-info { flex:1;min-width:0; }
+    .conv-name { font-size:.84rem;font-weight:700;color:var(--color-near-black);white-space:nowrap;overflow:hidden;text-overflow:ellipsis; }
+    .conv-preview { font-size:.75rem;color:var(--color-muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:2px; }
+    .conv-time { font-size:.68rem;color:var(--color-muted);flex-shrink:0; }
+    .conv-unread { width:8px;height:8px;border-radius:50%;background:var(--seller-accent);margin-top:4px;flex-shrink:0; }
+
+    .msg-window { display:flex;flex-direction:column; }
+    .msg-window-header { padding:16px 20px;border-bottom:1px solid var(--color-border);display:flex;align-items:center;gap:12px; }
+    .msg-window-body { flex:1;overflow-y:auto;padding:20px;display:flex;flex-direction:column;gap:14px;background:#fafafa; }
+    .msg-window-footer { padding:12px 16px;border-top:1px solid var(--color-border);display:flex;align-items:center;gap:10px; }
+    .msg-input { flex:1;border:1.5px solid var(--color-border);border-radius:var(--radius-sm);padding:10px 14px;font-size:.875rem;font-family:var(--font-sans);outline:none;resize:none;transition:border-color .18s; }
+    .msg-input:focus { border-color:var(--seller-accent); }
+    .msg-send-btn { width:42px;height:42px;border-radius:var(--radius-sm);background:var(--seller-accent);color:white;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background .18s; }
+    .msg-send-btn:hover { background:#059669; }
+
+    .bubble { max-width:72%;padding:10px 14px;border-radius:16px;font-size:.875rem;line-height:1.55;position:relative; }
+    .bubble--them { background:white;border:1.5px solid var(--color-border);border-radius:4px 16px 16px 16px;align-self:flex-start; }
+    .bubble--me { background:var(--seller-accent);color:white;border-radius:16px 4px 16px 16px;align-self:flex-end; }
+    .bubble-time { font-size:.65rem;opacity:.6;margin-top:4px;text-align:right; }
+    .bubble--them .bubble-time { color:var(--color-muted); }
+    .msg-date-sep { text-align:center;font-size:.7rem;color:var(--color-muted);padding:4px 0; }
+
+    @media (max-width:768px) { .msg-layout { grid-template-columns:1fr; height:auto; } .msg-list { max-height:300px; } }
+  </style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<aside class="sidebar" id="sidebar">
+  <div class="sidebar__logo">
+    <a href="dashboard.html" class="logo-mark">
+      <span class="logo-icon" style="background:linear-gradient(135deg,#10b981,#059669);"><i class="fas fa-chevron-right"></i></span>
+      <span class="logo-word">BRND <span class="logo-accent">DIRECT</span></span>
+    </a>
+  </div>
+  <nav class="sidebar__nav">
+    <div class="nav-section">
+      <span class="nav-section-label">Brand HQ</span>
+      <a href="dashboard.html" class="nav-item"><i class="fas fa-table-columns"></i><span>Dashboard</span></a>
+      <a href="products.html" class="nav-item"><i class="fas fa-boxes-stacked"></i><span>Products</span></a>
+      <a href="orders.html" class="nav-item"><i class="fas fa-file-invoice"></i><span>Orders</span><span class="nav-badge">7</span></a>
+      <a href="analytics.html" class="nav-item"><i class="fas fa-chart-line"></i><span>Analytics</span></a>
+    </div>
+    <div class="nav-section">
+      <span class="nav-section-label">Brand Tools</span>
+      <a href="brand-hub.html" class="nav-item"><i class="fas fa-gem"></i><span>Brand Hub</span></a>
+      <a href="wholesale-pricing.html" class="nav-item"><i class="fas fa-tags"></i><span>Wholesale Pricing</span></a>
+      <a href="payouts.html" class="nav-item"><i class="fas fa-wallet"></i><span>Payouts</span><span class="nav-badge new">!</span></a>
+    </div>
+    <div class="nav-section">
+      <span class="nav-section-label">Account</span>
+      <a href="messages.html" class="nav-item active"><i class="fas fa-message"></i><span>Messages</span><span class="nav-badge">3</span></a>
+      <a href="account.html" class="nav-item"><i class="fas fa-gear"></i><span>Settings</span></a>
+      <a href="help.html" class="nav-item"><i class="fas fa-circle-question"></i><span>Help & Support</span></a>
+    </div>
+  </nav>
+  <div class="sidebar__bottom">
+    <div class="divider"></div>
+    <div class="sidebar__user">
+      <div class="sidebar__avatar" style="background:linear-gradient(135deg,#10b981,#059669);">AP</div>
+      <div class="sidebar__user-info"><div class="sidebar__user-name">Apex Apparel Co.</div><div class="sidebar__user-role">Brand Partner</div></div>
+      <a href="index.html" class="sidebar__user-logout" title="Sign out"><i class="fas fa-arrow-right-from-bracket"></i></a>
+    </div>
+  </div>
+</aside>
+<div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+<!-- TOPBAR -->
+<header class="topbar" id="topbar">
+  <div class="topbar__left">
+    <button class="topbar__mobile-toggle" id="sidebarToggle"><i class="fas fa-bars"></i></button>
+    <div><div class="topbar__title">Messages</div><div class="topbar__breadcrumb">Buyer communications</div></div>
+  </div>
+  <div class="topbar__right">
+    <button class="topbar__btn" style="position:relative;"><i class="fas fa-bell"></i><span class="notif-dot"></span></button>
+    <div class="topbar__avatar" style="background:linear-gradient(135deg,#10b981,#059669);">AP</div>
+  </div>
+</header>
+
+<!-- MAIN -->
+<main class="app-main" style="padding-bottom:16px;">
+  <div class="page-header-bar fade-in" style="margin-bottom:16px;">
+    <div><h1>Messages</h1><p class="page-header-sub">3 unread · Direct buyer communications</p></div>
+    <button class="btn btn-primary" style="background:var(--seller-accent);" onclick="showToast('New conversation started.','success')"><i class="fas fa-plus"></i> New Message</button>
+  </div>
+
+  <div class="msg-layout fade-in">
+    <!-- Conversation List -->
+    <div class="msg-list">
+      <div class="msg-list-header">
+        <div class="msg-search">
+          <i class="fas fa-magnifying-glass" style="color:var(--color-muted);font-size:.8rem;"></i>
+          <input type="text" placeholder="Search buyers…" />
+        </div>
+      </div>
+
+      <div class="conv-item active" onclick="loadConv(this,'SportZone Retail','SR','rgba(16,185,129,.15)','#10b981')">
+        <div class="conv-avatar" style="background:linear-gradient(135deg,#10b981,#059669);">SR</div>
+        <div class="conv-info">
+          <div class="conv-name">SportZone Retail</div>
+          <div class="conv-preview">Can you confirm the shipment date for WO-4521?</div>
+        </div>
+        <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;">
+          <span class="conv-time">2m</span>
+          <span class="conv-unread"></span>
+        </div>
+      </div>
+      <div class="conv-item" onclick="loadConv(this,'Urban Threads Co.','UT','rgba(79,70,229,.15)','#6366f1')">
+        <div class="conv-avatar" style="background:linear-gradient(135deg,#6366f1,#4f46e5);">UT</div>
+        <div class="conv-info">
+          <div class="conv-name">Urban Threads Co.</div>
+          <div class="conv-preview">We'd like to order the new collection early access…</div>
+        </div>
+        <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;">
+          <span class="conv-time">1h</span>
+          <span class="conv-unread"></span>
+        </div>
+      </div>
+      <div class="conv-item" onclick="loadConv(this,'Boutique District','BD','rgba(244,63,94,.15)','#f43f5e')">
+        <div class="conv-avatar" style="background:linear-gradient(135deg,#f43f5e,#e11d48);">BD</div>
+        <div class="conv-info">
+          <div class="conv-name">Boutique District</div>
+          <div class="conv-preview">About the MAP issue — we're looking into it right away</div>
+        </div>
+        <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;">
+          <span class="conv-time">3h</span>
+          <span class="conv-unread"></span>
+        </div>
+      </div>
+      <div class="conv-item" onclick="loadConv(this,'FashionForward LLC','FF','rgba(245,158,11,.15)','#f59e0b')">
+        <div class="conv-avatar" style="background:linear-gradient(135deg,#f59e0b,#d97706);">FF</div>
+        <div class="conv-info">
+          <div class="conv-name">FashionForward LLC</div>
+          <div class="conv-preview">Thanks for the fast delivery on WO-4518!</div>
+        </div>
+        <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;">
+          <span class="conv-time">1d</span>
+        </div>
+      </div>
+      <div class="conv-item" onclick="loadConv(this,'TrendSetters Inc.','TS','rgba(14,165,233,.15)','#0ea5e9')">
+        <div class="conv-avatar" style="background:linear-gradient(135deg,#0ea5e9,#0284c7);">TS</div>
+        <div class="conv-info">
+          <div class="conv-name">TrendSetters Inc.</div>
+          <div class="conv-preview">Do you offer customized labeling for bulk orders?</div>
+        </div>
+        <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;">
+          <span class="conv-time">2d</span>
+        </div>
+      </div>
+      <div class="conv-item" onclick="loadConv(this,'BRND Direct Support','BD2','rgba(79,70,229,.15)','#4f46e5')">
+        <div class="conv-avatar" style="background:linear-gradient(135deg,#4f46e5,#3730a3);"><i class="fas fa-headset" style="font-size:.75rem;"></i></div>
+        <div class="conv-info">
+          <div class="conv-name">BRND Direct Support</div>
+          <div class="conv-preview">Your new product listing has been approved.</div>
+        </div>
+        <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;">
+          <span class="conv-time">3d</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Chat Window -->
+    <div class="msg-window">
+      <div class="msg-window-header">
+        <div class="conv-avatar" id="activeAvatar" style="background:linear-gradient(135deg,#10b981,#059669);">SR</div>
+        <div style="flex:1;">
+          <div style="font-size:.92rem;font-weight:700;" id="activeName">SportZone Retail</div>
+          <div style="font-size:.72rem;color:var(--color-muted);">Wholesale Buyer · Los Angeles, CA</div>
+        </div>
+        <div style="display:flex;gap:8px;">
+          <button class="btn btn-outline" style="font-size:.75rem;padding:5px 10px;" onclick="showToast('Viewing buyer profile…','success')"><i class="fas fa-user"></i> Profile</button>
+          <button class="btn btn-outline" style="font-size:.75rem;padding:5px 10px;" onclick="showToast('Viewing order WO-4521…','success')"><i class="fas fa-file-invoice"></i> WO-4521</button>
+        </div>
+      </div>
+
+      <div class="msg-window-body" id="msgBody">
+        <div class="msg-date-sep">Mar 22, 2026</div>
+        <div class="bubble bubble--them">
+          Hi! We placed order WO-4521 yesterday for 250 units. Can we get a confirmed ship date?
+          <div class="bubble-time">9:04 AM</div>
+        </div>
+        <div class="bubble bubble--me">
+          Hi SportZone! Thanks for your order. We're processing it now and expect to ship by March 25th via FedEx Ground. You'll receive a tracking number as soon as it's dispatched.
+          <div class="bubble-time">9:22 AM</div>
+        </div>
+        <div class="bubble bubble--them">
+          That's great, thank you! Will all 3 SKUs ship together or separately?
+          <div class="bubble-time">9:31 AM</div>
+        </div>
+        <div class="bubble bubble--me">
+          All 3 SKUs will ship together in one consolidated shipment from our Dallas warehouse. 📦
+          <div class="bubble-time">9:45 AM</div>
+        </div>
+        <div class="msg-date-sep">Today</div>
+        <div class="bubble bubble--them">
+          Perfect! One more question — can you confirm the shipment date for WO-4521? We have a store event on Mar 29 and need to make sure it arrives in time.
+          <div class="bubble-time">8:02 AM</div>
+        </div>
+      </div>
+
+      <div class="msg-window-footer">
+        <button class="btn btn-outline" style="padding:9px 11px;" onclick="showToast('Attachment upload ready.','success')"><i class="fas fa-paperclip"></i></button>
+        <textarea class="msg-input" id="msgInput" rows="1" placeholder="Type a message…" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendMsg();}"></textarea>
+        <button class="msg-send-btn" onclick="sendMsg()"><i class="fas fa-paper-plane"></i></button>
+      </div>
+    </div>
+  </div>
+</main>
+
+<div class="toast-container" id="toastContainer"></div>
+<script src="js/portal.js"></script>
+<script>
+  function loadConv(el, name, initials, bg, color) {
+    document.querySelectorAll('.conv-item').forEach(c => c.classList.remove('active'));
+    el.classList.add('active');
+    // Remove unread dot
+    const dot = el.querySelector('.conv-unread');
+    if (dot) dot.remove();
+    document.getElementById('activeName').textContent = name;
+    const av = document.getElementById('activeAvatar');
+    av.textContent = initials;
+    av.style.background = `linear-gradient(135deg,${color},${color}cc)`;
+    showToast('Opened conversation with ' + name, 'success');
+  }
+
+  function sendMsg() {
+    const inp = document.getElementById('msgInput');
+    const txt = inp.value.trim();
+    if (!txt) return;
+    const body = document.getElementById('msgBody');
+    const bubble = document.createElement('div');
+    bubble.className = 'bubble bubble--me';
+    bubble.innerHTML = txt + '<div class="bubble-time">' + new Date().toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'}) + '</div>';
+    body.appendChild(bubble);
+    body.scrollTop = body.scrollHeight;
+    inp.value = '';
+    inp.style.height = 'auto';
+    // Simulate reply
+    setTimeout(() => {
+      const reply = document.createElement('div');
+      reply.className = 'bubble bubble--them';
+      reply.innerHTML = 'Thanks for the quick response! We appreciate your support. 👍<div class="bubble-time">' + new Date().toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'}) + '</div>';
+      body.appendChild(reply);
+      body.scrollTop = body.scrollHeight;
+    }, 1800);
+  }
+
+  function showToast(msg, type = 'success') {
+    const c = document.getElementById('toastContainer');
+    const icon = type === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle';
+    const t = document.createElement('div'); t.className = `toast ${type}`;
+    t.innerHTML = `<i class="fas ${icon}"></i><span>${msg}</span>`;
+    c.appendChild(t);
+    setTimeout(() => { t.style.opacity='0'; t.style.transform='translateX(60px)'; t.style.transition='all .3s'; setTimeout(() => t.remove(), 350); }, 3500);
+  }
+
+  // Auto-resize textarea
+  document.getElementById('msgInput').addEventListener('input', function() {
+    this.style.height = 'auto';
+    this.style.height = Math.min(this.scrollHeight, 120) + 'px';
+  });
+</script>
+</body>
+</html>

@@ -1,0 +1,2369 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Shipping & Logistics – BRND Direct Portal</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&family=Inter:wght@300;400;500;600;700&family=Outfit:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.5.0/css/all.min.css" />
+  <link rel="stylesheet" href="css/portal.css" />
+  <script src="js/auth-guard.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <style>
+    /* ═══════════════════════════════════════════
+       PAGE-LEVEL TABS (Shipments / Book / Track / Documents)
+    ═══════════════════════════════════════════ */
+    .sl-page-tabs {
+      display: flex;
+      gap: 0;
+      border-bottom: 2px solid var(--color-border);
+      margin-bottom: 28px;
+      overflow-x: auto;
+    }
+    .sl-page-tab {
+      padding: 13px 22px;
+      font-size: .875rem;
+      font-weight: 700;
+      cursor: pointer;
+      border: none;
+      background: transparent;
+      color: var(--color-muted);
+      border-bottom: 3px solid transparent;
+      margin-bottom: -2px;
+      transition: all .18s;
+      font-family: var(--font-sans);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      white-space: nowrap;
+    }
+    .sl-page-tab:hover { color: var(--color-near-black); }
+    .sl-page-tab.active { color: var(--color-accent); border-bottom-color: var(--color-accent); }
+    .sl-page-tab .sl-tab-badge {
+      background: var(--color-accent);
+      color: #fff;
+      font-size: .6rem;
+      font-weight: 800;
+      padding: 2px 7px;
+      border-radius: 20px;
+    }
+    .sl-section { display: none; }
+    .sl-section.active { display: block; animation: slFadeIn .22s ease; }
+    @keyframes slFadeIn { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:translateY(0); } }
+
+    /* ═══════════════════════════════════════════
+       KPI STRIP
+    ═══════════════════════════════════════════ */
+    .sl-kpi-strip {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 14px;
+      margin-bottom: 24px;
+    }
+    @media(max-width:1100px){ .sl-kpi-strip { grid-template-columns: repeat(3,1fr); } }
+    @media(max-width:640px)  { .sl-kpi-strip { grid-template-columns: repeat(2,1fr); } }
+    .sl-kpi {
+      background: #fff;
+      border: 1.5px solid var(--color-border);
+      border-radius: var(--radius-md);
+      padding: 18px 16px;
+    }
+    .sl-kpi__icon {
+      width: 36px; height: 36px;
+      border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: .85rem;
+      margin-bottom: 10px;
+    }
+    .sl-kpi__val { font-family: var(--font-display); font-size: 1.55rem; font-weight: 900; letter-spacing: -.04em; color: var(--color-near-black); line-height: 1; }
+    .sl-kpi__label { font-size: .68rem; font-weight: 700; text-transform: uppercase; letter-spacing: .07em; color: var(--color-muted); margin-top: 4px; }
+    .sl-kpi__change { font-size: .72rem; font-weight: 600; margin-top: 4px; }
+    .chg-up   { color: #059669; }
+    .chg-down { color: #dc2626; }
+    .chg-neu  { color: var(--color-muted); }
+
+    /* ═══════════════════════════════════════════
+       SHIPMENT CARDS
+    ═══════════════════════════════════════════ */
+    .shipment-card {
+      background: #fff;
+      border: 1.5px solid var(--color-border);
+      border-radius: var(--radius-md);
+      overflow: hidden;
+      transition: box-shadow .18s, border-color .18s;
+      margin-bottom: 14px;
+    }
+    .shipment-card:hover { border-color: var(--color-accent); box-shadow: 0 4px 18px rgba(79,70,229,.1); }
+    .shipment-card__head {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      padding: 16px 20px;
+      cursor: pointer;
+      flex-wrap: wrap;
+    }
+    .shipment-card__carrier-logo {
+      width: 48px; height: 32px;
+      border-radius: 6px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: .55rem; font-weight: 900; letter-spacing: .05em;
+      color: #fff; flex-shrink: 0;
+    }
+    .shipment-card__main { flex: 1; min-width: 0; }
+    .shipment-card__id { font-size: .82rem; font-weight: 800; font-family: monospace; color: var(--color-accent); }
+    .shipment-card__desc { font-size: .875rem; font-weight: 700; color: var(--color-near-black); margin-top: 2px; }
+    .shipment-card__meta { font-size: .72rem; color: var(--color-muted); margin-top: 2px; }
+    .shipment-card__right { display: flex; align-items: center; gap: 12px; flex-shrink: 0; flex-wrap: wrap; }
+    .shipment-card__body { border-top: 1px solid var(--color-border); padding: 0 20px; display: none; }
+    .shipment-card__body.open { display: block; padding: 20px; }
+
+    /* Progress tracker */
+    .shipment-progress {
+      display: flex;
+      align-items: flex-start;
+      gap: 0;
+      margin: 4px 0 20px;
+      overflow-x: auto;
+      padding-bottom: 4px;
+    }
+    .sp-step {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+      flex: 1;
+      min-width: 80px;
+      position: relative;
+    }
+    .sp-step::before {
+      content: '';
+      position: absolute;
+      top: 15px;
+      left: calc(-50% + 15px);
+      right: calc(50% + 15px);
+      height: 2px;
+      background: var(--color-border);
+      z-index: 0;
+    }
+    .sp-step:first-child::before { display: none; }
+    .sp-step.done::before  { background: var(--color-emerald); }
+    .sp-step.active::before { background: linear-gradient(to right, var(--color-emerald), var(--color-accent)); }
+    .sp-dot {
+      width: 30px; height: 30px;
+      border-radius: 50%;
+      border: 2px solid var(--color-border);
+      background: #fff;
+      display: flex; align-items: center; justify-content: center;
+      font-size: .7rem;
+      z-index: 1;
+      position: relative;
+      transition: all .2s;
+    }
+    .sp-step.done .sp-dot   { background: var(--color-emerald); border-color: var(--color-emerald); color: #fff; }
+    .sp-step.active .sp-dot { background: var(--color-accent);  border-color: var(--color-accent);  color: #fff; box-shadow: 0 0 0 4px rgba(79,70,229,.15); }
+    .sp-label { font-size: .65rem; font-weight: 700; color: var(--color-muted); text-align: center; text-transform: uppercase; letter-spacing: .04em; }
+    .sp-step.done .sp-label   { color: var(--color-emerald); }
+    .sp-step.active .sp-label { color: var(--color-accent); }
+    .sp-date { font-size: .62rem; color: var(--color-muted); text-align: center; }
+
+    /* Detail grid inside card */
+    .shipment-detail-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 16px;
+      margin-bottom: 20px;
+    }
+    @media(max-width:768px){ .shipment-detail-grid { grid-template-columns: repeat(2,1fr); } }
+    .sdg-item__label { font-size: .65rem; font-weight: 800; text-transform: uppercase; letter-spacing: .07em; color: var(--color-muted); margin-bottom: 4px; }
+    .sdg-item__val { font-size: .875rem; font-weight: 700; color: var(--color-near-black); }
+
+    /* Action buttons in card */
+    .shipment-actions { display: flex; gap: 8px; flex-wrap: wrap; padding-top: 16px; border-top: 1px solid var(--color-border); }
+
+    /* ═══════════════════════════════════════════
+       BOOK NEW SHIPMENT — MULTI-STEP WIZARD
+    ═══════════════════════════════════════════ */
+    .book-layout {
+      display: grid;
+      grid-template-columns: 1fr 340px;
+      gap: 24px;
+      align-items: start;
+    }
+    @media(max-width:1050px){ .book-layout { grid-template-columns: 1fr; } }
+
+    /* Wizard steps bar */
+    .wizard-steps {
+      display: flex;
+      align-items: center;
+      background: #fff;
+      border: 1.5px solid var(--color-border);
+      border-radius: var(--radius-md);
+      padding: 16px 24px;
+      margin-bottom: 24px;
+    }
+    .wz-step {
+      display: flex; align-items: center; gap: 10px;
+      font-size: .8rem; font-weight: 600; color: var(--color-muted); flex: 1;
+    }
+    .wz-dot {
+      width: 32px; height: 32px; border-radius: 50%;
+      border: 2px solid var(--color-border);
+      background: var(--color-off-white);
+      display: flex; align-items: center; justify-content: center;
+      font-size: .78rem; font-weight: 800;
+      transition: all .22s; flex-shrink: 0;
+    }
+    .wz-step.active .wz-dot  { background: var(--color-accent); border-color: var(--color-accent); color: #fff; }
+    .wz-step.done .wz-dot    { background: var(--color-emerald); border-color: var(--color-emerald); color: #fff; }
+    .wz-step.active { color: var(--color-near-black); }
+    .wz-step.done   { color: var(--color-emerald); }
+    .wz-step__label small { font-size: .62rem; color: var(--color-muted); display: block; font-weight: 400; }
+    .wz-line { flex: 1; height: 2px; background: var(--color-border); margin: 0 10px; }
+    .wz-line.done { background: var(--color-emerald); }
+
+    /* Wizard panels */
+    .wz-panel { display: none; }
+    .wz-panel.active { display: block; animation: slFadeIn .2s ease; }
+
+    /* Form components */
+    .sl-form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    @media(max-width:600px){ .sl-form-grid { grid-template-columns: 1fr; } }
+    .sl-form-group { display: flex; flex-direction: column; gap: 5px; }
+    .sl-form-group label { font-size: .7rem; font-weight: 800; text-transform: uppercase; letter-spacing: .07em; color: var(--color-muted); }
+    .sl-form-group input,
+    .sl-form-group select,
+    .sl-form-group textarea {
+      padding: 10px 13px;
+      border: 1.5px solid var(--color-border);
+      border-radius: var(--radius-sm);
+      font-family: var(--font-sans);
+      font-size: .875rem;
+      color: var(--color-near-black);
+      background: #fff;
+      transition: border-color .18s;
+      outline: none;
+      width: 100%;
+      box-sizing: border-box;
+    }
+    .sl-form-group input:focus,
+    .sl-form-group select:focus,
+    .sl-form-group textarea:focus { border-color: var(--color-accent); }
+    .sl-form-group.span2 { grid-column: span 2; }
+    @media(max-width:600px){ .sl-form-group.span2 { grid-column: span 1; } }
+
+    /* Section headings inside form */
+    .form-section-head {
+      font-size: .7rem; font-weight: 800; text-transform: uppercase;
+      letter-spacing: .08em; color: var(--color-muted);
+      border-bottom: 1.5px solid var(--color-border);
+      padding-bottom: 8px;
+      margin-bottom: 16px;
+      grid-column: span 2;
+      display: flex; align-items: center; gap: 8px;
+    }
+    @media(max-width:600px){ .form-section-head { grid-column: span 1; } }
+
+    /* Package rows */
+    .pkg-row {
+      display: grid;
+      grid-template-columns: 1fr 80px 80px 80px 80px 36px;
+      gap: 8px;
+      align-items: center;
+      padding: 10px 0;
+      border-bottom: 1px solid var(--color-off-white);
+    }
+    .pkg-row:last-child { border-bottom: none; }
+    .pkg-row input { padding: 8px 10px; font-size: .82rem; }
+    @media(max-width:700px){ .pkg-row { grid-template-columns: 1fr 1fr 1fr; } }
+
+    /* Rate cards */
+    .rate-card {
+      border: 1.5px solid var(--color-border);
+      border-radius: var(--radius-md);
+      padding: 16px 18px;
+      cursor: pointer;
+      transition: all .18s;
+      background: #fff;
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+    .rate-card:hover { border-color: var(--color-accent); background: var(--color-accent-glow); }
+    .rate-card.selected { border-color: var(--color-accent); background: var(--color-accent-glow); }
+    .rate-card input[type="radio"] { display: none; }
+    .rate-card__carrier {
+      width: 52px; height: 34px; border-radius: 6px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: .55rem; font-weight: 900; color: #fff;
+      letter-spacing: .05em; flex-shrink: 0;
+    }
+    .rate-card__info { flex: 1; min-width: 0; }
+    .rate-card__name { font-size: .875rem; font-weight: 800; color: var(--color-near-black); }
+    .rate-card__service { font-size: .72rem; color: var(--color-muted); margin-top: 2px; }
+    .rate-card__transit { font-size: .72rem; font-weight: 600; color: var(--color-near-black); }
+    .rate-card__price { font-family: var(--font-display); font-size: 1.25rem; font-weight: 900; color: var(--color-accent); text-align: right; }
+    .rate-card__price small { font-size: .65rem; color: var(--color-muted); display: block; font-weight: 400; font-family: var(--font-sans); }
+    .rate-card__badge {
+      font-size: .6rem; font-weight: 800; padding: 3px 8px; border-radius: 20px;
+      text-transform: uppercase; letter-spacing: .04em;
+    }
+    .badge-best  { background: #d1fae5; color: #065f46; }
+    .badge-fast  { background: #dbeafe; color: #1e40af; }
+    .badge-eco   { background: #fef3c7; color: #92400e; }
+    .badge-freight { background: #f3f4f6; color: #374151; }
+
+    /* Provider cards (Flexport / Uber Freight) */
+    .provider-banner {
+      border: 1.5px solid var(--color-border);
+      border-radius: var(--radius-md);
+      padding: 18px 20px;
+      display: flex; align-items: center; gap: 16px;
+      background: #fff;
+      margin-bottom: 12px;
+    }
+    .provider-banner__logo {
+      width: 56px; height: 36px; border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: .65rem; font-weight: 900; color: #fff;
+      letter-spacing: .04em; flex-shrink: 0;
+    }
+    .provider-banner__info { flex: 1; min-width: 0; }
+    .provider-banner__name { font-size: .92rem; font-weight: 800; color: var(--color-near-black); }
+    .provider-banner__desc { font-size: .75rem; color: var(--color-muted); margin-top: 3px; line-height: 1.5; }
+    .provider-banner__chips { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 8px; }
+    .provider-chip {
+      font-size: .65rem; font-weight: 700;
+      padding: 3px 9px; border-radius: 20px;
+      background: var(--color-off-white);
+      border: 1px solid var(--color-border);
+      color: var(--color-muted);
+    }
+
+    /* Booking summary sidebar */
+    .book-summary {
+      background: #fff;
+      border: 1.5px solid var(--color-border);
+      border-radius: var(--radius-md);
+      overflow: hidden;
+      position: sticky;
+      top: 84px;
+    }
+    .book-summary__head { background: var(--color-near-black); color: #fff; padding: 16px 20px; }
+    .book-summary__head h3 { font-family: var(--font-display); font-size:.95rem; font-weight:800; }
+    .book-summary__head p { font-size:.7rem; opacity:.6; margin-top:2px; }
+    .book-summary__body { padding: 16px 20px; }
+    .bsum-row { display: flex; justify-content: space-between; align-items: flex-start; padding: 8px 0; border-bottom: 1px solid var(--color-off-white); font-size: .82rem; gap: 8px; }
+    .bsum-row:last-child { border-bottom: none; }
+    .bsum-row__label { color: var(--color-muted); font-size: .75rem; flex-shrink: 0; }
+    .bsum-row__val { font-weight: 700; color: var(--color-near-black); text-align: right; }
+    .bsum-total { border-top: 2px solid var(--color-near-black); margin-top: 6px; padding-top: 12px; display: flex; justify-content: space-between; font-family: var(--font-display); font-size: 1rem; font-weight: 900; }
+    .bsum-total span:last-child { color: var(--color-accent); }
+
+    /* ═══════════════════════════════════════════
+       TRACKING SECTION
+    ═══════════════════════════════════════════ */
+    .track-search-bar {
+      display: flex; gap: 10px; align-items: center;
+      background: #fff; border: 1.5px solid var(--color-border);
+      border-radius: var(--radius-md); padding: 14px 18px;
+      margin-bottom: 24px;
+    }
+    .track-search-bar input {
+      flex: 1; border: none; outline: none;
+      font-family: var(--font-sans); font-size: .95rem;
+      color: var(--color-near-black);
+      font-weight: 600; letter-spacing: .04em;
+    }
+    .track-search-bar input::placeholder { font-weight: 400; letter-spacing: 0; color: var(--color-muted); }
+
+    .tracking-panel {
+      background: #fff; border: 1.5px solid var(--color-border);
+      border-radius: var(--radius-md); overflow: hidden;
+    }
+    .tracking-hero {
+      background: linear-gradient(135deg, #0f172a, #1e1b4b);
+      color: #fff; padding: 24px 28px;
+      display: flex; align-items: center; justify-content: space-between;
+      gap: 16px; flex-wrap: wrap;
+    }
+    .tracking-hero__num { font-family: monospace; font-size: 1.05rem; font-weight: 700; opacity: .8; }
+    .tracking-hero__carrier { font-family: var(--font-display); font-size: 1.4rem; font-weight: 900; letter-spacing: -.02em; }
+    .tracking-hero__route { font-size: .82rem; opacity: .7; margin-top: 4px; }
+    .tracking-hero__status { text-align: right; }
+    .tracking-hero__status-badge {
+      display: inline-block; padding: 6px 16px; border-radius: 20px;
+      font-size: .78rem; font-weight: 800; text-transform: uppercase;
+      letter-spacing: .05em;
+    }
+    .tracking-hero__eta { font-size: .78rem; opacity: .7; margin-top: 6px; }
+
+    /* Live map placeholder */
+    .map-placeholder {
+      height: 200px;
+      background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0f172a 100%);
+      position: relative; overflow: hidden;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .map-route-line {
+      position: absolute;
+      width: 70%; height: 2px;
+      background: linear-gradient(to right, #4f46e5, #10b981);
+      top: 50%; left: 15%;
+      border-radius: 2px;
+    }
+    .map-dot {
+      position: absolute; width: 12px; height: 12px;
+      border-radius: 50%; border: 2px solid #fff;
+    }
+    .map-dot.origin { background: #4f46e5; left: 15%; top: calc(50% - 6px); }
+    .map-dot.dest   { background: #10b981; right: 15%; top: calc(50% - 6px); }
+    .map-dot.truck  {
+      background: #f59e0b; left: 54%; top: calc(50% - 6px);
+      animation: truckMove 4s ease-in-out infinite alternate;
+    }
+    @keyframes truckMove { from { left:45%; } to { left:58%; } }
+    .map-city { position: absolute; font-size: .65rem; color: rgba(255,255,255,.6); font-weight: 700; letter-spacing: .04em; }
+    .map-city.origin { left: 12%; top: calc(50% + 12px); }
+    .map-city.dest   { right: 10%; top: calc(50% + 12px); }
+    .map-grid-lines { position: absolute; inset: 0; opacity: .07; background-image: linear-gradient(rgba(255,255,255,.5) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.5) 1px,transparent 1px); background-size: 32px 32px; }
+
+    /* Timeline feed */
+    .track-timeline { padding: 20px 24px; }
+    .tt-item { display: flex; gap: 16px; padding-bottom: 20px; position: relative; }
+    .tt-item:last-child { padding-bottom: 0; }
+    .tt-line-wrap { display: flex; flex-direction: column; align-items: center; flex-shrink: 0; }
+    .tt-dot {
+      width: 34px; height: 34px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: .78rem; font-weight: 700; z-index: 1; flex-shrink: 0;
+    }
+    .tt-dot.done   { background: var(--color-emerald); color: #fff; }
+    .tt-dot.active { background: var(--color-accent);  color: #fff; box-shadow: 0 0 0 5px rgba(79,70,229,.15); }
+    .tt-dot.future { background: var(--color-off-white); color: var(--color-muted); border: 2px solid var(--color-border); }
+    .tt-connector { flex: 1; width: 2px; background: var(--color-border); margin: 4px 0; min-height: 14px; }
+    .tt-connector.done { background: var(--color-emerald); }
+    .tt-content { flex: 1; padding-top: 6px; }
+    .tt-title { font-size: .875rem; font-weight: 700; color: var(--color-near-black); }
+    .tt-location { font-size: .78rem; color: var(--color-muted); margin-top: 2px; }
+    .tt-time { font-size: .72rem; color: var(--color-muted); margin-top: 2px; }
+
+    /* ═══════════════════════════════════════════
+       DOCUMENTS TAB
+    ═══════════════════════════════════════════ */
+    .doc-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 16px; }
+    .doc-card {
+      background: #fff; border: 1.5px solid var(--color-border);
+      border-radius: var(--radius-md); padding: 20px;
+      display: flex; flex-direction: column; gap: 12px;
+      transition: all .18s;
+    }
+    .doc-card:hover { border-color: var(--color-accent); box-shadow: 0 4px 14px rgba(79,70,229,.1); }
+    .doc-card__icon-wrap {
+      width: 44px; height: 44px; border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.1rem;
+    }
+    .doc-card__name { font-size: .875rem; font-weight: 800; color: var(--color-near-black); }
+    .doc-card__meta { font-size: .72rem; color: var(--color-muted); line-height: 1.5; }
+    .doc-card__actions { display: flex; gap: 6px; margin-top: auto; }
+
+    /* ═══════════════════════════════════════════
+       MISC HELPERS
+    ═══════════════════════════════════════════ */
+    .sl-card {
+      background: #fff;
+      border: 1.5px solid var(--color-border);
+      border-radius: var(--radius-md);
+      padding: 22px 24px;
+      margin-bottom: 20px;
+    }
+    .sl-card__head {
+      display: flex; align-items: flex-start; justify-content: space-between;
+      gap: 12px; margin-bottom: 20px; flex-wrap: wrap;
+    }
+    .sl-card__title { font-size: .92rem; font-weight: 800; color: var(--color-near-black); }
+    .sl-card__sub   { font-size: .73rem; color: var(--color-muted); margin-top: 3px; }
+
+    .carrier-badge {
+      display: inline-flex; align-items: center; gap: 5px;
+      font-size: .68rem; font-weight: 800;
+      padding: 3px 8px; border-radius: 20px;
+      text-transform: uppercase; letter-spacing: .04em;
+    }
+    .carrier-fedex  { background: #4d1a7f22; color: #4d1a7f; }
+    .carrier-ups    { background: #35290022; color: #3d2c00; }
+    .carrier-dhl    { background: #ffcc0022; color: #7a5c00; }
+    .carrier-usps   { background: #003b8022; color: #003b80; }
+    .carrier-flex   { background: #0a1e3c22; color: #0a1e3c; }
+    .carrier-uber   { background: #00000014; color: #111; }
+    .carrier-ltl    { background: #f3f4f6;   color: #374151; }
+
+    .sl-table { width: 100%; border-collapse: collapse; font-size: .84rem; }
+    .sl-table thead th { text-align: left; padding: 10px 14px; background: var(--color-off-white); border-bottom: 2px solid var(--color-border); font-size: .68rem; font-weight: 800; text-transform: uppercase; letter-spacing: .07em; color: var(--color-muted); white-space: nowrap; }
+    .sl-table tbody td { padding: 12px 14px; border-bottom: 1px solid var(--color-border); vertical-align: middle; }
+    .sl-table tbody tr:last-child td { border-bottom: none; }
+    .sl-table tbody tr:hover td { background: var(--color-off-white); }
+
+    /* Success screen */
+    .booking-success { text-align: center; padding: 52px 24px; }
+    .booking-success__icon { width: 80px; height: 80px; border-radius: 50%; background: linear-gradient(135deg, var(--color-emerald), #10b981); display: flex; align-items: center; justify-content: center; margin: 0 auto 22px; font-size: 2rem; color: #fff; box-shadow: 0 10px 28px rgba(16,185,129,.28); animation: successPop .45s cubic-bezier(.34,1.56,.64,1); }
+    @keyframes successPop { from { transform:scale(.4); opacity:0; } to { transform:scale(1); opacity:1; } }
+    .booking-success h2 { font-family: var(--font-display); font-size: 1.8rem; font-weight: 900; letter-spacing: -.04em; color: var(--color-near-black); margin-bottom: 10px; }
+    .booking-success p { font-size: .92rem; color: var(--color-muted); max-width: 420px; margin: 0 auto 28px; line-height: 1.65; }
+    .booking-success__ref { background: var(--color-off-white); border: 1.5px solid var(--color-border); border-radius: var(--radius-md); padding: 16px 28px; display: inline-block; margin-bottom: 28px; }
+    .booking-success__ref-label { font-size: .68rem; font-weight: 800; text-transform: uppercase; letter-spacing: .08em; color: var(--color-muted); margin-bottom: 6px; }
+    .booking-success__ref-num { font-size: 1.3rem; font-weight: 900; font-family: monospace; color: var(--color-accent); letter-spacing: .06em; }
+
+    @media(max-width:900px){
+      .shipment-detail-grid { grid-template-columns: 1fr 1fr; }
+      .wizard-steps { flex-wrap: wrap; gap: 8px; }
+      .wz-line { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<aside class="sidebar" id="sidebar">
+  <div class="sidebar__logo">
+    <a href="dashboard.html" class="logo-mark">
+      <span class="logo-icon"><i class="fas fa-chevron-right"></i></span>
+      <span class="logo-word">BRND <span class="logo-accent">DIRECT</span></span>
+    </a>
+  </div>
+  <nav class="sidebar__nav">
+    <div class="nav-section">
+      <span class="nav-section-label">Main Menu</span>
+      <a href="dashboard.html" class="nav-item"><i class="fas fa-table-columns"></i><span>Dashboard</span></a>
+      <a href="products.html" class="nav-item"><i class="fas fa-boxes-stacked"></i><span>Products</span></a>
+      <a href="orders.html" class="nav-item"><i class="fas fa-file-invoice"></i><span>Orders</span><span class="nav-badge">18</span></a>
+      <a href="cart.html" class="nav-item" id="navCartLink"><i class="fas fa-cart-shopping"></i><span>Order Cart</span><span class="nav-badge" id="sidebarCartBadge" style="display:none;">0</span></a>
+      <a href="rfq.html" class="nav-item"><i class="fas fa-comment-dollar"></i><span>RFQ</span><span class="nav-badge new">5</span></a>
+      <a href="dropship.html" class="nav-item"><i class="fas fa-rotate"></i><span>Dropship</span></a>
+      <a href="analytics.html" class="nav-item"><i class="fas fa-chart-line"></i><span>Analytics</span></a>
+    </div>
+    <div class="nav-section">
+      <span class="nav-section-label">Finance</span>
+      <a href="invoices.html" class="nav-item"><i class="fas fa-file-invoice-dollar"></i><span>Invoices &amp; Payments</span></a>
+      <a href="trade-finance.html" class="nav-item"><i class="fas fa-credit-card"></i><span>Trade Finance</span></a>
+      <a href="reports.html" class="nav-item"><i class="fas fa-chart-bar"></i><span>Reports</span></a>
+    </div>
+    <div class="nav-section">
+      <span class="nav-section-label">Operations</span>
+      <a href="warehousing.html" class="nav-item"><i class="fas fa-warehouse"></i><span>Warehousing</span></a>
+      <a href="shipping-logistics.html" class="nav-item active"><i class="fas fa-truck-fast"></i><span>Shipping &amp; Logistics</span></a>
+    </div>
+    <div class="sidebar__divider"></div>
+    <a href="messages.html" class="nav-item"><i class="fas fa-message"></i><span>Messages</span><span class="nav-badge">3</span></a>
+    <a href="account.html" class="nav-item"><i class="fas fa-gear"></i><span>Settings</span></a>
+    <a href="help.html" class="nav-item"><i class="fas fa-circle-question"></i><span>Help &amp; Support</span></a>
+  </nav>
+  <div class="sidebar__bottom">
+    <div class="sidebar__user">
+      <div class="sidebar__user-avatar">AJ</div>
+      <div class="sidebar__user-info">
+        <div class="sidebar__user-name">Alex Johnson</div>
+        <div class="sidebar__user-role">Wholesale Buyer</div>
+      </div>
+      <button class="sidebar__user-logout" onclick="window.location.href='index.html'" title="Sign out">
+        <i class="fas fa-arrow-right-from-bracket"></i>
+      </button>
+    </div>
+  </div>
+</aside>
+<div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+<!-- TOPBAR -->
+<header class="topbar">
+  <div class="topbar__left" style="display:flex;align-items:center;gap:12px;">
+    <button class="topbar__mobile-toggle" id="sidebarToggle"><i class="fas fa-bars"></i></button>
+    <div>
+      <div class="topbar__title">Shipping &amp; Logistics</div>
+      <div class="topbar__breadcrumb">Book, track and manage all shipments from every carrier in one place</div>
+    </div>
+  </div>
+  <div class="topbar__right">
+    <div class="search-bar"><i class="fas fa-magnifying-glass"></i><input type="text" id="trackQuickInput" placeholder="Quick-track a shipment…" onkeydown="if(event.key==='Enter')quickTrack()" /></div>
+    <div class="topbar__btn"><i class="fas fa-bell"></i><span class="notif-dot"></span></div>
+    <div class="topbar__avatar">AJ</div>
+  </div>
+</header>
+
+<!-- MAIN -->
+<main class="app-main">
+
+  <!-- Page header -->
+  <div class="page-header-bar fade-in">
+    <div>
+      <h1>Shipping &amp; Logistics</h1>
+      <div class="page-header-sub">Book, track &amp; schedule shipments — powered by multi-carrier integrations</div>
+    </div>
+    <div class="page-header-bar__actions">
+      <a href="orders.html" class="btn btn-outline btn-sm"><i class="fas fa-arrow-left"></i> Back to Orders</a>
+      <div style="display:flex;align-items:center;gap:6px;padding:6px 12px;background:var(--color-off-white);border:1.5px solid var(--color-border);border-radius:var(--radius-sm);">
+        <div style="width:8px;height:8px;border-radius:50%;background:var(--color-emerald);animation:pulse 2s infinite;"></div>
+        <span style="font-size:.75rem;font-weight:700;color:var(--color-near-black);">Live rates &amp; tracking active</span>
+      </div>
+      <button class="btn btn-secondary btn-sm" onclick="showToast('Exporting shipment log…','success')"><i class="fas fa-download"></i> Export Log</button>
+      <button class="btn btn-primary btn-sm" onclick="switchSlTab('book')"><i class="fas fa-plus"></i> Book Shipment</button>
+    </div>
+  </div>
+
+  <!-- ORDER JOURNEY STRIP -->
+  <div style="display:flex;align-items:stretch;overflow-x:auto;background:#fff;border:1.5px solid var(--color-border);border-radius:var(--radius-md);margin-bottom:22px;" class="fade-in">
+    <div style="display:flex;align-items:center;gap:9px;padding:12px 16px;flex:1;min-width:110px;border-right:1px solid var(--color-border);background:rgba(16,185,129,.03);">
+      <div style="width:26px;height:26px;border-radius:50%;background:#10b981;border:2px solid #10b981;display:flex;align-items:center;justify-content:center;font-size:.55rem;color:#fff;flex-shrink:0;"><i class="fas fa-check"></i></div>
+      <div><div style="font-size:.68rem;font-weight:700;color:#10b981;">1–2. Cart &amp; Order</div><div style="font-size:.58rem;color:var(--color-muted);">Submitted</div></div>
+    </div>
+    <div style="display:flex;align-items:center;gap:9px;padding:12px 16px;flex:1;min-width:110px;border-right:1px solid var(--color-border);background:rgba(16,185,129,.03);">
+      <div style="width:26px;height:26px;border-radius:50%;background:#10b981;border:2px solid #10b981;display:flex;align-items:center;justify-content:center;font-size:.55rem;color:#fff;flex-shrink:0;"><i class="fas fa-check"></i></div>
+      <div><div style="font-size:.68rem;font-weight:700;color:#10b981;">3. Seller Confirms</div><div style="font-size:.58rem;color:var(--color-muted);">Approved</div></div>
+    </div>
+    <div style="display:flex;align-items:center;gap:9px;padding:12px 16px;flex:1;min-width:110px;border-right:1px solid var(--color-border);background:rgba(16,185,129,.03);">
+      <div style="width:26px;height:26px;border-radius:50%;background:#10b981;border:2px solid #10b981;display:flex;align-items:center;justify-content:center;font-size:.55rem;color:#fff;flex-shrink:0;"><i class="fas fa-check"></i></div>
+      <div><div style="font-size:.68rem;font-weight:700;color:#10b981;">4. Invoice Paid</div><div style="font-size:.58rem;color:var(--color-muted);">Payment received</div></div>
+    </div>
+    <div style="display:flex;align-items:center;gap:9px;padding:12px 16px;flex:1;min-width:110px;border-right:1px solid var(--color-border);background:rgba(16,185,129,.03);">
+      <div style="width:26px;height:26px;border-radius:50%;background:#10b981;border:2px solid #10b981;display:flex;align-items:center;justify-content:center;font-size:.55rem;color:#fff;flex-shrink:0;"><i class="fas fa-check"></i></div>
+      <div><div style="font-size:.68rem;font-weight:700;color:#10b981;">5. Seller Packed</div><div style="font-size:.58rem;color:var(--color-muted);">Ready to ship</div></div>
+    </div>
+    <div style="display:flex;align-items:center;gap:9px;padding:12px 16px;flex:1;min-width:130px;background:rgba(79,70,229,.04);">
+      <div style="width:26px;height:26px;border-radius:50%;background:var(--color-accent);border:2px solid var(--color-accent);display:flex;align-items:center;justify-content:center;font-size:.65rem;color:#fff;flex-shrink:0;box-shadow:0 0 0 3px rgba(79,70,229,.15);">6</div>
+      <div><div style="font-size:.68rem;font-weight:700;color:var(--color-accent);">6. Schedule Ship ← YOU ARE HERE</div><div style="font-size:.58rem;color:var(--color-muted);">Book your carrier</div></div>
+    </div>
+  </div>
+
+  <!-- READY TO SHIP ALERT BANNER -->
+  <div style="background:linear-gradient(135deg,#312e81,#4f46e5);border-radius:var(--radius-md);padding:22px 28px;margin-bottom:22px;color:#fff;" class="fade-in">
+    <div style="display:flex;align-items:center;gap:18px;flex-wrap:wrap;margin-bottom:16px;">
+      <div style="width:52px;height:52px;border-radius:14px;background:rgba(255,255,255,.15);display:flex;align-items:center;justify-content:center;font-size:1.4rem;flex-shrink:0;"><i class="fas fa-box-open"></i></div>
+      <div style="flex:1;min-width:0;">
+        <div style="font-size:.65rem;font-weight:800;text-transform:uppercase;letter-spacing:.1em;opacity:.7;margin-bottom:4px;">Step 5 Complete → Step 6 Action Required</div>
+        <div style="font-size:1.05rem;font-weight:800;font-family:var(--font-display);margin-bottom:4px;">3 Orders Packed &amp; Ready to Ship — Schedule Now!</div>
+        <div style="font-size:.82rem;opacity:.85;">Your invoice has been paid ✓ and the seller has picked &amp; packed your orders. <strong>It's your turn to book a carrier or schedule pickup.</strong></div>
+      </div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;flex-shrink:0;">
+        <button onclick="switchSlTab('book')" style="background:#fff;color:#3730a3;border:none;font-weight:800;font-size:.85rem;padding:11px 22px;border-radius:8px;cursor:pointer;display:flex;align-items:center;gap:7px;white-space:nowrap;"><i class="fas fa-calendar-check"></i> Schedule Shipment</button>
+        <button onclick="switchSlTab('shipments')" style="background:transparent;color:#fff;border:2px solid rgba(255,255,255,.5);font-weight:700;font-size:.82rem;padding:10px 16px;border-radius:8px;cursor:pointer;white-space:nowrap;">View All Shipments</button>
+      </div>
+    </div>
+    <!-- Mini step flow -->
+    <div style="background:rgba(0,0,0,.2);border-radius:10px;padding:12px 16px;display:flex;align-items:center;gap:0;overflow-x:auto;">
+      <div style="display:flex;align-items:center;gap:8px;padding-right:12px;border-right:1px solid rgba(255,255,255,.2);flex-shrink:0;">
+        <div style="width:24px;height:24px;border-radius:50%;background:#10b981;display:flex;align-items:center;justify-content:center;font-size:.5rem;color:#fff;flex-shrink:0;"><i class="fas fa-check"></i></div>
+        <div style="font-size:.7rem;font-weight:700;opacity:.9;">4. Invoice Paid ✓</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px;padding:0 12px;border-right:1px solid rgba(255,255,255,.2);flex-shrink:0;">
+        <div style="width:24px;height:24px;border-radius:50%;background:#10b981;display:flex;align-items:center;justify-content:center;font-size:.5rem;color:#fff;flex-shrink:0;"><i class="fas fa-check"></i></div>
+        <div style="font-size:.7rem;font-weight:700;opacity:.9;">5. Seller Packed ✓</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px;padding-left:12px;flex-shrink:0;background:rgba(255,255,255,.1);border-radius:6px;padding:8px 14px;margin-left:4px;">
+        <div style="width:24px;height:24px;border-radius:50%;background:#fff;display:flex;align-items:center;justify-content:center;font-size:.6rem;color:#4f46e5;font-weight:800;flex-shrink:0;box-shadow:0 0 0 3px rgba(255,255,255,.3);">6</div>
+        <div style="font-size:.7rem;font-weight:800;">Schedule Shipping ← YOUR TURN NOW</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- READY TO SHIP CARDS -->
+  <div style="margin-bottom:28px;" class="fade-in">
+    <div style="font-size:.7rem;font-weight:800;text-transform:uppercase;letter-spacing:.1em;color:var(--color-near-black);margin-bottom:12px;display:flex;align-items:center;gap:8px;">
+      <span style="width:8px;height:8px;border-radius:50%;background:#4f46e5;display:inline-block;animation:pulse 2s infinite;"></span>
+      📦 Step 5 Complete — Orders Packed &amp; Awaiting Your Shipping Schedule
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:14px;">
+
+      <!-- Ready-to-ship card 1 -->
+      <div style="background:#fff;border:2px solid #4f46e5;border-radius:var(--radius-md);overflow:hidden;">
+        <div style="background:linear-gradient(135deg,#4f46e5,#7c3aed);padding:14px 18px;display:flex;align-items:center;justify-content:space-between;">
+          <div>
+            <div style="font-family:monospace;font-size:.82rem;color:rgba(255,255,255,.7);">BD-48287</div>
+            <div style="font-size:.9rem;font-weight:800;color:#fff;">Gucci Bloom Perfume · 36 units</div>
+          </div>
+          <span style="background:rgba(255,255,255,.2);color:#fff;font-size:.65rem;font-weight:800;padding:4px 10px;border-radius:20px;text-transform:uppercase;letter-spacing:.06em;">Ready to Ship</span>
+        </div>
+        <div style="padding:16px 18px;">
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px;">
+            <div><div style="font-size:.6rem;font-weight:800;text-transform:uppercase;letter-spacing:.07em;color:var(--color-muted);margin-bottom:3px;">Ship To</div><div style="font-size:.82rem;font-weight:700;">Chicago, IL 60607</div></div>
+            <div><div style="font-size:.6rem;font-weight:800;text-transform:uppercase;letter-spacing:.07em;color:var(--color-muted);margin-bottom:3px;">Dimensions</div><div style="font-size:.82rem;font-weight:700;">18×12×10 in · 42 lbs</div></div>
+            <div><div style="font-size:.6rem;font-weight:800;text-transform:uppercase;letter-spacing:.07em;color:var(--color-muted);margin-bottom:3px;">Invoice</div><div style="font-size:.82rem;font-weight:700;color:#10b981;">INV-2887 · Paid</div></div>
+            <div><div style="font-size:.6rem;font-weight:800;text-transform:uppercase;letter-spacing:.07em;color:var(--color-muted);margin-bottom:3px;">Required By</div><div style="font-size:.82rem;font-weight:700;">Apr 1, 2026</div></div>
+          </div>
+          <button onclick="switchSlTab('book')" style="width:100%;padding:10px;background:var(--color-accent);color:#fff;border:none;border-radius:8px;font-size:.82rem;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;"><i class="fas fa-truck-fast"></i> Schedule Shipment</button>
+        </div>
+      </div>
+
+      <!-- Ready-to-ship card 2 -->
+      <div style="background:#fff;border:2px solid #4f46e5;border-radius:var(--radius-md);overflow:hidden;">
+        <div style="background:linear-gradient(135deg,#4f46e5,#7c3aed);padding:14px 18px;display:flex;align-items:center;justify-content:space-between;">
+          <div>
+            <div style="font-family:monospace;font-size:.82rem;color:rgba(255,255,255,.7);">BD-48283</div>
+            <div style="font-size:.9rem;font-weight:800;color:#fff;">Versace Eros Pour Femme · 48 units</div>
+          </div>
+          <span style="background:rgba(255,255,255,.2);color:#fff;font-size:.65rem;font-weight:800;padding:4px 10px;border-radius:20px;text-transform:uppercase;letter-spacing:.06em;">Ready to Ship</span>
+        </div>
+        <div style="padding:16px 18px;">
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px;">
+            <div><div style="font-size:.6rem;font-weight:800;text-transform:uppercase;letter-spacing:.07em;color:var(--color-muted);margin-bottom:3px;">Ship To</div><div style="font-size:.82rem;font-weight:700;">Chicago, IL 60607</div></div>
+            <div><div style="font-size:.6rem;font-weight:800;text-transform:uppercase;letter-spacing:.07em;color:var(--color-muted);margin-bottom:3px;">Dimensions</div><div style="font-size:.82rem;font-weight:700;">24×16×12 in · 58 lbs</div></div>
+            <div><div style="font-size:.6rem;font-weight:800;text-transform:uppercase;letter-spacing:.07em;color:var(--color-muted);margin-bottom:3px;">Invoice</div><div style="font-size:.82rem;font-weight:700;color:#10b981;">INV-2883 · Paid</div></div>
+            <div><div style="font-size:.6rem;font-weight:800;text-transform:uppercase;letter-spacing:.07em;color:var(--color-muted);margin-bottom:3px;">Required By</div><div style="font-size:.82rem;font-weight:700;">Mar 30, 2026</div></div>
+          </div>
+          <button onclick="switchSlTab('book')" style="width:100%;padding:10px;background:var(--color-accent);color:#fff;border:none;border-radius:8px;font-size:.82rem;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;"><i class="fas fa-truck-fast"></i> Schedule Shipment</button>
+        </div>
+      </div>
+
+      <!-- Ready-to-ship card 3 -->
+      <div style="background:#fff;border:2px solid #4f46e5;border-radius:var(--radius-md);overflow:hidden;">
+        <div style="background:linear-gradient(135deg,#4f46e5,#7c3aed);padding:14px 18px;display:flex;align-items:center;justify-content:space-between;">
+          <div>
+            <div style="font-family:monospace;font-size:.82rem;color:rgba(255,255,255,.7);">BD-48280</div>
+            <div style="font-size:.9rem;font-weight:800;color:#fff;">Maison Margiela Jazz Club · 36 units</div>
+          </div>
+          <span style="background:rgba(255,255,255,.2);color:#fff;font-size:.65rem;font-weight:800;padding:4px 10px;border-radius:20px;text-transform:uppercase;letter-spacing:.06em;">Ready to Ship</span>
+        </div>
+        <div style="padding:16px 18px;">
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px;">
+            <div><div style="font-size:.6rem;font-weight:800;text-transform:uppercase;letter-spacing:.07em;color:var(--color-muted);margin-bottom:3px;">Ship To</div><div style="font-size:.82rem;font-weight:700;">Chicago, IL 60607</div></div>
+            <div><div style="font-size:.6rem;font-weight:800;text-transform:uppercase;letter-spacing:.07em;color:var(--color-muted);margin-bottom:3px;">Dimensions</div><div style="font-size:.82rem;font-weight:700;">20×14×10 in · 38 lbs</div></div>
+            <div><div style="font-size:.6rem;font-weight:800;text-transform:uppercase;letter-spacing:.07em;color:var(--color-muted);margin-bottom:3px;">Invoice</div><div style="font-size:.82rem;font-weight:700;color:#10b981;">INV-2880 · Paid</div></div>
+            <div><div style="font-size:.6rem;font-weight:800;text-transform:uppercase;letter-spacing:.07em;color:var(--color-muted);margin-bottom:3px;">Required By</div><div style="font-size:.58rem;font-weight:700;color:#f59e0b;">⚠ Apr 5, 2026 (soon)</div></div>
+          </div>
+          <button onclick="switchSlTab('book')" style="width:100%;padding:10px;background:var(--color-accent);color:#fff;border:none;border-radius:8px;font-size:.82rem;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;"><i class="fas fa-truck-fast"></i> Schedule Shipment</button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- KPI Strip -->
+  <div class="sl-kpi-strip fade-in d1">
+    <div class="sl-kpi">
+      <div class="sl-kpi__icon" style="background:#eff6ff;color:#3b82f6;"><i class="fas fa-truck-fast"></i></div>
+      <div class="sl-kpi__val">11</div>
+      <div class="sl-kpi__label">Active Shipments</div>
+      <div class="sl-kpi__change chg-neu"><i class="fas fa-minus"></i> Q1 2026</div>
+    </div>
+    <div class="sl-kpi">
+      <div class="sl-kpi__icon" style="background:#f0fdf4;color:#059669;"><i class="fas fa-check-circle"></i></div>
+      <div class="sl-kpi__val">8</div>
+      <div class="sl-kpi__label">Delivered</div>
+      <div class="sl-kpi__change chg-up"><i class="fas fa-arrow-up"></i> 93.3% on-time</div>
+    </div>
+    <div class="sl-kpi">
+      <div class="sl-kpi__icon" style="background:#fef3c7;color:#d97706;"><i class="fas fa-clock"></i></div>
+      <div class="sl-kpi__val">4.2d</div>
+      <div class="sl-kpi__label">Avg. Transit Time</div>
+      <div class="sl-kpi__change chg-up"><i class="fas fa-arrow-down"></i> 0.8d faster</div>
+    </div>
+    <div class="sl-kpi">
+      <div class="sl-kpi__icon" style="background:#fdf4ff;color:#9333ea;"><i class="fas fa-dollar-sign"></i></div>
+      <div class="sl-kpi__val">$4,820</div>
+      <div class="sl-kpi__label">Total Freight Cost</div>
+      <div class="sl-kpi__change chg-down"><i class="fas fa-arrow-up"></i> 6.2% vs Q4</div>
+    </div>
+    <div class="sl-kpi">
+      <div class="sl-kpi__icon" style="background:#fee2e2;color:#dc2626;"><i class="fas fa-triangle-exclamation"></i></div>
+      <div class="sl-kpi__val">1</div>
+      <div class="sl-kpi__label">Exceptions / Delays</div>
+      <div class="sl-kpi__change chg-up"><i class="fas fa-arrow-down"></i> 2 fewer vs Q4</div>
+    </div>
+  </div>
+
+  <!-- Provider integrations banner —— LIVE ──────────────── -->
+  <div style="display:flex;gap:12px;margin-bottom:24px;flex-wrap:wrap;" class="fade-in d1">
+
+    <!-- Freightos -->
+    <div class="provider-banner" style="flex:1;min-width:260px;">
+      <div class="provider-banner__logo" style="background:linear-gradient(135deg,#0050c8,#0085ff);"><i class="fas fa-ship" style="font-size:1rem;"></i></div>
+      <div class="provider-banner__info">
+        <div class="provider-banner__name">Freightos — LTL &amp; FTL Freight</div>
+        <div class="provider-banner__desc">AI-powered instant freight booking · 75+ carriers · Real-time quotes, BOL generation &amp; tracking</div>
+        <div class="provider-banner__chips">
+          <span class="provider-chip">LTL</span>
+          <span class="provider-chip">FTL</span>
+          <span class="provider-chip">Instant BOL</span>
+          <span class="provider-chip">75+ Carriers</span>
+          <span class="provider-chip" id="freightosStatus"><i class="fas fa-spinner fa-spin" style="font-size:.55rem;margin-right:3px;"></i> Connecting…</span>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Shippo -->
+    <div class="provider-banner" style="flex:1;min-width:260px;">
+      <div class="provider-banner__logo" style="background:linear-gradient(135deg,#7c3aed,#4f46e5);"><i class="fas fa-box" style="font-size:1rem;"></i></div>
+      <div class="provider-banner__info">
+        <div class="provider-banner__name">Shippo — Parcel &amp; Small Package</div>
+        <div class="provider-banner__desc">FedEx · UPS · DHL · USPS &amp; more · Cheapest negotiated rates · Label generation &amp; tracking</div>
+        <div class="provider-banner__chips">
+          <span class="provider-chip carrier-fedex">FedEx</span>
+          <span class="provider-chip carrier-ups">UPS</span>
+          <span class="provider-chip carrier-dhl">DHL</span>
+          <span class="provider-chip carrier-usps">USPS</span>
+          <span class="provider-chip" id="shippoStatus"><i class="fas fa-spinner fa-spin" style="font-size:.55rem;margin-right:3px;"></i> Connecting…</span>
+        </div>
+      </div>
+
+    </div>
+
+  </div>
+
+  <!-- Page-level tabs — Book Shipment first since this is Step 6 action -->
+  <div class="sl-page-tabs fade-in d2">
+    <button class="sl-page-tab active" data-sl="book" onclick="switchSlTab('book')">
+      <i class="fas fa-calendar-check"></i> Book Shipment <span class="sl-tab-badge" style="background:#f43f5e;">Step 6</span>
+    </button>
+    <button class="sl-page-tab" data-sl="shipments" onclick="switchSlTab('shipments')">
+      <i class="fas fa-list-check"></i> My Shipments <span class="sl-tab-badge">11</span>
+    </button>
+    <button class="sl-page-tab" data-sl="track" onclick="switchSlTab('track')">
+      <i class="fas fa-location-dot"></i> Live Tracking
+    </button>
+    <button class="sl-page-tab" data-sl="documents" onclick="switchSlTab('documents')">
+      <i class="fas fa-file-lines"></i> Documents &amp; BOL
+    </button>
+    <button class="sl-page-tab" data-sl="rates" onclick="switchSlTab('rates')">
+      <i class="fas fa-tags"></i> Rate Compare
+    </button>
+  </div>
+
+  <!-- ═══════════════════════════════════════
+       TAB 1 — MY SHIPMENTS
+  ═══════════════════════════════════════ -->
+  <div class="sl-section" id="sl-shipments">
+
+    <!-- Filters -->
+    <div style="display:flex;gap:10px;margin-bottom:18px;flex-wrap:wrap;align-items:center;">
+      <div style="display:flex;gap:2px;background:var(--color-off-white);border:1.5px solid var(--color-border);border-radius:8px;padding:3px;">
+        <button class="period-tab active" onclick="filterShipments('all',this)">All</button>
+        <button class="period-tab" onclick="filterShipments('in_transit',this)">In Transit</button>
+        <button class="period-tab" onclick="filterShipments('delivered',this)">Delivered</button>
+        <button class="period-tab" onclick="filterShipments('pending',this)">Pending</button>
+      </div>
+      <select class="form-input" style="width:auto;font-size:.82rem;" id="carrierFilter" onchange="filterShipments()">
+        <option value="">All Carriers</option>
+        <option>FedEx</option><option>UPS</option><option>DHL</option><option>USPS</option>
+        <option>Freightos</option><option>Shippo</option>
+      </select>
+      <div style="margin-left:auto;font-size:.82rem;color:var(--color-muted);" id="shipmentCount">Showing 11 shipments</div>
+    </div>
+
+    <!-- Shipment cards -->
+    <div id="shipmentList"></div>
+
+  </div>
+
+  <!-- ═══════════════════════════════════════
+       TAB 2 — BOOK SHIPMENT
+  ═══════════════════════════════════════ -->
+  <div class="sl-section active" id="sl-book">
+
+    <!-- Wizard steps -->
+    <div class="wizard-steps" id="wzSteps">
+      <div class="wz-step active" id="wzStep1">
+        <div class="wz-dot">1</div>
+        <div class="wz-step__label">Shipment Details<small>From · To · Type</small></div>
+      </div>
+      <div class="wz-line" id="wzLine1"></div>
+      <div class="wz-step" id="wzStep2">
+        <div class="wz-dot">2</div>
+        <div class="wz-step__label">Package &amp; Cargo<small>Dimensions · Weight</small></div>
+      </div>
+      <div class="wz-line" id="wzLine2"></div>
+      <div class="wz-step" id="wzStep3">
+        <div class="wz-dot">3</div>
+        <div class="wz-step__label">Choose Rate<small>Carrier &amp; service</small></div>
+      </div>
+      <div class="wz-line" id="wzLine3"></div>
+      <div class="wz-step" id="wzStep4">
+        <div class="wz-dot">4</div>
+        <div class="wz-step__label">Review &amp; Confirm<small>Book it</small></div>
+      </div>
+      <div class="wz-line" id="wzLine4"></div>
+      <div class="wz-step" id="wzStep5">
+        <div class="wz-dot"><i class="fas fa-check" style="font-size:.6rem;"></i></div>
+        <div class="wz-step__label">Booked!<small>Done</small></div>
+      </div>
+    </div>
+
+    <div class="book-layout">
+
+      <!-- Left: wizard panels -->
+      <div>
+
+        <!-- Step 1: Details -->
+        <div class="wz-panel active sl-card" id="wzPanel1">
+          <div class="sl-card__head">
+            <div>
+              <div class="sl-card__title"><i class="fas fa-map-marker-alt" style="color:var(--color-accent);margin-right:6px;"></i>Shipment Details</div>
+              <div class="sl-card__sub">Enter origin, destination and shipment type</div>
+            </div>
+          </div>
+          <div class="sl-form-grid">
+            <div class="form-section-head"><i class="fas fa-circle-dot" style="color:var(--color-accent);"></i> Origin (Ship From)</div>
+
+            <!-- Pre-fill from order -->
+            <div class="sl-form-group">
+              <label>Linked Order</label>
+              <select id="linkedOrder" onchange="prefillFromOrder(this)">
+                <option value="">— Manual entry —</option>
+                <option value="BD-48290">BD-48290 · Charlotte Tilbury · Shipped</option>
+                <option value="BD-48287">BD-48287 · Gucci · Awaiting shipment</option>
+                <option value="BD-48291">BD-48291 · Maison Margiela · Confirmed</option>
+                <option value="BD-48283">BD-48283 · Prada · Pending</option>
+                <option value="BD-48279">BD-48279 · Maison Margiela · Pending</option>
+                <option value="BD-48278">BD-48278 · Balenciaga · Pending</option>
+              </select>
+            </div>
+            <div class="sl-form-group">
+              <label>Shipment Type</label>
+              <select id="shipType" onchange="updateShipType(this)">
+                <option value="parcel">Parcel / Small Package (Shippo)</option>
+                <option value="ltl">LTL Freight (Freightos)</option>
+                <option value="ftl">FTL Freight (Freightos)</option>
+              </select>
+            </div>
+
+            <div class="sl-form-group">
+              <label>Company / Sender Name</label>
+              <input type="text" id="originName" placeholder="Maison Margiela Distribution" />
+            </div>
+            <div class="sl-form-group">
+              <label>Address Line 1</label>
+              <input type="text" id="originAddr1" placeholder="250 Commerce Blvd" />
+            </div>
+            <div class="sl-form-group">
+              <label>City</label>
+              <input type="text" id="originCity" placeholder="New York" />
+            </div>
+            <div class="sl-form-group">
+              <label>State / ZIP</label>
+              <input type="text" id="originZip" placeholder="NY 10001" />
+            </div>
+
+            <div class="form-section-head"><i class="fas fa-location-dot" style="color:var(--color-emerald);"></i> Destination (Ship To)</div>
+
+            <div class="sl-form-group">
+              <label>Company / Recipient Name</label>
+              <input type="text" id="destName" value="Johnson Retail Group LLC" />
+            </div>
+            <div class="sl-form-group">
+              <label>Address Line 1</label>
+              <input type="text" id="destAddr1" value="350 Fifth Avenue, Suite 4100" />
+            </div>
+            <div class="sl-form-group">
+              <label>City</label>
+              <input type="text" id="destCity" value="New York" />
+            </div>
+            <div class="sl-form-group">
+              <label>State / ZIP</label>
+              <input type="text" id="destZip" value="NY 10118" />
+            </div>
+
+            <div class="form-section-head"><i class="fas fa-calendar" style="color:var(--color-amber);"></i> Schedule</div>
+            <div class="sl-form-group">
+              <label>Pickup Date</label>
+              <input type="date" id="pickupDate" />
+            </div>
+            <div class="sl-form-group">
+              <label>Reference / PO Number</label>
+              <input type="text" id="refNum" placeholder="e.g. BD-48291" />
+            </div>
+          </div>
+          <div style="display:flex;justify-content:flex-end;margin-top:20px;">
+            <button class="btn btn-primary btn-sm" onclick="wzGo(2)">Next: Package Details <i class="fas fa-arrow-right"></i></button>
+          </div>
+        </div>
+
+        <!-- Step 2: Package -->
+        <div class="wz-panel sl-card" id="wzPanel2">
+          <div class="sl-card__head">
+            <div>
+              <div class="sl-card__title"><i class="fas fa-box" style="color:var(--color-accent);margin-right:6px;"></i>Package &amp; Cargo Details</div>
+              <div class="sl-card__sub">Add all packages, weights and dimensions for accurate rates</div>
+            </div>
+            <button class="btn btn-secondary btn-sm" onclick="addPkgRow()"><i class="fas fa-plus"></i> Add Package</button>
+          </div>
+
+          <div style="display:grid;grid-template-columns:1fr 80px 80px 80px 80px 36px;gap:8px;padding:8px 0;font-size:.68rem;font-weight:800;text-transform:uppercase;letter-spacing:.07em;color:var(--color-muted);border-bottom:2px solid var(--color-border);">
+            <span>Description</span><span style="text-align:center;">L (in)</span><span style="text-align:center;">W (in)</span><span style="text-align:center;">H (in)</span><span style="text-align:center;">Wt (lb)</span><span></span>
+          </div>
+          <div id="pkgRows">
+            <!-- Rows injected by JS -->
+          </div>
+
+          <div style="margin-top:20px;padding-top:16px;border-top:1px solid var(--color-border);">
+            <div class="sl-form-grid">
+              <div class="sl-form-group">
+                <label>Declared Value ($)</label>
+                <input type="number" id="declaredValue" placeholder="e.g. 3840" />
+              </div>
+              <div class="sl-form-group">
+                <label>Commodity / Contents</label>
+                <input type="text" id="commodity" placeholder="Luxury Fragrances — Non-Hazmat" />
+              </div>
+              <div class="sl-form-group">
+                <label>Special Handling</label>
+                <select>
+                  <option>None</option>
+                  <option>Fragile</option>
+                  <option>Keep Upright</option>
+                  <option>Temperature Controlled</option>
+                  <option>White Glove</option>
+                </select>
+              </div>
+              <div class="sl-form-group">
+                <label>Insurance</label>
+                <select>
+                  <option>Carrier Liability (standard)</option>
+                  <option>Full Value Coverage (+0.5%)</option>
+                  <option>Declared Value Coverage (+0.3%)</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <div style="display:flex;justify-content:space-between;margin-top:20px;">
+            <button class="btn btn-secondary btn-sm" onclick="wzGo(1)"><i class="fas fa-arrow-left"></i> Back</button>
+            <button class="btn btn-primary btn-sm" onclick="wzGo(3)">Get Rates <i class="fas fa-arrow-right"></i></button>
+          </div>
+        </div>
+
+        <!-- Step 3: Choose Rate -->
+        <div class="wz-panel sl-card" id="wzPanel3">
+          <div class="sl-card__head">
+            <div>
+              <div class="sl-card__title"><i class="fas fa-tags" style="color:var(--color-accent);margin-right:6px;"></i>Live Carrier Rates</div>
+              <div class="sl-card__sub">Showing real-time quotes from all connected carriers · Select the best option</div>
+            </div>
+            <div style="display:flex;align-items:center;gap:6px;font-size:.75rem;color:var(--color-emerald);font-weight:700;">
+              <div style="width:7px;height:7px;border-radius:50%;background:var(--color-emerald);animation:pulse 2s infinite;"></div>
+              Live rates
+            </div>
+          </div>
+
+          <!-- Live rates loading state -->
+          <div id="ratesLoadingState" style="text-align:center;padding:36px 0;display:none;">
+            <i class="fas fa-spinner fa-spin" style="font-size:2rem;color:var(--color-accent);margin-bottom:14px;display:block;"></i>
+            <div style="font-size:.875rem;font-weight:700;color:var(--color-near-black);margin-bottom:6px;">Fetching live rates…</div>
+            <div style="font-size:.75rem;color:var(--color-muted);" id="ratesLoadingMsg">Querying carriers</div>
+          </div>
+
+          <!-- Parcel rates (Shippo) -->
+          <div id="parcelRatesSection">
+            <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">
+              <div style="font-size:.72rem;font-weight:800;text-transform:uppercase;letter-spacing:.08em;color:var(--color-muted);">Parcel &amp; Express</div>
+              <div style="font-size:.68rem;padding:2px 8px;border-radius:20px;background:#ede9fe;color:#7c3aed;font-weight:700;"><i class="fas fa-box" style="margin-right:3px;"></i>via Shippo</div>
+            </div>
+            <div id="parcelRates"></div>
+          </div>
+
+          <!-- Freight rates (Freightos) -->
+          <div id="freightRatesSection" style="display:none;">
+            <div style="display:flex;align-items:center;gap:10px;margin:20px 0 12px;">
+              <div style="font-size:.72rem;font-weight:800;text-transform:uppercase;letter-spacing:.08em;color:var(--color-muted);">LTL / FTL Freight</div>
+              <div style="font-size:.68rem;padding:2px 8px;border-radius:20px;background:#dbeafe;color:#1e40af;font-weight:700;"><i class="fas fa-truck" style="margin-right:3px;"></i>via Freightos</div>
+            </div>
+            <div id="freightRates"></div>
+          </div>
+
+          <div id="ratesError" style="display:none;padding:20px;background:#fef2f2;border:1px solid #fecaca;border-radius:var(--radius-md);color:#dc2626;font-size:.82rem;"></div>
+
+          <div style="display:flex;justify-content:space-between;margin-top:20px;">
+            <button class="btn btn-secondary btn-sm" onclick="wzGo(2)"><i class="fas fa-arrow-left"></i> Back</button>
+            <button class="btn btn-primary btn-sm" id="rateNextBtn" onclick="wzGo(4)" disabled>Review Booking <i class="fas fa-arrow-right"></i></button>
+          </div>
+        </div>
+
+        <!-- Step 4: Review & Confirm -->
+        <div class="wz-panel sl-card" id="wzPanel4">
+          <div class="sl-card__head">
+            <div>
+              <div class="sl-card__title"><i class="fas fa-magnifying-glass-dollar" style="color:var(--color-accent);margin-right:6px;"></i>Review &amp; Confirm Booking</div>
+              <div class="sl-card__sub">Check all details before confirming · A BOL will be generated instantly</div>
+            </div>
+          </div>
+
+          <div id="reviewContent"></div>
+
+          <div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:var(--radius-sm);padding:12px 16px;font-size:.78rem;color:#065f46;margin-top:16px;margin-bottom:20px;">
+            <i class="fas fa-shield-halved"></i> Booking confirmation, <strong>Bill of Lading (BOL)</strong>, and tracking number will be generated instantly after confirming.
+          </div>
+          <div style="display:flex;align-items:flex-start;gap:8px;margin-bottom:20px;">
+            <input type="checkbox" id="bookTerms" style="accent-color:var(--color-accent);width:15px;height:15px;margin-top:2px;flex-shrink:0;">
+            <label for="bookTerms" style="font-size:.78rem;color:var(--color-muted);cursor:pointer;">I confirm all shipment details are correct and authorise BRND Direct to book this shipment on my behalf per the carrier's <a href="help.html" style="color:var(--color-accent);">terms of service</a>.</label>
+          </div>
+
+          <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;">
+            <button class="btn btn-secondary btn-sm" onclick="wzGo(3)"><i class="fas fa-arrow-left"></i> Back</button>
+            <button class="btn btn-primary btn-sm" id="confirmBookBtn" onclick="confirmBooking()" style="min-width:200px;justify-content:center;">
+              <i class="fas fa-lock"></i> Confirm &amp; Book Shipment
+            </button>
+          </div>
+        </div>
+
+        <!-- Step 5: Success -->
+        <div class="wz-panel" id="wzPanel5">
+          <div class="sl-card">
+            <div class="booking-success">
+              <div class="booking-success__icon"><i class="fas fa-check"></i></div>
+              <h2>Shipment Booked!</h2>
+              <p>Your shipment has been confirmed and booked. Your <strong>Bill of Lading (BOL)</strong> and tracking number are ready.</p>
+              <div class="booking-success__ref">
+                <div class="booking-success__ref-label">Tracking Number</div>
+                <div class="booking-success__ref-num" id="bookingTrackNum">—</div>
+              </div>
+              <div class="booking-success__ref" style="margin-left:12px;">
+                <div class="booking-success__ref-label">BOL Reference</div>
+                <div class="booking-success__ref-num" id="bookingBolNum">—</div>
+              </div>
+              <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-top:8px;">
+                <button class="btn btn-secondary btn-sm" id="bolDownloadBtn" onclick="downloadBOL()"><i class="fas fa-file-pdf"></i> Download BOL</button>
+                <button class="btn btn-secondary btn-sm" id="labelDownloadBtn" onclick="downloadLabel()"><i class="fas fa-print"></i> Print Label</button>
+                <button class="btn btn-primary btn-sm" onclick="switchSlTab('track')"><i class="fas fa-location-dot"></i> Track Shipment</button>
+              </div>
+              <div style="margin-top:20px;">
+                <button class="btn btn-ghost btn-sm" onclick="resetWizard()"><i class="fas fa-plus"></i> Book Another</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div><!-- end left panels -->
+
+      <!-- Right: booking summary -->
+      <div>
+        <div class="book-summary" id="bookSummary">
+          <div class="book-summary__head">
+            <h3><i class="fas fa-receipt" style="margin-right:8px;opacity:.7;"></i>Booking Summary</h3>
+            <p>Live estimate · updates as you fill</p>
+          </div>
+          <div class="book-summary__body">
+            <div class="bsum-row"><span class="bsum-row__label">Shipment Type</span><span class="bsum-row__val" id="bsumType">—</span></div>
+            <div class="bsum-row"><span class="bsum-row__label">From</span><span class="bsum-row__val" id="bsumFrom">—</span></div>
+            <div class="bsum-row"><span class="bsum-row__label">To</span><span class="bsum-row__val" id="bsumTo">Johnson Retail Group LLC<br>New York, NY 10118</span></div>
+            <div class="bsum-row"><span class="bsum-row__label">Pickup</span><span class="bsum-row__val" id="bsumDate">—</span></div>
+            <div class="bsum-row"><span class="bsum-row__label">Packages</span><span class="bsum-row__val" id="bsumPkgs">—</span></div>
+            <div class="bsum-row"><span class="bsum-row__label">Carrier</span><span class="bsum-row__val" id="bsumCarrier">—</span></div>
+            <div class="bsum-row"><span class="bsum-row__label">Transit Time</span><span class="bsum-row__val" id="bsumTransit">—</span></div>
+            <div class="bsum-row"><span class="bsum-row__label">Insurance</span><span class="bsum-row__val">Carrier Liability</span></div>
+            <div class="bsum-total">
+              <span>Freight Cost</span>
+              <span id="bsumTotal">$0.00</span>
+            </div>
+          </div>
+          <div style="padding:14px 20px;border-top:1px solid var(--color-border);">
+            <div style="font-size:.7rem;color:var(--color-muted);line-height:1.55;">
+              <i class="fas fa-info-circle" style="margin-right:4px;"></i>
+              Final rate confirmed at step 3. Fuel surcharge &amp; residential fees may apply.
+            </div>
+          </div>
+        </div>
+
+        <!-- Connected providers -->
+        <div class="sl-card" style="margin-top:16px;">
+          <div class="sl-card__title" style="font-size:.8rem;margin-bottom:12px;">Connected Platforms</div>
+          <div style="display:flex;flex-direction:column;gap:10px;">
+
+            <!-- Freightos block -->
+            <div style="border:1.5px solid #dbeafe;border-radius:8px;padding:10px 12px;background:#eff6ff;">
+              <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
+                <div style="width:28px;height:20px;background:linear-gradient(135deg,#0050c8,#0085ff);border-radius:4px;display:flex;align-items:center;justify-content:center;color:white;font-size:.55rem;font-weight:900;"><i class="fas fa-ship"></i></div>
+                <span style="flex:1;font-weight:700;font-size:.78rem;">Freightos</span>
+                <span id="freightosStatusDot" style="color:var(--color-muted);font-size:.65rem;font-weight:700;"><i class="fas fa-spinner fa-spin" style="font-size:.5rem;"></i></span>
+              </div>
+              <div style="font-size:.65rem;color:#1e40af;font-weight:600;">75+ freight carriers · LTL &amp; FTL</div>
+            </div>
+
+            <!-- Shippo block -->
+            <div style="border:1.5px solid #ede9fe;border-radius:8px;padding:10px 12px;background:#f5f3ff;">
+              <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
+                <div style="width:28px;height:20px;background:linear-gradient(135deg,#7c3aed,#4f46e5);border-radius:4px;display:flex;align-items:center;justify-content:center;color:white;font-size:.55rem;font-weight:900;"><i class="fas fa-box"></i></div>
+                <span style="flex:1;font-weight:700;font-size:.78rem;">Shippo</span>
+                <span id="shippoStatusDot" style="color:var(--color-muted);font-size:.65rem;font-weight:700;"><i class="fas fa-spinner fa-spin" style="font-size:.5rem;"></i></span>
+              </div>
+              <div style="font-size:.65rem;color:#5b21b6;font-weight:600;" id="shippoCarrierList">Loading carriers…</div>
+            </div>
+
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════
+       TAB 3 — LIVE TRACKING
+  ═══════════════════════════════════════ -->
+  <div class="sl-section" id="sl-track">
+
+    <div class="track-search-bar">
+      <i class="fas fa-search" style="color:var(--color-muted);font-size:.9rem;"></i>
+      <input type="text" id="trackInput" placeholder="Enter tracking number or BOL reference…" value="794644792798" />
+      <button class="btn btn-primary btn-sm" onclick="loadTracking()">Track <i class="fas fa-arrow-right"></i></button>
+    </div>
+
+    <!-- Active tracking panel -->
+    <div class="tracking-panel" id="trackingPanel">
+
+      <div class="tracking-hero">
+        <div>
+          <div class="tracking-hero__num" id="trk-num">794644792798</div>
+          <div class="tracking-hero__carrier" id="trk-carrier">FedEx Ground</div>
+          <div class="tracking-hero__route" id="trk-route">New York, NY → New York, NY 10118</div>
+        </div>
+        <div class="tracking-hero__status">
+          <div class="tracking-hero__status-badge" id="trk-badge" style="background:#d1fae5;color:#065f46;">In Transit</div>
+          <div class="tracking-hero__eta" id="trk-eta">Est. Delivery: Mar 25, 2026</div>
+          <div style="font-size:.72rem;opacity:.6;margin-top:4px;" id="trk-order">Order: BD-48289 · New Balance</div>
+        </div>
+      </div>
+
+      <!-- Map -->
+      <div class="map-placeholder">
+        <div class="map-grid-lines"></div>
+        <div class="map-route-line"></div>
+        <div class="map-dot origin"></div>
+        <div class="map-dot dest"></div>
+        <div class="map-dot truck"></div>
+        <span class="map-city origin" id="trk-city-from">New York, NY</span>
+        <span class="map-city dest" id="trk-city-to">New York, NY</span>
+        <div style="color:rgba(255,255,255,.4);font-size:.72rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;">Live Route Visualization</div>
+      </div>
+
+      <!-- Step progress -->
+      <div style="padding:20px 24px 4px;">
+        <div class="shipment-progress" id="trkProgress">
+          <!-- Injected by JS -->
+        </div>
+      </div>
+
+      <!-- Event timeline + details -->
+      <div style="display:grid;grid-template-columns:1fr 280px;gap:0;border-top:1px solid var(--color-border);">
+        <div class="track-timeline" id="trkTimeline">
+          <!-- Injected by JS -->
+        </div>
+        <div style="border-left:1px solid var(--color-border);padding:20px;">
+          <div style="font-size:.68rem;font-weight:800;text-transform:uppercase;letter-spacing:.08em;color:var(--color-muted);margin-bottom:14px;">Shipment Details</div>
+          <div id="trkDetails" style="display:flex;flex-direction:column;gap:10px;font-size:.82rem;"></div>
+          <div style="margin-top:16px;padding-top:14px;border-top:1px solid var(--color-border);display:flex;flex-direction:column;gap:8px;">
+            <button class="btn btn-secondary btn-sm btn-full" onclick="showToast('BOL downloading…','success')"><i class="fas fa-file-pdf"></i> Download BOL</button>
+            <button class="btn btn-secondary btn-sm btn-full" onclick="showToast('Invoice downloading…','success')"><i class="fas fa-file-invoice"></i> Download Invoice</button>
+            <button class="btn btn-secondary btn-sm btn-full" onclick="showToast('Exception filed.','success')"><i class="fas fa-triangle-exclamation"></i> File Exception</button>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════
+       TAB 4 — DOCUMENTS & BOL
+  ═══════════════════════════════════════ -->
+  <div class="sl-section" id="sl-documents">
+
+    <div class="sl-card">
+      <div class="sl-card__head">
+        <div>
+          <div class="sl-card__title">Documents &amp; Bill of Lading (BOL)</div>
+          <div class="sl-card__sub">Download, print or share shipping documents for all your orders</div>
+        </div>
+        <button class="btn btn-primary btn-sm" onclick="showToast('Bulk document export started.','success')"><i class="fas fa-download"></i> Export All</button>
+      </div>
+      <div class="doc-grid" id="docGrid"></div>
+    </div>
+
+    <div class="sl-card">
+      <div class="sl-card__head">
+        <div>
+          <div class="sl-card__title">Commercial Invoice Generator</div>
+          <div class="sl-card__sub">Auto-generate customs &amp; commercial invoices from your order data</div>
+        </div>
+        <button class="btn btn-primary btn-sm" onclick="showToast('Invoice generated and downloaded.','success')"><i class="fas fa-file-invoice"></i> Generate Invoice</button>
+      </div>
+      <div class="sl-form-grid">
+        <div class="sl-form-group">
+          <label>Select Order</label>
+          <select>
+            <option>BD-48290 · Charlotte Tilbury · $9,600</option>
+            <option>BD-48289 · New Balance · $2,160</option>
+            <option>BD-48288 · Chanel · $5,760</option>
+            <option>BD-48287 · Gucci · $7,200</option>
+          </select>
+        </div>
+        <div class="sl-form-group">
+          <label>Document Type</label>
+          <select>
+            <option>Commercial Invoice</option>
+            <option>Packing List</option>
+            <option>Bill of Lading (BOL)</option>
+            <option>Certificate of Origin</option>
+            <option>Customs Declaration</option>
+          </select>
+        </div>
+        <div class="sl-form-group">
+          <label>Currency</label>
+          <select><option>USD</option><option>EUR</option><option>GBP</option></select>
+        </div>
+        <div class="sl-form-group">
+          <label>Incoterms</label>
+          <select><option>DAP</option><option>DDP</option><option>EXW</option><option>FOB</option><option>CIF</option></select>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ═══════════════════════════════════════
+       TAB 5 — RATE COMPARE
+  ═══════════════════════════════════════ -->
+  <div class="sl-section" id="sl-rates">
+
+    <div class="sl-card">
+      <div class="sl-card__head">
+        <div>
+          <div class="sl-card__title">Quick Rate Comparison</div>
+          <div class="sl-card__sub">Compare live rates across all carriers for any route without booking</div>
+        </div>
+      </div>
+      <div class="sl-form-grid" style="margin-bottom:20px;">
+        <div class="sl-form-group">
+          <label>Origin ZIP</label>
+          <input type="text" id="rcOrigin" placeholder="10001" value="10001" />
+        </div>
+        <div class="sl-form-group">
+          <label>Destination ZIP</label>
+          <input type="text" id="rcDest" placeholder="90210" value="10118" />
+        </div>
+        <div class="sl-form-group">
+          <label>Weight (lbs)</label>
+          <input type="number" id="rcWeight" placeholder="50" value="48" />
+        </div>
+        <div class="sl-form-group">
+          <label>Shipment Type</label>
+          <select id="rcType">
+            <option>Parcel</option><option>LTL Freight</option><option>FTL Freight</option>
+          </select>
+        </div>
+      </div>
+      <button class="btn btn-primary btn-sm" onclick="loadRateCompare()"><i class="fas fa-search-dollar"></i> Get Live Rates</button>
+    </div>
+
+    <div class="sl-card" id="rateCompareResults" style="display:none;">
+      <div class="sl-card__head">
+        <div>
+          <div class="sl-card__title">Rate Results</div>
+          <div class="sl-card__sub" id="rateCompareRoute">10001 → 10118 · 48 lbs · Parcel</div>
+        </div>
+        <div style="font-size:.75rem;color:var(--color-emerald);font-weight:700;display:flex;align-items:center;gap:5px;">
+          <div style="width:7px;height:7px;border-radius:50%;background:var(--color-emerald);"></div> Live rates
+        </div>
+      </div>
+      <div id="allRatesList"></div>
+    </div>
+
+  </div>
+
+</main>
+
+<div class="toast-container" id="toastContainer"></div>
+<script src="js/portal.js"></script>
+<script>(function(){try{var c=JSON.parse(sessionStorage.getItem('brnd_cart')||'[]');var b=document.getElementById('sidebarCartBadge');if(b&&c.length>0){b.textContent=c.length;b.style.display='inline-flex';}}catch(e){}})();</script>
+<script>
+/* ═══════════════════════════════════════════════════════════
+   DATA
+═══════════════════════════════════════════════════════════ */
+const SHIPMENTS_DATA = [
+  { id:'SHP-0290', order:'BD-48290', brand:'Charlotte Tilbury', product:'Pillow Talk Collection', carrier:'FedEx Freight', tracking:'BOL-8821-CT', type:'LTL', status:'in_transit', origin:'New York, NY', dest:'New York, NY 10118', ship:'Mar 17', eta:'Mar 21', weight:'85 lbs', dims:'24×18×12 in', cost:320, progress:3, bolReady:true },
+  { id:'SHP-0289', order:'BD-48289', brand:'New Balance', product:'990v6 Assorted Sizes', carrier:'FedEx Ground', tracking:'794644792798', type:'Parcel', status:'in_transit', origin:'Boston, MA', dest:'New York, NY 10118', ship:'Mar 16', eta:'Mar 25', weight:'48 lbs', dims:'18×12×10 in', cost:185, progress:3, bolReady:true },
+  { id:'SHP-0288', order:'BD-48288', brand:'Chanel', product:'No. 5 EDP 50ml', carrier:'UPS Freight', tracking:'1Z3A4B2C', type:'Parcel', status:'delivered', origin:'Los Angeles, CA', dest:'New York, NY 10118', ship:'Mar 15', eta:'Mar 18', weight:'36 lbs', dims:'14×10×8 in', cost:290, progress:5, bolReady:true },
+  { id:'SHP-0287', order:'BD-48287', brand:'Gucci', product:'GG Marmont Mini Bag', carrier:'DHL Express', tracking:'1234567890', type:'Parcel', status:'in_transit', origin:'Milan, IT', dest:'New York, NY 10118', ship:'Mar 14', eta:'Mar 22', weight:'28 lbs', dims:'20×14×8 in', cost:420, progress:2, bolReady:true },
+  { id:'SHP-0286', order:'BD-48286', brand:'Jordan Brand', product:'Air Jordan 1 Retro High OG', carrier:'FedEx', tracking:'956748291', type:'Parcel', status:'delivered', origin:'Memphis, TN', dest:'New York, NY 10118', ship:'Mar 13', eta:'Mar 15', weight:'55 lbs', dims:'22×16×14 in', cost:210, progress:5, bolReady:true },
+  { id:'SHP-0285', order:'BD-48285', brand:'Dior', product:'Sauvage EDT 100ml', carrier:'UPS', tracking:'1Z9D8E7F', type:'Parcel', status:'delivered', origin:'Paris, FR', dest:'New York, NY 10118', ship:'Mar 10', eta:'Mar 13', weight:'72 lbs', dims:'16×12×10 in', cost:380, progress:5, bolReady:true },
+  { id:'SHP-0284', order:'BD-48284', brand:'NARS Cosmetics', product:'Iconic Lipstick Set', carrier:'FedEx', tracking:'394857261', type:'Parcel', status:'delivered', origin:'San Francisco, CA', dest:'New York, NY 10118', ship:'Mar 8', eta:'Mar 11', weight:'22 lbs', dims:'12×10×6 in', cost:145, progress:5, bolReady:true },
+  { id:'SHP-0282', order:'BD-48282', brand:'Versace', product:'Jeans Couture Polo SS26', carrier:'DHL', tracking:'6241358790', type:'Parcel', status:'delivered', origin:'Milan, IT', dest:'New York, NY 10118', ship:'Mar 6', eta:'Mar 10', weight:'40 lbs', dims:'20×14×8 in', cost:310, progress:5, bolReady:true },
+  { id:'SHP-0281', order:'BD-48281', brand:'MAC Cosmetics', product:'Studio Fix Foundation Range', carrier:'FedEx', tracking:'748392011', type:'Parcel', status:'delivered', origin:'Toronto, CA', dest:'New York, NY 10118', ship:'Mar 5', eta:'Mar 8', weight:'60 lbs', dims:'18×14×10 in', cost:225, progress:5, bolReady:true },
+  { id:'SHP-0280', order:'BD-48280', brand:'Ralph Lauren', product:'Oxford Piqué Polo', carrier:'UPS', tracking:'1Z5F6G7H', type:'Parcel', status:'delivered', origin:'New York, NY', dest:'New York, NY 10118', ship:'Mar 4', eta:'Mar 7', weight:'30 lbs', dims:'16×12×8 in', cost:135, progress:5, bolReady:true },
+  { id:'SHP-0277', order:'BD-48277', brand:'YSL Beauty', product:'Rouge Pur Couture Set', carrier:'FedEx Freight', tracking:'BOL-9932-YSL', type:'LTL', status:'delivered', origin:'Paris, FR', dest:'New York, NY 10118', ship:'Mar 11', eta:'Mar 14', weight:'55 lbs', dims:'18×14×8 in', cost:260, progress:5, bolReady:true },
+];
+
+const CARRIER_COLORS = {
+  'FedEx':'linear-gradient(135deg,#4d1a7f,#7c3aed)',
+  'FedEx Ground':'linear-gradient(135deg,#4d1a7f,#7c3aed)',
+  'FedEx Freight':'linear-gradient(135deg,#4d1a7f,#7c3aed)',
+  'UPS':'linear-gradient(135deg,#352900,#7a5c00)',
+  'UPS Freight':'linear-gradient(135deg,#352900,#7a5c00)',
+  'DHL':'linear-gradient(135deg,#d40511,#c00)',
+  'DHL Express':'linear-gradient(135deg,#d40511,#c00)',
+  'USPS':'linear-gradient(135deg,#003b80,#1e5ba8)',
+  'Freightos':'linear-gradient(135deg,#0050c8,#0085ff)',
+  'Shippo':'linear-gradient(135deg,#7c3aed,#4f46e5)',
+};
+const CARRIER_ABBR = { 'FedEx':'FX','FedEx Ground':'FX','FedEx Freight':'FX','UPS':'UPS','UPS Freight':'UPS','DHL':'DHL','DHL Express':'DHL','USPS':'PS','Freightos':'FT','Shippo':'SP' };
+
+/* ═══════════════════════════════════════════════════════════
+   API CONFIG — update these to match your worker URL
+═══════════════════════════════════════════════════════════ */
+const API_BASE = '/api';  // Cloudflare Worker at /api/*
+// In production this hits your deployed Cloudflare Worker.
+// In dev/sandbox mode, the page falls back to mock data when
+// the worker returns an error (keys not yet configured).
+
+const DEMO_MODE = true; // Set false once real API keys are configured
+
+const STATUS_MAP = {
+  in_transit: { label:'In Transit', cls:'badge-shipped' },
+  delivered:  { label:'Delivered',  cls:'badge-delivered' },
+  pending:    { label:'Pending',    cls:'badge-pending' },
+  booked:     { label:'Booked',     cls:'badge-confirmed' },
+};
+
+const PROGRESS_STEPS = ['Order Placed','Picked Up','In Transit','Out for Delivery','Delivered'];
+
+/* ═══════════════════════════════════════════════════════════
+   SECTION TABS
+═══════════════════════════════════════════════════════════ */
+function switchSlTab(name) {
+  document.querySelectorAll('.sl-section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.sl-page-tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('sl-' + name).classList.add('active');
+  document.querySelector(`[data-sl="${name}"]`).classList.add('active');
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+/* ═══════════════════════════════════════════════════════════
+   SHIPMENT LIST
+═══════════════════════════════════════════════════════════ */
+let _activeFilter = 'all';
+
+function filterShipments(status, btn) {
+  if (status !== undefined) _activeFilter = status;
+  if (btn) {
+    document.querySelectorAll('#sl-shipments .period-tab').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+  }
+  const carrier = document.getElementById('carrierFilter')?.value || '';
+  let data = SHIPMENTS_DATA.filter(s => {
+    const statusOk = _activeFilter === 'all' || s.status === _activeFilter;
+    const carrierOk = !carrier || s.carrier.includes(carrier);
+    return statusOk && carrierOk;
+  });
+  renderShipments(data);
+}
+
+function renderShipments(data) {
+  const list = document.getElementById('shipmentList');
+  document.getElementById('shipmentCount').textContent = `Showing ${data.length} shipments`;
+  if (!data.length) {
+    list.innerHTML = `<div style="text-align:center;padding:48px;color:var(--color-muted);">
+      <i class="fas fa-box-open" style="font-size:2rem;display:block;margin-bottom:12px;opacity:.25;"></i>
+      No shipments found for this filter.
+    </div>`;
+    return;
+  }
+  list.innerHTML = data.map((s, idx) => {
+    const st = STATUS_MAP[s.status] || STATUS_MAP.pending;
+    const abbr = CARRIER_ABBR[s.carrier] || s.carrier.substr(0,2).toUpperCase();
+    const bgColor = CARRIER_COLORS[s.carrier] || 'linear-gradient(135deg,#374151,#6b7280)';
+    return `
+    <div class="shipment-card fade-in" style="animation-delay:${idx*0.04}s">
+      <div class="shipment-card__head" onclick="toggleShipCard('shp-${s.id}')">
+        <div class="shipment-card__carrier-logo" style="background:${bgColor};">${abbr}</div>
+        <div class="shipment-card__main">
+          <div class="shipment-card__id">${s.tracking}</div>
+          <div class="shipment-card__desc">${s.product}</div>
+          <div class="shipment-card__meta">${s.brand} · ${s.carrier} · ${s.type} · ${s.order}</div>
+        </div>
+        <div class="shipment-card__right">
+          <div style="text-align:center;">
+            <div style="font-size:.68rem;color:var(--color-muted);font-weight:700;">SHIP DATE</div>
+            <div style="font-size:.82rem;font-weight:700;">Mar ${s.ship.replace('Mar ','')}</div>
+          </div>
+          <div style="text-align:center;">
+            <div style="font-size:.68rem;color:var(--color-muted);font-weight:700;">ETA</div>
+            <div style="font-size:.82rem;font-weight:700;color:${s.status==='delivered'?'var(--color-emerald)':'var(--color-amber)'};">Mar ${s.eta.replace('Mar ','')}</div>
+          </div>
+          <div style="text-align:right;">
+            <div style="font-size:.68rem;color:var(--color-muted);font-weight:700;">COST</div>
+            <div style="font-size:.9rem;font-weight:800;color:var(--color-accent);">$${s.cost}</div>
+          </div>
+          <span class="badge ${st.cls}">${st.label}</span>
+          <i class="fas fa-chevron-down" style="color:var(--color-muted);transition:transform .2s;" id="chev-${s.id}"></i>
+        </div>
+      </div>
+      <div class="shipment-card__body" id="shp-${s.id}">
+        <!-- Progress -->
+        <div class="shipment-progress">
+          ${PROGRESS_STEPS.map((step, i) => {
+            const state = i < s.progress ? 'done' : i === s.progress ? 'active' : '';
+            return `<div class="sp-step ${state}">
+              <div class="sp-dot">${state==='done'?'<i class="fas fa-check" style="font-size:.55rem;"></i>':(i+1)}</div>
+              <div class="sp-label">${step}</div>
+            </div>`;
+          }).join('')}
+        </div>
+
+        <!-- Detail grid -->
+        <div class="shipment-detail-grid">
+          <div><div class="sdg-item__label">Origin</div><div class="sdg-item__val">${s.origin}</div></div>
+          <div><div class="sdg-item__label">Destination</div><div class="sdg-item__val">${s.dest}</div></div>
+          <div><div class="sdg-item__label">Weight</div><div class="sdg-item__val">${s.weight}</div></div>
+          <div><div class="sdg-item__label">Dimensions</div><div class="sdg-item__val">${s.dims}</div></div>
+          <div><div class="sdg-item__label">Carrier</div><div class="sdg-item__val">${s.carrier}</div></div>
+          <div><div class="sdg-item__label">Shipment Type</div><div class="sdg-item__val">${s.type}</div></div>
+          <div><div class="sdg-item__label">Tracking #</div><div class="sdg-item__val" style="font-family:monospace;font-size:.8rem;">${s.tracking}</div></div>
+          <div><div class="sdg-item__label">Freight Cost</div><div class="sdg-item__val" style="color:var(--color-accent);">$${s.cost}</div></div>
+        </div>
+
+        <!-- Actions -->
+        <div class="shipment-actions">
+          <button class="btn btn-secondary btn-sm" onclick="loadTrackingFor('${s.id}')"><i class="fas fa-location-dot"></i> Live Track</button>
+          <button class="btn btn-secondary btn-sm" onclick="showToast('BOL downloading…','success')"><i class="fas fa-file-pdf"></i> Download BOL</button>
+          <button class="btn btn-secondary btn-sm" onclick="showToast('Invoice downloading…','success')"><i class="fas fa-file-invoice"></i> Download Invoice</button>
+          <button class="btn btn-secondary btn-sm" onclick="showToast('Shipping label printing…','success')"><i class="fas fa-print"></i> Print Label</button>
+          ${s.status !== 'delivered' ? `<button class="btn btn-secondary btn-sm" onclick="showToast('Exception report filed.','success')"><i class="fas fa-triangle-exclamation"></i> File Exception</button>` : ''}
+          <button class="btn btn-secondary btn-sm" onclick="showToast('Proof of delivery downloading…','success')"><i class="fas fa-signature"></i> POD</button>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function toggleShipCard(id) {
+  const body  = document.getElementById(id);
+  const shpId = id.replace('shp-SHP-', '');
+  const chev  = document.getElementById(`chev-SHP-${shpId}`);
+  const isOpen = body.classList.toggle('open');
+  if (chev) chev.style.transform = isOpen ? 'rotate(180deg)' : '';
+}
+
+/* ═══════════════════════════════════════════════════════════
+   BOOKING WIZARD
+═══════════════════════════════════════════════════════════ */
+let wzCurrent = 1;
+let selectedRate = null;
+let lastBookingResult = null;  // Stores booked shipment data (tracking, BOL, label URL)
+
+function wzGo(n) {
+  if (n === 3) buildRates();
+  if (n === 4) buildReview();
+  [1,2,3,4,5].forEach(i => {
+    document.getElementById(`wzPanel${i}`).classList.remove('active');
+    const s = document.getElementById(`wzStep${i}`);
+    s.classList.remove('active','done');
+    if (i < n) s.classList.add('done');
+    else if (i === n) s.classList.add('active');
+    if (i < 5) document.getElementById(`wzLine${i}`).classList.toggle('done', i < n);
+  });
+  document.getElementById(`wzPanel${n}`).classList.add('active');
+  wzCurrent = n;
+  updateBookSummary();
+  document.getElementById('sl-book').scrollIntoView({ behavior:'smooth', block:'start' });
+}
+
+/* ─── MOCK RATES (used when API keys not yet configured) ─── */
+const MOCK_PARCEL_RATES = [
+  { provider:'shippo', rate_id:'mock-s1', carrier:'FedEx', service:'FedEx Priority Overnight', transit:'1 business day', price:89.40, currency:'USD', attributes:['FASTEST'] },
+  { provider:'shippo', rate_id:'mock-s2', carrier:'UPS',   service:'UPS 2nd Day Air',           transit:'2 business days', price:54.20, currency:'USD', attributes:['BESTVALUE'] },
+  { provider:'shippo', rate_id:'mock-s3', carrier:'FedEx', service:'FedEx Ground',              transit:'2-3 business days', price:38.60, currency:'USD', attributes:[] },
+  { provider:'shippo', rate_id:'mock-s4', carrier:'DHL',   service:'DHL Express Worldwide',    transit:'1-2 business days', price:76.80, currency:'USD', attributes:[] },
+  { provider:'shippo', rate_id:'mock-s5', carrier:'USPS',  service:'USPS Priority Mail',        transit:'2-3 business days', price:28.90, currency:'USD', attributes:['CHEAPEST'] },
+];
+const MOCK_FREIGHT_RATES = [
+  { provider:'freightos', rate_id:'mock-f1', carrier:'XPO Logistics',  service:'LTL Standard (via Freightos)', transit:'3-5 business days', price:310.00, currency:'USD', guaranteed:false },
+  { provider:'freightos', rate_id:'mock-f2', carrier:'Old Dominion',   service:'LTL Expedited (via Freightos)', transit:'2-4 business days', price:420.00, currency:'USD', guaranteed:true  },
+  { provider:'freightos', rate_id:'mock-f3', carrier:'FedEx Freight',  service:'FedEx Freight Priority',       transit:'2-3 business days', price:485.00, currency:'USD', guaranteed:true  },
+];
+
+/* ─── Build rates: calls live API or falls back to demo data ─── */
+async function buildRates() {
+  document.getElementById('ratesLoadingState').style.display = 'block';
+  document.getElementById('parcelRatesSection').style.display = 'none';
+  document.getElementById('freightRatesSection').style.display = 'none';
+  document.getElementById('ratesError').style.display = 'none';
+  document.getElementById('rateNextBtn').disabled = true;
+  selectedRate = null;
+
+  const shipType = document.getElementById('shipType').value; // 'parcel' | 'ltl' | 'ftl'
+  const isFreight = shipType === 'ltl' || shipType === 'ftl';
+
+  const originCity  = document.getElementById('originCity').value  || 'Chicago';
+  const originZip   = document.getElementById('originZip').value   || '60607';
+  const destCity    = document.getElementById('destCity').value    || 'New York';
+  const destZip     = document.getElementById('destZip').value     || '10118';
+  const pkgRows     = document.getElementById('pkgRows').querySelectorAll('.pkg-row');
+  const parcels     = Array.from(pkgRows).map(row => {
+    const inputs = row.querySelectorAll('input');
+    return {
+      description: inputs[0]?.value || 'Merchandise',
+      length_in:   parseFloat(inputs[1]?.value) || 12,
+      width_in:    parseFloat(inputs[2]?.value) || 10,
+      height_in:   parseFloat(inputs[3]?.value) || 6,
+      weight_lb:   parseFloat(inputs[4]?.value) || 10,
+      qty:         1
+    };
+  });
+
+  if (!parcels.length) parcels.push({ description:'Package', length_in:12, width_in:10, height_in:6, weight_lb:10, qty:1 });
+
+  try {
+    document.getElementById('ratesLoadingMsg').textContent = isFreight
+      ? 'Querying Freightos — 75+ freight carriers…'
+      : 'Querying Shippo — FedEx, UPS, DHL, USPS…';
+
+    let rates = [];
+
+    if (DEMO_MODE) {
+      // Simulate network latency
+      await new Promise(r => setTimeout(r, 1200));
+      rates = isFreight ? MOCK_FREIGHT_RATES : MOCK_PARCEL_RATES;
+      showToast('Demo mode: showing sample rates. Configure API keys to go live.', 'info');
+    } else if (isFreight) {
+      // Freightos LTL/FTL quote
+      const originParts = originZip.split(' ');
+      const destParts   = destZip.split(' ');
+      const resp = await fetch(`${API_BASE}/freight/quote`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          origin:        { city: originCity, state: originParts[0] || 'IL', zip: originParts[1] || originZip, country: 'US' },
+          destination:   { city: destCity,   state: destParts[0]   || 'NY', zip: destParts[1]   || destZip,   country: 'US' },
+          cargo:         parcels,
+          shipment_type: shipType.toUpperCase(),
+          pickup_date:   document.getElementById('pickupDate').value || new Date().toISOString().split('T')[0],
+          declared_value: parseFloat(document.getElementById('declaredValue').value) || null
+        })
+      });
+      const data = await resp.json();
+      if (!resp.ok || data.error) throw new Error(data.error || 'Freightos error');
+      rates = data.rates || [];
+      if (!rates.length) throw new Error('No freight rates returned. Check route and cargo details.');
+    } else {
+      // Shippo parcel rates
+      const destParts   = destZip.split(' ');
+      const resp = await fetch(`${API_BASE}/parcel/rates`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          to: {
+            name:    document.getElementById('destName').value || 'Recipient',
+            street1: document.getElementById('destAddr1').value || '',
+            city:    destCity,
+            state:   destParts[0] || 'NY',
+            zip:     destParts[1] || destZip,
+            country: 'US',
+            is_residential: true
+          },
+          parcels,
+          declared_value: parseFloat(document.getElementById('declaredValue').value) || null
+        })
+      });
+      const data = await resp.json();
+      if (!resp.ok || data.error) throw new Error(data.error || 'Shippo error');
+      // Store shipment id for booking
+      window._shippoShipmentId = data.shipment_id;
+      rates = data.rates || [];
+      if (!rates.length) throw new Error('No parcel rates returned. Verify addresses and try again.');
+    }
+
+    // Render results
+    document.getElementById('ratesLoadingState').style.display = 'none';
+    if (isFreight) {
+      document.getElementById('freightRatesSection').style.display = 'block';
+      document.getElementById('freightRates').innerHTML = rates.map((r,i) => rateCardHTML(r,'freight-'+i,'freightos')).join('');
+    } else {
+      document.getElementById('parcelRatesSection').style.display = 'block';
+      document.getElementById('parcelRates').innerHTML = rates.map((r,i) => rateCardHTML(r,'parcel-'+i,'shippo')).join('');
+    }
+
+  } catch (err) {
+    document.getElementById('ratesLoadingState').style.display = 'none';
+    document.getElementById('ratesError').style.display = 'block';
+    document.getElementById('ratesError').innerHTML =
+      `<i class="fas fa-exclamation-circle" style="margin-right:6px;"></i><strong>Could not load rates:</strong> ${err.message}<br><span style="font-size:.75rem;opacity:.8;">Check your API keys are configured in the Cloudflare Worker secrets. <a href="#" onclick="buildRates();return false;" style="color:#dc2626;">Retry</a></span>`;
+  }
+}
+
+function rateCardHTML(r, id, provider='shippo') {
+  const carrierKey = r.carrier?.split(' ')[0];
+  const logo = CARRIER_COLORS[carrierKey] || CARRIER_COLORS[r.carrier]
+    || (provider==='freightos' ? 'linear-gradient(135deg,#0050c8,#0085ff)' : 'linear-gradient(135deg,#7c3aed,#4f46e5)');
+  const abbr = CARRIER_ABBR[r.carrier] || r.carrier?.substr(0,3).toUpperCase() || '??';
+
+  // Determine badge
+  let badgeClass = '', badgeLabel = '';
+  const attrs = r.attributes || [];
+  if (attrs.includes('FASTEST') || r.guaranteed)         { badgeClass='badge-fast';  badgeLabel='Fastest'; }
+  else if (attrs.includes('BESTVALUE'))                   { badgeClass='badge-best';  badgeLabel='Best Value'; }
+  else if (attrs.includes('CHEAPEST') || id.endsWith('0'))  { badgeClass='badge-eco';   badgeLabel='Cheapest'; }
+
+  const priceFmt = parseFloat(r.price || 0).toFixed(2);
+  const providerBadge = provider === 'freightos'
+    ? `<span style="font-size:.58rem;padding:2px 5px;border-radius:4px;background:#dbeafe;color:#1e40af;font-weight:700;flex-shrink:0;">FT</span>`
+    : `<span style="font-size:.58rem;padding:2px 5px;border-radius:4px;background:#ede9fe;color:#7c3aed;font-weight:700;flex-shrink:0;">SP</span>`;
+
+  return `<label class="rate-card" id="rc-${id}" onclick="selectRate('${id}', '${r.carrier}', '${r.service}', '${r.transit}', ${r.price}, '${r.rate_id}', '${provider}')">
+    <input type="radio" name="rateSelect" value="${id}">
+    <div class="rate-card__carrier" style="background:${logo};">${abbr}</div>
+    <div class="rate-card__info">
+      <div class="rate-card__name" style="display:flex;align-items:center;gap:5px;">${r.carrier} ${providerBadge}</div>
+      <div class="rate-card__service">${r.service}</div>
+      <div class="rate-card__transit"><i class="fas fa-clock" style="margin-right:4px;opacity:.6;"></i>${r.transit}${r.estimated_delivery ? ` <span style="color:var(--color-emerald);font-weight:600;">&mdash; by ${new Date(r.estimated_delivery).toLocaleDateString('en-US',{month:'short',day:'numeric'})}</span>` : ''}</div>
+    </div>
+    ${badgeLabel ? `<span class="rate-card__badge ${badgeClass}">${badgeLabel}</span>` : ''}
+    <div class="rate-card__price">$${priceFmt}<small>${r.currency || 'USD'} · excl. fuel</small></div>
+  </label>`;
+}
+
+function selectRate(id, carrier, service, transit, price, rate_id, provider) {
+  document.querySelectorAll('.rate-card').forEach(c => c.classList.remove('selected'));
+  document.getElementById(`rc-${id}`)?.classList.add('selected');
+  selectedRate = { carrier, service, transit, price, rate_id, provider };
+  document.getElementById('rateNextBtn').disabled = false;
+  document.getElementById('bsumCarrier').textContent  = `${carrier} · ${service}`;
+  document.getElementById('bsumTransit').textContent  = transit;
+  document.getElementById('bsumTotal').textContent    = `$${parseFloat(price).toFixed(2)}`;
+  updateBookSummary();
+}
+
+function buildReview() {
+  const from = document.getElementById('originName').value || 'Sender';
+  const to   = document.getElementById('destName').value   || 'Johnson Retail Group LLC';
+  const date = document.getElementById('pickupDate').value || 'TBD';
+  const ref  = document.getElementById('refNum').value     || '—';
+  const rate = selectedRate || { carrier:'—', service:'—', transit:'—', price:0 };
+  document.getElementById('reviewContent').innerHTML = `
+    <div style="border:1.5px solid var(--color-border);border-radius:var(--radius-md);overflow:hidden;">
+      ${[
+        ['From', from],
+        ['To',   to],
+        ['Pickup Date', date],
+        ['Reference', ref],
+        ['Carrier', `${rate.carrier} · ${rate.service}`],
+        ['Transit', rate.transit],
+        ['Freight Cost', `<strong style="color:var(--color-accent);font-size:1rem;">$${rate.price.toFixed(2)}</strong>`],
+      ].map(([l,v]) => `<div style="display:flex;justify-content:space-between;padding:11px 16px;border-bottom:1px solid var(--color-off-white);font-size:.875rem;"><span style="color:var(--color-muted);font-size:.78rem;">${l}</span><span style="font-weight:700;">${v}</span></div>`).join('')}
+    </div>`;
+}
+
+async function confirmBooking() {
+  if (!document.getElementById('bookTerms').checked) {
+    showToast('Please agree to the terms to confirm.', 'error'); return;
+  }
+  if (!selectedRate) {
+    showToast('Please select a rate first.', 'error'); return;
+  }
+  const btn = document.getElementById('confirmBookBtn');
+  btn.disabled = true;
+  btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Booking…';
+
+  try {
+    let trackNum = '', bolNum = '', labelUrl = '', shipmentId = '';
+
+    if (DEMO_MODE) {
+      // Demo: simulate a 2-second booking
+      await new Promise(r => setTimeout(r, 2000));
+      trackNum  = selectedRate.provider === 'freightos'
+        ? 'FT' + Math.floor(Math.random()*90000000+10000000)
+        : 'SP' + Math.floor(Math.random()*90000000+10000000);
+      bolNum    = 'BOL-' + Math.floor(Math.random()*9000+1000) + '-BD';
+      labelUrl  = null;
+      shipmentId = 'DEMO-' + Date.now();
+    } else if (selectedRate.provider === 'freightos') {
+      // Book freight via Freightos
+      const resp = await fetch(`${API_BASE}/freight/book`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          rate_id:    selectedRate.rate_id,
+          shipper: {
+            name:     document.getElementById('originName').value,
+            street1:  document.getElementById('originAddr1').value,
+            city:     document.getElementById('originCity').value,
+            state:    (document.getElementById('originZip').value||'').split(' ')[0],
+            zip:      (document.getElementById('originZip').value||'').split(' ')[1] || document.getElementById('originZip').value,
+            country:  'US'
+          },
+          consignee: {
+            name:     document.getElementById('destName').value,
+            street1:  document.getElementById('destAddr1').value,
+            city:     document.getElementById('destCity').value,
+            state:    (document.getElementById('destZip').value||'').split(' ')[0],
+            zip:      (document.getElementById('destZip').value||'').split(' ')[1] || document.getElementById('destZip').value,
+            country:  'US'
+          },
+          pickup_date: document.getElementById('pickupDate').value,
+          reference:   document.getElementById('refNum').value,
+          declared_value: parseFloat(document.getElementById('declaredValue').value) || null
+        })
+      });
+      const data = await resp.json();
+      if (!resp.ok || data.error) throw new Error(data.error || 'Booking failed');
+      shipmentId = data.shipment_id;
+      bolNum     = data.bol_number || 'BOL-' + Date.now();
+      trackNum   = data.shipment_id;
+    } else {
+      // Purchase Shippo label
+      const resp = await fetch(`${API_BASE}/parcel/purchase`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          rate_id:          selectedRate.rate_id,
+          label_file_type:  'PDF',
+          metadata:         document.getElementById('refNum').value || ''
+        })
+      });
+      const data = await resp.json();
+      if (!resp.ok || data.error) throw new Error(data.error || 'Label purchase failed');
+      trackNum   = data.tracking_number;
+      labelUrl   = data.label_url;
+      shipmentId = data.transaction_id;
+      bolNum     = 'SP-' + (data.transaction_id || '').substr(0,8).toUpperCase();
+    }
+
+    // Store result for downloads
+    lastBookingResult = { trackNum, bolNum, labelUrl, shipmentId, provider: selectedRate.provider };
+
+    // Update success screen
+    document.getElementById('bookingTrackNum').textContent = trackNum;
+    document.getElementById('bookingBolNum').textContent   = bolNum;
+
+    // Show/hide download buttons
+    const bolBtn   = document.getElementById('bolDownloadBtn');
+    const labelBtn = document.getElementById('labelDownloadBtn');
+    if (selectedRate.provider === 'freightos') {
+      bolBtn.style.display   = 'inline-flex';
+      labelBtn.style.display = 'none';
+    } else {
+      bolBtn.style.display   = 'none';
+      labelBtn.style.display = labelUrl ? 'inline-flex' : 'none';
+    }
+
+    wzGo(5);
+    showToast('Shipment booked! BOL and tracking generated.', 'success');
+
+    // Add to local shipment list
+    SHIPMENTS_DATA.unshift({
+      id: 'SHP-' + Date.now(),
+      order: document.getElementById('refNum').value || 'New Order',
+      brand: document.getElementById('originName').value || 'Sender',
+      product: document.getElementById('commodity').value || 'Merchandise',
+      carrier: selectedRate.carrier,
+      tracking: trackNum,
+      type: selectedRate.provider === 'freightos' ? 'Freight' : 'Parcel',
+      status: 'booked',
+      origin: `${document.getElementById('originCity').value}, ${document.getElementById('originZip').value}`,
+      dest:   `${document.getElementById('destCity').value}, ${document.getElementById('destZip').value}`,
+      ship: new Date().toLocaleDateString('en-US',{month:'short',day:'numeric'}),
+      eta:  selectedRate.transit,
+      weight: '', dims: '',
+      cost: parseFloat(selectedRate.price || 0),
+      progress: 1, bolReady: true
+    });
+
+  } catch (err) {
+    showToast('Booking failed: ' + err.message, 'error');
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = '<i class="fas fa-lock"></i> Confirm & Book Shipment';
+  }
+}
+
+async function downloadBOL() {
+  if (!lastBookingResult) return;
+  if (DEMO_MODE) { showToast('BOL download: Configure API keys to get real BOL PDF.', 'info'); return; }
+  showToast('Fetching BOL…', 'success');
+  try {
+    const resp = await fetch(`${API_BASE}/freight/bol?id=${encodeURIComponent(lastBookingResult.shipmentId)}`);
+    const data = await resp.json();
+    if (data.bol_url) window.open(data.bol_url, '_blank');
+    else showToast('BOL not ready yet. Try again in a moment.', 'error');
+  } catch (e) { showToast('BOL download error: ' + e.message, 'error'); }
+}
+
+function downloadLabel() {
+  if (!lastBookingResult?.labelUrl) {
+    if (DEMO_MODE) { showToast('Label download: Configure API keys to get real labels.', 'info'); return; }
+    showToast('Label URL not available.', 'error'); return;
+  }
+  window.open(lastBookingResult.labelUrl, '_blank');
+}
+
+function resetWizard() {
+  selectedRate = null;
+  document.getElementById('bookTerms').checked = false;
+  wzGo(1);
+}
+
+function addPkgRow() {
+  const rows = document.getElementById('pkgRows');
+  const div  = document.createElement('div');
+  div.className = 'pkg-row';
+  div.innerHTML = `
+    <input type="text" class="form-input" placeholder="Package description" style="font-size:.82rem;" />
+    <input type="number" class="form-input" placeholder="0" style="font-size:.82rem;text-align:center;" />
+    <input type="number" class="form-input" placeholder="0" style="font-size:.82rem;text-align:center;" />
+    <input type="number" class="form-input" placeholder="0" style="font-size:.82rem;text-align:center;" />
+    <input type="number" class="form-input" placeholder="0" style="font-size:.82rem;text-align:center;" />
+    <button onclick="this.closest('.pkg-row').remove()" style="width:32px;height:32px;border:1.5px solid var(--color-border);border-radius:var(--radius-sm);background:transparent;cursor:pointer;color:var(--color-muted);" title="Remove"><i class="fas fa-trash" style="font-size:.75rem;"></i></button>`;
+  rows.appendChild(div);
+  updateBookSummary();
+}
+
+const ORDER_PREFILL = {
+  'BD-48290': { name:'Charlotte Tilbury Distribution',     addr:'1234 Beauty Blvd', city:'Los Angeles', zip:'CA 90001' },
+  'BD-48287': { name:'Gucci Logistics Center',             addr:'Via Tornabuoni 73', city:'New York',    zip:'NY 10001' },
+  'BD-48291': { name:'Maison Margiela Warehouse',          addr:'250 Commerce Blvd', city:'New York',    zip:'NY 10001' },
+  'BD-48283': { name:'Prada Distribution Hub',             addr:'Via Bergamo 21',    city:'New York',    zip:'NY 10036' },
+  'BD-48279': { name:'Maison Margiela Warehouse',          addr:'250 Commerce Blvd', city:'New York',    zip:'NY 10001' },
+  'BD-48278': { name:'Balenciaga US Distribution',         addr:'80 Fashion Ave',    city:'New York',    zip:'NY 10018' },
+};
+function prefillFromOrder(sel) {
+  const d = ORDER_PREFILL[sel.value];
+  if (!d) return;
+  document.getElementById('originName').value  = d.name;
+  document.getElementById('originAddr1').value = d.addr;
+  document.getElementById('originCity').value  = d.city;
+  document.getElementById('originZip').value   = d.zip;
+  document.getElementById('refNum').value      = sel.value;
+  updateBookSummary();
+}
+
+function updateShipType(sel) {
+  document.getElementById('bsumType').textContent = sel.value;
+}
+
+function updateBookSummary() {
+  const from = document.getElementById('originName')?.value || '—';
+  const date = document.getElementById('pickupDate')?.value || '—';
+  const pkgs = document.getElementById('pkgRows')?.querySelectorAll('.pkg-row').length || 0;
+  const type = document.getElementById('shipType')?.value || '—';
+  document.getElementById('bsumFrom').textContent    = from || '—';
+  document.getElementById('bsumDate').textContent    = date !== '—' ? new Date(date).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}) : '—';
+  document.getElementById('bsumPkgs').textContent    = pkgs ? `${pkgs} package${pkgs>1?'s':''}` : '—';
+  document.getElementById('bsumType').textContent    = type;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   TRACKING — Live via Shippo + Freightos
+═══════════════════════════════════════════════════════════ */
+const TRACK_EVENTS = {
+  '794644792798': {
+    carrier:'FedEx Ground', order:'BD-48289 · New Balance', route:'Boston, MA → New York, NY 10118',
+    status:'In Transit', eta:'Mar 25, 2026', fromCity:'Boston, MA', toCity:'New York, NY',
+    events:[
+      { label:'Out for Delivery', location:'FedEx Facility — Bronx, NY', time:'Mar 24, 2026 · 6:02 AM', state:'active' },
+      { label:'Arrived at Hub',   location:'FedEx Hub — Newark, NJ',     time:'Mar 23, 2026 · 10:45 PM', state:'done' },
+      { label:'In Transit',       location:'FedEx — Hartford, CT',        time:'Mar 22, 2026 · 3:15 PM', state:'done' },
+      { label:'Departed Origin',  location:'FedEx Facility — Boston, MA', time:'Mar 21, 2026 · 8:00 AM', state:'done' },
+      { label:'Picked Up',        location:'Sender — Boston, MA',         time:'Mar 16, 2026 · 2:30 PM', state:'done' },
+    ],
+    details:[
+      { l:'Carrier', v:'FedEx Ground' },
+      { l:'Service', v:'FedEx Ground Home Delivery' },
+      { l:'Weight',  v:'48 lbs' },
+      { l:'Dimensions', v:'18×12×10 in' },
+      { l:'Reference', v:'BD-48289' },
+      { l:'Declared Value', v:'$2,160' },
+    ]
+  },
+  'BOL-8821-CT': {
+    carrier:'FedEx Freight', order:'BD-48290 · Charlotte Tilbury', route:'New York, NY → New York, NY 10118',
+    status:'In Transit', eta:'Mar 21, 2026', fromCity:'New York, NY', toCity:'New York, NY',
+    events:[
+      { label:'In Transit – Local',  location:'FedEx Freight — Bronx, NY',    time:'Mar 19, 2026 · 9:00 AM', state:'active' },
+      { label:'Freight Terminal',    location:'FedEx Freight — Newark, NJ',    time:'Mar 18, 2026 · 6:30 PM', state:'done' },
+      { label:'Shipment Picked Up',  location:'Sender — New York, NY',         time:'Mar 17, 2026 · 11:00 AM', state:'done' },
+    ],
+    details:[
+      { l:'Carrier', v:'FedEx Freight' },
+      { l:'Service', v:'LTL Priority' },
+      { l:'BOL #', v:'BOL-8821-CT' },
+      { l:'Weight', v:'85 lbs' },
+      { l:'Reference', v:'BD-48290' },
+      { l:'Declared Value', v:'$9,600' },
+    ]
+  }
+};
+
+async function loadTracking() {
+  const val = document.getElementById('trackInput').value.trim();
+  if (!val) return;
+
+  // Check local demo data first
+  const localData = TRACK_EVENTS[val];
+  if (localData || DEMO_MODE) {
+    renderTracking(localData || TRACK_EVENTS['794644792798']);
+    if (DEMO_MODE && !localData) showToast('Demo tracking data. Configure API keys for live status.','info');
+    return;
+  }
+
+  // Determine if it looks like a freight BOL or a parcel tracking number
+  const isFreight = val.startsWith('BOL-') || val.startsWith('FT') || val.includes('-');
+
+  try {
+    let data;
+    if (isFreight) {
+      const resp = await fetch(`${API_BASE}/freight/track?id=${encodeURIComponent(val)}`);
+      const raw  = await resp.json();
+      if (raw.error) throw new Error(raw.error);
+      data = {
+        carrier:  'Freightos Freight',
+        order:    val,
+        route:    'See details',
+        status:   raw.status || 'In Transit',
+        eta:      raw.eta ? new Date(raw.eta).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}) : 'TBD',
+        fromCity: raw.events?.[raw.events.length-1]?.location || 'Origin',
+        toCity:   'Destination',
+        events:   (raw.events||[]).map(e => ({
+          label:    e.description || e.code,
+          location: e.location   || '',
+          time:     e.timestamp  || '',
+          state:    'done'
+        })),
+        details: [ { l:'Shipment ID', v: val }, { l:'Status', v: raw.status || '—' }, { l:'ETA', v: raw.eta || '—' } ]
+      };
+    } else {
+      // Detect carrier from tracking number format
+      const carrier = detectCarrier(val);
+      const resp = await fetch(`${API_BASE}/parcel/track?carrier=${carrier}&tracking=${encodeURIComponent(val)}`);
+      const raw  = await resp.json();
+      if (raw.error) throw new Error(raw.error);
+      const from = raw.address_from;
+      const to   = raw.address_to;
+      data = {
+        carrier:  raw.carrier || carrier,
+        order:    val,
+        route:    `${from?.city||'?'}, ${from?.state||''} → ${to?.city||'?'}, ${to?.state||''} ${to?.zip||''}`,
+        status:   raw.status  || 'Unknown',
+        eta:      raw.eta ? new Date(raw.eta).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}) : 'TBD',
+        fromCity: `${from?.city||'?'}, ${from?.state||''}`,
+        toCity:   `${to?.city||'?'}, ${to?.state||''}`,
+        events:   (raw.events||[]).map(e => ({
+          label:    e.description || e.code,
+          location: e.location   || '',
+          time:     e.timestamp  || '',
+          state:    'done'
+        })),
+        details: [
+          { l:'Carrier',  v: raw.carrier || carrier },
+          { l:'Status',   v: raw.status  || '—' },
+          { l:'ETA',      v: raw.eta     || '—' },
+          { l:'Substatus', v: raw.substatus || '—' }
+        ]
+      };
+    }
+    renderTracking(data);
+  } catch (err) {
+    showToast('Tracking error: ' + err.message, 'error');
+    // Fall back to demo data
+    renderTracking(TRACK_EVENTS['794644792798']);
+  }
+}
+
+function detectCarrier(trackingNum) {
+  if (/^1Z/.test(trackingNum))                  return 'ups';
+  if (/^[0-9]{12,22}$/.test(trackingNum))        return 'fedex';
+  if (/^[0-9]{10}$/.test(trackingNum))           return 'dhl';
+  if (/^9[24][0-9]{18,20}$/.test(trackingNum))   return 'usps';
+  return 'fedex'; // default
+}
+
+function loadTrackingFor(shpId) {
+  const s = SHIPMENTS_DATA.find(x => x.id === shpId);
+  if (!s) return;
+  document.getElementById('trackInput').value = s.tracking;
+  const data = TRACK_EVENTS[s.tracking] || {
+    carrier: s.carrier, order: `${s.order} · ${s.brand}`, route: `${s.origin} → ${s.dest}`,
+    status: s.status === 'delivered' ? 'Delivered' : 'In Transit',
+    eta: `Mar ${s.eta.replace('Mar ','')} 2026`, fromCity: s.origin, toCity: s.dest,
+    events: [
+      { label:'Delivered',    location:s.dest,    time:`Mar ${s.eta.replace('Mar ','')} 2026 · 2:00 PM`, state: s.status==='delivered' ? 'done' : 'future' },
+      { label:'Out for Delivery', location:s.dest, time:`Mar ${s.eta.replace('Mar ','')} 2026 · 7:00 AM`, state: s.status==='delivered' ? 'done' : 'active' },
+      { label:'In Transit',   location:'Hub',      time:`Mar ${s.ship.replace('Mar ','')} 2026 · 8:00 PM`, state:'done' },
+      { label:'Picked Up',    location:s.origin,   time:`Mar ${s.ship.replace('Mar ','')} 2026 · 9:00 AM`, state:'done' },
+    ],
+    details:[
+      { l:'Carrier',   v:s.carrier },
+      { l:'Type',      v:s.type },
+      { l:'Weight',    v:s.weight },
+      { l:'Dims',      v:s.dims },
+      { l:'Reference', v:s.order },
+      { l:'Cost',      v:`$${s.cost}` },
+    ]
+  };
+  renderTracking(data);
+  switchSlTab('track');
+}
+
+function quickTrack() {
+  const val = document.getElementById('trackQuickInput').value.trim();
+  if (val) {
+    document.getElementById('trackInput').value = val;
+    loadTracking();
+    switchSlTab('track');
+  }
+}
+
+function renderTracking(data) {
+  document.getElementById('trk-num').textContent     = document.getElementById('trackInput').value;
+  document.getElementById('trk-carrier').textContent = data.carrier;
+  document.getElementById('trk-route').textContent   = data.route;
+  document.getElementById('trk-order').textContent   = `Order: ${data.order}`;
+  document.getElementById('trk-eta').textContent     = `Est. Delivery: ${data.eta}`;
+  document.getElementById('trk-city-from').textContent = data.fromCity;
+  document.getElementById('trk-city-to').textContent   = data.toCity;
+
+  const badge = document.getElementById('trk-badge');
+  if (data.status === 'Delivered') { badge.style.background='#d1fae5'; badge.style.color='#065f46'; }
+  else { badge.style.background='#dbeafe'; badge.style.color='#1e40af'; }
+  badge.textContent = data.status;
+
+  // Progress steps
+  const prog = document.getElementById('trkProgress');
+  const progSteps = ['Order Placed','Picked Up','In Transit','Out for Delivery','Delivered'];
+  const activeIdx = data.status === 'Delivered' ? 5 : 3;
+  prog.innerHTML = progSteps.map((s, i) => {
+    const state = i < activeIdx ? 'done' : i === activeIdx ? 'active' : '';
+    return `<div class="sp-step ${state}">
+      <div class="sp-dot">${state==='done'?'<i class="fas fa-check" style="font-size:.55rem;"></i>':(i+1)}</div>
+      <div class="sp-label">${s}</div>
+    </div>`;
+  }).join('');
+
+  // Timeline
+  const tl = document.getElementById('trkTimeline');
+  tl.innerHTML = `<div style="font-size:.7rem;font-weight:800;text-transform:uppercase;letter-spacing:.08em;color:var(--color-muted);margin-bottom:16px;">Tracking Events</div>` +
+    data.events.map((e, idx) => `
+    <div class="tt-item">
+      <div class="tt-line-wrap">
+        <div class="tt-dot ${e.state}">${e.state==='done'?'<i class="fas fa-check" style="font-size:.55rem;"></i>':e.state==='active'?'<i class="fas fa-circle" style="font-size:.4rem;"></i>':'<i class="fas fa-circle" style="font-size:.4rem;opacity:.3;"></i>'}</div>
+        ${idx < data.events.length-1 ? `<div class="tt-connector ${e.state==='done'?'done':''}"></div>` : ''}
+      </div>
+      <div class="tt-content">
+        <div class="tt-title">${e.label}</div>
+        <div class="tt-location"><i class="fas fa-location-dot" style="margin-right:4px;opacity:.5;font-size:.65rem;"></i>${e.location}</div>
+        <div class="tt-time"><i class="fas fa-clock" style="margin-right:4px;opacity:.5;font-size:.65rem;"></i>${e.time}</div>
+      </div>
+    </div>`).join('');
+
+  // Details
+  document.getElementById('trkDetails').innerHTML = data.details.map(d => `
+    <div style="display:flex;justify-content:space-between;gap:8px;">
+      <span style="font-size:.7rem;color:var(--color-muted);font-weight:700;text-transform:uppercase;letter-spacing:.06em;">${d.l}</span>
+      <span style="font-weight:700;text-align:right;">${d.v}</span>
+    </div>`).join('');
+}
+
+/* ═══════════════════════════════════════════════════════════
+   DOCUMENTS
+═══════════════════════════════════════════════════════════ */
+function renderDocuments() {
+  const docs = SHIPMENTS_DATA.filter(s => s.bolReady).map(s => ({
+    id: s.id, order: s.order, brand: s.brand,
+    tracking: s.tracking, type: s.type,
+    bol: `BOL-${s.id.replace('SHP-','')}`, date: `Mar ${s.ship.replace('Mar ','')}`,
+  }));
+  document.getElementById('docGrid').innerHTML = docs.map(d => `
+    <div class="doc-card">
+      <div class="doc-card__icon-wrap" style="background:var(--color-accent-glow);color:var(--color-accent);">
+        <i class="fas fa-file-pdf" style="font-size:1.2rem;"></i>
+      </div>
+      <div>
+        <div class="doc-card__name">Bill of Lading</div>
+        <div class="doc-card__meta">${d.bol}<br>${d.brand} · ${d.order}<br>Generated ${d.date}, 2026</div>
+      </div>
+      <div class="doc-card__actions">
+        <button class="btn btn-primary btn-sm" onclick="showToast('BOL downloading…','success')" style="flex:1;justify-content:center;"><i class="fas fa-download"></i> Download</button>
+        <button class="btn btn-secondary btn-sm" onclick="showToast('BOL shared via email.','success')"><i class="fas fa-share"></i></button>
+      </div>
+    </div>
+    <div class="doc-card">
+      <div class="doc-card__icon-wrap" style="background:#fef3c7;color:#d97706;">
+        <i class="fas fa-file-invoice" style="font-size:1.2rem;"></i>
+      </div>
+      <div>
+        <div class="doc-card__name">Shipping Invoice</div>
+        <div class="doc-card__meta">INV-${d.order.replace('BD-','')}<br>${d.brand} · ${d.order}<br>${d.date}, 2026</div>
+      </div>
+      <div class="doc-card__actions">
+        <button class="btn btn-primary btn-sm" onclick="showToast('Invoice downloading…','success')" style="flex:1;justify-content:center;"><i class="fas fa-download"></i> Download</button>
+        <button class="btn btn-secondary btn-sm" onclick="showToast('Invoice shared.','success')"><i class="fas fa-share"></i></button>
+      </div>
+    </div>`).join('').slice(0, 2000); // show first batch
+  // Actually show all:
+  document.getElementById('docGrid').innerHTML = docs.slice(0,6).map(d => `
+    <div class="doc-card">
+      <div class="doc-card__icon-wrap" style="background:var(--color-accent-glow);color:var(--color-accent);">
+        <i class="fas fa-file-pdf" style="font-size:1.2rem;"></i>
+      </div>
+      <div>
+        <div class="doc-card__name">Bill of Lading — ${d.bol}</div>
+        <div class="doc-card__meta">${d.brand} · ${d.order} · ${d.type}<br>Generated ${d.date}, 2026</div>
+      </div>
+      <div class="doc-card__actions">
+        <button class="btn btn-primary btn-sm" onclick="showToast('BOL downloading…','success')" style="flex:1;justify-content:center;"><i class="fas fa-download"></i> BOL</button>
+        <button class="btn btn-secondary btn-sm" onclick="showToast('Invoice downloading…','success')"><i class="fas fa-file-invoice"></i></button>
+        <button class="btn btn-secondary btn-sm" onclick="showToast('Label printing…','success')"><i class="fas fa-print"></i></button>
+      </div>
+    </div>`).join('');
+}
+
+/* ═══════════════════════════════════════════════════════════
+   RATE COMPARE — Live Shippo + Freightos
+═══════════════════════════════════════════════════════════ */
+async function loadRateCompare() {
+  const originZip = document.getElementById('rcOrigin').value || '10001';
+  const destZip   = document.getElementById('rcDest').value   || '10118';
+  const weight    = parseFloat(document.getElementById('rcWeight').value) || 48;
+  const type      = document.getElementById('rcType').value;
+  const isFreight = type !== 'Parcel';
+
+  document.getElementById('rateCompareRoute').textContent = `${originZip} → ${destZip} · ${weight} lbs · ${type}`;
+  document.getElementById('allRatesList').innerHTML = '<div style="text-align:center;padding:30px;"><i class="fas fa-spinner fa-spin" style="font-size:1.5rem;color:var(--color-accent);"></i><div style="margin-top:10px;font-size:.82rem;color:var(--color-muted);">Loading live rates…</div></div>';
+  document.getElementById('rateCompareResults').style.display = '';
+
+  try {
+    let rates = [];
+
+    if (DEMO_MODE) {
+      await new Promise(r => setTimeout(r, 900));
+      rates = isFreight
+        ? MOCK_FREIGHT_RATES.map(r => ({...r, provider:'freightos'}))
+        : MOCK_PARCEL_RATES.map(r => ({...r, provider:'shippo'}));
+      showToast('Demo mode — configure API keys for live rates.', 'info');
+    } else if (isFreight) {
+      const resp = await fetch(`${API_BASE}/freight/quote`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          origin:      { zip: originZip, country:'US' },
+          destination: { zip: destZip,   country:'US' },
+          cargo:       [{ weight_lb: weight, length_in:12, width_in:10, height_in:6, qty:1 }],
+          shipment_type: type.includes('LTL') ? 'LTL' : 'FTL'
+        })
+      });
+      const data = await resp.json();
+      if (data.error) throw new Error(data.error);
+      rates = (data.rates||[]).map(r => ({...r, provider:'freightos'}));
+    } else {
+      const resp = await fetch(`${API_BASE}/parcel/rates`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          to:      { name:'Recipient', street1:'350 Fifth Ave', city:'New York', state:'NY', zip: destZip, country:'US', is_residential:true },
+          parcels: [{ weight_lb: weight, length_in:12, width_in:10, height_in:6, qty:1 }]
+        })
+      });
+      const data = await resp.json();
+      if (data.error) throw new Error(data.error);
+      rates = (data.rates||[]).map(r => ({...r, provider:'shippo'}));
+    }
+
+    rates.sort((a,b) => a.price - b.price);
+    document.getElementById('allRatesList').innerHTML = rates.length
+      ? rates.map((r,i) => rateCardHTML(r,'compare-'+i, r.provider)).join('')
+      : '<div style="padding:20px;color:var(--color-muted);text-align:center;">No rates available for this route.</div>';
+    if (rates.length) showToast(`${rates.length} live rates loaded.`, 'success');
+
+  } catch(err) {
+    document.getElementById('allRatesList').innerHTML = `<div style="padding:16px;color:#dc2626;font-size:.82rem;"><i class="fas fa-exclamation-circle" style="margin-right:6px;"></i>${err.message}</div>`;
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════
+   PROVIDER STATUS CHECK
+   Pings the worker to verify API keys are configured
+═══════════════════════════════════════════════════════════ */
+async function checkProviderStatus() {
+  // Freightos check
+  const freightosStatusEl  = document.getElementById('freightosStatus');
+  const freightosStatusDot = document.getElementById('freightosStatusDot');
+  // Shippo check
+  const shippoStatusEl  = document.getElementById('shippoStatus');
+  const shippoStatusDot = document.getElementById('shippoStatusDot');
+  const shippoCarrierList = document.getElementById('shippoCarrierList');
+
+  if (DEMO_MODE) {
+    const demoChip = '<i class="fas fa-circle" style="font-size:.4rem;margin-right:3px;"></i> Demo Mode';
+    if (freightosStatusEl)  freightosStatusEl.innerHTML  = demoChip;
+    if (freightosStatusDot) freightosStatusDot.innerHTML = '<i class="fas fa-circle" style="font-size:.4rem;color:#d97706;"></i> Demo';
+    if (shippoStatusEl)  shippoStatusEl.innerHTML  = demoChip;
+    if (shippoStatusDot) shippoStatusDot.innerHTML = '<i class="fas fa-circle" style="font-size:.4rem;color:#d97706;"></i> Demo';
+    if (shippoCarrierList) shippoCarrierList.textContent = 'FedEx · UPS · DHL · USPS (demo)';
+    return;
+  }
+
+  // Real checks
+  try {
+    const resp = await fetch(`${API_BASE}/parcel/carriers`);
+    const data = await resp.json();
+    const live  = (data.carriers||[]).filter(c => c.active);
+    const names = [...new Set(live.map(c => c.carrier))].slice(0,6).join(' · ');
+    if (shippoStatusEl)  shippoStatusEl.innerHTML  = '<i class="fas fa-check-circle" style="color:#059669;font-size:.6rem;margin-right:3px;"></i> Live';
+    if (shippoStatusDot) shippoStatusDot.innerHTML = '<i class="fas fa-circle" style="font-size:.4rem;color:#059669;"></i> Live';
+    if (shippoCarrierList) shippoCarrierList.textContent = names || 'Connected';
+  } catch {
+    if (shippoStatusEl)  shippoStatusEl.innerHTML  = '<i class="fas fa-exclamation-circle" style="color:#dc2626;font-size:.6rem;margin-right:3px;"></i> Key needed';
+    if (shippoStatusDot) shippoStatusDot.innerHTML = '<i class="fas fa-circle" style="font-size:.4rem;color:#dc2626;"></i> Key needed';
+    if (shippoCarrierList) shippoCarrierList.textContent = 'Add SHIPPO_API_TOKEN to Worker';
+  }
+
+  try {
+    const resp = await fetch(`${API_BASE}/freight/token`, { method:'POST' });
+    const data = await resp.json();
+    if (data.access_token) {
+      if (freightosStatusEl)  freightosStatusEl.innerHTML  = '<i class="fas fa-check-circle" style="color:#059669;font-size:.6rem;margin-right:3px;"></i> Live';
+      if (freightosStatusDot) freightosStatusDot.innerHTML = '<i class="fas fa-circle" style="font-size:.4rem;color:#059669;"></i> Live';
+    } else {
+      throw new Error('no token');
+    }
+  } catch {
+    if (freightosStatusEl)  freightosStatusEl.innerHTML  = '<i class="fas fa-exclamation-circle" style="color:#dc2626;font-size:.6rem;margin-right:3px;"></i> Key needed';
+    if (freightosStatusDot) freightosStatusDot.innerHTML = '<i class="fas fa-circle" style="font-size:.4rem;color:#dc2626;"></i> Key needed';
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════
+   TOAST
+═══════════════════════════════════════════════════════════ */
+function showToast(msg, type='success') {
+  const c    = document.getElementById('toastContainer');
+  const icon = type==='success' ? 'fa-check-circle' : type==='error' ? 'fa-exclamation-circle' : 'fa-info-circle';
+  const colors = { success:'#059669', error:'#dc2626', info:'#3b82f6' };
+  const t    = document.createElement('div');
+  t.className = `toast ${type}`;
+  t.innerHTML = `<i class="fas ${icon}" style="color:${colors[type]||colors.success};"></i><span>${msg}</span>`;
+  c.appendChild(t);
+  setTimeout(() => { t.style.opacity='0'; t.style.transform='translateX(60px)'; t.style.transition='all .3s'; setTimeout(()=>t.remove(),350); }, 4000);
+}
+
+/* ═══════════════════════════════════════════════════════════
+   BOOT
+═══════════════════════════════════════════════════════════ */
+// Default pickup date = today
+document.getElementById('pickupDate').value = new Date().toISOString().split('T')[0];
+
+// Initial package row
+addPkgRow();
+
+// Render all sections
+filterShipments();
+loadTracking();
+renderDocuments();
+
+// Check provider status on load
+checkProviderStatus();
+
+// Period tab helper
+document.querySelectorAll('.period-tab').forEach(btn => {
+  btn.addEventListener('click', function() {
+    const group = this.closest('div');
+    group.querySelectorAll('.period-tab').forEach(b => b.classList.remove('active'));
+    this.classList.add('active');
+  });
+});
+</script>
+</body>
+</html>

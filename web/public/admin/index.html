@@ -1,0 +1,2156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin Dashboard — BRND Direct</title>
+  <meta name="robots" content="noindex, nofollow" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.5.0/css/all.min.css" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+
+  <style>
+    /* ── Reset & base ────────────────────────────────────── */
+    *, *::before, *::after { box-sizing:border-box; margin:0; padding:0; }
+    :root {
+      --bg-base:       #0f0f1a;
+      --bg-surface:    #16162a;
+      --bg-card:       #1e1e35;
+      --bg-hover:      #252542;
+      --border:        rgba(255,255,255,.08);
+      --text-primary:  #f1f5f9;
+      --text-secondary:#94a3b8;
+      --text-muted:    #475569;
+      --accent:        #6366f1;
+      --accent-light:  #818cf8;
+      --green:         #34d399;
+      --amber:         #fbbf24;
+      --red:           #f43f5e;
+      --blue:          #38bdf8;
+      --sidebar-w:     260px;
+      --topbar-h:      64px;
+      --radius:        12px;
+      --transition:    .2s ease;
+    }
+    html, body { height:100%; font-family:'Inter',sans-serif; background:var(--bg-base); color:var(--text-primary); }
+
+    /* ── Layout ──────────────────────────────────────────── */
+    .admin-layout { display:flex; height:100vh; overflow:hidden; }
+
+    /* ── Sidebar ─────────────────────────────────────────── */
+    .sidebar {
+      width:var(--sidebar-w); background:var(--bg-surface);
+      border-right:1px solid var(--border); display:flex;
+      flex-direction:column; flex-shrink:0; overflow-y:auto;
+      transition:transform var(--transition);
+    }
+    .sidebar-logo {
+      padding:20px 20px 0; display:flex; align-items:center; gap:10px;
+      font-weight:800; font-size:1.1rem; letter-spacing:.5px;
+    }
+    .sidebar-logo .logo-badge {
+      background:linear-gradient(135deg,#6366f1,#818cf8);
+      color:#fff; padding:4px 8px; border-radius:6px; font-size:.7rem; font-weight:700;
+    }
+    .sidebar-section-label {
+      padding:16px 20px 6px; font-size:.65rem; font-weight:700;
+      text-transform:uppercase; letter-spacing:1.5px; color:var(--text-muted);
+    }
+    .sidebar-nav { padding:0 10px; list-style:none; }
+    .sidebar-nav li a {
+      display:flex; align-items:center; gap:12px; padding:10px 12px;
+      border-radius:8px; text-decoration:none; color:var(--text-secondary);
+      font-size:.875rem; font-weight:500; transition:background var(--transition), color var(--transition);
+    }
+    .sidebar-nav li a:hover { background:var(--bg-hover); color:var(--text-primary); }
+    .sidebar-nav li a.active { background:rgba(99,102,241,.15); color:var(--accent-light); }
+    .sidebar-nav li a .nav-icon { width:18px; text-align:center; }
+    .sidebar-nav li a .nav-badge {
+      margin-left:auto; background:var(--red); color:#fff;
+      font-size:.65rem; font-weight:700; padding:2px 7px; border-radius:20px;
+    }
+    .sidebar-divider { height:1px; background:var(--border); margin:10px 20px; }
+    .sidebar-bottom { padding:16px 20px; margin-top:auto; border-top:1px solid var(--border); }
+    .sidebar-user { display:flex; align-items:center; gap:10px; }
+    .sidebar-user-avatar {
+      width:36px; height:36px; border-radius:50%;
+      background:linear-gradient(135deg,#6366f1,#f43f5e);
+      display:flex; align-items:center; justify-content:center;
+      font-weight:700; font-size:.8rem; color:#fff; flex-shrink:0;
+    }
+    .sidebar-user-info { flex:1; min-width:0; }
+    .sidebar-user-name  { font-size:.85rem; font-weight:600; truncate; }
+    .sidebar-user-role  { font-size:.75rem; color:var(--text-muted); }
+    .sidebar-logout {
+      background:transparent; border:none; color:var(--text-muted);
+      cursor:pointer; padding:4px; border-radius:6px; font-size:.85rem;
+      transition:color var(--transition);
+    }
+    .sidebar-logout:hover { color:var(--red); }
+
+    /* ── Topbar ──────────────────────────────────────────── */
+    .admin-main { flex:1; display:flex; flex-direction:column; overflow:hidden; }
+    .topbar {
+      height:var(--topbar-h); background:var(--bg-surface);
+      border-bottom:1px solid var(--border); display:flex;
+      align-items:center; padding:0 24px; gap:16px; flex-shrink:0;
+    }
+    .topbar-title { font-size:1.1rem; font-weight:700; flex:1; }
+    .topbar-search {
+      position:relative; display:flex; align-items:center;
+    }
+    .topbar-search input {
+      background:var(--bg-card); border:1px solid var(--border);
+      border-radius:8px; padding:8px 12px 8px 36px;
+      color:var(--text-primary); font-size:.875rem; width:240px;
+      outline:none; transition:border-color var(--transition);
+    }
+    .topbar-search input:focus { border-color:var(--accent); }
+    .topbar-search .search-icon {
+      position:absolute; left:10px; color:var(--text-muted); font-size:.85rem;
+    }
+    .topbar-actions { display:flex; align-items:center; gap:8px; }
+    .topbar-btn {
+      width:38px; height:38px; border-radius:8px; border:1px solid var(--border);
+      background:var(--bg-card); color:var(--text-secondary);
+      cursor:pointer; display:flex; align-items:center; justify-content:center;
+      position:relative; transition:all var(--transition);
+    }
+    .topbar-btn:hover { background:var(--bg-hover); color:var(--text-primary); }
+    .notif-dot {
+      position:absolute; top:6px; right:6px; width:8px; height:8px;
+      background:var(--red); border-radius:50%; border:2px solid var(--bg-surface);
+    }
+    .topbar-avatar {
+      width:36px; height:36px; border-radius:50%;
+      background:linear-gradient(135deg,#f43f5e,#6366f1);
+      display:flex; align-items:center; justify-content:center;
+      font-weight:700; font-size:.8rem; cursor:pointer;
+    }
+
+    /* ── Page content ────────────────────────────────────── */
+    .page-content { flex:1; overflow-y:auto; padding:24px; }
+
+    /* ── Tabs ─────────────────────────────────────────────── */
+    .admin-tabs {
+      display:flex; gap:4px; background:var(--bg-card);
+      border-radius:10px; padding:4px; width:fit-content; margin-bottom:24px;
+    }
+    .admin-tab {
+      padding:8px 16px; border-radius:7px; border:none;
+      background:transparent; color:var(--text-secondary);
+      font-size:.875rem; font-weight:500; cursor:pointer;
+      transition:all var(--transition);
+    }
+    .admin-tab.active { background:var(--accent); color:#fff; }
+    .admin-tab:hover:not(.active) { background:var(--bg-hover); color:var(--text-primary); }
+
+    /* ── Tab panels ─────────────────────────────────────── */
+    .tab-panel { display:none; }
+    .tab-panel.active { display:block; }
+
+    /* ── KPI Cards ──────────────────────────────────────── */
+    .kpi-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(220px,1fr)); gap:16px; margin-bottom:24px; }
+    .kpi-card {
+      background:var(--bg-card); border:1px solid var(--border);
+      border-radius:var(--radius); padding:20px; position:relative; overflow:hidden;
+    }
+    .kpi-card::before {
+      content:''; position:absolute; top:0; left:0; right:0; height:3px;
+      background:var(--kpi-color, var(--accent));
+    }
+    .kpi-label { font-size:.75rem; font-weight:600; text-transform:uppercase;
+                 letter-spacing:1px; color:var(--text-muted); margin-bottom:8px; }
+    .kpi-value { font-size:2rem; font-weight:800; color:var(--text-primary); line-height:1; }
+    .kpi-sub   { font-size:.8rem; color:var(--text-secondary); margin-top:6px; }
+    .kpi-icon  {
+      position:absolute; top:16px; right:16px; width:40px; height:40px;
+      border-radius:10px; background:rgba(255,255,255,.04);
+      display:flex; align-items:center; justify-content:center;
+      font-size:1.2rem; color:var(--kpi-color, var(--accent));
+    }
+
+    /* ── Charts row ─────────────────────────────────────── */
+    .charts-row { display:grid; grid-template-columns:2fr 1fr; gap:16px; margin-bottom:24px; }
+    .chart-card {
+      background:var(--bg-card); border:1px solid var(--border);
+      border-radius:var(--radius); padding:20px;
+    }
+    .chart-card h3 { font-size:.95rem; font-weight:600; margin-bottom:16px; }
+    .chart-wrap { position:relative; height:240px; }
+
+    /* ── Table card ─────────────────────────────────────── */
+    .table-card {
+      background:var(--bg-card); border:1px solid var(--border);
+      border-radius:var(--radius); overflow:hidden; margin-bottom:24px;
+    }
+    .table-card-header {
+      padding:16px 20px; display:flex; align-items:center; justify-content:space-between;
+      border-bottom:1px solid var(--border);
+    }
+    .table-card-header h3 { font-size:.95rem; font-weight:600; }
+    .table-wrap { overflow-x:auto; }
+    table { width:100%; border-collapse:collapse; }
+    thead th {
+      text-align:left; padding:10px 16px;
+      font-size:.75rem; font-weight:600; text-transform:uppercase;
+      letter-spacing:.8px; color:var(--text-muted);
+      border-bottom:1px solid var(--border);
+    }
+    tbody tr { transition:background var(--transition); }
+    tbody tr:hover { background:var(--bg-hover); }
+    tbody td { padding:12px 16px; font-size:.875rem; border-bottom:1px solid var(--border); }
+    tbody tr:last-child td { border-bottom:none; }
+
+    /* ── Badges ─────────────────────────────────────────── */
+    .badge {
+      display:inline-flex; align-items:center; gap:4px;
+      padding:3px 10px; border-radius:20px;
+      font-size:.7rem; font-weight:600; text-transform:uppercase; letter-spacing:.5px;
+    }
+    .badge-green   { background:rgba(52,211,153,.15); color:#34d399; }
+    .badge-amber   { background:rgba(251,191,36,.15);  color:#fbbf24; }
+    .badge-red     { background:rgba(244,63,94,.15);   color:#f43f5e; }
+    .badge-blue    { background:rgba(56,189,248,.15);  color:#38bdf8; }
+    .badge-purple  { background:rgba(99,102,241,.15);  color:#818cf8; }
+    .badge-gray    { background:rgba(148,163,184,.1);  color:#94a3b8; }
+
+    /* ── Buttons ─────────────────────────────────────────── */
+    .btn {
+      display:inline-flex; align-items:center; gap:6px;
+      padding:8px 16px; border-radius:8px; border:none;
+      font-size:.875rem; font-weight:600; cursor:pointer;
+      text-decoration:none; transition:all var(--transition);
+    }
+    .btn-primary { background:var(--accent); color:#fff; }
+    .btn-primary:hover { background:#4f46e5; }
+    .btn-ghost { background:transparent; color:var(--text-secondary); border:1px solid var(--border); }
+    .btn-ghost:hover { background:var(--bg-hover); color:var(--text-primary); }
+    .btn-sm { padding:5px 10px; font-size:.8rem; }
+    .btn-danger { background:rgba(244,63,94,.15); color:var(--red); border:1px solid rgba(244,63,94,.3); }
+    .btn-success { background:rgba(52,211,153,.15); color:var(--green); border:1px solid rgba(52,211,153,.3); }
+
+    /* ── Filter bar ─────────────────────────────────────── */
+    .filter-bar {
+      display:flex; align-items:center; gap:10px; flex-wrap:wrap;
+      margin-bottom:16px;
+    }
+    .filter-input, .filter-select {
+      background:var(--bg-card); border:1px solid var(--border);
+      border-radius:8px; padding:8px 12px; color:var(--text-primary);
+      font-size:.875rem; outline:none; min-width:160px;
+    }
+    .filter-input:focus, .filter-select:focus { border-color:var(--accent); }
+    .filter-select option { background:var(--bg-card); }
+
+    /* ── User row ────────────────────────────────────────── */
+    .user-cell { display:flex; align-items:center; gap:10px; }
+    .user-avatar-sm {
+      width:32px; height:32px; border-radius:50%;
+      background:linear-gradient(135deg,#6366f1,#f43f5e);
+      display:flex; align-items:center; justify-content:center;
+      font-weight:700; font-size:.75rem; flex-shrink:0;
+    }
+    .user-meta small { display:block; font-size:.75rem; color:var(--text-muted); }
+
+    /* ── Stat mini card ─────────────────────────────────── */
+    .mini-stats { display:flex; gap:16px; margin-bottom:24px; flex-wrap:wrap; }
+    .mini-stat {
+      flex:1; min-width:140px; background:var(--bg-card);
+      border:1px solid var(--border); border-radius:var(--radius);
+      padding:14px 16px; text-align:center;
+    }
+    .mini-stat-val  { font-size:1.4rem; font-weight:800; }
+    .mini-stat-lbl  { font-size:.75rem; color:var(--text-muted); margin-top:2px; }
+
+    /* ── Settings section ───────────────────────────────── */
+    .settings-grid { display:grid; grid-template-columns:1fr 1fr; gap:16px; }
+    .settings-card {
+      background:var(--bg-card); border:1px solid var(--border);
+      border-radius:var(--radius); padding:20px;
+    }
+    .settings-card h4 { font-size:.9rem; font-weight:700; margin-bottom:14px; color:var(--text-primary); }
+    .form-row { margin-bottom:14px; }
+    .form-row label { display:block; font-size:.8rem; font-weight:600; color:var(--text-muted); margin-bottom:5px; }
+    .form-row input, .form-row select, .form-row textarea {
+      width:100%; background:var(--bg-surface); border:1px solid var(--border);
+      border-radius:8px; padding:9px 12px; color:var(--text-primary);
+      font-size:.875rem; outline:none; transition:border-color var(--transition);
+    }
+    .form-row input:focus, .form-row select:focus { border-color:var(--accent); }
+
+    /* ── Modal ──────────────────────────────────────────── */
+    .modal-overlay {
+      display:none; position:fixed; inset:0; z-index:9000;
+      background:rgba(0,0,0,.7); backdrop-filter:blur(4px);
+      align-items:center; justify-content:center;
+    }
+    .modal-overlay.active { display:flex; }
+    .modal-box {
+      background:var(--bg-card); border:1px solid var(--border);
+      border-radius:16px; padding:28px; max-width:520px; width:92%;
+      position:relative;
+    }
+    .modal-close {
+      position:absolute; top:14px; right:14px; background:transparent;
+      border:none; color:var(--text-muted); cursor:pointer; font-size:1.1rem;
+    }
+    .modal-close:hover { color:var(--text-primary); }
+    .modal-title { font-size:1.1rem; font-weight:700; margin-bottom:16px; }
+    .modal-footer { display:flex; justify-content:flex-end; gap:10px; margin-top:20px; }
+
+    /* ── Toast ──────────────────────────────────────────── */
+    #adminToast {
+      position:fixed; bottom:24px; right:24px; z-index:10000;
+      background:var(--bg-card); border:1px solid var(--border);
+      border-radius:10px; padding:14px 18px; font-size:.875rem;
+      display:none; align-items:center; gap:10px;
+      box-shadow:0 4px 30px rgba(0,0,0,.5);
+    }
+    #adminToast.show { display:flex; }
+    #adminToast.success { border-color:var(--green); }
+    #adminToast.error   { border-color:var(--red); }
+
+    /* ── Loading spinner ─────────────────────────────────── */
+    .spinner { display:inline-block; width:18px; height:18px;
+               border:2px solid rgba(255,255,255,.2); border-top-color:var(--accent);
+               border-radius:50%; animation:spin .6s linear infinite; }
+    @keyframes spin { to { transform:rotate(360deg); } }
+
+    /* ── Pagination ─────────────────────────────────────── */
+    .pagination {
+      display:flex; align-items:center; justify-content:flex-end;
+      gap:6px; padding:12px 16px; border-top:1px solid var(--border);
+    }
+    .page-btn {
+      width:32px; height:32px; border-radius:6px; border:1px solid var(--border);
+      background:var(--bg-surface); color:var(--text-secondary); font-size:.8rem;
+      cursor:pointer; display:flex; align-items:center; justify-content:center;
+      transition:all var(--transition);
+    }
+    .page-btn:hover, .page-btn.active { background:var(--accent); color:#fff; border-color:var(--accent); }
+    .page-btn:disabled { opacity:.4; cursor:not-allowed; }
+
+    /* ── Responsive ─────────────────────────────────────── */
+    @media (max-width:900px) {
+      .sidebar { position:fixed; left:0; top:0; bottom:0; z-index:500;
+                 transform:translateX(-100%); }
+      .sidebar.open { transform:translateX(0); }
+      .charts-row { grid-template-columns:1fr; }
+      .settings-grid { grid-template-columns:1fr; }
+      .kpi-grid { grid-template-columns:repeat(2,1fr); }
+    }
+    @media (max-width:480px) {
+      .kpi-grid { grid-template-columns:1fr 1fr; }
+      .page-content { padding:14px; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="admin-layout">
+
+  <!-- ── Sidebar ──────────────────────────────────────────── -->
+  <aside class="sidebar" id="adminSidebar">
+    <div class="sidebar-logo">
+      <span class="logo-badge">BD</span>
+      BRND DIRECT
+    </div>
+    <div style="padding:6px 20px 4px;font-size:.7rem;color:#6366f1;font-weight:700;">ADMIN CONSOLE</div>
+
+    <div class="sidebar-divider"></div>
+
+    <div class="sidebar-section-label">Overview</div>
+    <ul class="sidebar-nav">
+      <li><a href="#" class="active" data-tab="dashboard">
+        <i class="fas fa-chart-pie nav-icon"></i> Dashboard
+      </a></li>
+      <li><a href="#" data-tab="analytics">
+        <i class="fas fa-chart-line nav-icon"></i> Analytics
+      </a></li>
+    </ul>
+
+    <div class="sidebar-section-label">Users</div>
+    <ul class="sidebar-nav">
+      <li><a href="#" data-tab="buyers">
+        <i class="fas fa-users nav-icon"></i> Buyers
+        <span class="nav-badge" id="sidebarPendingBuyers">0</span>
+      </a></li>
+      <li><a href="#" data-tab="sellers">
+        <i class="fas fa-store nav-icon"></i> Brand Partners
+      </a></li>
+    </ul>
+
+    <div class="sidebar-section-label">Commerce</div>
+    <ul class="sidebar-nav">
+      <li><a href="#" data-tab="orders">
+        <i class="fas fa-shopping-bag nav-icon"></i> Orders (Supabase)
+        <span class="nav-badge" id="sidebarPendingOrders">0</span>
+      </a></li>
+      <li><a href="#" data-tab="portal-orders">
+        <i class="fas fa-cart-shopping nav-icon"></i> Portal Orders
+        <span class="nav-badge" id="sidebarPortalOrders" style="display:none;background:var(--green);">0</span>
+      </a></li>
+      <li><a href="#" data-tab="portal-invoices">
+        <i class="fas fa-file-invoice-dollar nav-icon"></i> Buyer Invoices
+      </a></li>
+      <li><a href="#" data-tab="portal-rfqs">
+        <i class="fas fa-comment-dollar nav-icon"></i> Buyer RFQs
+        <span class="nav-badge" id="sidebarRFQs" style="display:none;background:var(--amber);color:#000;">0</span>
+      </a></li>
+      <li><a href="#" data-tab="products">
+        <i class="fas fa-box nav-icon"></i> Products
+      </a></li>
+      <li><a href="#" data-tab="payouts">
+        <i class="fas fa-money-bill-wave nav-icon"></i> Payouts
+      </a></li>
+    </ul>
+
+    <div class="sidebar-section-label">Buyers</div>
+    <ul class="sidebar-nav">
+      <li><a href="#" data-tab="buyers">
+        <i class="fas fa-users nav-icon"></i> Buyer Accounts
+        <span class="nav-badge" id="sidebarPendingBuyers">0</span>
+      </a></li>
+      <li><a href="#" data-tab="team-members">
+        <i class="fas fa-user-group nav-icon"></i> Team Members
+      </a></li>
+    </ul>
+
+    <div class="sidebar-section-label">Partners</div>
+    <ul class="sidebar-nav">
+      <li><a href="#" data-tab="sellers">
+        <i class="fas fa-store nav-icon"></i> Brand Partners
+      </a></li>
+    </ul>
+
+    <div class="sidebar-section-label">System</div>
+    <ul class="sidebar-nav">
+      <li><a href="#" data-tab="settings">
+        <i class="fas fa-cog nav-icon"></i> Settings
+      </a></li>
+    </ul>
+
+    <div class="sidebar-bottom">
+      <div class="sidebar-user">
+        <div class="sidebar-user-avatar" id="adminAvatar">AD</div>
+        <div class="sidebar-user-info">
+          <div class="sidebar-user-name" id="adminName">Admin</div>
+          <div class="sidebar-user-role">Super Admin</div>
+        </div>
+        <button class="sidebar-logout" title="Sign out" onclick="signOut('/buyer/index.html')">
+          <i class="fas fa-sign-out-alt"></i>
+        </button>
+      </div>
+    </div>
+  </aside>
+
+  <!-- ── Main ──────────────────────────────────────────────── -->
+  <div class="admin-main">
+    <header class="topbar">
+      <button class="topbar-btn" id="menuToggle" onclick="document.getElementById('adminSidebar').classList.toggle('open')">
+        <i class="fas fa-bars"></i>
+      </button>
+      <span class="topbar-title" id="topbarTitle">Dashboard</span>
+
+      <div class="topbar-search">
+        <i class="fas fa-search search-icon"></i>
+        <input type="text" id="globalSearch" placeholder="Search users, orders…" />
+      </div>
+
+      <div class="topbar-actions">
+        <button class="topbar-btn" id="notifBtn" title="Notifications">
+          <i class="fas fa-bell"></i>
+          <span class="notif-dot" id="notifDot" style="display:none"></span>
+        </button>
+        <div class="topbar-avatar" id="topbarAvatar">AD</div>
+      </div>
+    </header>
+
+    <main class="page-content" id="pageContent">
+
+      <!-- ── Dashboard Tab ─────────────────────────────────── -->
+      <div class="tab-panel active" id="tab-dashboard">
+        <div class="kpi-grid" id="kpiGrid">
+          <div class="kpi-card" style="--kpi-color:#6366f1">
+            <div class="kpi-icon"><i class="fas fa-dollar-sign"></i></div>
+            <div class="kpi-label">Total Revenue</div>
+            <div class="kpi-value" id="kpiRevenue">—</div>
+            <div class="kpi-sub">All-time paid</div>
+          </div>
+          <div class="kpi-card" style="--kpi-color:#34d399">
+            <div class="kpi-icon"><i class="fas fa-chart-bar"></i></div>
+            <div class="kpi-label">Revenue MTD</div>
+            <div class="kpi-value" id="kpiRevMTD">—</div>
+            <div class="kpi-sub">This month</div>
+          </div>
+          <div class="kpi-card" style="--kpi-color:#38bdf8">
+            <div class="kpi-icon"><i class="fas fa-shopping-bag"></i></div>
+            <div class="kpi-label">Total Orders</div>
+            <div class="kpi-value" id="kpiOrders">—</div>
+            <div class="kpi-sub" id="kpiOrdersToday">—</div>
+          </div>
+          <div class="kpi-card" style="--kpi-color:#fbbf24">
+            <div class="kpi-icon"><i class="fas fa-clock"></i></div>
+            <div class="kpi-label">Pending Approvals</div>
+            <div class="kpi-value" id="kpiPending">—</div>
+            <div class="kpi-sub">Buyers awaiting review</div>
+          </div>
+          <div class="kpi-card" style="--kpi-color:#f43f5e">
+            <div class="kpi-icon"><i class="fas fa-users"></i></div>
+            <div class="kpi-label">Total Buyers</div>
+            <div class="kpi-value" id="kpiBuyers">—</div>
+            <div class="kpi-sub">Registered accounts</div>
+          </div>
+          <div class="kpi-card" style="--kpi-color:#a78bfa">
+            <div class="kpi-icon"><i class="fas fa-store"></i></div>
+            <div class="kpi-label">Brand Partners</div>
+            <div class="kpi-value" id="kpiSellers">—</div>
+            <div class="kpi-sub">Active sellers</div>
+          </div>
+          <div class="kpi-card" style="--kpi-color:#fb923c">
+            <div class="kpi-icon"><i class="fas fa-box"></i></div>
+            <div class="kpi-label">Active Products</div>
+            <div class="kpi-value" id="kpiProducts">—</div>
+            <div class="kpi-sub">SKUs in catalog</div>
+          </div>
+          <div class="kpi-card" style="--kpi-color:#34d399">
+            <div class="kpi-icon"><i class="fas fa-money-check-alt"></i></div>
+            <div class="kpi-label">Payouts Owed</div>
+            <div class="kpi-value" id="kpiPayoutsOwed">—</div>
+            <div class="kpi-sub" id="kpiPayoutsPending">—</div>
+          </div>
+        </div>
+
+        <div class="charts-row">
+          <div class="chart-card">
+            <h3>Revenue (Last 12 Months)</h3>
+            <div class="chart-wrap"><canvas id="revenueChart"></canvas></div>
+          </div>
+          <div class="chart-card">
+            <h3>Orders by Status</h3>
+            <div class="chart-wrap"><canvas id="statusChart"></canvas></div>
+          </div>
+        </div>
+
+        <div class="table-card">
+          <div class="table-card-header">
+            <h3>Recent Orders</h3>
+            <button class="btn btn-ghost btn-sm" onclick="switchTab('orders')">View All</button>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Order #</th><th>Buyer</th><th>Amount</th>
+                  <th>Status</th><th>Payment</th><th>Date</th><th></th>
+                </tr>
+              </thead>
+              <tbody id="recentOrdersTbody">
+                <tr><td colspan="7" style="text-align:center;padding:32px;color:var(--text-muted)">
+                  <span class="spinner"></span>
+                </td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div><!-- /tab-dashboard -->
+
+      <!-- ── Analytics Tab ─────────────────────────────────── -->
+      <div class="tab-panel" id="tab-analytics">
+        <div class="charts-row" style="grid-template-columns:1fr 1fr">
+          <div class="chart-card">
+            <h3>Monthly Revenue</h3>
+            <div class="chart-wrap"><canvas id="analyticsRevChart"></canvas></div>
+          </div>
+          <div class="chart-card">
+            <h3>Order Volume</h3>
+            <div class="chart-wrap"><canvas id="analyticsOrderChart"></canvas></div>
+          </div>
+        </div>
+        <div class="table-card">
+          <div class="table-card-header"><h3>Top Products by Revenue</h3></div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr><th>Product</th><th>Brand</th><th>Category</th><th>Units Sold</th><th>Revenue</th></tr>
+              </thead>
+              <tbody id="topProductsTbody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── Buyers Tab ─────────────────────────────────────── -->
+      <div class="tab-panel" id="tab-buyers">
+        <div class="filter-bar">
+          <input class="filter-input" id="buyerSearch" placeholder="Search buyers…" oninput="loadUsers('buyer')" />
+          <select class="filter-select" id="buyerStatusFilter" onchange="loadUsers('buyer')">
+            <option value="all">All Status</option>
+            <option value="pending">Pending</option>
+            <option value="approved">Approved</option>
+            <option value="suspended">Suspended</option>
+          </select>
+          <button class="btn btn-primary btn-sm" onclick="loadUsers('buyer')">
+            <i class="fas fa-sync-alt"></i> Refresh
+          </button>
+        </div>
+        <div class="table-card">
+          <div class="table-card-header">
+            <h3>Buyers <span id="buyerCount" style="color:var(--text-muted);font-weight:400"></span></h3>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Buyer</th><th>Business</th><th>Type</th>
+                  <th>Status</th><th>Net Terms</th><th>Credit</th>
+                  <th>Joined</th><th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="buyersTbody"></tbody>
+            </table>
+          </div>
+          <div class="pagination" id="buyersPagination"></div>
+        </div>
+      </div>
+
+      <!-- ── Sellers Tab ────────────────────────────────────── -->
+      <div class="tab-panel" id="tab-sellers">
+        <div class="filter-bar">
+          <input class="filter-input" id="sellerSearch" placeholder="Search brands…" oninput="loadUsers('seller')" />
+          <select class="filter-select" id="sellerStatusFilter" onchange="loadUsers('seller')">
+            <option value="all">All Status</option>
+            <option value="pending">Pending</option>
+            <option value="approved">Approved</option>
+            <option value="suspended">Suspended</option>
+          </select>
+          <button class="btn btn-primary btn-sm" onclick="loadUsers('seller')">
+            <i class="fas fa-sync-alt"></i> Refresh
+          </button>
+        </div>
+        <div class="table-card">
+          <div class="table-card-header">
+            <h3>Brand Partners <span id="sellerCount" style="color:var(--text-muted);font-weight:400"></span></h3>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Brand</th><th>Contact</th><th>Category</th>
+                  <th>Status</th><th>Commission</th><th>Stripe</th>
+                  <th>Joined</th><th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="sellersTbody"></tbody>
+            </table>
+          </div>
+          <div class="pagination" id="sellersPagination"></div>
+        </div>
+      </div>
+
+      <!-- ── Orders Tab ─────────────────────────────────────── -->
+      <div class="tab-panel" id="tab-orders">
+        <div class="filter-bar">
+          <select class="filter-select" id="orderStatusFilter" onchange="loadAdminOrders()">
+            <option value="all">All Status</option>
+            <option value="pending">Pending</option>
+            <option value="confirmed">Confirmed</option>
+            <option value="processing">Processing</option>
+            <option value="shipped">Shipped</option>
+            <option value="delivered">Delivered</option>
+            <option value="cancelled">Cancelled</option>
+          </select>
+          <button class="btn btn-primary btn-sm" onclick="loadAdminOrders()">
+            <i class="fas fa-sync-alt"></i> Refresh
+          </button>
+        </div>
+        <div class="table-card">
+          <div class="table-card-header">
+            <h3>Orders <span id="ordersCount" style="color:var(--text-muted);font-weight:400"></span></h3>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Order #</th><th>Buyer</th><th>Items</th>
+                  <th>Subtotal</th><th>Status</th><th>Payment</th>
+                  <th>Date</th><th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="ordersTbody"></tbody>
+            </table>
+          </div>
+          <div class="pagination" id="ordersPagination"></div>
+        </div>
+      </div>
+
+      <!-- ── Products Tab ───────────────────────────────────── -->
+      <div class="tab-panel" id="tab-products">
+        <div class="filter-bar">
+          <input class="filter-input" id="productSearch" placeholder="Search products…" oninput="loadAdminProducts()" />
+          <button class="btn btn-primary btn-sm" onclick="loadAdminProducts()">
+            <i class="fas fa-sync-alt"></i> Refresh
+          </button>
+        </div>
+        <div class="table-card">
+          <div class="table-card-header">
+            <h3>Products <span id="productsCount" style="color:var(--text-muted);font-weight:400"></span></h3>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Product</th><th>Brand</th><th>SKU</th><th>UPC</th>
+                  <th>Category</th><th>Price</th><th>MOQ</th>
+                  <th>Stock</th><th>Fulfill</th><th>Status</th>
+                </tr>
+              </thead>
+              <tbody id="productsTbody"></tbody>
+            </table>
+          </div>
+          <div class="pagination" id="productsPagination"></div>
+        </div>
+      </div>
+
+      <!-- ── Payouts Tab ────────────────────────────────────── -->
+      <div class="tab-panel" id="tab-payouts">
+        <div class="mini-stats">
+          <div class="mini-stat">
+            <div class="mini-stat-val" id="payoutOwedAmt">—</div>
+            <div class="mini-stat-lbl">Total Owed</div>
+          </div>
+          <div class="mini-stat">
+            <div class="mini-stat-val" id="payoutPendingCount">—</div>
+            <div class="mini-stat-lbl">Pending Payouts</div>
+          </div>
+        </div>
+        <div class="table-card">
+          <div class="table-card-header">
+            <h3>Seller Payouts</h3>
+            <button class="btn btn-primary btn-sm" onclick="loadAdminPayouts()">
+              <i class="fas fa-sync-alt"></i> Refresh
+            </button>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Seller / Brand</th><th>Amount</th><th>Commission</th>
+                  <th>Net</th><th>Status</th><th>Period</th><th>Stripe Transfer</th>
+                </tr>
+              </thead>
+              <tbody id="payoutsTbody"></tbody>
+            </table>
+          </div>
+          <div class="pagination" id="payoutsPagination"></div>
+        </div>
+      </div>
+
+      <!-- ── RFQs Tab ───────────────────────────────────────── -->
+      <div class="tab-panel" id="tab-rfqs">
+        <div class="table-card">
+          <div class="table-card-header">
+            <h3>Requests for Quote</h3>
+            <button class="btn btn-primary btn-sm" onclick="loadAdminRFQs()">
+              <i class="fas fa-sync-alt"></i> Refresh
+            </button>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>RFQ #</th><th>Buyer</th><th>Product</th>
+                  <th>Qty</th><th>Target Price</th><th>Status</th><th>Expires</th>
+                </tr>
+              </thead>
+              <tbody id="rfqsTbody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── Portal Orders Tab (from Tables API) ───────────── -->
+      <div class="tab-panel" id="tab-portal-orders">
+        <div class="filter-bar">
+          <input class="filter-input" id="portalOrderSearch" placeholder="Search by order #, buyer, PO…" oninput="loadPortalOrders()" />
+          <select class="filter-select" id="portalOrderStatus" onchange="loadPortalOrders()">
+            <option value="">All Status</option>
+            <option value="pending">Pending</option>
+            <option value="confirmed">Confirmed</option>
+            <option value="processing">Processing</option>
+            <option value="packed">Packed</option>
+            <option value="shipped">Shipped</option>
+            <option value="delivered">Delivered</option>
+            <option value="cancelled">Cancelled</option>
+          </select>
+          <button class="btn btn-primary btn-sm" onclick="loadPortalOrders()">
+            <i class="fas fa-sync-alt"></i> Refresh
+          </button>
+        </div>
+        <div class="table-card">
+          <div class="table-card-header">
+            <h3>Buyer Portal Orders <span id="portalOrdersCount" style="color:var(--text-muted);font-weight:400"></span></h3>
+            <div style="font-size:.75rem;color:var(--text-muted);">Orders submitted by buyers via the portal cart</div>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Order #</th>
+                  <th>Buyer / Business</th>
+                  <th>PO #</th>
+                  <th>Shipping Method</th>
+                  <th>Payment Terms</th>
+                  <th>Items</th>
+                  <th>Subtotal</th>
+                  <th>Total</th>
+                  <th>Status</th>
+                  <th>Payment</th>
+                  <th>Date</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="portalOrdersTbody">
+                <tr><td colspan="12" style="text-align:center;padding:40px;color:var(--text-muted)">
+                  <span class="spinner"></span> Loading orders…
+                </td></tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="pagination" id="portalOrdersPagination"></div>
+        </div>
+      </div>
+
+      <!-- ── Buyer Invoices Tab (from Tables API) ───────────── -->
+      <div class="tab-panel" id="tab-portal-invoices">
+        <div class="filter-bar">
+          <input class="filter-input" id="invoiceSearch" placeholder="Search by invoice #, buyer, order…" oninput="loadPortalInvoices()" />
+          <select class="filter-select" id="invoiceStatusFilter" onchange="loadPortalInvoices()">
+            <option value="">All Status</option>
+            <option value="Outstanding">Outstanding</option>
+            <option value="Paid">Paid</option>
+            <option value="Overdue">Overdue</option>
+          </select>
+          <button class="btn btn-primary btn-sm" onclick="loadPortalInvoices()">
+            <i class="fas fa-sync-alt"></i> Refresh
+          </button>
+        </div>
+        <div class="table-card">
+          <div class="table-card-header">
+            <h3>Buyer Invoices <span id="invoicesCount" style="color:var(--text-muted);font-weight:400"></span></h3>
+            <div style="font-size:.75rem;color:var(--text-muted);">Auto-generated when buyers place orders</div>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Invoice #</th>
+                  <th>Order #</th>
+                  <th>Buyer / Business</th>
+                  <th>PO #</th>
+                  <th>Terms</th>
+                  <th>Subtotal</th>
+                  <th>Shipping</th>
+                  <th>Total</th>
+                  <th>Status</th>
+                  <th>Issue Date</th>
+                  <th>Due Date</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="invoicesTbody">
+                <tr><td colspan="12" style="text-align:center;padding:40px;color:var(--text-muted)">
+                  <span class="spinner"></span> Loading invoices…
+                </td></tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="pagination" id="invoicesPagination"></div>
+        </div>
+      </div>
+
+      <!-- ── Buyer RFQs Tab (from Tables API) ──────────────── -->
+      <div class="tab-panel" id="tab-portal-rfqs">
+        <div class="filter-bar">
+          <input class="filter-input" id="rfqSearch" placeholder="Search by RFQ #, buyer, product…" oninput="loadPortalRFQs()" />
+          <select class="filter-select" id="rfqStatusFilter" onchange="loadPortalRFQs()">
+            <option value="">All Status</option>
+            <option value="pending">Pending</option>
+            <option value="responded">Responded</option>
+            <option value="accepted">Accepted</option>
+            <option value="declined">Declined</option>
+          </select>
+          <button class="btn btn-primary btn-sm" onclick="loadPortalRFQs()">
+            <i class="fas fa-sync-alt"></i> Refresh
+          </button>
+        </div>
+        <div class="table-card">
+          <div class="table-card-header">
+            <h3>Buyer RFQs <span id="rfqsCount" style="color:var(--text-muted);font-weight:400"></span></h3>
+            <div style="font-size:.75rem;color:var(--text-muted);">Quote requests submitted by buyers via the portal</div>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>RFQ #</th>
+                  <th>Buyer / Business</th>
+                  <th>Product / Description</th>
+                  <th>Qty Requested</th>
+                  <th>Target Price</th>
+                  <th>Suppliers Invited</th>
+                  <th>Notes</th>
+                  <th>Status</th>
+                  <th>Deadline</th>
+                  <th>Submitted</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="rfqsTbodyPortal">
+                <tr><td colspan="11" style="text-align:center;padding:40px;color:var(--text-muted)">
+                  <span class="spinner"></span> Loading RFQs…
+                </td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── Team Members Tab (from Tables API) ────────────── -->
+      <div class="tab-panel" id="tab-team-members">
+        <div class="filter-bar">
+          <input class="filter-input" id="teamSearch" placeholder="Search by name, email, business…" oninput="loadTeamMembers()" />
+          <select class="filter-select" id="teamRoleFilter" onchange="loadTeamMembers()">
+            <option value="">All Roles</option>
+            <option value="owner">Owner</option>
+            <option value="manager">Manager</option>
+            <option value="viewer">View Only</option>
+          </select>
+          <button class="btn btn-primary btn-sm" onclick="loadTeamMembers()">
+            <i class="fas fa-sync-alt"></i> Refresh
+          </button>
+        </div>
+        <div class="table-card">
+          <div class="table-card-header">
+            <h3>Buyer Team Members <span id="teamCount" style="color:var(--text-muted);font-weight:400"></span></h3>
+            <div style="font-size:.75rem;color:var(--text-muted);">Members invited by buyers to access their portal accounts (max 10 per account)</div>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Member Name</th>
+                  <th>Member Email</th>
+                  <th>Account Owner</th>
+                  <th>Business</th>
+                  <th>Role</th>
+                  <th>Status</th>
+                  <th>Invited</th>
+                </tr>
+              </thead>
+              <tbody id="teamTbody">
+                <tr><td colspan="7" style="text-align:center;padding:40px;color:var(--text-muted)">
+                  <span class="spinner"></span> Loading team members…
+                </td></tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="pagination" id="teamPagination"></div>
+        </div>
+      </div>
+
+      <!-- ── Settings Tab ───────────────────────────────────── -->
+      <div class="tab-panel" id="tab-settings">
+        <div class="settings-grid">
+          <div class="settings-card">
+            <h4><i class="fas fa-sliders-h" style="color:var(--accent);margin-right:8px"></i>Platform Settings</h4>
+            <div class="form-row">
+              <label>Platform Name</label>
+              <input type="text" id="settPlatformName" value="BRND Direct" />
+            </div>
+            <div class="form-row">
+              <label>Default Commission Rate (%)</label>
+              <input type="number" id="settCommission" value="12" min="0" max="100" step="0.5" />
+            </div>
+            <div class="form-row">
+              <label>Default Net Terms (days)</label>
+              <input type="number" id="settNetTerms" value="30" min="0" max="90" />
+            </div>
+            <div class="form-row">
+              <label>Max Buyer Credit Limit ($)</label>
+              <input type="number" id="settCreditLimit" value="100000" />
+            </div>
+            <button class="btn btn-primary" onclick="savePlatformSettings()">
+              <i class="fas fa-save"></i> Save Settings
+            </button>
+          </div>
+
+          <div class="settings-card">
+            <h4><i class="fas fa-envelope" style="color:var(--green);margin-right:8px"></i>Contact & Support</h4>
+            <div class="form-row">
+              <label>Support Email</label>
+              <input type="email" id="settSupportEmail" value="support@brnddirect.com" />
+            </div>
+            <div class="form-row">
+              <label>Stripe Mode</label>
+              <select id="settStripeMode">
+                <option value="test">Test</option>
+                <option value="live" selected>Live</option>
+              </select>
+            </div>
+            <div class="form-row">
+              <label>Maintenance Mode</label>
+              <select id="settMaintenance">
+                <option value="false" selected>Off (site live)</option>
+                <option value="true">On (show maintenance page)</option>
+              </select>
+            </div>
+            <button class="btn btn-primary" onclick="saveContactSettings()">
+              <i class="fas fa-save"></i> Save Settings
+            </button>
+          </div>
+
+          <div class="settings-card" style="grid-column:1/-1">
+            <h4><i class="fas fa-database" style="color:var(--blue);margin-right:8px"></i>Database Connection Info</h4>
+            <p style="font-size:.85rem;color:var(--text-secondary);margin-bottom:12px">
+              These values are read from <code style="background:var(--bg-base);padding:2px 6px;border-radius:4px">js/supabase.js</code>.
+              Edit that file to update your Supabase project URL and keys.
+            </p>
+            <div style="background:var(--bg-base);border-radius:8px;padding:14px;font-family:monospace;font-size:.8rem;color:var(--green);line-height:1.8">
+              <div>SUPABASE_URL = <span id="dbUrl" style="color:var(--text-secondary)">loading…</span></div>
+              <div>STRIPE_MODE  = <span id="dbStripe" style="color:var(--text-secondary)">loading…</span></div>
+              <div>CF_WORKER    = <span id="dbWorker" style="color:var(--text-secondary)">loading…</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </main><!-- /page-content -->
+  </div><!-- /admin-main -->
+</div><!-- /admin-layout -->
+
+<!-- ── User detail modal ──────────────────────────────────── -->
+<div class="modal-overlay" id="userModal">
+  <div class="modal-box">
+    <button class="modal-close" onclick="closeModal('userModal')">✕</button>
+    <h3 class="modal-title" id="userModalTitle">User Details</h3>
+    <div id="userModalBody"></div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('userModal')">Cancel</button>
+      <button class="btn btn-success" id="userApproveBtn" onclick="approveUser()">Approve</button>
+      <button class="btn btn-danger"  id="userSuspendBtn" onclick="suspendUser()">Suspend</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── Order detail modal ─────────────────────────────────── -->
+<div class="modal-overlay" id="orderModal">
+  <div class="modal-box" style="max-width:640px">
+    <button class="modal-close" onclick="closeModal('orderModal')">✕</button>
+    <h3 class="modal-title" id="orderModalTitle">Order Details</h3>
+    <div id="orderModalBody"></div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('orderModal')">Close</button>
+      <select class="filter-select" id="orderStatusChange" style="min-width:160px">
+        <option value="">Change Status…</option>
+        <option value="confirmed">Confirmed</option>
+        <option value="processing">Processing</option>
+        <option value="shipped">Shipped</option>
+        <option value="delivered">Delivered</option>
+        <option value="cancelled">Cancelled</option>
+      </select>
+      <button class="btn btn-primary" onclick="saveOrderStatus()">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── Portal Order Detail Modal ──────────────────────────── -->
+<div class="modal-overlay" id="portalOrderModal">
+  <div class="modal-box" style="max-width:700px">
+    <button class="modal-close" onclick="closeModal('portalOrderModal')">✕</button>
+    <h3 class="modal-title" id="portalOrderModalTitle">Portal Order Details</h3>
+    <div id="portalOrderModalBody"></div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('portalOrderModal')">Close</button>
+      <select class="filter-select" id="portalOrderStatusChange" style="min-width:160px">
+        <option value="">Change Status…</option>
+        <option value="confirmed">Confirmed</option>
+        <option value="processing">Processing</option>
+        <option value="packed">Packed</option>
+        <option value="shipped">Shipped</option>
+        <option value="delivered">Delivered</option>
+        <option value="cancelled">Cancelled</option>
+      </select>
+      <button class="btn btn-primary" onclick="savePortalOrderStatus()">Save Status</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── Toast ─────────────────────────────────────────────── -->
+<div id="adminToast"></div>
+
+<!-- ── Scripts ──────────────────────────────────────────────
+  Order matters: supabase.js → auth.js → api.js → page script
+─────────────────────────────────────────────────────────── -->
+<script src="../js/supabase.js"></script>
+<script src="../js/auth.js"></script>
+<script src="../js/api.js"></script>
+
+<script>
+/* ════════════════════════════════════════════════════════════
+   ADMIN DASHBOARD CONTROLLER
+════════════════════════════════════════════════════════════ */
+let _adminUser      = null;
+let _selectedUserId = null;
+let _selectedOrderId = null;
+let _currentOPage   = 1;
+let _currentBPage   = 1;
+let _currentSPage   = 1;
+let _revenueChart   = null;
+let _statusChart    = null;
+
+/* ── Init ──────────────────────────────────────────────────── */
+document.addEventListener('supabase:ready', async () => {
+  // Require admin auth
+  const sb = await getSupabase();
+  const { data: { session } } = await sb.auth.getSession();
+  if (!session) { window.location.href = '../buyer/index.html'; return; }
+
+  const { data: profile } = await sb.from('profiles').select('*').eq('id', session.user.id).single();
+  if (!profile || profile.role !== 'admin') {
+    window.location.href = '../buyer/index.html';
+    return;
+  }
+
+  _adminUser = session.user;
+
+  // Populate UI
+  const initials = `${(profile.first_name||'A')[0]}${(profile.last_name||'D')[0]}`.toUpperCase();
+  document.getElementById('adminAvatar').textContent = initials;
+  document.getElementById('topbarAvatar').textContent = initials;
+  document.getElementById('adminName').textContent = profile.display_name || `${profile.first_name} ${profile.last_name}`;
+
+  // Show DB info in settings
+  if (typeof SUPABASE_URL !== 'undefined') {
+    document.getElementById('dbUrl').textContent = SUPABASE_URL;
+  }
+  if (typeof CF_WORKER_URL !== 'undefined') {
+    document.getElementById('dbWorker').textContent = CF_WORKER_URL;
+  }
+
+  // Load default tab
+  await loadDashboard();
+  await loadAppSettingsUI();
+});
+
+/* ── Tab navigation ─────────────────────────────────────────── */
+document.querySelectorAll('[data-tab]').forEach(link => {
+  link.addEventListener('click', async (e) => {
+    e.preventDefault();
+    const tab = e.currentTarget.dataset.tab;
+    await switchTab(tab);
+  });
+});
+
+async function switchTab(tab) {
+  document.querySelectorAll('[data-tab]').forEach(l => l.classList.remove('active'));
+  document.querySelector(`[data-tab="${tab}"]`)?.classList.add('active');
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  document.getElementById(`tab-${tab}`)?.classList.add('active');
+
+  const titles = {
+    dashboard:'Dashboard', analytics:'Analytics',
+    buyers:'Buyer Accounts', sellers:'Brand Partners',
+    orders:'Orders (Supabase)', products:'Products',
+    payouts:'Payouts', rfqs:'RFQs (Supabase)', settings:'Settings',
+    'portal-orders':'Portal Orders',
+    'portal-invoices':'Buyer Invoices',
+    'portal-rfqs':'Buyer RFQs',
+    'team-members':'Team Members'
+  };
+  document.getElementById('topbarTitle').textContent = titles[tab] || tab;
+
+  switch(tab) {
+    case 'dashboard':       await loadDashboard(); break;
+    case 'analytics':       await loadAnalytics(); break;
+    case 'buyers':          await loadUsers('buyer'); break;
+    case 'sellers':         await loadUsers('seller'); break;
+    case 'orders':          await loadAdminOrders(); break;
+    case 'products':        await loadAdminProducts(); break;
+    case 'payouts':         await loadAdminPayouts(); break;
+    case 'rfqs':            await loadAdminRFQs(); break;
+    case 'portal-orders':   await loadPortalOrders(); break;
+    case 'portal-invoices': await loadPortalInvoices(); break;
+    case 'portal-rfqs':     await loadPortalRFQs(); break;
+    case 'team-members':    await loadTeamMembers(); break;
+  }
+}
+
+/* ── Dashboard ─────────────────────────────────────────────── */
+async function loadDashboard() {
+  const { data, error } = await getAdminOverview();
+  if (error) { showToast('Failed to load overview: ' + error.message, 'error'); return; }
+
+  const fmt = (n) => n === null || n === undefined ? '—' : Number(n).toLocaleString();
+  const fmtUSD = (n) => n === null || n === undefined ? '—' : '$' + Number(n).toLocaleString('en-US',{minimumFractionDigits:0,maximumFractionDigits:0});
+
+  document.getElementById('kpiRevenue').textContent    = fmtUSD(data.total_revenue);
+  document.getElementById('kpiRevMTD').textContent     = fmtUSD(data.revenue_mtd);
+  document.getElementById('kpiOrders').textContent     = fmt(data.total_orders);
+  document.getElementById('kpiOrdersToday').textContent= `${fmt(data.orders_today)} today`;
+  document.getElementById('kpiPending').textContent    = fmt(data.pending_approvals);
+  document.getElementById('kpiBuyers').textContent     = fmt(data.total_buyers);
+  document.getElementById('kpiSellers').textContent    = fmt(data.total_sellers);
+  document.getElementById('kpiProducts').textContent   = fmt(data.active_products);
+  document.getElementById('kpiPayoutsOwed').textContent= fmtUSD(data.payouts_owed);
+  document.getElementById('kpiPayoutsPending').textContent = `${fmt(data.pending_payouts)} pending`;
+
+  // Sidebar badges
+  const pb = document.getElementById('sidebarPendingBuyers');
+  const po = document.getElementById('sidebarPendingOrders');
+  if (pb) pb.textContent = data.pending_approvals || 0;
+  if (po) po.textContent = data.pending_orders || 0;
+
+  // Also load portal order badge from Tables API
+  try {
+    const portalRes = await fetch('tables/bd_orders?page=1&limit=100');
+    const portalJson = await portalRes.json();
+    const portalPending = (portalJson.data||[]).filter(o => o.status === 'pending').length;
+    const pob = document.getElementById('sidebarPortalOrders');
+    if (pob) { if(portalPending>0){pob.textContent=portalPending;pob.style.display='';}else{pob.style.display='none';} }
+    const rfqRes = await fetch('tables/bd_rfqs?page=1&limit=100');
+    const rfqJson = await rfqRes.json();
+    const rfqPending = (rfqJson.data||[]).filter(r => r.status === 'pending').length;
+    const rb = document.getElementById('sidebarRFQs');
+    if (rb) { if(rfqPending>0){rb.textContent=rfqPending;rb.style.display='';}else{rb.style.display='none';} }
+  } catch(e) { /* silently fail if no orders yet */ }
+
+  // Load charts
+  await loadRevenueChart();
+  await loadRecentOrders();
+}
+
+/* ── Revenue Chart ─────────────────────────────────────────── */
+async function loadRevenueChart() {
+  const { data } = await getRevenueByMonth();
+  if (!data?.length) return;
+
+  const labels  = data.map(r => new Date(r.month).toLocaleDateString('en-US',{month:'short',year:'2-digit'}));
+  const revenue  = data.map(r => Number(r.revenue) || 0);
+  const orders   = data.map(r => Number(r.order_count) || 0);
+
+  const ctx = document.getElementById('revenueChart');
+  if (_revenueChart) _revenueChart.destroy();
+  _revenueChart = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels,
+      datasets: [{
+        label: 'Revenue ($)',
+        data: revenue,
+        backgroundColor: 'rgba(99,102,241,.6)',
+        borderColor: '#6366f1',
+        borderWidth: 1,
+        borderRadius: 4,
+        yAxisID: 'y'
+      }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { labels: { color:'#94a3b8' } } },
+      scales: {
+        x: { ticks:{ color:'#64748b' }, grid:{ color:'rgba(255,255,255,.04)' } },
+        y: { ticks:{ color:'#64748b', callback: v => '$'+v.toLocaleString() }, grid:{ color:'rgba(255,255,255,.04)' } }
+      }
+    }
+  });
+
+  // Donut status chart
+  const sb = await getSupabase();
+  const statuses = ['pending','confirmed','processing','shipped','delivered','cancelled'];
+  const counts = await Promise.all(statuses.map(async s => {
+    const { count } = await sb.from('orders').select('*',{count:'exact',head:true}).eq('status',s);
+    return count || 0;
+  }));
+  const ctx2 = document.getElementById('statusChart');
+  if (_statusChart) _statusChart.destroy();
+  _statusChart = new Chart(ctx2, {
+    type: 'doughnut',
+    data: {
+      labels: statuses.map(s => s.charAt(0).toUpperCase()+s.slice(1)),
+      datasets: [{
+        data: counts,
+        backgroundColor: ['#fbbf24','#6366f1','#38bdf8','#a78bfa','#34d399','#f43f5e'],
+        borderWidth: 2,
+        borderColor: '#1e1e35'
+      }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { position:'right', labels: { color:'#94a3b8', font:{ size:11 } } } },
+      cutout: '65%'
+    }
+  });
+}
+
+/* ── Recent Orders ─────────────────────────────────────────── */
+async function loadRecentOrders() {
+  const { data } = await getAdminOrders({ page:1, limit:8 });
+  const tbody = document.getElementById('recentOrdersTbody');
+  if (!data?.length) {
+    tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:32px;color:var(--text-muted)">No orders yet</td></tr>';
+    return;
+  }
+  tbody.innerHTML = data.map(o => `
+    <tr>
+      <td><code style="color:var(--accent)">${o.order_number}</code></td>
+      <td>${o.buyer_profiles?.business_name || '—'}</td>
+      <td>$${Number(o.total_amount).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2})}</td>
+      <td><span class="badge ${statusBadgeClass(o.status)}">${o.status}</span></td>
+      <td><span class="badge ${payBadgeClass(o.payment_status)}">${o.payment_status}</span></td>
+      <td style="color:var(--text-muted)">${formatDate(o.created_at)}</td>
+      <td>
+        <button class="btn btn-ghost btn-sm" onclick="openOrderModal('${o.id}')">
+          <i class="fas fa-eye"></i>
+        </button>
+      </td>
+    </tr>`).join('');
+}
+
+/* ── Analytics ─────────────────────────────────────────────── */
+async function loadAnalytics() {
+  const { data } = await getRevenueByMonth();
+  if (!data?.length) return;
+  const labels  = data.map(r => new Date(r.month).toLocaleDateString('en-US',{month:'short',year:'2-digit'}));
+  const revenue = data.map(r => Number(r.revenue)||0);
+  const orders  = data.map(r => Number(r.order_count)||0);
+
+  new Chart(document.getElementById('analyticsRevChart'), {
+    type:'line',
+    data:{ labels, datasets:[{ label:'Revenue', data:revenue,
+      borderColor:'#6366f1', backgroundColor:'rgba(99,102,241,.1)',
+      tension:.4, fill:true, pointBackgroundColor:'#6366f1' }] },
+    options:{ responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{labels:{color:'#94a3b8'}}},
+      scales:{ x:{ticks:{color:'#64748b'},grid:{color:'rgba(255,255,255,.04)'}},
+               y:{ticks:{color:'#64748b',callback:v=>'$'+v.toLocaleString()},grid:{color:'rgba(255,255,255,.04)'}} } }
+  });
+  new Chart(document.getElementById('analyticsOrderChart'), {
+    type:'bar',
+    data:{ labels, datasets:[{ label:'Orders', data:orders,
+      backgroundColor:'rgba(52,211,153,.5)', borderColor:'#34d399', borderRadius:4 }] },
+    options:{ responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{labels:{color:'#94a3b8'}}},
+      scales:{ x:{ticks:{color:'#64748b'},grid:{color:'rgba(255,255,255,.04)'}},
+               y:{ticks:{color:'#64748b'},grid:{color:'rgba(255,255,255,.04)'}} } }
+  });
+
+  const { data: tp } = await getTopProducts(10);
+  const tbody = document.getElementById('topProductsTbody');
+  tbody.innerHTML = (tp||[]).map(p => `
+    <tr>
+      <td><strong>${p.name}</strong></td>
+      <td>${p.brand_name}</td>
+      <td><span class="badge badge-purple">${p.category}</span></td>
+      <td>${Number(p.total_units_sold||0).toLocaleString()}</td>
+      <td>$${Number(p.total_revenue||0).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2})}</td>
+    </tr>`).join('') || '<tr><td colspan="5" style="text-align:center;color:var(--text-muted);padding:32px">No sales data yet</td></tr>';
+}
+
+/* ── Users (buyers / sellers) ───────────────────────────────── */
+async function loadUsers(role, page = 1) {
+  if (role === 'buyer') _currentBPage = page;
+  else _currentSPage = page;
+
+  const searchEl = document.getElementById(role === 'buyer' ? 'buyerSearch' : 'sellerSearch');
+  const statusEl = document.getElementById(role === 'buyer' ? 'buyerStatusFilter' : 'sellerStatusFilter');
+  const tbody    = document.getElementById(role === 'buyer' ? 'buyersTbody' : 'sellersTbody');
+  const countEl  = document.getElementById(role === 'buyer' ? 'buyerCount' : 'sellerCount');
+  const pagEl    = document.getElementById(role === 'buyer' ? 'buyersPagination' : 'sellersPagination');
+
+  tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:32px"><span class="spinner"></span></td></tr>';
+
+  const { data, count } = await getAdminUsers({
+    role,
+    status: statusEl?.value || 'all',
+    search: searchEl?.value || '',
+    page, limit: 20
+  });
+
+  if (countEl) countEl.textContent = count ? `(${count})` : '';
+
+  tbody.innerHTML = (data||[]).map(u => {
+    const bp = u.buyer_profiles;
+    const sp = u.seller_profiles;
+    if (role === 'buyer') {
+      return `<tr>
+        <td><div class="user-cell">
+          <div class="user-avatar-sm">${initials(u)}</div>
+          <div class="user-meta">
+            <strong>${u.display_name||u.first_name||'—'}</strong>
+            <small>${u.id.slice(0,8)}…</small>
+          </div>
+        </div></td>
+        <td>${bp?.business_name||'—'}</td>
+        <td><span class="badge badge-blue">${bp?.business_type||'—'}</span></td>
+        <td><span class="badge ${statusBadge(u.status)}">${u.status}</span></td>
+        <td>Net ${bp?.net_terms||30}</td>
+        <td>$${Number(bp?.credit_limit||0).toLocaleString()}</td>
+        <td style="color:var(--text-muted)">${formatDate(u.created_at)}</td>
+        <td>
+          <button class="btn btn-ghost btn-sm" onclick="openUserModal('${u.id}','${role}')">
+            <i class="fas fa-edit"></i>
+          </button>
+        </td>
+      </tr>`;
+    } else {
+      return `<tr>
+        <td><div class="user-cell">
+          <div class="user-avatar-sm">${initials(u)}</div>
+          <div class="user-meta">
+            <strong>${sp?.brand_name||u.display_name||'—'}</strong>
+            <small>${sp?.brand_slug||'—'}</small>
+          </div>
+        </div></td>
+        <td>${u.display_name||'—'}</td>
+        <td><span class="badge badge-purple">${sp?.primary_category||'—'}</span></td>
+        <td><span class="badge ${statusBadge(u.status)}">${u.status}</span></td>
+        <td>${sp?.commission_rate||12}%</td>
+        <td><span class="badge ${sp?.stripe_account_id ? 'badge-green' : 'badge-gray'}">${sp?.stripe_account_id ? 'Connected' : 'Not linked'}</span></td>
+        <td style="color:var(--text-muted)">${formatDate(u.created_at)}</td>
+        <td>
+          <button class="btn btn-ghost btn-sm" onclick="openUserModal('${u.id}','${role}')">
+            <i class="fas fa-edit"></i>
+          </button>
+        </td>
+      </tr>`;
+    }
+  }).join('') || `<tr><td colspan="8" style="text-align:center;padding:32px;color:var(--text-muted)">No ${role}s found</td></tr>`;
+
+  renderPagination(pagEl, page, Math.ceil((count||0)/20), (p) => loadUsers(role, p));
+}
+
+/* ── Orders ─────────────────────────────────────────────────── */
+async function loadAdminOrders(page = 1) {
+  _currentOPage = page;
+  const status = document.getElementById('orderStatusFilter')?.value || 'all';
+  const tbody  = document.getElementById('ordersTbody');
+  const pagEl  = document.getElementById('ordersPagination');
+  const cntEl  = document.getElementById('ordersCount');
+  tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:32px"><span class="spinner"></span></td></tr>';
+
+  const { data, count } = await getAdminOrders({ status, page, limit:20 });
+  if (cntEl) cntEl.textContent = count ? `(${count})` : '';
+
+  tbody.innerHTML = (data||[]).map(o => `
+    <tr>
+      <td><code style="color:var(--accent)">${o.order_number}</code></td>
+      <td>${o.buyer_profiles?.business_name||'—'}</td>
+      <td>${(o.order_items||[]).length}</td>
+      <td>$${Number(o.total_amount||0).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2})}</td>
+      <td><span class="badge ${statusBadgeClass(o.status)}">${o.status}</span></td>
+      <td><span class="badge ${payBadgeClass(o.payment_status)}">${o.payment_status}</span></td>
+      <td style="color:var(--text-muted)">${formatDate(o.created_at)}</td>
+      <td>
+        <button class="btn btn-ghost btn-sm" onclick="openOrderModal('${o.id}')">
+          <i class="fas fa-eye"></i>
+        </button>
+      </td>
+    </tr>`).join('') || '<tr><td colspan="8" style="text-align:center;padding:32px;color:var(--text-muted)">No orders found</td></tr>';
+
+  renderPagination(pagEl, page, Math.ceil((count||0)/20), (p) => loadAdminOrders(p));
+}
+
+/* ── Products ───────────────────────────────────────────────── */
+async function loadAdminProducts(page = 1) {
+  const search = document.getElementById('productSearch')?.value || '';
+  const tbody  = document.getElementById('productsTbody');
+  const pagEl  = document.getElementById('productsPagination');
+  const cntEl  = document.getElementById('productsCount');
+  tbody.innerHTML = '<tr><td colspan="10" style="text-align:center;padding:32px"><span class="spinner"></span></td></tr>';
+
+  const { data, count } = await getProducts({ search, page, limit:20 });
+  if (cntEl) cntEl.textContent = count ? `(${count})` : '';
+
+  tbody.innerHTML = (data||[]).map(p => `
+    <tr>
+      <td><strong>${p.name}</strong></td>
+      <td>${p.brands?.name||'—'}</td>
+      <td><code style="font-size:.75rem">${p.sku}</code></td>
+      <td><code style="font-size:.75rem">${p.upc||'—'}</code></td>
+      <td><span class="badge badge-purple">${p.category}</span></td>
+      <td>$${Number(p.wholesale_price).toFixed(2)}</td>
+      <td>${p.moq}</td>
+      <td>${Number(p.stock_qty||0).toLocaleString()}</td>
+      <td><span class="badge ${p.fulfillment_type==='dropship'?'badge-green':p.fulfillment_type==='wholesale'?'badge-blue':'badge-amber'}">${p.fulfillment_type}</span></td>
+      <td><span class="badge ${p.is_active?'badge-green':'badge-red'}">${p.is_active?'Active':'Inactive'}</span></td>
+    </tr>`).join('') || '<tr><td colspan="10" style="text-align:center;padding:32px;color:var(--text-muted)">No products found</td></tr>';
+
+  renderPagination(pagEl, page, Math.ceil((count||0)/20), (p) => loadAdminProducts(p));
+}
+
+/* ── Payouts ────────────────────────────────────────────────── */
+async function loadAdminPayouts() {
+  const tbody = document.getElementById('payoutsTbody');
+  const pagEl = document.getElementById('payoutsPagination');
+  tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:32px"><span class="spinner"></span></td></tr>';
+
+  const sb = await getSupabase();
+  const { data, count } = await sb
+    .from('payouts')
+    .select('*, seller_profiles(brand_name)', { count:'exact' })
+    .order('created_at', { ascending:false })
+    .range(0, 19);
+
+  // Update mini stats from overview
+  const { data: ov } = await getAdminOverview();
+  if (ov) {
+    document.getElementById('payoutOwedAmt').textContent = '$'+Number(ov.payouts_owed||0).toLocaleString();
+    document.getElementById('payoutPendingCount').textContent = ov.pending_payouts||0;
+  }
+
+  tbody.innerHTML = (data||[]).map(p => `
+    <tr>
+      <td><strong>${p.seller_profiles?.brand_name||'—'}</strong></td>
+      <td>$${Number(p.amount||0).toLocaleString('en-US',{minimumFractionDigits:2})}</td>
+      <td>$${Number(p.commission_deducted||0).toLocaleString('en-US',{minimumFractionDigits:2})}</td>
+      <td><strong>$${Number(p.net_amount||0).toLocaleString('en-US',{minimumFractionDigits:2})}</strong></td>
+      <td><span class="badge ${p.status==='paid'?'badge-green':p.status==='processing'?'badge-blue':'badge-amber'}">${p.status}</span></td>
+      <td style="color:var(--text-muted)">${p.period_start||'—'} → ${p.period_end||'—'}</td>
+      <td><code style="font-size:.75rem">${p.stripe_transfer_id||'—'}</code></td>
+    </tr>`).join('') || '<tr><td colspan="7" style="text-align:center;padding:32px;color:var(--text-muted)">No payouts yet</td></tr>';
+}
+
+/* ── RFQs ───────────────────────────────────────────────────── */
+async function loadAdminRFQs() {
+  const tbody = document.getElementById('rfqsTbody');
+  const sb    = await getSupabase();
+  tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:32px"><span class="spinner"></span></td></tr>';
+  const { data } = await sb
+    .from('rfqs')
+    .select('*, products(name), buyer_profiles(business_name)')
+    .order('created_at', { ascending:false })
+    .limit(50);
+
+  tbody.innerHTML = (data||[]).map(r => `
+    <tr>
+      <td><code style="color:var(--accent)">${r.rfq_number||r.id.slice(0,8)}</code></td>
+      <td>${r.buyer_profiles?.business_name||'—'}</td>
+      <td>${r.products?.name||'—'}</td>
+      <td>${Number(r.quantity_requested||0).toLocaleString()}</td>
+      <td>${r.target_price ? '$'+Number(r.target_price).toFixed(2) : '—'}</td>
+      <td><span class="badge ${rfqBadge(r.status)}">${r.status}</span></td>
+      <td style="color:var(--text-muted)">${r.expires_at ? formatDate(r.expires_at) : '—'}</td>
+    </tr>`).join('') || '<tr><td colspan="7" style="text-align:center;padding:32px;color:var(--text-muted)">No RFQs found</td></tr>';
+}
+
+/* ── User Modal ─────────────────────────────────────────────── */
+async function openUserModal(userId, role) {
+  _selectedUserId = userId;
+  const sb = await getSupabase();
+  const { data: u } = await sb.from('profiles')
+    .select('*, buyer_profiles(*), seller_profiles(*)')
+    .eq('id', userId).single();
+  if (!u) return;
+
+  const bp = u.buyer_profiles;
+  const sp = u.seller_profiles;
+  document.getElementById('userModalTitle').textContent = `${u.display_name||u.first_name||'User'} — ${role}`;
+
+  const rows = role === 'buyer' ? [
+    ['Name',        `${u.first_name||''} ${u.last_name||''}`],
+    ['Display Name',u.display_name||'—'],
+    ['Phone',       u.phone||'—'],
+    ['Status',      `<span class="badge ${statusBadge(u.status)}">${u.status}</span>`],
+    ['Business',    bp?.business_name||'—'],
+    ['Type',        bp?.business_type||'—'],
+    ['EIN/Tax ID',  bp?.ein_tax_id||'—'],
+    ['Credit Limit','$'+(bp?.credit_limit||0)],
+    ['Net Terms',   'Net '+(bp?.net_terms||30)],
+    ['Joined',      formatDate(u.created_at)],
+    ['Approved',    bp?.approved_at ? formatDate(bp.approved_at) : 'Not yet']
+  ] : [
+    ['Contact',     `${u.first_name||''} ${u.last_name||''}`],
+    ['Brand',       sp?.brand_name||'—'],
+    ['Slug',        sp?.brand_slug||'—'],
+    ['Category',    sp?.primary_category||'—'],
+    ['Status',      `<span class="badge ${statusBadge(u.status)}">${u.status}</span>`],
+    ['Commission',  (sp?.commission_rate||12)+'%'],
+    ['MAP Enforce', sp?.map_enforcement ? 'Yes' : 'No'],
+    ['Stripe',      sp?.stripe_account_id||'Not connected'],
+    ['Joined',      formatDate(u.created_at)]
+  ];
+
+  document.getElementById('userModalBody').innerHTML = `
+    <table style="width:100%;font-size:.875rem">
+      ${rows.map(([k,v]) => `
+        <tr>
+          <td style="padding:6px 0;color:var(--text-muted);width:42%;font-weight:500">${k}</td>
+          <td style="padding:6px 0">${v}</td>
+        </tr>`).join('')}
+    </table>`;
+
+  // Show / hide approve / suspend buttons based on status
+  document.getElementById('userApproveBtn').style.display = u.status !== 'approved' ? '' : 'none';
+  document.getElementById('userSuspendBtn').style.display = u.status !== 'suspended' ? '' : 'none';
+
+  openModal('userModal');
+}
+
+async function approveUser() {
+  if (!_selectedUserId) return;
+  const { error } = await updateUserStatus(_selectedUserId, 'approved');
+  if (error) { showToast('Error: '+error.message, 'error'); return; }
+  // Also set approved_at on sub-profile
+  const sb = await getSupabase();
+  await sb.from('buyer_profiles').update({ approved_at: new Date().toISOString() }).eq('profile_id', _selectedUserId);
+  showToast('User approved successfully', 'success');
+  closeModal('userModal');
+  loadUsers('buyer');
+}
+
+async function suspendUser() {
+  if (!_selectedUserId) return;
+  const { error } = await updateUserStatus(_selectedUserId, 'suspended');
+  if (error) { showToast('Error: '+error.message, 'error'); return; }
+  showToast('User suspended', 'success');
+  closeModal('userModal');
+  loadUsers('buyer');
+}
+
+/* ── Order Modal ────────────────────────────────────────────── */
+async function openOrderModal(orderId) {
+  _selectedOrderId = orderId;
+  const { data: o } = await getOrder(orderId);
+  if (!o) return;
+
+  document.getElementById('orderModalTitle').textContent = `Order ${o.order_number}`;
+  document.getElementById('orderStatusChange').value = '';
+
+  const items = (o.order_items||[]).map(item => `
+    <tr>
+      <td>${item.products?.name||item.name}</td>
+      <td style="color:var(--text-muted)">${item.sku}</td>
+      <td>${item.quantity}</td>
+      <td>$${Number(item.unit_price).toFixed(2)}</td>
+      <td>$${Number(item.line_total).toFixed(2)}</td>
+    </tr>`).join('');
+
+  document.getElementById('orderModalBody').innerHTML = `
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px;font-size:.875rem">
+      <div><span style="color:var(--text-muted)">Buyer: </span>${o.buyer_profiles?.business_name||'—'}</div>
+      <div><span style="color:var(--text-muted)">Status: </span><span class="badge ${statusBadgeClass(o.status)}">${o.status}</span></div>
+      <div><span style="color:var(--text-muted)">Payment: </span><span class="badge ${payBadgeClass(o.payment_status)}">${o.payment_status}</span></div>
+      <div><span style="color:var(--text-muted)">Net Terms: </span>Net ${o.net_terms||30}</div>
+      <div><span style="color:var(--text-muted)">Total: </span><strong>$${Number(o.total_amount||0).toFixed(2)}</strong></div>
+      <div><span style="color:var(--text-muted)">Date: </span>${formatDate(o.created_at)}</div>
+    </div>
+    <table style="width:100%;font-size:.8rem;margin-top:8px">
+      <thead><tr style="color:var(--text-muted)">
+        <th style="text-align:left;padding:4px 0">Product</th>
+        <th style="text-align:left">SKU</th>
+        <th>Qty</th>
+        <th>Unit</th>
+        <th>Total</th>
+      </tr></thead>
+      <tbody>${items||'<tr><td colspan="5" style="color:var(--text-muted)">No items</td></tr>'}</tbody>
+      <tfoot><tr>
+        <td colspan="4" style="text-align:right;padding:8px 0;font-weight:700">Grand Total:</td>
+        <td style="font-weight:700">$${Number(o.total_amount||0).toFixed(2)}</td>
+      </tr></tfoot>
+    </table>`;
+
+  openModal('orderModal');
+}
+
+async function saveOrderStatus() {
+  const newStatus = document.getElementById('orderStatusChange').value;
+  if (!newStatus || !_selectedOrderId) return;
+  const { error } = await updateOrderStatus(_selectedOrderId, newStatus);
+  if (error) { showToast('Error: '+error.message, 'error'); return; }
+  showToast('Order status updated', 'success');
+  closeModal('orderModal');
+  loadAdminOrders(_currentOPage);
+}
+
+/* ══════════════════════════════════════════════════════════════
+   PORTAL ORDERS (Tables API — bd_orders)
+══════════════════════════════════════════════════════════════ */
+let _portalOrderPage = 1;
+let _selectedPortalOrderId = null;
+
+async function loadPortalOrders(page = 1) {
+  _portalOrderPage = page;
+  const search  = document.getElementById('portalOrderSearch')?.value || '';
+  const status  = document.getElementById('portalOrderStatus')?.value || '';
+  const tbody   = document.getElementById('portalOrdersTbody');
+  const cntEl   = document.getElementById('portalOrdersCount');
+  const pagEl   = document.getElementById('portalOrdersPagination');
+
+  tbody.innerHTML = '<tr><td colspan="12" style="text-align:center;padding:32px"><span class="spinner"></span></td></tr>';
+
+  let url = `tables/bd_orders?page=${page}&limit=20`;
+  if (search) url += `&search=${encodeURIComponent(search)}`;
+  if (status) url += `&filter_status=${encodeURIComponent(status)}`;
+
+  try {
+    const res  = await fetch(url);
+    const json = await res.json();
+    const data = json.data || [];
+    const total= json.total || 0;
+
+    if (cntEl) cntEl.textContent = total ? `(${total})` : '';
+
+    // Update sidebar badge
+    const pendingBadge = document.getElementById('sidebarPortalOrders');
+    const pendingCount = data.filter(o => o.status === 'pending').length;
+    if (pendingBadge) {
+      if (pendingCount > 0) { pendingBadge.textContent = pendingCount; pendingBadge.style.display = ''; }
+      else { pendingBadge.style.display = 'none'; }
+    }
+
+    if (!data.length) {
+      tbody.innerHTML = '<tr><td colspan="12" style="text-align:center;padding:40px;color:var(--text-muted)">No portal orders yet. Orders will appear here when buyers submit their cart.</td></tr>';
+      return;
+    }
+
+    tbody.innerHTML = data.map(o => {
+      const items = (() => { try { return JSON.parse(o.items || '[]'); } catch { return []; } })();
+      return `<tr>
+        <td><code style="color:var(--accent)">${o.order_number || '—'}</code></td>
+        <td>
+          <div style="font-weight:600;font-size:.82rem;">${o.buyer_name || '—'}</div>
+          <div style="font-size:.73rem;color:var(--text-muted)">${o.business_name || ''}</div>
+        </td>
+        <td style="font-size:.78rem;color:var(--text-secondary)">${o.po_number || '—'}</td>
+        <td>
+          <span style="display:inline-flex;align-items:center;gap:5px;font-size:.75rem;font-weight:600;
+            padding:3px 8px;border-radius:20px;
+            background:${o.shipping_method==='Warehouse Pick Up' ? 'rgba(16,185,129,.12)' : 'rgba(99,102,241,.12)'};
+            color:${o.shipping_method==='Warehouse Pick Up' ? 'var(--green)' : 'var(--accent-light)'};">
+            <i class="fas ${o.shipping_method==='Warehouse Pick Up' ? 'fa-warehouse' : 'fa-truck-fast'}" style="font-size:.65rem;"></i>
+            ${o.shipping_method || 'Use Our Shipping'}
+          </span>
+        </td>
+        <td><span class="badge badge-blue">${o.payment_terms || 'Net-30'}</span></td>
+        <td style="font-size:.8rem;color:var(--text-secondary)">${items.length} item${items.length!==1?'s':''}</td>
+        <td>$${Number(o.subtotal||0).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2})}</td>
+        <td><strong>$${Number(o.total_amount||0).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2})}</strong></td>
+        <td><span class="badge ${portalStatusBadge(o.status)}">${o.status || 'pending'}</span></td>
+        <td><span class="badge ${o.payment_status==='paid'?'badge-green':o.payment_status==='overdue'?'badge-red':'badge-amber'}">${o.payment_status || 'outstanding'}</span></td>
+        <td style="color:var(--text-muted);font-size:.78rem">${o.order_date || formatDate(o.created_at)}</td>
+        <td>
+          <button class="btn btn-ghost btn-sm" onclick="openPortalOrderModal('${o.id}')" title="View full order">
+            <i class="fas fa-eye"></i>
+          </button>
+        </td>
+      </tr>`;
+    }).join('');
+
+    renderPagination(pagEl, page, Math.ceil(total/20), p => loadPortalOrders(p));
+  } catch(e) {
+    tbody.innerHTML = `<tr><td colspan="12" style="text-align:center;padding:40px;color:var(--text-muted)">Error loading orders: ${e.message}</td></tr>`;
+  }
+}
+
+function portalStatusBadge(s) {
+  return { pending:'badge-amber', confirmed:'badge-blue', processing:'badge-purple',
+           packed:'badge-purple', shipped:'badge-blue', delivered:'badge-green',
+           cancelled:'badge-red' }[s] || 'badge-amber';
+}
+
+async function openPortalOrderModal(orderId) {
+  _selectedPortalOrderId = orderId;
+  const res  = await fetch(`tables/bd_orders/${orderId}`);
+  const o    = await res.json();
+  if (!o || o.error) return;
+
+  document.getElementById('portalOrderModalTitle').textContent = `Order ${o.order_number}`;
+  document.getElementById('portalOrderStatusChange').value = '';
+
+  const items = (() => { try { return JSON.parse(o.items || '[]'); } catch { return []; } })();
+
+  document.getElementById('portalOrderModalBody').innerHTML = `
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px;font-size:.85rem;">
+      <div><span style="color:var(--text-muted)">Buyer: </span><strong>${o.buyer_name || '—'}</strong></div>
+      <div><span style="color:var(--text-muted)">Business: </span>${o.business_name || '—'}</div>
+      <div><span style="color:var(--text-muted)">Email: </span>${o.buyer_email || '—'}</div>
+      <div><span style="color:var(--text-muted)">Order Date: </span>${o.order_date || formatDate(o.created_at)}</div>
+      <div><span style="color:var(--text-muted)">PO Number: </span><code style="color:var(--accent)">${o.po_number || '—'}</code></div>
+      <div><span style="color:var(--text-muted)">Invoice #: </span><code style="color:var(--accent)">${o.invoice_number || '—'}</code></div>
+      <div><span style="color:var(--text-muted)">Shipping: </span>
+        <span style="font-weight:600;color:${o.shipping_method==='Warehouse Pick Up'?'var(--green)':'var(--accent-light)'}">
+          ${o.shipping_method || 'Use Our Shipping'}
+        </span>
+        ${o.shipping_cost === 0 ? '<span style="color:var(--green);margin-left:4px;font-size:.75rem;">FREE</span>' : `<span style="margin-left:4px;">$${Number(o.shipping_cost||0).toFixed(2)}</span>`}
+      </div>
+      <div><span style="color:var(--text-muted)">Payment Terms: </span><span class="badge badge-blue">${o.payment_terms || 'Net-30'}</span></div>
+      <div><span style="color:var(--text-muted)">Status: </span><span class="badge ${portalStatusBadge(o.status)}">${o.status || 'pending'}</span></div>
+      <div><span style="color:var(--text-muted)">Payment: </span><span class="badge ${o.payment_status==='paid'?'badge-green':'badge-amber'}">${o.payment_status || 'outstanding'}</span></div>
+      <div><span style="color:var(--text-muted)">Due Date: </span>${o.due_date || '—'}</div>
+      <div><span style="color:var(--text-muted)">Brands: </span>${o.brands || '—'}</div>
+    </div>
+    ${o.notes ? `<div style="background:rgba(99,102,241,.08);border-left:3px solid var(--accent);padding:10px 14px;border-radius:0 6px 6px 0;margin-bottom:14px;font-size:.82rem;"><strong>Order Notes:</strong> ${o.notes}</div>` : ''}
+    <table style="width:100%;font-size:.8rem;border-collapse:collapse;">
+      <thead>
+        <tr style="border-bottom:1px solid var(--border);">
+          <th style="text-align:left;padding:6px 4px;color:var(--text-muted);">Product</th>
+          <th style="text-align:left;padding:6px 4px;color:var(--text-muted);">Brand</th>
+          <th style="text-align:left;padding:6px 4px;color:var(--text-muted);">SKU</th>
+          <th style="text-align:center;padding:6px 4px;color:var(--text-muted);">Qty</th>
+          <th style="text-align:right;padding:6px 4px;color:var(--text-muted);">Unit Price</th>
+          <th style="text-align:right;padding:6px 4px;color:var(--text-muted);">Line Total</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${items.map(i => `
+          <tr style="border-bottom:1px solid var(--border);">
+            <td style="padding:8px 4px;font-weight:600;">${i.name || '—'}</td>
+            <td style="padding:8px 4px;color:var(--text-muted)">${i.brand || '—'}</td>
+            <td style="padding:8px 4px;"><code style="font-size:.72rem">${i.sku || '—'}</code></td>
+            <td style="padding:8px 4px;text-align:center;">${i.qty || 0}</td>
+            <td style="padding:8px 4px;text-align:right;">$${Number(i.unit_price||0).toFixed(2)}</td>
+            <td style="padding:8px 4px;text-align:right;font-weight:600;">$${Number(i.line_total||0).toFixed(2)}</td>
+          </tr>`).join('') || '<tr><td colspan="6" style="text-align:center;padding:16px;color:var(--text-muted)">No items data</td></tr>'}
+      </tbody>
+      <tfoot>
+        <tr style="border-top:2px solid var(--border);">
+          <td colspan="5" style="text-align:right;padding:8px 4px;color:var(--text-muted);">Subtotal</td>
+          <td style="padding:8px 4px;text-align:right;">$${Number(o.subtotal||0).toFixed(2)}</td>
+        </tr>
+        <tr>
+          <td colspan="5" style="text-align:right;padding:4px;color:var(--text-muted);">Shipping (${o.shipping_method || 'Our Shipping'})</td>
+          <td style="padding:4px;text-align:right;color:${o.shipping_cost===0?'var(--green)':'inherit'}">${o.shipping_cost===0?'FREE':'$'+Number(o.shipping_cost||0).toFixed(2)}</td>
+        </tr>
+        <tr>
+          <td colspan="5" style="text-align:right;padding:8px 4px;font-weight:800;font-size:.95rem;">Grand Total</td>
+          <td style="padding:8px 4px;text-align:right;font-weight:800;font-size:.95rem;color:var(--accent);">$${Number(o.total_amount||0).toFixed(2)}</td>
+        </tr>
+      </tfoot>
+    </table>`;
+
+  openModal('portalOrderModal');
+}
+
+async function savePortalOrderStatus() {
+  const newStatus = document.getElementById('portalOrderStatusChange').value;
+  if (!newStatus || !_selectedPortalOrderId) { showToast('Select a status first.', 'error'); return; }
+  try {
+    await fetch(`tables/bd_orders/${_selectedPortalOrderId}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ status: newStatus })
+    });
+    showToast(`Order status updated to "${newStatus}"`, 'success');
+    closeModal('portalOrderModal');
+    loadPortalOrders(_portalOrderPage);
+  } catch(e) { showToast('Error updating status: ' + e.message, 'error'); }
+}
+
+/* ══════════════════════════════════════════════════════════════
+   BUYER INVOICES (Tables API — bd_invoices)
+══════════════════════════════════════════════════════════════ */
+async function loadPortalInvoices(page = 1) {
+  const search  = document.getElementById('invoiceSearch')?.value || '';
+  const status  = document.getElementById('invoiceStatusFilter')?.value || '';
+  const tbody   = document.getElementById('invoicesTbody');
+  const cntEl   = document.getElementById('invoicesCount');
+  const pagEl   = document.getElementById('invoicesPagination');
+
+  tbody.innerHTML = '<tr><td colspan="12" style="text-align:center;padding:32px"><span class="spinner"></span></td></tr>';
+
+  let url = `tables/bd_invoices?page=${page}&limit=20`;
+  if (search) url += `&search=${encodeURIComponent(search)}`;
+
+  try {
+    const res  = await fetch(url);
+    const json = await res.json();
+    const data = json.data || [];
+    const total= json.total || 0;
+
+    if (cntEl) cntEl.textContent = total ? `(${total})` : '';
+
+    if (!data.length) {
+      tbody.innerHTML = '<tr><td colspan="12" style="text-align:center;padding:40px;color:var(--text-muted)">No invoices yet. They appear here automatically when buyers place orders.</td></tr>';
+      return;
+    }
+
+    tbody.innerHTML = data.map(inv => {
+      const filt = status ? inv.status !== status : false;
+      if (filt) return '';
+      return `<tr>
+        <td><code style="color:var(--accent)">${inv.invoice_number || '—'}</code></td>
+        <td><code style="color:var(--text-secondary)">${inv.order_number || '—'}</code></td>
+        <td>
+          <div style="font-weight:600;font-size:.82rem;">${inv.buyer_name || '—'}</div>
+          <div style="font-size:.73rem;color:var(--text-muted)">${inv.business_name || ''}</div>
+        </td>
+        <td style="font-size:.78rem;color:var(--text-secondary)">${inv.po_number || '—'}</td>
+        <td><span class="badge badge-blue">${inv.payment_terms || 'Net-30'}</span></td>
+        <td>$${Number(inv.subtotal||0).toFixed(2)}</td>
+        <td style="color:${Number(inv.shipping_cost||0)===0?'var(--green)':'inherit'}">${Number(inv.shipping_cost||0)===0?'FREE':'$'+Number(inv.shipping_cost||0).toFixed(2)}</td>
+        <td><strong>$${Number(inv.total_amount||0).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2})}</strong></td>
+        <td>
+          <span class="badge ${inv.status==='Paid'?'badge-green':inv.status==='Overdue'?'badge-red':'badge-amber'}">
+            ${inv.status || 'Outstanding'}
+          </span>
+        </td>
+        <td style="font-size:.78rem;color:var(--text-muted)">${inv.issue_date || formatDate(inv.created_at)}</td>
+        <td style="font-size:.78rem;color:${inv.status==='Overdue'?'var(--red)':'var(--text-muted)'}">${inv.due_date || '—'}</td>
+        <td>
+          <button class="btn btn-ghost btn-sm" onclick="markInvoicePaid('${inv.id}')" title="Mark as Paid" style="color:var(--green)">
+            <i class="fas fa-check-circle"></i>
+          </button>
+        </td>
+      </tr>`;
+    }).join('').replace(/<tr>\s*<\/tr>/g,'') || '<tr><td colspan="12" style="text-align:center;padding:40px;color:var(--text-muted)">No invoices match that filter.</td></tr>';
+
+    renderPagination(pagEl, page, Math.ceil(total/20), p => loadPortalInvoices(p));
+  } catch(e) {
+    tbody.innerHTML = `<tr><td colspan="12" style="text-align:center;padding:40px;color:var(--text-muted)">Error: ${e.message}</td></tr>`;
+  }
+}
+
+async function markInvoicePaid(invId) {
+  if (!confirm('Mark this invoice as Paid?')) return;
+  try {
+    await fetch(`tables/bd_invoices/${invId}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ status: 'Paid' })
+    });
+    showToast('Invoice marked as Paid!', 'success');
+    loadPortalInvoices();
+  } catch(e) { showToast('Error: ' + e.message, 'error'); }
+}
+
+/* ══════════════════════════════════════════════════════════════
+   BUYER RFQs (Tables API — bd_rfqs)
+══════════════════════════════════════════════════════════════ */
+async function loadPortalRFQs() {
+  const search = document.getElementById('rfqSearch')?.value || '';
+  const status = document.getElementById('rfqStatusFilter')?.value || '';
+  const tbody  = document.getElementById('rfqsTbodyPortal');
+  const cntEl  = document.getElementById('rfqsCount');
+
+  tbody.innerHTML = '<tr><td colspan="11" style="text-align:center;padding:32px"><span class="spinner"></span></td></tr>';
+
+  let url = `tables/bd_rfqs?page=1&limit=50`;
+  if (search) url += `&search=${encodeURIComponent(search)}`;
+
+  try {
+    const res  = await fetch(url);
+    const json = await res.json();
+    const data = json.data || [];
+    const total= json.total || 0;
+
+    if (cntEl) cntEl.textContent = total ? `(${total})` : '';
+
+    // Badge
+    const rfqBadgeEl = document.getElementById('sidebarRFQs');
+    const pendingRFQs = data.filter(r => r.status === 'pending').length;
+    if (rfqBadgeEl) { if(pendingRFQs>0){rfqBadgeEl.textContent=pendingRFQs;rfqBadgeEl.style.display='';}else{rfqBadgeEl.style.display='none';} }
+
+    const filtered = status ? data.filter(r => r.status === status) : data;
+
+    if (!filtered.length) {
+      tbody.innerHTML = '<tr><td colspan="11" style="text-align:center;padding:40px;color:var(--text-muted)">No RFQs yet. They appear here when buyers submit quote requests.</td></tr>';
+      return;
+    }
+
+    tbody.innerHTML = filtered.map(r => `
+      <tr>
+        <td><code style="color:var(--accent)">${r.rfq_number || r.id?.slice(0,8) || '—'}</code></td>
+        <td>
+          <div style="font-weight:600;font-size:.82rem;">${r.buyer_name || '—'}</div>
+          <div style="font-size:.73rem;color:var(--text-muted)">${r.business_name || ''}</div>
+        </td>
+        <td style="font-weight:600;font-size:.82rem;">${r.product_name || '—'}</td>
+        <td style="text-align:center;">${Number(r.quantity_requested||0).toLocaleString()}</td>
+        <td>${r.target_price ? '$'+Number(r.target_price).toFixed(2) : '—'}</td>
+        <td style="font-size:.75rem;color:var(--text-muted)">${r.brand || '—'}</td>
+        <td style="font-size:.75rem;max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${r.message || ''}">${r.message ? r.message.slice(0,60)+(r.message.length>60?'…':'') : '—'}</td>
+        <td>
+          <span class="badge ${r.status==='responded'?'badge-green':r.status==='accepted'?'badge-blue':r.status==='declined'?'badge-red':'badge-amber'}">
+            ${r.status || 'pending'}
+          </span>
+        </td>
+        <td style="color:var(--text-muted);font-size:.78rem">${r.expires_at || '—'}</td>
+        <td style="color:var(--text-muted);font-size:.78rem">${formatDate(r.created_at)}</td>
+        <td>
+          <button class="btn btn-primary btn-sm" onclick="respondToRFQ('${r.id}')" title="Respond to RFQ">
+            <i class="fas fa-reply"></i> Respond
+          </button>
+        </td>
+      </tr>`).join('');
+  } catch(e) {
+    tbody.innerHTML = `<tr><td colspan="11" style="text-align:center;padding:40px;color:var(--text-muted)">Error: ${e.message}</td></tr>`;
+  }
+}
+
+async function respondToRFQ(rfqId) {
+  const response = prompt('Enter your response / quote to send back to the buyer:');
+  if (!response) return;
+  try {
+    await fetch(`tables/bd_rfqs/${rfqId}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ status: 'responded', admin_response: response })
+    });
+    showToast('Response sent to buyer!', 'success');
+    loadPortalRFQs();
+  } catch(e) { showToast('Error: ' + e.message, 'error'); }
+}
+
+/* ══════════════════════════════════════════════════════════════
+   TEAM MEMBERS (Tables API — bd_team_members)
+══════════════════════════════════════════════════════════════ */
+async function loadTeamMembers(page = 1) {
+  const search = document.getElementById('teamSearch')?.value || '';
+  const role   = document.getElementById('teamRoleFilter')?.value || '';
+  const tbody  = document.getElementById('teamTbody');
+  const cntEl  = document.getElementById('teamCount');
+  const pagEl  = document.getElementById('teamPagination');
+
+  tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:32px"><span class="spinner"></span></td></tr>';
+
+  let url = `tables/bd_team_members?page=${page}&limit=20`;
+  if (search) url += `&search=${encodeURIComponent(search)}`;
+
+  try {
+    const res  = await fetch(url);
+    const json = await res.json();
+    const data = json.data || [];
+    const total= json.total || 0;
+
+    if (cntEl) cntEl.textContent = total ? `(${total})` : '';
+
+    const filtered = role ? data.filter(m => m.role === role) : data;
+
+    if (!filtered.length) {
+      tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:40px;color:var(--text-muted)">No team members yet. They appear here when buyers invite members in their Settings → Team Members.</td></tr>';
+      return;
+    }
+
+    tbody.innerHTML = filtered.map(m => {
+      const roleColor = m.role==='owner' ? 'var(--accent-light)' : m.role==='manager' ? 'var(--green)' : 'var(--text-muted)';
+      const roleIcon  = m.role==='owner' ? 'fa-crown' : m.role==='manager' ? 'fa-user-tie' : 'fa-eye';
+      return `<tr>
+        <td><div style="display:flex;align-items:center;gap:10px;">
+          <div style="width:32px;height:32px;border-radius:50%;background:${roleColor};display:flex;align-items:center;justify-content:center;color:white;font-size:.7rem;font-weight:800;flex-shrink:0;">
+            ${(m.member_name||'?').split(' ').map(n=>n[0]).slice(0,2).join('').toUpperCase()}
+          </div>
+          <strong>${m.member_name || '—'}</strong>
+        </div></td>
+        <td style="font-size:.82rem;">${m.member_email || '—'}</td>
+        <td style="font-size:.82rem;font-weight:600">${m.account_owner_name || '—'}</td>
+        <td style="font-size:.82rem;color:var(--text-muted)">${m.business_name || '—'}</td>
+        <td>
+          <span style="display:inline-flex;align-items:center;gap:5px;padding:3px 9px;border-radius:20px;font-size:.72rem;font-weight:700;
+            background:${m.role==='owner'?'rgba(99,102,241,.15)':m.role==='manager'?'rgba(52,211,153,.12)':'rgba(148,163,184,.1)'};
+            color:${roleColor};">
+            <i class="fas ${roleIcon}" style="font-size:.6rem;"></i> ${m.role==='owner'?'Owner':m.role==='manager'?'Manager':'View Only'}
+          </span>
+        </td>
+        <td>
+          <span class="badge ${m.status==='active'?'badge-green':m.status==='removed'?'badge-red':'badge-amber'}">
+            ${m.status || 'invited'}
+          </span>
+        </td>
+        <td style="font-size:.78rem;color:var(--text-muted)">${m.invited_at || formatDate(m.created_at)}</td>
+      </tr>`;
+    }).join('');
+
+    renderPagination(pagEl, page, Math.ceil(total/20), p => loadTeamMembers(p));
+  } catch(e) {
+    tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;padding:40px;color:var(--text-muted)">Error: ${e.message}</td></tr>`;
+  }
+}
+
+/* ── Settings ───────────────────────────────────────────────── */
+async function loadAppSettingsUI() {
+  const { data } = await getAppSettings();
+  if (!data) return;
+  const map = {};
+  data.forEach(s => { map[s.key] = s.value; });
+
+  if (map.platform_name)     document.getElementById('settPlatformName').value  = JSON.parse(map.platform_name)||'BRND Direct';
+  if (map.commission_rate)   document.getElementById('settCommission').value    = JSON.parse(map.commission_rate)||12;
+  if (map.default_net_terms) document.getElementById('settNetTerms').value      = JSON.parse(map.default_net_terms)||30;
+  if (map.max_credit_limit)  document.getElementById('settCreditLimit').value   = JSON.parse(map.max_credit_limit)||100000;
+  if (map.support_email)     document.getElementById('settSupportEmail').value  = JSON.parse(map.support_email)||'';
+  if (map.stripe_mode)       document.getElementById('settStripeMode').value    = JSON.parse(map.stripe_mode)||'live';
+  if (map.maintenance_mode)  document.getElementById('settMaintenance').value   = String(JSON.parse(map.maintenance_mode));
+
+  document.getElementById('dbStripe').textContent = JSON.parse(map.stripe_mode||'"live"');
+}
+
+async function savePlatformSettings() {
+  await updateAppSetting('platform_name',    JSON.stringify(document.getElementById('settPlatformName').value));
+  await updateAppSetting('commission_rate',  parseFloat(document.getElementById('settCommission').value));
+  await updateAppSetting('default_net_terms',parseInt(document.getElementById('settNetTerms').value));
+  await updateAppSetting('max_credit_limit', parseInt(document.getElementById('settCreditLimit').value));
+  showToast('Platform settings saved', 'success');
+}
+async function saveContactSettings() {
+  await updateAppSetting('support_email',   JSON.stringify(document.getElementById('settSupportEmail').value));
+  await updateAppSetting('stripe_mode',     JSON.stringify(document.getElementById('settStripeMode').value));
+  await updateAppSetting('maintenance_mode', document.getElementById('settMaintenance').value === 'true');
+  showToast('Contact settings saved', 'success');
+}
+
+/* ── Modal helpers ──────────────────────────────────────────── */
+function openModal(id)  { document.getElementById(id).classList.add('active'); }
+function closeModal(id) { document.getElementById(id).classList.remove('active'); }
+document.addEventListener('click', (e) => {
+  if (e.target.classList.contains('modal-overlay')) {
+    e.target.classList.remove('active');
+  }
+});
+
+/* ── Toast ──────────────────────────────────────────────────── */
+function showToast(msg, type = 'success') {
+  const t = document.getElementById('adminToast');
+  t.textContent = (type === 'error' ? '⚠️ ' : '✅ ') + msg;
+  t.className = `show ${type}`;
+  setTimeout(() => t.classList.remove('show'), 3500);
+}
+
+/* ── Pagination ─────────────────────────────────────────────── */
+function renderPagination(container, current, total, onClick) {
+  if (!container || total <= 1) { if(container) container.innerHTML=''; return; }
+  const pages = [];
+  for (let i = 1; i <= Math.min(total, 10); i++) pages.push(i);
+  container.innerHTML = pages.map(p => `
+    <button class="page-btn ${p===current?'active':''}" onclick="(${onClick.toString()})(${p})">${p}</button>
+  `).join('');
+}
+
+/* ── Formatting helpers ─────────────────────────────────────── */
+function formatDate(ts) {
+  if (!ts) return '—';
+  return new Date(ts).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
+}
+function initials(u) {
+  return `${(u.first_name||'?')[0]}${(u.last_name||'?')[0]}`.toUpperCase();
+}
+function statusBadge(s) {
+  return { approved:'badge-green', pending:'badge-amber', suspended:'badge-red', rejected:'badge-red' }[s] || 'badge-gray';
+}
+function statusBadgeClass(s) {
+  return { pending:'badge-amber', confirmed:'badge-blue', processing:'badge-purple',
+           shipped:'badge-blue', delivered:'badge-green', cancelled:'badge-red', refunded:'badge-gray' }[s] || 'badge-gray';
+}
+function payBadgeClass(s) {
+  return { paid:'badge-green', unpaid:'badge-amber', pending:'badge-amber',
+           failed:'badge-red', refunded:'badge-gray' }[s] || 'badge-gray';
+}
+function rfqBadge(s) {
+  return { open:'badge-blue', quoted:'badge-purple', accepted:'badge-green',
+           rejected:'badge-red', expired:'badge-gray' }[s] || 'badge-gray';
+}
+</script>
+</body>
+</html>

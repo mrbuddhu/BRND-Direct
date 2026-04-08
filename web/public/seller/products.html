@@ -1,0 +1,487 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Products – BRND Direct Brand Portal</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&family=Inter:wght@300;400;500;600;700&family=Outfit:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.5.0/css/all.min.css" />
+  <link rel="stylesheet" href="css/portal.css" />
+  <style>
+    :root { --seller-accent: #10b981; }
+    .sidebar { background: linear-gradient(180deg,#0d1a14 0%,#0f1f18 40%,#111a15 100%); }
+    .sidebar .nav-item.active { background:rgba(16,185,129,.15);color:#34d399;border-left-color:#10b981; }
+    .sidebar .nav-item:hover { background:rgba(16,185,129,.08); }
+    .sidebar .nav-badge { background:var(--seller-accent); }
+    .sidebar .nav-badge.new { background:#f59e0b; }
+
+    .filter-bar { display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:20px; }
+    .filter-tab { display:inline-flex;align-items:center;gap:6px;padding:7px 16px;border-radius:100px;font-size:.78rem;font-weight:700;cursor:pointer;border:1.5px solid var(--color-border);background:white;color:var(--color-muted);transition:all .18s; }
+    .filter-tab.active, .filter-tab:hover { background:var(--seller-accent);color:white;border-color:var(--seller-accent); }
+    .filter-tab .count { background:rgba(255,255,255,.25);padding:1px 7px;border-radius:100px;font-size:.68rem; }
+
+    .prod-grid { display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:16px; }
+    .prod-card { background:white;border:1.5px solid var(--color-border);border-radius:var(--radius-md);overflow:hidden;transition:all .2s;cursor:pointer; }
+    .prod-card:hover { box-shadow:var(--shadow-md);transform:translateY(-2px);border-color:rgba(16,185,129,.3); }
+    .prod-thumb { height:180px;background:var(--color-off-white);display:flex;align-items:center;justify-content:center;font-size:2.5rem;position:relative;overflow:hidden; }
+    .prod-status-badge { position:absolute;top:10px;left:10px;font-size:.64rem;font-weight:800;letter-spacing:.06em;text-transform:uppercase;padding:3px 10px;border-radius:100px; }
+    .badge-active { background:rgba(16,185,129,.15);color:var(--color-emerald); }
+    .badge-pending { background:rgba(245,158,11,.15);color:var(--color-amber); }
+    .badge-draft { background:rgba(107,114,128,.12);color:var(--color-muted); }
+    .badge-out { background:rgba(244,63,94,.1);color:var(--color-rose); }
+    .prod-menu { position:absolute;top:8px;right:8px; }
+    .prod-menu-btn { width:28px;height:28px;border-radius:6px;background:rgba(0,0,0,.4);color:white;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:.75rem; }
+    .prod-body { padding:14px 16px; }
+    .prod-name { font-size:.88rem;font-weight:700;color:var(--color-near-black);margin-bottom:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis; }
+    .prod-sku { font-size:.72rem;color:var(--color-muted);font-family:var(--font-outfit);margin-bottom:10px; }
+    .prod-prices { display:flex;gap:14px;margin-bottom:10px; }
+    .prod-price-item { display:flex;flex-direction:column;gap:1px; }
+    .prod-price-label { font-size:.62rem;text-transform:uppercase;letter-spacing:.06em;color:var(--color-muted); }
+    .prod-price-val { font-size:.9rem;font-weight:800;font-family:var(--font-outfit);color:var(--color-near-black); }
+    .prod-price-val.green { color:var(--color-emerald); }
+    .prod-meta { display:flex;gap:16px; }
+    .prod-meta-item { font-size:.72rem;color:var(--color-muted); }
+    .prod-meta-item strong { color:var(--color-near-black); }
+    .prod-footer { padding:10px 16px;border-top:1px solid var(--color-border);display:flex;gap:8px; }
+    .prod-action { flex:1;padding:7px;border-radius:var(--radius-sm);font-size:.75rem;font-weight:700;cursor:pointer;border:1.5px solid var(--color-border);background:white;color:var(--color-muted);text-align:center;transition:all .18s; }
+    .prod-action:hover { border-color:var(--seller-accent);color:var(--seller-accent);background:rgba(16,185,129,.05); }
+    .prod-action.primary { background:var(--seller-accent);color:white;border-color:var(--seller-accent); }
+    .prod-action.primary:hover { background:#059669; }
+
+    /* Add Product Modal */
+    .modal-overlay { position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:1000;display:none;align-items:center;justify-content:center;padding:20px; }
+    .modal-overlay.open { display:flex; }
+    .modal-box { background:white;border-radius:var(--radius-lg);width:100%;max-width:640px;max-height:90vh;overflow-y:auto;animation:modalIn .2s ease; }
+    @keyframes modalIn { from { opacity:0;transform:scale(.96) translateY(8px); } to { opacity:1;transform:none; } }
+    .modal-header { padding:24px 28px 0;display:flex;align-items:center;justify-content:space-between; }
+    .modal-title { font-family:var(--font-display);font-size:1.1rem;font-weight:800; }
+    .modal-close { width:32px;height:32px;border-radius:8px;border:1.5px solid var(--color-border);background:white;cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--color-muted); }
+    .modal-body { padding:20px 28px 28px; }
+    .form-grid-2 { display:grid;grid-template-columns:1fr 1fr;gap:16px; }
+    .form-grid-3 { display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px; }
+    .img-upload { border:2px dashed var(--color-border);border-radius:var(--radius-md);padding:32px;text-align:center;cursor:pointer;transition:border-color .2s; }
+    .img-upload:hover { border-color:var(--seller-accent); }
+    .img-upload i { font-size:1.8rem;color:var(--color-muted);margin-bottom:10px; }
+    @media (max-width:640px) { .form-grid-2,.form-grid-3 { grid-template-columns:1fr; } }
+  </style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<aside class="sidebar" id="sidebar">
+  <div class="sidebar__logo">
+    <a href="dashboard.html" class="logo-mark">
+      <span class="logo-icon" style="background:linear-gradient(135deg,#10b981,#059669);"><i class="fas fa-chevron-right"></i></span>
+      <span class="logo-word">BRND <span class="logo-accent">DIRECT</span></span>
+    </a>
+  </div>
+  <nav class="sidebar__nav">
+    <div class="nav-section">
+      <span class="nav-section-label">Brand HQ</span>
+      <a href="dashboard.html" class="nav-item"><i class="fas fa-table-columns"></i><span>Dashboard</span></a>
+      <a href="products.html" class="nav-item active"><i class="fas fa-boxes-stacked"></i><span>Products</span></a>
+      <a href="orders.html" class="nav-item"><i class="fas fa-file-invoice"></i><span>Orders</span><span class="nav-badge">7</span></a>
+      <a href="analytics.html" class="nav-item"><i class="fas fa-chart-line"></i><span>Analytics</span></a>
+    </div>
+    <div class="nav-section">
+      <span class="nav-section-label">Brand Tools</span>
+      <a href="brand-hub.html" class="nav-item"><i class="fas fa-gem"></i><span>Brand Hub</span></a>
+      <a href="wholesale-pricing.html" class="nav-item"><i class="fas fa-tags"></i><span>Wholesale Pricing</span></a>
+      <a href="payouts.html" class="nav-item"><i class="fas fa-wallet"></i><span>Payouts</span><span class="nav-badge new">!</span></a>
+    </div>
+    <div class="nav-section">
+      <span class="nav-section-label">Account</span>
+      <a href="messages.html" class="nav-item"><i class="fas fa-message"></i><span>Messages</span><span class="nav-badge">3</span></a>
+      <a href="account.html" class="nav-item"><i class="fas fa-gear"></i><span>Settings</span></a>
+      <a href="help.html" class="nav-item"><i class="fas fa-circle-question"></i><span>Help & Support</span></a>
+    </div>
+  </nav>
+  <div class="sidebar__bottom">
+    <div class="divider"></div>
+    <div class="sidebar__user">
+      <div class="sidebar__avatar" style="background:linear-gradient(135deg,#10b981,#059669);">AP</div>
+      <div class="sidebar__user-info"><div class="sidebar__user-name">Apex Apparel Co.</div><div class="sidebar__user-role">Brand Partner</div></div>
+      <a href="index.html" class="sidebar__user-logout" title="Sign out"><i class="fas fa-arrow-right-from-bracket"></i></a>
+    </div>
+  </div>
+</aside>
+<div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+<!-- TOPBAR -->
+<header class="topbar" id="topbar">
+  <div class="topbar__left">
+    <button class="topbar__mobile-toggle" id="sidebarToggle"><i class="fas fa-bars"></i></button>
+    <div><div class="topbar__title">Products</div><div class="topbar__breadcrumb">Manage your wholesale catalogue</div></div>
+  </div>
+  <div class="topbar__right">
+    <div class="search-bar">
+      <i class="fas fa-magnifying-glass search-bar__icon"></i>
+      <input class="search-bar__input" type="text" placeholder="Search products, SKUs…" id="prodSearch" oninput="filterProds()" />
+    </div>
+    <button class="topbar__btn" style="position:relative;"><i class="fas fa-bell"></i><span class="notif-dot"></span></button>
+    <a href="messages.html" class="topbar__btn"><i class="fas fa-message"></i></a>
+    <div class="topbar__avatar" style="background:linear-gradient(135deg,#10b981,#059669);">AP</div>
+  </div>
+</header>
+
+<!-- MAIN -->
+<main class="app-main">
+  <!-- Page Header -->
+  <div class="page-header-bar fade-in">
+    <div>
+      <h1>Product Catalogue</h1>
+      <p class="page-header-sub">68 active SKUs · 4 pending approval · 2 out of stock</p>
+    </div>
+    <div style="display:flex;gap:10px;">
+      <button class="btn btn-outline" onclick="showToast('Bulk import coming soon.','success')"><i class="fas fa-file-import"></i> Bulk Import</button>
+      <button class="btn btn-primary" style="background:var(--seller-accent);" onclick="openAddModal()"><i class="fas fa-plus"></i> Add Product</button>
+    </div>
+  </div>
+
+  <!-- Stats -->
+  <div class="grid-4 mb-6 fade-in">
+    <div class="stat-card">
+      <div class="stat-card__icon" style="background:rgba(16,185,129,.12);color:var(--color-emerald);"><i class="fas fa-boxes-stacked"></i></div>
+      <div class="stat-card__label">Total SKUs</div>
+      <div class="stat-card__value">68</div>
+      <div class="stat-card__change up"><i class="fas fa-arrow-trend-up"></i> +6 this month</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-card__icon" style="background:rgba(79,70,229,.12);color:var(--color-accent);"><i class="fas fa-clock"></i></div>
+      <div class="stat-card__label">Pending Approval</div>
+      <div class="stat-card__value">4</div>
+      <div class="stat-card__change neutral"><i class="fas fa-hourglass-half"></i> Avg 24h review</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-card__icon" style="background:rgba(244,63,94,.1);color:var(--color-rose);"><i class="fas fa-triangle-exclamation"></i></div>
+      <div class="stat-card__label">Out of Stock</div>
+      <div class="stat-card__value">2</div>
+      <div class="stat-card__change down"><i class="fas fa-arrow-trend-down"></i> Restock needed</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-card__icon" style="background:rgba(245,158,11,.12);color:var(--color-amber);"><i class="fas fa-star"></i></div>
+      <div class="stat-card__label">Avg. Rating</div>
+      <div class="stat-card__value">4.8</div>
+      <div class="stat-card__change up"><i class="fas fa-arrow-trend-up"></i> 312 buyer reviews</div>
+    </div>
+  </div>
+
+  <!-- Filters -->
+  <div class="filter-bar fade-in">
+    <button class="filter-tab active" onclick="setFilter(this,'all')">All <span class="count">74</span></button>
+    <button class="filter-tab" onclick="setFilter(this,'active')">Active <span class="count">68</span></button>
+    <button class="filter-tab" onclick="setFilter(this,'pending')">Pending <span class="count">4</span></button>
+    <button class="filter-tab" onclick="setFilter(this,'out')">Out of Stock <span class="count">2</span></button>
+    <button class="filter-tab" onclick="setFilter(this,'draft')">Draft <span class="count">3</span></button>
+    <div style="margin-left:auto;display:flex;gap:8px;">
+      <select class="form-input" style="width:auto;font-size:.78rem;padding:7px 12px;" onchange="showToast('Filter applied.','success')">
+        <option>All Categories</option>
+        <option>Tops & T-Shirts</option>
+        <option>Hoodies & Sweatshirts</option>
+        <option>Bottoms</option>
+        <option>Outerwear</option>
+        <option>Accessories</option>
+      </select>
+      <select class="form-input" style="width:auto;font-size:.78rem;padding:7px 12px;" onchange="showToast('Sorted.','success')">
+        <option>Sort: Newest</option>
+        <option>Sort: Best Selling</option>
+        <option>Sort: Price ↑</option>
+        <option>Sort: Price ↓</option>
+        <option>Sort: Stock Low</option>
+      </select>
+    </div>
+  </div>
+
+  <!-- Product Grid -->
+  <div class="prod-grid fade-in" id="prodGrid">
+
+    <!-- Product 1 -->
+    <div class="prod-card" data-status="active" data-name="apex classic hoodie">
+      <div class="prod-thumb" style="background:linear-gradient(135deg,#1e293b,#334155);">
+        <span style="font-size:3rem;">🧥</span>
+        <span class="prod-status-badge badge-active">Active</span>
+        <div class="prod-menu"><button class="prod-menu-btn" onclick="event.stopPropagation();showToast('Options menu','success')"><i class="fas fa-ellipsis-v"></i></button></div>
+      </div>
+      <div class="prod-body">
+        <div class="prod-name">Apex Classic Hoodie</div>
+        <div class="prod-sku">SKU: APX-CHD-001 · 6 variants</div>
+        <div class="prod-prices">
+          <div class="prod-price-item"><span class="prod-price-label">Wholesale</span><span class="prod-price-val green">$18.50</span></div>
+          <div class="prod-price-item"><span class="prod-price-label">MSRP</span><span class="prod-price-val">$65.00</span></div>
+          <div class="prod-price-item"><span class="prod-price-label">MAP</span><span class="prod-price-val">$49.99</span></div>
+        </div>
+        <div class="prod-meta">
+          <div class="prod-meta-item">Stock: <strong>420</strong></div>
+          <div class="prod-meta-item">Sold: <strong>1,240</strong></div>
+          <div class="prod-meta-item">MOQ: <strong>50</strong></div>
+        </div>
+      </div>
+      <div class="prod-footer">
+        <button class="prod-action" onclick="showToast('Opening product editor…','success')"><i class="fas fa-pencil"></i> Edit</button>
+        <button class="prod-action" onclick="showToast('Analytics loading…','success')"><i class="fas fa-chart-line"></i> Stats</button>
+        <button class="prod-action primary" onclick="showToast('Sharing product link.','success')"><i class="fas fa-share-nodes"></i></button>
+      </div>
+    </div>
+
+    <!-- Product 2 -->
+    <div class="prod-card" data-status="active" data-name="premium graphic tee">
+      <div class="prod-thumb" style="background:linear-gradient(135deg,#1e3a5f,#1d4ed8);">
+        <span style="font-size:3rem;">👕</span>
+        <span class="prod-status-badge badge-active">Active</span>
+        <div class="prod-menu"><button class="prod-menu-btn" onclick="event.stopPropagation();showToast('Options menu','success')"><i class="fas fa-ellipsis-v"></i></button></div>
+      </div>
+      <div class="prod-body">
+        <div class="prod-name">Premium Graphic Tee</div>
+        <div class="prod-sku">SKU: APX-PGT-002 · 4 variants</div>
+        <div class="prod-prices">
+          <div class="prod-price-item"><span class="prod-price-label">Wholesale</span><span class="prod-price-val green">$12.00</span></div>
+          <div class="prod-price-item"><span class="prod-price-label">MSRP</span><span class="prod-price-val">$38.00</span></div>
+          <div class="prod-price-item"><span class="prod-price-label">MAP</span><span class="prod-price-val">$28.99</span></div>
+        </div>
+        <div class="prod-meta">
+          <div class="prod-meta-item">Stock: <strong>850</strong></div>
+          <div class="prod-meta-item">Sold: <strong>2,100</strong></div>
+          <div class="prod-meta-item">MOQ: <strong>100</strong></div>
+        </div>
+      </div>
+      <div class="prod-footer">
+        <button class="prod-action" onclick="showToast('Opening product editor…','success')"><i class="fas fa-pencil"></i> Edit</button>
+        <button class="prod-action" onclick="showToast('Analytics loading…','success')"><i class="fas fa-chart-line"></i> Stats</button>
+        <button class="prod-action primary" onclick="showToast('Sharing product link.','success')"><i class="fas fa-share-nodes"></i></button>
+      </div>
+    </div>
+
+    <!-- Product 3 -->
+    <div class="prod-card" data-status="pending" data-name="varsity bomber jacket">
+      <div class="prod-thumb" style="background:linear-gradient(135deg,#3b1f08,#78350f);">
+        <span style="font-size:3rem;">🧤</span>
+        <span class="prod-status-badge badge-pending">Pending</span>
+        <div class="prod-menu"><button class="prod-menu-btn" onclick="event.stopPropagation();showToast('Options menu','success')"><i class="fas fa-ellipsis-v"></i></button></div>
+      </div>
+      <div class="prod-body">
+        <div class="prod-name">Varsity Bomber Jacket</div>
+        <div class="prod-sku">SKU: APX-VBJ-003 · 3 variants</div>
+        <div class="prod-prices">
+          <div class="prod-price-item"><span class="prod-price-label">Wholesale</span><span class="prod-price-val green">$42.00</span></div>
+          <div class="prod-price-item"><span class="prod-price-label">MSRP</span><span class="prod-price-val">$149.00</span></div>
+          <div class="prod-price-item"><span class="prod-price-label">MAP</span><span class="prod-price-val">$119.99</span></div>
+        </div>
+        <div class="prod-meta">
+          <div class="prod-meta-item">Stock: <strong>120</strong></div>
+          <div class="prod-meta-item">Sold: <strong>0</strong></div>
+          <div class="prod-meta-item">MOQ: <strong>25</strong></div>
+        </div>
+      </div>
+      <div class="prod-footer">
+        <button class="prod-action" onclick="showToast('Opening product editor…','success')"><i class="fas fa-pencil"></i> Edit</button>
+        <button class="prod-action" onclick="showToast('Awaiting BRND Direct review.','success')"><i class="fas fa-clock"></i> Pending</button>
+        <button class="prod-action primary" style="opacity:.5;cursor:not-allowed;" disabled><i class="fas fa-share-nodes"></i></button>
+      </div>
+    </div>
+
+    <!-- Product 4 -->
+    <div class="prod-card" data-status="active" data-name="performance jogger set">
+      <div class="prod-thumb" style="background:linear-gradient(135deg,#064e3b,#065f46);">
+        <span style="font-size:3rem;">🩳</span>
+        <span class="prod-status-badge badge-active">Active</span>
+        <div class="prod-menu"><button class="prod-menu-btn" onclick="event.stopPropagation();showToast('Options menu','success')"><i class="fas fa-ellipsis-v"></i></button></div>
+      </div>
+      <div class="prod-body">
+        <div class="prod-name">Performance Jogger Set</div>
+        <div class="prod-sku">SKU: APX-PJS-004 · 5 variants</div>
+        <div class="prod-prices">
+          <div class="prod-price-item"><span class="prod-price-label">Wholesale</span><span class="prod-price-val green">$22.50</span></div>
+          <div class="prod-price-item"><span class="prod-price-label">MSRP</span><span class="prod-price-val">$75.00</span></div>
+          <div class="prod-price-item"><span class="prod-price-label">MAP</span><span class="prod-price-val">$59.99</span></div>
+        </div>
+        <div class="prod-meta">
+          <div class="prod-meta-item">Stock: <strong>304</strong></div>
+          <div class="prod-meta-item">Sold: <strong>780</strong></div>
+          <div class="prod-meta-item">MOQ: <strong>50</strong></div>
+        </div>
+      </div>
+      <div class="prod-footer">
+        <button class="prod-action" onclick="showToast('Opening product editor…','success')"><i class="fas fa-pencil"></i> Edit</button>
+        <button class="prod-action" onclick="showToast('Analytics loading…','success')"><i class="fas fa-chart-line"></i> Stats</button>
+        <button class="prod-action primary" onclick="showToast('Sharing product link.','success')"><i class="fas fa-share-nodes"></i></button>
+      </div>
+    </div>
+
+    <!-- Product 5 -->
+    <div class="prod-card" data-status="out" data-name="summer linen shirt">
+      <div class="prod-thumb" style="background:linear-gradient(135deg,#4a1d96,#6d28d9);">
+        <span style="font-size:3rem;">👔</span>
+        <span class="prod-status-badge badge-out">Out of Stock</span>
+        <div class="prod-menu"><button class="prod-menu-btn" onclick="event.stopPropagation();showToast('Options menu','success')"><i class="fas fa-ellipsis-v"></i></button></div>
+      </div>
+      <div class="prod-body">
+        <div class="prod-name">Summer Linen Shirt</div>
+        <div class="prod-sku">SKU: APX-SLS-005 · 4 variants</div>
+        <div class="prod-prices">
+          <div class="prod-price-item"><span class="prod-price-label">Wholesale</span><span class="prod-price-val green">$15.00</span></div>
+          <div class="prod-price-item"><span class="prod-price-label">MSRP</span><span class="prod-price-val">$55.00</span></div>
+          <div class="prod-price-item"><span class="prod-price-label">MAP</span><span class="prod-price-val">$42.99</span></div>
+        </div>
+        <div class="prod-meta">
+          <div class="prod-meta-item">Stock: <strong style="color:var(--color-rose);">0</strong></div>
+          <div class="prod-meta-item">Sold: <strong>560</strong></div>
+          <div class="prod-meta-item">MOQ: <strong>75</strong></div>
+        </div>
+      </div>
+      <div class="prod-footer">
+        <button class="prod-action" onclick="showToast('Opening product editor…','success')"><i class="fas fa-pencil"></i> Edit</button>
+        <button class="prod-action primary" style="background:var(--color-amber);border-color:var(--color-amber);" onclick="showToast('Restock request sent.','success')"><i class="fas fa-rotate"></i> Restock</button>
+      </div>
+    </div>
+
+    <!-- Product 6 -->
+    <div class="prod-card" data-status="draft" data-name="streetwear cargo pants draft">
+      <div class="prod-thumb" style="background:linear-gradient(135deg,#1c1c1c,#2d2d2d);">
+        <span style="font-size:3rem;">👖</span>
+        <span class="prod-status-badge badge-draft">Draft</span>
+        <div class="prod-menu"><button class="prod-menu-btn" onclick="event.stopPropagation();showToast('Options menu','success')"><i class="fas fa-ellipsis-v"></i></button></div>
+      </div>
+      <div class="prod-body">
+        <div class="prod-name">Streetwear Cargo Pants</div>
+        <div class="prod-sku">SKU: APX-SCP-006 · Draft</div>
+        <div class="prod-prices">
+          <div class="prod-price-item"><span class="prod-price-label">Wholesale</span><span class="prod-price-val green">$28.00</span></div>
+          <div class="prod-price-item"><span class="prod-price-label">MSRP</span><span class="prod-price-val">$95.00</span></div>
+          <div class="prod-price-item"><span class="prod-price-label">MAP</span><span class="prod-price-val">$74.99</span></div>
+        </div>
+        <div class="prod-meta">
+          <div class="prod-meta-item">Stock: <strong>—</strong></div>
+          <div class="prod-meta-item">Sold: <strong>0</strong></div>
+          <div class="prod-meta-item">MOQ: <strong>50</strong></div>
+        </div>
+      </div>
+      <div class="prod-footer">
+        <button class="prod-action" onclick="showToast('Opening product editor…','success')"><i class="fas fa-pencil"></i> Edit</button>
+        <button class="prod-action primary" onclick="showToast('Submitting for review…','success')"><i class="fas fa-paper-plane"></i> Submit</button>
+      </div>
+    </div>
+
+  </div>
+
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-top:20px;padding-top:16px;border-top:1px solid var(--color-border);">
+    <span style="font-size:.82rem;color:var(--color-muted);">Showing 6 of 74 products</span>
+    <div style="display:flex;gap:8px;">
+      <button class="btn btn-outline" style="font-size:.78rem;" disabled>← Previous</button>
+      <button class="btn btn-outline" style="font-size:.78rem;background:var(--seller-accent);color:white;border-color:var(--seller-accent);">1</button>
+      <button class="btn btn-outline" style="font-size:.78rem;" onclick="showToast('Loading page 2…','success')">2</button>
+      <button class="btn btn-outline" style="font-size:.78rem;" onclick="showToast('Loading page 3…','success')">3</button>
+      <button class="btn btn-outline" style="font-size:.78rem;" onclick="showToast('Loading page 2…','success')">Next →</button>
+    </div>
+  </div>
+</main>
+
+<!-- Add Product Modal -->
+<div class="modal-overlay" id="addProdModal">
+  <div class="modal-box">
+    <div class="modal-header">
+      <span class="modal-title">Add New Product</span>
+      <button class="modal-close" onclick="closeAddModal()"><i class="fas fa-times"></i></button>
+    </div>
+    <div class="modal-body">
+      <div class="form-section-title" style="font-family:var(--font-display);font-size:.78rem;font-weight:800;text-transform:uppercase;letter-spacing:.06em;color:var(--color-muted);margin:0 0 16px;">Basic Information</div>
+      <div class="form-group">
+        <label class="form-label">Product Name *</label>
+        <input type="text" class="form-input" placeholder="e.g. Classic Hoodie – Black" />
+      </div>
+      <div class="form-grid-2">
+        <div class="form-group">
+          <label class="form-label">SKU Code *</label>
+          <input type="text" class="form-input" placeholder="APX-XXX-000" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">Category *</label>
+          <select class="form-input">
+            <option>Select category</option>
+            <option>Tops & T-Shirts</option>
+            <option>Hoodies & Sweatshirts</option>
+            <option>Bottoms</option>
+            <option>Outerwear</option>
+            <option>Accessories</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-grid-3">
+        <div class="form-group">
+          <label class="form-label">Wholesale Price *</label>
+          <div class="input-group"><i class="fas fa-dollar-sign input-icon"></i><input type="number" class="form-input" placeholder="0.00" /></div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">MSRP</label>
+          <div class="input-group"><i class="fas fa-dollar-sign input-icon"></i><input type="number" class="form-input" placeholder="0.00" /></div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">MAP Price</label>
+          <div class="input-group"><i class="fas fa-dollar-sign input-icon"></i><input type="number" class="form-input" placeholder="0.00" /></div>
+        </div>
+      </div>
+      <div class="form-grid-2">
+        <div class="form-group">
+          <label class="form-label">Available Inventory *</label>
+          <input type="number" class="form-input" placeholder="Units available" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">MOQ (Min Order Qty)</label>
+          <input type="number" class="form-input" placeholder="e.g. 50" />
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Product Description</label>
+        <textarea class="form-input" rows="3" style="resize:vertical;font-family:inherit;" placeholder="Describe your product…"></textarea>
+      </div>
+      <div class="img-upload" onclick="showToast('Image upload ready.','success')">
+        <i class="fas fa-cloud-arrow-up"></i>
+        <p style="font-size:.82rem;color:var(--color-muted);margin-top:4px;"><strong>Upload product images</strong> — PNG, JPG up to 10 MB each</p>
+      </div>
+      <div style="display:flex;gap:12px;margin-top:24px;">
+        <button class="btn btn-outline btn-full" onclick="closeAddModal()">Cancel</button>
+        <button class="btn btn-outline btn-full" onclick="showToast('Draft saved.','success');closeAddModal();">Save as Draft</button>
+        <button class="btn btn-primary btn-full" style="background:var(--seller-accent);" onclick="showToast('Product submitted for review!','success');closeAddModal();">Submit for Review</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="toast-container" id="toastContainer"></div>
+<script src="js/portal.js"></script>
+<script>
+  function openAddModal() { document.getElementById('addProdModal').classList.add('open'); }
+  function closeAddModal() { document.getElementById('addProdModal').classList.remove('open'); }
+
+  function setFilter(btn, status) {
+    document.querySelectorAll('.filter-tab').forEach(t => t.classList.remove('active'));
+    btn.classList.add('active');
+    document.querySelectorAll('.prod-card').forEach(card => {
+      if (status === 'all' || card.dataset.status === status) card.style.display = '';
+      else card.style.display = 'none';
+    });
+  }
+
+  function filterProds() {
+    const q = document.getElementById('prodSearch').value.toLowerCase();
+    document.querySelectorAll('.prod-card').forEach(card => {
+      card.style.display = card.dataset.name.includes(q) ? '' : 'none';
+    });
+  }
+
+  function showToast(msg, type = 'success') {
+    const c = document.getElementById('toastContainer');
+    const icon = type === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle';
+    const t = document.createElement('div'); t.className = `toast ${type}`;
+    t.innerHTML = `<i class="fas ${icon}"></i><span>${msg}</span>`;
+    c.appendChild(t);
+    setTimeout(() => { t.style.opacity='0'; t.style.transform='translateX(60px)'; t.style.transition='all .3s'; setTimeout(() => t.remove(), 350); }, 3500);
+  }
+
+  document.getElementById('addProdModal').addEventListener('click', function(e) {
+    if (e.target === this) closeAddModal();
+  });
+</script>
+</body>
+</html>

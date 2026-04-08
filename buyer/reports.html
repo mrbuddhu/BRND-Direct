@@ -1,0 +1,1107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Reports – BRND Direct Portal</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&family=Inter:wght@300;400;500;600;700&family=Outfit:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.5.0/css/all.min.css" />
+  <link rel="stylesheet" href="css/portal.css" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <style>
+    /* ── Report layout ── */
+    .reports-layout {
+      display: grid;
+      grid-template-columns: 220px 1fr;
+      gap: 24px;
+      align-items: start;
+    }
+    @media(max-width:1024px){ .reports-layout { grid-template-columns: 1fr; } }
+
+    /* ── Left nav ── */
+    .report-nav {
+      background: #fff;
+      border: 1.5px solid var(--color-border);
+      border-radius: var(--radius-md);
+      padding: 14px;
+      position: sticky;
+      top: calc(var(--topbar-height, 64px) + 16px);
+    }
+    .report-nav-section { font-size:.68rem; font-weight:800; text-transform:uppercase; letter-spacing:.09em; color:var(--color-muted); padding:0 8px; margin:14px 0 6px; }
+    .report-nav-section:first-child { margin-top:0; }
+    .report-nav-item {
+      display:flex; align-items:center; gap:9px;
+      padding:9px 10px; border-radius:var(--radius-sm);
+      cursor:pointer; font-size:.82rem; font-weight:500;
+      color:var(--color-muted); transition:all .16s; border:none; background:none; width:100%; text-align:left;
+      font-family:var(--font-sans);
+    }
+    .report-nav-item:hover { background:var(--color-accent-glow); color:var(--color-accent); }
+    .report-nav-item.active { background:var(--color-accent-glow); color:var(--color-accent); font-weight:700; }
+    .report-nav-item i { width:16px; text-align:center; font-size:.8rem; }
+    .report-nav-divider { height:1px; background:var(--color-border); margin:10px 0; }
+
+    /* ── KPI strip ── */
+    .kpi-strip {
+      display: grid;
+      grid-template-columns: repeat(6, 1fr);
+      gap: 14px;
+      margin-bottom: 24px;
+    }
+    @media(max-width:1100px){ .kpi-strip { grid-template-columns: repeat(3,1fr); } }
+    @media(max-width:640px)  { .kpi-strip { grid-template-columns: repeat(2,1fr); } }
+    .kpi-card {
+      background: #fff;
+      border: 1.5px solid var(--color-border);
+      border-radius: var(--radius-md);
+      padding: 18px 16px;
+      display: flex; flex-direction: column; gap: 4px;
+    }
+    .kpi-card__icon {
+      width:36px; height:36px; border-radius:8px;
+      display:flex; align-items:center; justify-content:center;
+      font-size:.85rem; margin-bottom:8px;
+    }
+    .kpi-card__val { font-family:var(--font-display); font-size:1.6rem; font-weight:900; letter-spacing:-.04em; color:var(--color-near-black); line-height:1; }
+    .kpi-card__label { font-size:.7rem; font-weight:700; text-transform:uppercase; letter-spacing:.07em; color:var(--color-muted); }
+    .kpi-card__change { font-size:.72rem; font-weight:600; margin-top:2px; display:flex; align-items:center; gap:4px; }
+    .kpi-up { color:#059669; }
+    .kpi-down { color:#dc2626; }
+    .kpi-neutral { color:var(--color-muted); }
+
+    /* ── Chart card ── */
+    .chart-card {
+      background: #fff;
+      border: 1.5px solid var(--color-border);
+      border-radius: var(--radius-md);
+      padding: 22px 24px;
+    }
+    .chart-card__head {
+      display: flex; align-items: flex-start; justify-content: space-between;
+      margin-bottom: 20px; gap: 12px; flex-wrap: wrap;
+    }
+    .chart-card__title { font-size:.9rem; font-weight:800; color:var(--color-near-black); }
+    .chart-card__sub { font-size:.73rem; color:var(--color-muted); margin-top:3px; }
+    .chart-card__actions { display:flex; gap:6px; flex-shrink:0; }
+
+    /* Chart wrappers — fixed height for Chart.js */
+    .chart-wrap-lg { position:relative; height:260px; }
+    .chart-wrap-md { position:relative; height:220px; }
+    .chart-wrap-sm { position:relative; height:200px; }
+
+    /* ── Period tabs ── */
+    .period-tabs {
+      display:flex; gap:2px; background:var(--color-off-white);
+      border:1.5px solid var(--color-border); border-radius:8px; padding:3px;
+    }
+    .period-tab {
+      padding:5px 14px; border-radius:6px; font-size:.75rem; font-weight:600;
+      cursor:pointer; border:none; background:transparent; color:var(--color-muted);
+      transition:all .16s; font-family:var(--font-sans);
+    }
+    .period-tab.active { background:#fff; color:var(--color-near-black); box-shadow:var(--shadow-sm); }
+
+    /* ── Two-col grid ── */
+    .chart-row-2 { display:grid; grid-template-columns:1fr 1fr; gap:20px; }
+    @media(max-width:860px){ .chart-row-2 { grid-template-columns:1fr; } }
+
+    /* ── Three-col grid ── */
+    .chart-row-3 { display:grid; grid-template-columns:1fr 1fr 1fr; gap:20px; }
+    @media(max-width:1000px){ .chart-row-3 { grid-template-columns:1fr 1fr; } }
+    @media(max-width:640px)  { .chart-row-3 { grid-template-columns:1fr; } }
+
+    /* ── Donut legend ── */
+    .donut-legend { margin-top:16px; display:flex; flex-direction:column; gap:7px; }
+    .dl-item { display:flex; align-items:center; justify-content:space-between; gap:8px; font-size:.79rem; }
+    .dl-dot { width:10px; height:10px; border-radius:50%; flex-shrink:0; }
+    .dl-label { flex:1; color:var(--color-muted); }
+    .dl-val { font-weight:700; color:var(--color-near-black); }
+    .dl-pct { font-size:.7rem; color:var(--color-muted); min-width:34px; text-align:right; }
+
+    /* ── Horizontal bar ── */
+    .hbar-list { display:flex; flex-direction:column; gap:11px; }
+    .hbar-row { display:flex; flex-direction:column; gap:4px; }
+    .hbar-meta { display:flex; justify-content:space-between; font-size:.79rem; }
+    .hbar-brand { font-weight:600; color:var(--color-near-black); }
+    .hbar-amt { font-weight:700; color:var(--color-accent); }
+    .hbar-track { height:8px; background:var(--color-off-white); border-radius:6px; overflow:hidden; border:1px solid var(--color-border); }
+    .hbar-fill { height:100%; border-radius:6px; transition:width .6s ease; }
+
+    /* ── Data table ── */
+    .rpt-table { width:100%; border-collapse:collapse; font-size:.84rem; }
+    .rpt-table thead th {
+      text-align:left; padding:10px 14px;
+      background:var(--color-off-white);
+      border-bottom:2px solid var(--color-border);
+      font-size:.68rem; font-weight:800;
+      text-transform:uppercase; letter-spacing:.07em; color:var(--color-muted);
+      white-space:nowrap;
+    }
+    .rpt-table tbody td { padding:11px 14px; border-bottom:1px solid var(--color-border); vertical-align:middle; }
+    .rpt-table tbody tr:last-child td { border-bottom:none; }
+    .rpt-table tbody tr:hover td { background:var(--color-off-white); }
+    .mini-bar-wrap { display:flex; align-items:center; gap:8px; }
+    .mini-bar { height:6px; border-radius:4px; flex-shrink:0; }
+
+    /* ── Saved reports ── */
+    .saved-item { display:flex; align-items:center; gap:12px; padding:13px 0; border-bottom:1px solid var(--color-border); }
+    .saved-item:last-child { border-bottom:none; }
+    .saved-icon { width:38px; height:38px; border-radius:var(--radius-sm); display:flex; align-items:center; justify-content:center; font-size:.9rem; flex-shrink:0; }
+
+    /* ── Section panels ── */
+    .rpt-section { display:none; }
+    .rpt-section.active { display:flex; flex-direction:column; gap:20px; }
+
+    /* ── Summary stat row inside a chart card ── */
+    .stat-row { display:flex; gap:0; border-top:1px solid var(--color-border); margin-top:20px; padding-top:16px; flex-wrap:wrap; }
+    .stat-item { flex:1; min-width:100px; padding:0 16px; border-right:1px solid var(--color-border); }
+    .stat-item:first-child { padding-left:0; }
+    .stat-item:last-child { border-right:none; }
+    .stat-item__val { font-family:var(--font-display); font-size:1.25rem; font-weight:900; color:var(--color-near-black); }
+    .stat-item__label { font-size:.7rem; color:var(--color-muted); font-weight:600; text-transform:uppercase; letter-spacing:.06em; margin-top:2px; }
+
+    @media(max-width:1024px){
+      .report-nav { position:static; display:flex; gap:4px; flex-wrap:wrap; padding:10px; }
+      .report-nav-section { display:none; }
+      .report-nav-divider { display:none; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<aside class="sidebar" id="sidebar">
+  <div class="sidebar__logo">
+    <a href="dashboard.html" class="logo-mark">
+      <span class="logo-icon"><i class="fas fa-chevron-right"></i></span>
+      <span class="logo-word">BRND <span class="logo-accent">DIRECT</span></span>
+    </a>
+  </div>
+  <nav class="sidebar__nav">
+    <div class="nav-section">
+      <span class="nav-section-label">Main Menu</span>
+      <a href="dashboard.html" class="nav-item"><i class="fas fa-table-columns"></i><span>Dashboard</span></a>
+      <a href="products.html" class="nav-item"><i class="fas fa-boxes-stacked"></i><span>Products</span></a>
+      <a href="orders.html" class="nav-item"><i class="fas fa-file-invoice"></i><span>Orders</span><span class="nav-badge">18</span></a>
+      <a href="cart.html" class="nav-item" id="navCartLink"><i class="fas fa-cart-shopping"></i><span>Order Cart</span><span class="nav-badge" id="sidebarCartBadge" style="display:none;">0</span></a>
+      <a href="rfq.html" class="nav-item"><i class="fas fa-comment-dollar"></i><span>RFQ</span><span class="nav-badge new">5</span></a>
+      <a href="dropship.html" class="nav-item"><i class="fas fa-rotate"></i><span>Dropship</span></a>
+      <a href="analytics.html" class="nav-item"><i class="fas fa-chart-line"></i><span>Analytics</span></a>
+    </div>
+    <div class="nav-section">
+      <span class="nav-section-label">Finance</span>
+      <a href="invoices.html" class="nav-item"><i class="fas fa-file-invoice-dollar"></i><span>Invoices &amp; Payments</span></a>
+      <a href="trade-finance.html" class="nav-item"><i class="fas fa-credit-card"></i><span>Trade Finance</span></a>
+      <a href="reports.html" class="nav-item active"><i class="fas fa-chart-bar"></i><span>Reports</span></a>
+    </div>
+    <div class="nav-section">
+      <span class="nav-section-label">Operations</span>
+      <a href="warehousing.html" class="nav-item"><i class="fas fa-warehouse"></i><span>Warehousing</span></a>
+      <a href="shipping-logistics.html" class="nav-item"><i class="fas fa-truck-fast"></i><span>Shipping &amp; Logistics</span></a>
+    </div>
+    <div class="sidebar__divider"></div>
+    <a href="messages.html" class="nav-item"><i class="fas fa-message"></i><span>Messages</span><span class="nav-badge">3</span></a>
+    <a href="account.html" class="nav-item"><i class="fas fa-gear"></i><span>Settings</span></a>
+    <a href="help.html" class="nav-item"><i class="fas fa-circle-question"></i><span>Help &amp; Support</span></a>
+  </nav>
+  <div class="sidebar__bottom">
+    <div class="sidebar__user">
+      <div class="sidebar__user-avatar">AJ</div>
+      <div class="sidebar__user-info">
+        <div class="sidebar__user-name">Alex Johnson</div>
+        <div class="sidebar__user-role">Wholesale Buyer</div>
+      </div>
+      <button class="sidebar__user-logout" onclick="window.location.href='index.html'" title="Sign out">
+        <i class="fas fa-arrow-right-from-bracket"></i>
+      </button>
+    </div>
+  </div>
+</aside>
+<div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+<!-- TOPBAR -->
+<header class="topbar">
+  <div class="topbar__left" style="display:flex;align-items:center;gap:12px;">
+    <button class="topbar__mobile-toggle" id="sidebarToggle"><i class="fas fa-bars"></i></button>
+    <div>
+      <div class="topbar__title">Reports &amp; Exports</div>
+      <div class="topbar__breadcrumb">Business intelligence, charts &amp; data exports</div>
+    </div>
+  </div>
+  <div class="topbar__right">
+    <div class="search-bar"><i class="fas fa-magnifying-glass"></i><input type="text" placeholder="Search reports…" /></div>
+    <div class="topbar__btn"><i class="fas fa-bell"></i><span class="notif-dot"></span></div>
+    <div class="topbar__avatar">AJ</div>
+  </div>
+</header>
+
+<!-- MAIN -->
+<main class="app-main">
+
+  <!-- Page header -->
+  <div class="page-header-bar fade-in">
+    <div>
+      <h1>Reports &amp; Exports</h1>
+      <div class="page-header-sub">Jan 1 – Mar 25, 2026 &nbsp;·&nbsp; Q1 2026 &nbsp;·&nbsp; Johnson Retail Group LLC</div>
+    </div>
+    <div class="page-header-bar__actions" style="align-items:center;gap:10px;">
+      <div class="period-tabs" id="periodTabs">
+        <button class="period-tab active" data-period="q1" onclick="setPeriod(this)">Q1 2026</button>
+        <button class="period-tab" data-period="30d" onclick="setPeriod(this)">30 Days</button>
+        <button class="period-tab" data-period="ytd" onclick="setPeriod(this)">YTD</button>
+      </div>
+      <button class="btn btn-secondary btn-sm" onclick="showToast('Report scheduled for export.','success')"><i class="fas fa-calendar-check"></i> Schedule</button>
+      <button class="btn btn-primary btn-sm" onclick="exportReport()"><i class="fas fa-download"></i> Export All</button>
+    </div>
+  </div>
+
+  <!-- KPI Strip -->
+  <div class="kpi-strip fade-in d1">
+    <div class="kpi-card">
+      <div class="kpi-card__icon" style="background:var(--color-accent-glow);color:var(--color-accent);"><i class="fas fa-dollar-sign"></i></div>
+      <div class="kpi-card__val">$284K</div>
+      <div class="kpi-card__label">Total Spend (Q1)</div>
+      <div class="kpi-card__change kpi-up"><i class="fas fa-arrow-up"></i> 18.4% vs Q4 2025</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-card__icon" style="background:#f0fdf4;color:#059669;"><i class="fas fa-file-invoice"></i></div>
+      <div class="kpi-card__val">15</div>
+      <div class="kpi-card__label">Orders Placed</div>
+      <div class="kpi-card__change kpi-up"><i class="fas fa-arrow-up"></i> 3 more vs Q4</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-card__icon" style="background:#fef3c7;color:#d97706;"><i class="fas fa-boxes-stacked"></i></div>
+      <div class="kpi-card__val">604</div>
+      <div class="kpi-card__label">Units Ordered</div>
+      <div class="kpi-card__change kpi-up"><i class="fas fa-arrow-up"></i> 12.1%</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-card__icon" style="background:#eff6ff;color:#3b82f6;"><i class="fas fa-chart-line"></i></div>
+      <div class="kpi-card__val">$18,960</div>
+      <div class="kpi-card__label">Avg. Order Value</div>
+      <div class="kpi-card__change kpi-down"><i class="fas fa-arrow-down"></i> 3.2% vs Q4</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-card__icon" style="background:#fdf4ff;color:#9333ea;"><i class="fas fa-tag"></i></div>
+      <div class="kpi-card__val">41.2%</div>
+      <div class="kpi-card__label">Avg. Margin</div>
+      <div class="kpi-card__change kpi-up"><i class="fas fa-arrow-up"></i> 2.1 pts</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-card__icon" style="background:var(--color-emerald-glow);color:var(--color-emerald);"><i class="fas fa-check-circle"></i></div>
+      <div class="kpi-card__val">93.3%</div>
+      <div class="kpi-card__label">Fulfilment Rate</div>
+      <div class="kpi-card__change kpi-neutral"><i class="fas fa-minus"></i> steady</div>
+    </div>
+  </div>
+
+  <!-- Main layout -->
+  <div class="reports-layout fade-in d2">
+
+    <!-- ── Left nav ── -->
+    <div class="report-nav">
+      <div class="report-nav-section">Analytics</div>
+      <button class="report-nav-item active" data-sec="sales" onclick="showSection('sales',this)">
+        <i class="fas fa-chart-bar"></i> Sales Overview
+      </button>
+      <button class="report-nav-item" data-sec="orders" onclick="showSection('orders',this)">
+        <i class="fas fa-file-invoice"></i> Order Analysis
+      </button>
+      <button class="report-nav-item" data-sec="products" onclick="showSection('products',this)">
+        <i class="fas fa-boxes-stacked"></i> Product Performance
+      </button>
+      <button class="report-nav-item" data-sec="brands" onclick="showSection('brands',this)">
+        <i class="fas fa-building"></i> Brand Scorecard
+      </button>
+      <div class="report-nav-divider"></div>
+      <div class="report-nav-section">Finance</div>
+      <button class="report-nav-item" data-sec="finance" onclick="showSection('finance',this)">
+        <i class="fas fa-file-invoice-dollar"></i> Financial Summary
+      </button>
+      <button class="report-nav-item" data-sec="logistics" onclick="showSection('logistics',this)">
+        <i class="fas fa-truck-fast"></i> Logistics Report
+      </button>
+      <div class="report-nav-divider"></div>
+      <div class="report-nav-section">Saved</div>
+      <button class="report-nav-item" data-sec="saved" onclick="showSection('saved',this)">
+        <i class="fas fa-bookmark"></i> Saved Reports
+      </button>
+    </div>
+
+    <!-- ── Right content area ── -->
+    <div>
+
+      <!-- ════════════ SALES OVERVIEW ════════════ -->
+      <div class="rpt-section active" id="sec-sales">
+
+        <!-- Monthly spend line chart -->
+        <div class="chart-card">
+          <div class="chart-card__head">
+            <div>
+              <div class="chart-card__title">Monthly Spend – Q1 2026</div>
+              <div class="chart-card__sub">Total wholesale spend per month · Johnson Retail Group LLC</div>
+            </div>
+            <div class="chart-card__actions">
+              <button class="btn btn-secondary btn-sm" onclick="showToast('CSV downloaded.','success')"><i class="fas fa-download"></i> CSV</button>
+            </div>
+          </div>
+          <div class="chart-wrap-lg"><canvas id="chartMonthlySpend"></canvas></div>
+          <div class="stat-row">
+            <div class="stat-item"><div class="stat-item__val">$86,760</div><div class="stat-item__label">January</div></div>
+            <div class="stat-item"><div class="stat-item__val">$92,400</div><div class="stat-item__label">February</div></div>
+            <div class="stat-item"><div class="stat-item__val">$105,360</div><div class="stat-item__label">March (est.)</div></div>
+            <div class="stat-item"><div class="stat-item__val">$284,520</div><div class="stat-item__label">Q1 Total</div></div>
+          </div>
+        </div>
+
+        <!-- Category donut + Brand bars -->
+        <div class="chart-row-2">
+          <div class="chart-card">
+            <div class="chart-card__head">
+              <div>
+                <div class="chart-card__title">Spend by Category</div>
+                <div class="chart-card__sub">Q1 2026 · % of total spend</div>
+              </div>
+            </div>
+            <div class="chart-wrap-md"><canvas id="chartCategoryDonut"></canvas></div>
+            <div class="donut-legend">
+              <div class="dl-item"><div class="dl-dot" style="background:#4f46e5;"></div><span class="dl-label">Fragrances</span><span class="dl-val">$81,216</span><span class="dl-pct">28.5%</span></div>
+              <div class="dl-item"><div class="dl-dot" style="background:#ec4899;"></div><span class="dl-label">Luxury Beauty</span><span class="dl-val">$62,594</span><span class="dl-pct">22.0%</span></div>
+              <div class="dl-item"><div class="dl-dot" style="background:#f59e0b;"></div><span class="dl-label">Designer Bags</span><span class="dl-val">$56,904</span><span class="dl-pct">20.0%</span></div>
+              <div class="dl-item"><div class="dl-dot" style="background:#10b981;"></div><span class="dl-label">Sneakers</span><span class="dl-val">$42,678</span><span class="dl-pct">15.0%</span></div>
+              <div class="dl-item"><div class="dl-dot" style="background:#3b82f6;"></div><span class="dl-label">Apparel</span><span class="dl-val">$28,452</span><span class="dl-pct">10.0%</span></div>
+              <div class="dl-item"><div class="dl-dot" style="background:#8b5cf6;"></div><span class="dl-label">Cosmetics</span><span class="dl-val">$12,676</span><span class="dl-pct">4.5%</span></div>
+            </div>
+          </div>
+
+          <div class="chart-card">
+            <div class="chart-card__head">
+              <div>
+                <div class="chart-card__title">Top Brands by Spend</div>
+                <div class="chart-card__sub">Q1 2026 · Wholesale spend $</div>
+              </div>
+            </div>
+            <div class="hbar-list">
+              <div class="hbar-row">
+                <div class="hbar-meta"><span class="hbar-brand">Charlotte Tilbury</span><span class="hbar-amt">$9,600</span></div>
+                <div class="hbar-track"><div class="hbar-fill" style="width:100%;background:#4f46e5;"></div></div>
+              </div>
+              <div class="hbar-row">
+                <div class="hbar-meta"><span class="hbar-brand">Gucci</span><span class="hbar-amt">$7,200</span></div>
+                <div class="hbar-track"><div class="hbar-fill" style="width:75%;background:#ec4899;"></div></div>
+              </div>
+              <div class="hbar-row">
+                <div class="hbar-meta"><span class="hbar-brand">Dior</span><span class="hbar-amt">$5,700</span></div>
+                <div class="hbar-track"><div class="hbar-fill" style="width:59%;background:#f59e0b;"></div></div>
+              </div>
+              <div class="hbar-row">
+                <div class="hbar-meta"><span class="hbar-brand">Chanel</span><span class="hbar-amt">$5,760</span></div>
+                <div class="hbar-track"><div class="hbar-fill" style="width:60%;background:#10b981;"></div></div>
+              </div>
+              <div class="hbar-row">
+                <div class="hbar-meta"><span class="hbar-brand">Maison Margiela</span><span class="hbar-amt">$6,540</span></div>
+                <div class="hbar-track"><div class="hbar-fill" style="width:68%;background:#3b82f6;"></div></div>
+              </div>
+              <div class="hbar-row">
+                <div class="hbar-meta"><span class="hbar-brand">Jordan Brand</span><span class="hbar-amt">$3,240</span></div>
+                <div class="hbar-track"><div class="hbar-fill" style="width:34%;background:#8b5cf6;"></div></div>
+              </div>
+              <div class="hbar-row">
+                <div class="hbar-meta"><span class="hbar-brand">New Balance</span><span class="hbar-amt">$2,160</span></div>
+                <div class="hbar-track"><div class="hbar-fill" style="width:22%;background:#f43f5e;"></div></div>
+              </div>
+              <div class="hbar-row">
+                <div class="hbar-meta"><span class="hbar-brand">Versace</span><span class="hbar-amt">$3,060</span></div>
+                <div class="hbar-track"><div class="hbar-fill" style="width:32%;background:#0ea5e9;"></div></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div><!-- /sec-sales -->
+
+      <!-- ════════════ ORDER ANALYSIS ════════════ -->
+      <div class="rpt-section" id="sec-orders">
+
+        <div class="chart-card">
+          <div class="chart-card__head">
+            <div>
+              <div class="chart-card__title">Order Status Breakdown</div>
+              <div class="chart-card__sub">All 15 orders · Q1 2026</div>
+            </div>
+            <button class="btn btn-secondary btn-sm" onclick="showToast('Exporting order data…','success')"><i class="fas fa-download"></i> Export CSV</button>
+          </div>
+          <div class="chart-row-2" style="margin-bottom:20px;">
+            <div class="chart-wrap-md"><canvas id="chartOrderStatus"></canvas></div>
+            <div style="display:flex;flex-direction:column;justify-content:center;gap:10px;">
+              <div class="dl-item"><div class="dl-dot" style="background:#10b981;"></div><span class="dl-label">Delivered</span><span class="dl-val">8 orders</span><span class="dl-pct">53.3%</span></div>
+              <div class="dl-item"><div class="dl-dot" style="background:#3b82f6;"></div><span class="dl-label">Shipped</span><span class="dl-val">2 orders</span><span class="dl-pct">13.3%</span></div>
+              <div class="dl-item"><div class="dl-dot" style="background:#f59e0b;"></div><span class="dl-label">Confirmed</span><span class="dl-val">1 order</span><span class="dl-pct">6.7%</span></div>
+              <div class="dl-item"><div class="dl-dot" style="background:#a855f7;"></div><span class="dl-label">Pending</span><span class="dl-val">4 orders</span><span class="dl-pct">26.7%</span></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="chart-card">
+          <div class="chart-card__head">
+            <div>
+              <div class="chart-card__title">Order Detail Log</div>
+              <div class="chart-card__sub">All Q1 2026 orders · most recent first</div>
+            </div>
+          </div>
+          <div style="overflow-x:auto;">
+            <table class="rpt-table">
+              <thead>
+                <tr>
+                  <th>Order #</th>
+                  <th>Brand</th>
+                  <th>Product</th>
+                  <th>Units</th>
+                  <th>Unit Price</th>
+                  <th>Total</th>
+                  <th>Status</th>
+                  <th>Ship Date</th>
+                </tr>
+              </thead>
+              <tbody id="orderLogBody"></tbody>
+            </table>
+          </div>
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:12px 0 0;font-size:.78rem;color:var(--color-muted);">
+            <span>15 orders · Q1 2026 · $284,520 total</span>
+            <button class="btn btn-secondary btn-sm" onclick="showToast('Order log exported.','success')"><i class="fas fa-download"></i> Export</button>
+          </div>
+        </div>
+      </div><!-- /sec-orders -->
+
+      <!-- ════════════ PRODUCT PERFORMANCE ════════════ -->
+      <div class="rpt-section" id="sec-products">
+
+        <div class="chart-card">
+          <div class="chart-card__head">
+            <div>
+              <div class="chart-card__title">Units Ordered by Product</div>
+              <div class="chart-card__sub">Q1 2026 · top 10 SKUs by volume</div>
+            </div>
+          </div>
+          <div class="chart-wrap-lg"><canvas id="chartProductUnits"></canvas></div>
+        </div>
+
+        <div class="chart-card">
+          <div class="chart-card__head">
+            <div>
+              <div class="chart-card__title">Product Performance Table</div>
+              <div class="chart-card__sub">Units, spend, and margin per SKU</div>
+            </div>
+            <button class="btn btn-secondary btn-sm" onclick="showToast('Product data exported.','success')"><i class="fas fa-download"></i> CSV</button>
+          </div>
+          <div style="overflow-x:auto;">
+            <table class="rpt-table">
+              <thead>
+                <tr>
+                  <th>Product</th>
+                  <th>Brand</th>
+                  <th>SKU</th>
+                  <th>Units</th>
+                  <th>Wholesale</th>
+                  <th>Retail</th>
+                  <th>Margin</th>
+                  <th>Spend</th>
+                  <th>Volume %</th>
+                </tr>
+              </thead>
+              <tbody id="productPerfBody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div><!-- /sec-products -->
+
+      <!-- ════════════ BRAND SCORECARD ════════════ -->
+      <div class="rpt-section" id="sec-brands">
+
+        <div class="chart-card">
+          <div class="chart-card__head">
+            <div>
+              <div class="chart-card__title">Brand Scorecard</div>
+              <div class="chart-card__sub">Performance by brand · Q1 2026</div>
+            </div>
+          </div>
+          <div style="overflow-x:auto;">
+            <table class="rpt-table">
+              <thead>
+                <tr>
+                  <th>Brand</th>
+                  <th>Category</th>
+                  <th>Orders</th>
+                  <th>Units</th>
+                  <th>Total Spend</th>
+                  <th>Avg. Margin</th>
+                  <th>Fulfilment</th>
+                  <th>On-Time</th>
+                  <th>Score</th>
+                </tr>
+              </thead>
+              <tbody id="brandScorecardBody"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="chart-card">
+          <div class="chart-card__head">
+            <div>
+              <div class="chart-card__title">Brand Spend Distribution</div>
+              <div class="chart-card__sub">Q1 2026 · % of total wholesale spend</div>
+            </div>
+          </div>
+          <div class="chart-wrap-lg"><canvas id="chartBrandBar"></canvas></div>
+        </div>
+      </div><!-- /sec-brands -->
+
+      <!-- ════════════ FINANCIAL SUMMARY ════════════ -->
+      <div class="rpt-section" id="sec-finance">
+
+        <div class="chart-row-2">
+          <div class="chart-card">
+            <div class="chart-card__head">
+              <div>
+                <div class="chart-card__title">Invoice Status Summary</div>
+                <div class="chart-card__sub">Outstanding vs Paid · Q1 2026</div>
+              </div>
+            </div>
+            <div class="chart-wrap-md"><canvas id="chartInvoiceStatus"></canvas></div>
+            <div class="donut-legend" style="margin-top:14px;">
+              <div class="dl-item"><div class="dl-dot" style="background:#10b981;"></div><span class="dl-label">Paid</span><span class="dl-val">$48,200</span><span class="dl-pct">57.7%</span></div>
+              <div class="dl-item"><div class="dl-dot" style="background:#f59e0b;"></div><span class="dl-label">Outstanding</span><span class="dl-val">$19,260</span><span class="dl-pct">23.1%</span></div>
+              <div class="dl-item"><div class="dl-dot" style="background:#a855f7;"></div><span class="dl-label">Upcoming</span><span class="dl-val">$16,080</span><span class="dl-pct">19.2%</span></div>
+            </div>
+          </div>
+
+          <div class="chart-card">
+            <div class="chart-card__head">
+              <div>
+                <div class="chart-card__title">Payment Terms Mix</div>
+                <div class="chart-card__sub">Orders by payment terms · Q1</div>
+              </div>
+            </div>
+            <div class="chart-wrap-md"><canvas id="chartTermsMix"></canvas></div>
+            <div class="donut-legend" style="margin-top:14px;">
+              <div class="dl-item"><div class="dl-dot" style="background:#4f46e5;"></div><span class="dl-label">Net-30</span><span class="dl-val">8 orders</span><span class="dl-pct">53.3%</span></div>
+              <div class="dl-item"><div class="dl-dot" style="background:#10b981;"></div><span class="dl-label">Net-60</span><span class="dl-val">4 orders</span><span class="dl-pct">26.7%</span></div>
+              <div class="dl-item"><div class="dl-dot" style="background:#f59e0b;"></div><span class="dl-label">Net-90</span><span class="dl-val">1 order</span><span class="dl-pct">6.7%</span></div>
+              <div class="dl-item"><div class="dl-dot" style="background:#ec4899;"></div><span class="dl-label">BNPL</span><span class="dl-val">2 orders</span><span class="dl-pct">13.3%</span></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="chart-card">
+          <div class="chart-card__head">
+            <div>
+              <div class="chart-card__title">Invoice Register</div>
+              <div class="chart-card__sub">All Q1 invoices with payment status</div>
+            </div>
+            <button class="btn btn-secondary btn-sm" onclick="showToast('Finance report exported.','success')"><i class="fas fa-download"></i> Export</button>
+          </div>
+          <div style="overflow-x:auto;">
+            <table class="rpt-table">
+              <thead>
+                <tr>
+                  <th>Invoice #</th>
+                  <th>Order Ref</th>
+                  <th>Brand</th>
+                  <th>Amount</th>
+                  <th>Terms</th>
+                  <th>Issued</th>
+                  <th>Due Date</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody id="invoiceRegBody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div><!-- /sec-finance -->
+
+      <!-- ════════════ LOGISTICS ════════════ -->
+      <div class="rpt-section" id="sec-logistics">
+
+        <div class="chart-row-3">
+          <div class="chart-card">
+            <div class="kpi-card__icon" style="background:#eff6ff;color:#3b82f6;width:40px;height:40px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:.9rem;margin-bottom:10px;"><i class="fas fa-truck-fast"></i></div>
+            <div class="kpi-card__val">4.2 days</div>
+            <div class="kpi-card__label">Avg. Delivery Time</div>
+            <div class="kpi-card__change kpi-up" style="margin-top:4px;"><i class="fas fa-arrow-down"></i> 0.8 days faster vs Q4</div>
+          </div>
+          <div class="chart-card">
+            <div class="kpi-card__icon" style="background:#f0fdf4;color:#059669;width:40px;height:40px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:.9rem;margin-bottom:10px;"><i class="fas fa-check-circle"></i></div>
+            <div class="kpi-card__val">93.3%</div>
+            <div class="kpi-card__label">On-Time Delivery</div>
+            <div class="kpi-card__change kpi-up" style="margin-top:4px;"><i class="fas fa-arrow-up"></i> 2.1% vs Q4</div>
+          </div>
+          <div class="chart-card">
+            <div class="kpi-card__icon" style="background:#fef3c7;color:#d97706;width:40px;height:40px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:.9rem;margin-bottom:10px;"><i class="fas fa-rotate-left"></i></div>
+            <div class="kpi-card__val">1</div>
+            <div class="kpi-card__label">Returns / Disputes</div>
+            <div class="kpi-card__change kpi-up" style="margin-top:4px;"><i class="fas fa-arrow-down"></i> 2 fewer vs Q4</div>
+          </div>
+        </div>
+
+        <div class="chart-card">
+          <div class="chart-card__head">
+            <div>
+              <div class="chart-card__title">Shipment Log</div>
+              <div class="chart-card__sub">Tracking &amp; delivery details · Q1 2026</div>
+            </div>
+          </div>
+          <div style="overflow-x:auto;">
+            <table class="rpt-table">
+              <thead>
+                <tr>
+                  <th>Order #</th>
+                  <th>Brand</th>
+                  <th>Carrier</th>
+                  <th>Tracking / BOL</th>
+                  <th>Ship Date</th>
+                  <th>Delivered</th>
+                  <th>Days</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody id="shipmentLogBody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div><!-- /sec-logistics -->
+
+      <!-- ════════════ SAVED REPORTS ════════════ -->
+      <div class="rpt-section" id="sec-saved">
+        <div class="chart-card">
+          <div class="chart-card__head">
+            <div>
+              <div class="chart-card__title">Saved &amp; Scheduled Reports</div>
+              <div class="chart-card__sub">Manage your automated exports and saved views</div>
+            </div>
+            <button class="btn btn-primary btn-sm" onclick="showToast('Report builder coming soon.','success')"><i class="fas fa-plus"></i> New Report</button>
+          </div>
+          <div>
+            <div class="saved-item">
+              <div class="saved-icon" style="background:var(--color-accent-glow);color:var(--color-accent);"><i class="fas fa-chart-bar"></i></div>
+              <div style="flex:1;">
+                <div style="font-size:.85rem;font-weight:700;color:var(--color-near-black);">Q1 2026 Sales Summary</div>
+                <div style="font-size:.73rem;color:var(--color-muted);">Auto-generated · Jan 1 – Mar 25, 2026 · Emailed to alex@johnsonretail.com</div>
+              </div>
+              <span class="badge badge-confirmed">Active</span>
+              <button class="btn btn-secondary btn-sm" onclick="showToast('Downloading…','success')"><i class="fas fa-download"></i></button>
+              <button class="btn btn-secondary btn-sm" onclick="showToast('Edit report schedule.','success')"><i class="fas fa-pen"></i></button>
+            </div>
+            <div class="saved-item">
+              <div class="saved-icon" style="background:#fef3c7;color:#d97706;"><i class="fas fa-building"></i></div>
+              <div style="flex:1;">
+                <div style="font-size:.85rem;font-weight:700;color:var(--color-near-black);">Brand Scorecard – Q1 2026</div>
+                <div style="font-size:.73rem;color:var(--color-muted);">One-time · Created Mar 20, 2026 · All 11 brands</div>
+              </div>
+              <span class="badge">Saved</span>
+              <button class="btn btn-secondary btn-sm" onclick="showToast('Downloading…','success')"><i class="fas fa-download"></i></button>
+              <button class="btn btn-secondary btn-sm" onclick="showToast('Edit report.','success')"><i class="fas fa-pen"></i></button>
+            </div>
+            <div class="saved-item">
+              <div class="saved-icon" style="background:#eff6ff;color:#3b82f6;"><i class="fas fa-file-invoice-dollar"></i></div>
+              <div style="flex:1;">
+                <div style="font-size:.85rem;font-weight:700;color:var(--color-near-black);">Weekly Finance Report</div>
+                <div style="font-size:.73rem;color:var(--color-muted);">Runs every Monday · Invoices &amp; payment status · finance@johnsonretail.com</div>
+              </div>
+              <span class="badge badge-confirmed">Active</span>
+              <button class="btn btn-secondary btn-sm" onclick="showToast('Downloading…','success')"><i class="fas fa-download"></i></button>
+              <button class="btn btn-secondary btn-sm" onclick="showToast('Edit schedule.','success')"><i class="fas fa-pen"></i></button>
+            </div>
+            <div class="saved-item">
+              <div class="saved-icon" style="background:#fdf4ff;color:#9333ea;"><i class="fas fa-truck-fast"></i></div>
+              <div style="flex:1;">
+                <div style="font-size:.85rem;font-weight:700;color:var(--color-near-black);">Monthly Logistics Report</div>
+                <div style="font-size:.73rem;color:var(--color-muted);">Runs on 1st of month · Shipment &amp; delivery summary · ops@johnsonretail.com</div>
+              </div>
+              <span class="badge badge-confirmed">Active</span>
+              <button class="btn btn-secondary btn-sm" onclick="showToast('Downloading…','success')"><i class="fas fa-download"></i></button>
+              <button class="btn btn-secondary btn-sm" onclick="showToast('Edit schedule.','success')"><i class="fas fa-pen"></i></button>
+            </div>
+          </div>
+        </div>
+      </div><!-- /sec-saved -->
+
+    </div><!-- end right col -->
+  </div><!-- end reports-layout -->
+
+</main>
+
+<div class="toast-container" id="toastContainer"></div>
+<script src="js/portal.js"></script>
+<script>(function(){try{var c=JSON.parse(sessionStorage.getItem('brnd_cart')||'[]');var b=document.getElementById('sidebarCartBadge');if(b&&c.length>0){b.textContent=c.length;b.style.display='inline-flex';}}catch(e){}})();</script>
+<script>
+/* ════════════════════════════════════════════════════════════
+   DATA — mirrors invoices.html + orders.html datasets
+════════════════════════════════════════════════════════════ */
+const ORDERS = [
+  { id:'BD-48291', brand:'Maison Margiela', product:'Replica Fragrance Set',        sku:'SKU-4821', units:48,  price:80,  total:3840,  status:'confirmed',  ship:'Mar 21, 2026' },
+  { id:'BD-48290', brand:'Charlotte Tilbury',product:'Pillow Talk Collection',      sku:'SKU-4820', units:120, price:80,  total:9600,  status:'shipped',    ship:'Mar 17, 2026' },
+  { id:'BD-48289', brand:'New Balance',      product:'990v6 Assorted Sizes',        sku:'SKU-4819', units:36,  price:60,  total:2160,  status:'delivered',  ship:'Mar 16, 2026' },
+  { id:'BD-48288', brand:'Chanel',           product:'No. 5 EDP 50ml',              sku:'SKU-4818', units:24,  price:240, total:5760,  status:'delivered',  ship:'Mar 15, 2026' },
+  { id:'BD-48287', brand:'Gucci',            product:'GG Marmont Mini Bag',         sku:'SKU-4817', units:12,  price:600, total:7200,  status:'shipped',    ship:'Mar 14, 2026' },
+  { id:'BD-48286', brand:'Jordan Brand',     product:'Air Jordan 1 Retro High OG',  sku:'SKU-4816', units:18,  price:180, total:3240,  status:'delivered',  ship:'Mar 13, 2026' },
+  { id:'BD-48285', brand:'Dior',             product:'Sauvage EDT 100ml',           sku:'SKU-4815', units:60,  price:95,  total:5700,  status:'delivered',  ship:'Mar 10, 2026' },
+  { id:'BD-48284', brand:'NARS Cosmetics',   product:'Iconic Lipstick Set',         sku:'SKU-4814', units:72,  price:28,  total:2016,  status:'delivered',  ship:'Mar 8, 2026'  },
+  { id:'BD-48283', brand:'Prada',            product:'Saffiano Leather Tote',       sku:'SKU-4813', units:4,   price:720, total:2880,  status:'pending',    ship:'—'            },
+  { id:'BD-48282', brand:'Versace',          product:'Jeans Couture Polo SS26',     sku:'SKU-4812', units:36,  price:85,  total:3060,  status:'delivered',  ship:'Mar 6, 2026'  },
+  { id:'BD-48281', brand:'MAC Cosmetics',    product:'Studio Fix Foundation Range', sku:'SKU-4811', units:96,  price:22,  total:2112,  status:'delivered',  ship:'Mar 5, 2026'  },
+  { id:'BD-48280', brand:'Ralph Lauren',     product:'Oxford Piqué Polo',           sku:'SKU-4810', units:24,  price:65,  total:1560,  status:'delivered',  ship:'Mar 4, 2026'  },
+  { id:'BD-48279', brand:'Maison Margiela',  product:'Beach Walk EDP 100ml',        sku:'SKU-4809', units:30,  price:90,  total:2700,  status:'pending',    ship:'—'            },
+  { id:'BD-48278', brand:'Balenciaga',       product:'Triple S Sneaker',            sku:'SKU-4808', units:6,   price:450, total:2700,  status:'pending',    ship:'—'            },
+  { id:'BD-48277', brand:'YSL Beauty',       product:'Rouge Pur Couture Set',       sku:'SKU-4807', units:48,  price:52,  total:2496,  status:'delivered',  ship:'Mar 11, 2026' },
+];
+
+const INVOICES = [
+  { id:'INV-2891', order:'BD-48291', brand:'Maison Margiela', amount:3840,  terms:'Net-30', issued:'Mar 18, 2026', due:'Apr 17, 2026', status:'outstanding' },
+  { id:'INV-2890', order:'BD-48290', brand:'Charlotte Tilbury',amount:9600, terms:'Net-30', issued:'Mar 17, 2026', due:'Apr 16, 2026', status:'paid'        },
+  { id:'INV-2889', order:'BD-48289', brand:'New Balance',      amount:2160, terms:'Net-60', issued:'Mar 16, 2026', due:'May 15, 2026', status:'paid'        },
+  { id:'INV-2888', order:'BD-48288', brand:'Chanel',           amount:5760, terms:'Net-60', issued:'Mar 15, 2026', due:'May 14, 2026', status:'outstanding' },
+  { id:'INV-2887', order:'BD-48287', brand:'Gucci',            amount:7200, terms:'Net-30', issued:'Mar 14, 2026', due:'Apr 13, 2026', status:'outstanding' },
+  { id:'INV-2886', order:'BD-48286', brand:'Jordan Brand',     amount:3240, terms:'Net-30', issued:'Mar 13, 2026', due:'Apr 12, 2026', status:'paid'        },
+  { id:'INV-2885', order:'BD-48285', brand:'Dior',             amount:5700, terms:'Net-60', issued:'Mar 10, 2026', due:'May 9, 2026',  status:'paid'        },
+  { id:'INV-2884', order:'BD-48284', brand:'NARS Cosmetics',   amount:2016, terms:'BNPL',   issued:'Mar 8, 2026',  due:'Apr 7, 2026',  status:'paid'        },
+  { id:'INV-2883', order:'BD-48283', brand:'Prada',            amount:2880, terms:'Net-90', issued:'Mar 7, 2026',  due:'Jun 5, 2026',  status:'upcoming'    },
+  { id:'INV-2882', order:'BD-48282', brand:'Versace',          amount:3060, terms:'Net-30', issued:'Mar 6, 2026',  due:'Apr 5, 2026',  status:'outstanding' },
+  { id:'INV-2881', order:'BD-48281', brand:'MAC Cosmetics',    amount:2112, terms:'BNPL',   issued:'Mar 5, 2026',  due:'Apr 4, 2026',  status:'paid'        },
+  { id:'INV-2880', order:'BD-48280', brand:'Ralph Lauren',     amount:1560, terms:'Net-30', issued:'Mar 4, 2026',  due:'Apr 3, 2026',  status:'paid'        },
+  { id:'INV-2879', order:'BD-48279', brand:'Maison Margiela',  amount:2700, terms:'Net-30', issued:'Mar 17, 2026', due:'Apr 16, 2026', status:'upcoming'    },
+  { id:'INV-2878', order:'BD-48278', brand:'Balenciaga',       amount:2700, terms:'Net-60', issued:'Mar 16, 2026', due:'May 15, 2026', status:'upcoming'    },
+  { id:'INV-2877', order:'BD-48277', brand:'YSL Beauty',       amount:2496, terms:'Net-30', issued:'Mar 11, 2026', due:'Apr 10, 2026', status:'paid'        },
+];
+
+const SHIPMENTS = [
+  { id:'BD-48290', brand:'Charlotte Tilbury', carrier:'FedEx Freight', tracking:'BOL-8821-CT', ship:'Mar 17', delivered:'Mar 20', days:3, status:'shipped'   },
+  { id:'BD-48289', brand:'New Balance',       carrier:'FedEx',         tracking:'794644792798', ship:'Mar 16', delivered:'Mar 19', days:3, status:'delivered' },
+  { id:'BD-48288', brand:'Chanel',            carrier:'UPS Freight',   tracking:'1Z3A4B2C',    ship:'Mar 15', delivered:'Mar 18', days:3, status:'delivered' },
+  { id:'BD-48287', brand:'Gucci',             carrier:'DHL Express',   tracking:'1234567890',  ship:'Mar 14', delivered:'Mar 17', days:3, status:'shipped'   },
+  { id:'BD-48286', brand:'Jordan Brand',      carrier:'FedEx',         tracking:'956748291',   ship:'Mar 13', delivered:'Mar 15', days:2, status:'delivered' },
+  { id:'BD-48285', brand:'Dior',              carrier:'UPS',           tracking:'1Z9D8E7F',    ship:'Mar 10', delivered:'Mar 13', days:3, status:'delivered' },
+  { id:'BD-48284', brand:'NARS Cosmetics',    carrier:'FedEx',         tracking:'394857261',   ship:'Mar 8',  delivered:'Mar 11', days:3, status:'delivered' },
+  { id:'BD-48282', brand:'Versace',           carrier:'DHL',           tracking:'6241358790',  ship:'Mar 6',  delivered:'Mar 10', days:4, status:'delivered' },
+  { id:'BD-48281', brand:'MAC Cosmetics',     carrier:'FedEx',         tracking:'748392011',   ship:'Mar 5',  delivered:'Mar 8',  days:3, status:'delivered' },
+  { id:'BD-48280', brand:'Ralph Lauren',      carrier:'UPS',           tracking:'1Z5F6G7H',    ship:'Mar 4',  delivered:'Mar 7',  days:3, status:'delivered' },
+  { id:'BD-48277', brand:'YSL Beauty',        carrier:'FedEx Freight', tracking:'BOL-9932-YSL',ship:'Mar 11', delivered:'Mar 14', days:3, status:'delivered' },
+];
+
+const STATUS_BADGE = {
+  confirmed:'badge-confirmed', shipped:'badge-shipped', delivered:'badge-delivered',
+  pending:'badge-pending', outstanding:'badge-pending', paid:'badge-delivered',
+  upcoming:'badge-shipped', overdue:'badge-cancelled'
+};
+
+/* ════════════════════════════════════════════════════════════
+   SECTION NAVIGATION
+════════════════════════════════════════════════════════════ */
+function showSection(name, el) {
+  document.querySelectorAll('.rpt-section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.report-nav-item').forEach(b => b.classList.remove('active'));
+  document.getElementById('sec-' + name).classList.add('active');
+  el.classList.add('active');
+}
+
+function setPeriod(el) {
+  document.querySelectorAll('.period-tab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  showToast(`Period set to: ${el.textContent.trim()}`, 'success');
+}
+
+/* ════════════════════════════════════════════════════════════
+   TABLE RENDERERS
+════════════════════════════════════════════════════════════ */
+function renderOrderLog() {
+  document.getElementById('orderLogBody').innerHTML = ORDERS.map(o => `
+    <tr>
+      <td><span style="font-family:monospace;font-size:.82rem;color:var(--color-accent);font-weight:700;">${o.id}</span></td>
+      <td style="font-weight:600;">${o.brand}</td>
+      <td style="font-size:.82rem;color:var(--color-muted);">${o.product}</td>
+      <td style="text-align:center;">${o.units}</td>
+      <td>$${o.price.toFixed(2)}</td>
+      <td><strong>$${o.total.toLocaleString()}</strong></td>
+      <td><span class="badge ${STATUS_BADGE[o.status]}">${o.status}</span></td>
+      <td style="font-size:.78rem;color:var(--color-muted);">${o.ship}</td>
+    </tr>`).join('');
+}
+
+function renderProductPerf() {
+  const catMap = {
+    'Replica Fragrance Set':'Fragrances','Beach Walk EDP 100ml':'Fragrances',
+    'Pillow Talk Collection':'Luxury Beauty','No. 5 EDP 50ml':'Fragrances',
+    'Sauvage EDT 100ml':'Fragrances','Iconic Lipstick Set':'Cosmetics',
+    'Studio Fix Foundation Range':'Cosmetics','Rouge Pur Couture Set':'Luxury Beauty',
+    'GG Marmont Mini Bag':'Designer Bags','Saffiano Leather Tote':'Designer Bags',
+    'Air Jordan 1 Retro High OG':'Sneakers','990v6 Assorted Sizes':'Sneakers','Triple S Sneaker':'Sneakers',
+    'Jeans Couture Polo SS26':'Apparel','Oxford Piqué Polo':'Apparel'
+  };
+  const retailMap = { 80:140,240:380,95:150,28:48,22:38,600:1100,720:1350,180:280,60:110,450:800,85:145,65:110,52:88,80:145,90:160 };
+  const maxSpend = Math.max(...ORDERS.map(o=>o.total));
+  document.getElementById('productPerfBody').innerHTML = ORDERS.map(o => {
+    const retail = o.price * 1.7;
+    const margin = (((retail - o.price) / retail) * 100).toFixed(1);
+    const pct = (o.total / ORDERS.reduce((s,x)=>s+x.total,0)*100).toFixed(1);
+    return `<tr>
+      <td style="font-weight:600;font-size:.82rem;">${o.product}</td>
+      <td style="font-size:.78rem;color:var(--color-muted);">${o.brand}</td>
+      <td style="font-family:monospace;font-size:.75rem;color:var(--color-muted);">${o.sku}</td>
+      <td style="text-align:center;font-weight:700;">${o.units}</td>
+      <td>$${o.price.toFixed(2)}</td>
+      <td style="color:var(--color-muted);text-decoration:line-through;">$${retail.toFixed(2)}</td>
+      <td><span style="color:#059669;font-weight:700;">${margin}%</span></td>
+      <td><strong>$${o.total.toLocaleString()}</strong></td>
+      <td>
+        <div class="mini-bar-wrap">
+          <div class="mini-bar" style="width:${Math.round(o.total/maxSpend*80)}px;background:var(--color-accent);"></div>
+          <span style="font-size:.72rem;color:var(--color-muted);">${pct}%</span>
+        </div>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+function renderBrandScorecard() {
+  const brandData = {};
+  ORDERS.forEach(o => {
+    if (!brandData[o.brand]) brandData[o.brand] = { brand:o.brand, orders:0, units:0, spend:0 };
+    brandData[o.brand].orders++;
+    brandData[o.brand].units += o.units;
+    brandData[o.brand].spend += o.total;
+  });
+  const catMap = {
+    'Maison Margiela':'Fragrances','Chanel':'Fragrances','Dior':'Fragrances',
+    'Charlotte Tilbury':'Luxury Beauty','NARS Cosmetics':'Cosmetics','MAC Cosmetics':'Cosmetics',
+    'YSL Beauty':'Luxury Beauty','Gucci':'Designer Bags','Prada':'Designer Bags',
+    'Balenciaga':'Sneakers','Jordan Brand':'Sneakers','New Balance':'Sneakers',
+    'Versace':'Apparel','Ralph Lauren':'Apparel'
+  };
+  const scores = { 'Charlotte Tilbury':98,'Gucci':96,'Dior':95,'Chanel':94,'Maison Margiela':93,
+    'Jordan Brand':92,'YSL Beauty':91,'New Balance':90,'NARS Cosmetics':89,
+    'MAC Cosmetics':88,'Ralph Lauren':87,'Versace':85,'Prada':82,'Balenciaga':80 };
+  const fulfilment = { 'Charlotte Tilbury':'100%','Gucci':'100%','Dior':'100%','Chanel':'100%',
+    'Maison Margiela':'50%','Jordan Brand':'100%','YSL Beauty':'100%','New Balance':'100%',
+    'NARS Cosmetics':'100%','MAC Cosmetics':'100%','Ralph Lauren':'100%','Versace':'100%',
+    'Prada':'0%','Balenciaga':'0%' };
+  const rows = Object.values(brandData).sort((a,b) => b.spend - a.spend);
+  const totalSpend = rows.reduce((s,r)=>s+r.spend,0);
+  document.getElementById('brandScorecardBody').innerHTML = rows.map(r => {
+    const margin = 41.2;
+    const score = scores[r.brand] || 85;
+    const scoreColor = score >= 90 ? '#059669' : score >= 80 ? '#d97706' : '#dc2626';
+    return `<tr>
+      <td style="font-weight:700;">${r.brand}</td>
+      <td style="font-size:.78rem;"><span class="badge badge-shipped" style="font-size:.6rem;">${catMap[r.brand]||'—'}</span></td>
+      <td style="text-align:center;">${r.orders}</td>
+      <td style="text-align:center;">${r.units}</td>
+      <td><strong>$${r.spend.toLocaleString()}</strong></td>
+      <td style="color:#059669;font-weight:700;">${margin}%</td>
+      <td>${fulfilment[r.brand]||'—'}</td>
+      <td>${fulfilment[r.brand]||'—'}</td>
+      <td><span style="font-weight:800;font-size:.9rem;color:${scoreColor};">${score}</span><span style="font-size:.68rem;color:var(--color-muted);">/100</span></td>
+    </tr>`;
+  }).join('');
+}
+
+function renderInvoiceReg() {
+  document.getElementById('invoiceRegBody').innerHTML = INVOICES.map(inv => `
+    <tr>
+      <td><span style="font-family:monospace;font-size:.82rem;color:var(--color-accent);font-weight:700;">${inv.id}</span></td>
+      <td style="font-size:.78rem;color:var(--color-muted);">${inv.order}</td>
+      <td style="font-weight:600;">${inv.brand}</td>
+      <td><strong>$${inv.amount.toLocaleString()}</strong></td>
+      <td><span class="badge badge-shipped" style="font-size:.6rem;">${inv.terms}</span></td>
+      <td style="font-size:.78rem;color:var(--color-muted);">${inv.issued}</td>
+      <td style="font-size:.78rem;font-weight:600;color:${inv.status==='outstanding'?'var(--color-amber)':inv.status==='overdue'?'var(--color-rose)':'var(--color-muted)'};">${inv.due}</td>
+      <td><span class="badge ${STATUS_BADGE[inv.status]}">${inv.status}</span></td>
+    </tr>`).join('');
+}
+
+function renderShipmentLog() {
+  document.getElementById('shipmentLogBody').innerHTML = SHIPMENTS.map(s => `
+    <tr>
+      <td><span style="font-family:monospace;font-size:.82rem;color:var(--color-accent);font-weight:700;">${s.id}</span></td>
+      <td style="font-weight:600;">${s.brand}</td>
+      <td style="font-size:.8rem;">${s.carrier}</td>
+      <td style="font-family:monospace;font-size:.78rem;color:var(--color-muted);">${s.tracking}</td>
+      <td style="font-size:.78rem;">Mar ${s.ship.replace('Mar ','')}, 2026</td>
+      <td style="font-size:.78rem;">${s.delivered ? s.delivered+', 2026' : '—'}</td>
+      <td style="text-align:center;font-weight:700;">${s.days}</td>
+      <td><span class="badge ${STATUS_BADGE[s.status]}">${s.status}</span></td>
+    </tr>`).join('');
+}
+
+/* ════════════════════════════════════════════════════════════
+   CHARTS
+════════════════════════════════════════════════════════════ */
+const ACCENT   = '#4f46e5';
+const EMERALD  = '#10b981';
+const AMBER    = '#f59e0b';
+const ROSE     = '#f43f5e';
+const SKY      = '#3b82f6';
+const PURPLE   = '#a855f7';
+const PINK     = '#ec4899';
+const GRID_CLR = 'rgba(0,0,0,.06)';
+
+Chart.defaults.font.family = "'Inter', 'Plus Jakarta Sans', sans-serif";
+Chart.defaults.font.size = 12;
+Chart.defaults.color = '#6b7280';
+
+function buildCharts() {
+  /* 1. Monthly Spend */
+  new Chart(document.getElementById('chartMonthlySpend'), {
+    type: 'bar',
+    data: {
+      labels: ['Jan','Feb','Mar'],
+      datasets: [{
+        label: 'Spend ($)',
+        data: [86760, 92400, 105360],
+        backgroundColor: [ACCENT+'cc', ACCENT+'cc', ACCENT],
+        borderRadius: 6, borderSkipped: false,
+      }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false }, tooltip: { callbacks: { label: ctx => ' $' + ctx.parsed.y.toLocaleString() } } },
+      scales: {
+        x: { grid: { display: false } },
+        y: { grid: { color: GRID_CLR }, ticks: { callback: v => '$' + (v/1000).toFixed(0) + 'K' } }
+      }
+    }
+  });
+
+  /* 2. Category Donut */
+  new Chart(document.getElementById('chartCategoryDonut'), {
+    type: 'doughnut',
+    data: {
+      labels: ['Fragrances','Luxury Beauty','Designer Bags','Sneakers','Apparel','Cosmetics'],
+      datasets: [{ data:[28.5,22,20,15,10,4.5], backgroundColor:[ACCENT,PINK,AMBER,EMERALD,SKY,PURPLE], borderWidth:2, borderColor:'#fff' }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false, cutout: '68%',
+      plugins: { legend: { display: false }, tooltip: { callbacks: { label: ctx => ` ${ctx.label}: ${ctx.parsed}%` } } }
+    }
+  });
+
+  /* 3. Order Status Donut */
+  new Chart(document.getElementById('chartOrderStatus'), {
+    type: 'doughnut',
+    data: {
+      labels: ['Delivered','Shipped','Confirmed','Pending'],
+      datasets: [{ data:[8,2,1,4], backgroundColor:[EMERALD,SKY,AMBER,PURPLE], borderWidth:2, borderColor:'#fff' }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false, cutout:'65%',
+      plugins: { legend:{ display:false }, tooltip:{ callbacks:{ label: ctx => ` ${ctx.label}: ${ctx.parsed} orders` } } }
+    }
+  });
+
+  /* 4. Product units horizontal bar */
+  const top10 = [...ORDERS].sort((a,b)=>b.units-a.units).slice(0,10);
+  new Chart(document.getElementById('chartProductUnits'), {
+    type: 'bar',
+    data: {
+      labels: top10.map(o => o.product.length > 22 ? o.product.substr(0,22)+'…' : o.product),
+      datasets: [{ label:'Units', data: top10.map(o=>o.units), backgroundColor: ACCENT, borderRadius:4 }]
+    },
+    options: {
+      indexAxis: 'y', responsive:true, maintainAspectRatio:false,
+      plugins: { legend:{ display:false } },
+      scales: {
+        x: { grid:{ color:GRID_CLR }, ticks:{ stepSize:20 } },
+        y: { grid:{ display:false }, ticks:{ font:{ size:11 } } }
+      }
+    }
+  });
+
+  /* 5. Brand spend bar */
+  const brandSpend = {};
+  ORDERS.forEach(o => { brandSpend[o.brand] = (brandSpend[o.brand]||0) + o.total; });
+  const bLabels = Object.keys(brandSpend).sort((a,b)=>brandSpend[b]-brandSpend[a]);
+  const colors  = [ACCENT,PINK,AMBER,EMERALD,SKY,PURPLE,ROSE,'#f97316','#06b6d4','#84cc16','#a78bfa','#fb923c','#34d399','#60a5fa'];
+  new Chart(document.getElementById('chartBrandBar'), {
+    type: 'bar',
+    data: {
+      labels: bLabels,
+      datasets: [{ label:'Spend', data: bLabels.map(b=>brandSpend[b]), backgroundColor: bLabels.map((_,i)=>colors[i%colors.length]), borderRadius:5 }]
+    },
+    options: {
+      responsive:true, maintainAspectRatio:false,
+      plugins: { legend:{ display:false }, tooltip:{ callbacks:{ label: ctx=>' $'+ctx.parsed.y.toLocaleString() } } },
+      scales: {
+        x: { grid:{ display:false }, ticks:{ maxRotation:40, font:{ size:10 } } },
+        y: { grid:{ color:GRID_CLR }, ticks:{ callback: v=>'$'+v.toLocaleString() } }
+      }
+    }
+  });
+
+  /* 6. Invoice status donut */
+  new Chart(document.getElementById('chartInvoiceStatus'), {
+    type: 'doughnut',
+    data: {
+      labels: ['Paid','Outstanding','Upcoming'],
+      datasets: [{ data:[48200,19260,16080], backgroundColor:[EMERALD,AMBER,PURPLE], borderWidth:2, borderColor:'#fff' }]
+    },
+    options: {
+      responsive:true, maintainAspectRatio:false, cutout:'65%',
+      plugins: { legend:{ display:false }, tooltip:{ callbacks:{ label: ctx=>' $'+ctx.parsed.toLocaleString() } } }
+    }
+  });
+
+  /* 7. Terms mix donut */
+  new Chart(document.getElementById('chartTermsMix'), {
+    type: 'doughnut',
+    data: {
+      labels: ['Net-30','Net-60','Net-90','BNPL'],
+      datasets: [{ data:[8,4,1,2], backgroundColor:[ACCENT,EMERALD,AMBER,PINK], borderWidth:2, borderColor:'#fff' }]
+    },
+    options: {
+      responsive:true, maintainAspectRatio:false, cutout:'65%',
+      plugins: { legend:{ display:false }, tooltip:{ callbacks:{ label: ctx=>` ${ctx.label}: ${ctx.parsed} orders` } } }
+    }
+  });
+}
+
+/* ════════════════════════════════════════════════════════════
+   EXPORT
+════════════════════════════════════════════════════════════ */
+function exportReport() {
+  const rows = ['Order #,Brand,Product,Units,Unit Price,Total,Status,Ship Date',
+    ...ORDERS.map(o => `${o.id},${o.brand},"${o.product}",${o.units},$${o.price},$${o.total},${o.status},${o.ship}`)
+  ];
+  const blob = new Blob([rows.join('\n')], { type: 'text/csv' });
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a'); a.href = url; a.download = 'brnd-q1-2026-report.csv'; a.click();
+  URL.revokeObjectURL(url);
+  showToast('Q1 2026 report exported!', 'success');
+}
+
+/* ════════════════════════════════════════════════════════════
+   TOAST
+════════════════════════════════════════════════════════════ */
+function showToast(msg, type='success') {
+  const c = document.getElementById('toastContainer');
+  const icon = type === 'success' ? 'fa-check-circle' : 'fa-info-circle';
+  const t = document.createElement('div');
+  t.className = `toast ${type}`;
+  t.innerHTML = `<i class="fas ${icon}"></i><span>${msg}</span>`;
+  c.appendChild(t);
+  setTimeout(() => {
+    t.style.opacity='0'; t.style.transform='translateX(60px)'; t.style.transition='all .3s';
+    setTimeout(() => t.remove(), 350);
+  }, 3200);
+}
+
+/* ── Boot ── */
+renderOrderLog();
+renderProductPerf();
+renderBrandScorecard();
+renderInvoiceReg();
+renderShipmentLog();
+buildCharts();
+</script>
+</body>
+</html>

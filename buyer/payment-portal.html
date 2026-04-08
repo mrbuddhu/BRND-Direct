@@ -1,0 +1,980 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Payment Portal – BRND Direct</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&family=Inter:wght@300;400;500;600;700&family=Outfit:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.5.0/css/all.min.css" />
+  <link rel="stylesheet" href="css/portal.css" />
+  <style>
+    /* ── Payment Portal Styles ── */
+    .pp-layout {
+      display: grid;
+      grid-template-columns: 1fr 400px;
+      gap: 28px;
+      align-items: start;
+    }
+    @media(max-width:1000px){ .pp-layout { grid-template-columns: 1fr; } }
+
+    /* Steps */
+    .pp-steps {
+      display: flex;
+      align-items: center;
+      gap: 0;
+      margin-bottom: 32px;
+    }
+    .pp-step {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: .82rem;
+      font-weight: 600;
+      color: var(--color-muted);
+    }
+    .pp-step__num {
+      width: 30px; height: 30px;
+      border-radius: 50%;
+      border: 2px solid var(--color-border);
+      display: flex; align-items: center; justify-content: center;
+      font-size: .78rem; font-weight: 800;
+      color: var(--color-muted);
+      transition: all .2s;
+      flex-shrink: 0;
+    }
+    .pp-step.active .pp-step__num {
+      background: var(--color-accent);
+      border-color: var(--color-accent);
+      color: #fff;
+    }
+    .pp-step.done .pp-step__num {
+      background: var(--color-emerald);
+      border-color: var(--color-emerald);
+      color: #fff;
+    }
+    .pp-step.active { color: var(--color-near-black); }
+    .pp-step.done { color: var(--color-emerald); }
+    .pp-step__line {
+      flex: 1;
+      height: 2px;
+      background: var(--color-border);
+      margin: 0 8px;
+      min-width: 40px;
+    }
+    .pp-step__line.done { background: var(--color-emerald); }
+
+    /* Invoice selector */
+    .inv-select-row {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-bottom: 4px;
+    }
+    .inv-select-item {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 14px 16px;
+      border: 1.5px solid var(--color-border);
+      border-radius: var(--radius-md);
+      cursor: pointer;
+      transition: all .18s;
+      background: #fff;
+    }
+    .inv-select-item:hover { border-color: var(--color-accent); background: var(--color-accent-glow); }
+    .inv-select-item.selected { border-color: var(--color-accent); background: var(--color-accent-glow); }
+    .inv-select-item input[type="checkbox"] {
+      width: 17px; height: 17px;
+      accent-color: var(--color-accent);
+      flex-shrink: 0;
+    }
+    .inv-select-item__info { flex: 1; }
+    .inv-select-item__id { font-size: .82rem; font-weight: 800; font-family: monospace; color: var(--color-accent); }
+    .inv-select-item__meta { font-size: .75rem; color: var(--color-muted); margin-top: 2px; }
+    .inv-select-item__amount { font-size: 1rem; font-weight: 800; font-family: var(--font-display); color: var(--color-near-black); }
+    .inv-select-item__due {
+      font-size: .7rem; font-weight: 700;
+      padding: 3px 8px; border-radius: 20px;
+    }
+    .inv-select-item__due.outstanding { background: #fef3c7; color: #92400e; }
+    .inv-select-item__due.overdue { background: #fee2e2; color: #991b1b; }
+
+    /* Payment method selector */
+    .pm-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 0; }
+    @media(max-width:600px){ .pm-grid { grid-template-columns: 1fr; } }
+    .pm-option {
+      border: 1.5px solid var(--color-border);
+      border-radius: var(--radius-md);
+      padding: 14px;
+      cursor: pointer;
+      transition: all .18s;
+      background: #fff;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .pm-option:hover { border-color: var(--color-accent); }
+    .pm-option.selected { border-color: var(--color-accent); background: var(--color-accent-glow); }
+    .pm-option__icon {
+      width: 42px; height: 28px;
+      border-radius: 5px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: .6rem; font-weight: 800; color: #fff;
+      letter-spacing: .04em;
+      flex-shrink: 0;
+    }
+    .pm-option__label { font-size: .8rem; font-weight: 700; color: var(--color-near-black); }
+    .pm-option__sub { font-size: .7rem; color: var(--color-muted); margin-top: 2px; }
+    .pm-option input[type="radio"] { display:none; }
+
+    /* Card form */
+    .card-form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+    @media(max-width:540px){ .card-form-grid { grid-template-columns: 1fr; } }
+    .form-group { display: flex; flex-direction: column; gap: 5px; }
+    .form-group label { font-size: .72rem; font-weight: 700; text-transform: uppercase; letter-spacing: .07em; color: var(--color-muted); }
+    .form-group input, .form-group select {
+      padding: 10px 13px;
+      border: 1.5px solid var(--color-border);
+      border-radius: var(--radius-sm);
+      font-family: var(--font-sans);
+      font-size: .875rem;
+      color: var(--color-near-black);
+      background: #fff;
+      transition: border-color .18s;
+      outline: none;
+    }
+    .form-group input:focus, .form-group select:focus { border-color: var(--color-accent); }
+    .form-group.span-2 { grid-column: span 2; }
+    @media(max-width:540px){ .form-group.span-2 { grid-column: span 1; } }
+
+    .card-number-wrap { position: relative; }
+    .card-number-wrap input { padding-right: 44px; letter-spacing: .1em; font-family: monospace; }
+    .card-type-badge {
+      position: absolute; right: 10px; top: 50%; transform: translateY(-50%);
+      font-size: .55rem; font-weight: 900; letter-spacing: .04em;
+      color: #fff; padding: 2px 6px; border-radius: 4px;
+    }
+
+    /* ACH form */
+    .ach-form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+    @media(max-width:540px){ .ach-form-grid { grid-template-columns: 1fr; } }
+
+    /* Order summary panel */
+    .summary-card { background: #fff; border: 1.5px solid var(--color-border); border-radius: var(--radius-md); overflow: hidden; position: sticky; top: 84px; }
+    .summary-header {
+      background: var(--color-near-black);
+      color: #fff;
+      padding: 18px 22px;
+    }
+    .summary-header h3 { font-family: var(--font-display); font-size: 1rem; font-weight: 800; }
+    .summary-header p { font-size: .75rem; opacity: .7; margin-top: 3px; }
+    .summary-items { padding: 16px 22px; border-bottom: 1px solid var(--color-border); }
+    .summary-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 12px;
+      padding: 9px 0;
+      border-bottom: 1px solid var(--color-off-white);
+    }
+    .summary-item:last-child { border-bottom: none; }
+    .summary-item__inv { font-size: .8rem; font-weight: 700; font-family: monospace; color: var(--color-accent); }
+    .summary-item__brand { font-size: .72rem; color: var(--color-muted); margin-top: 2px; }
+    .summary-item__amt { font-size: .875rem; font-weight: 800; color: var(--color-near-black); white-space: nowrap; }
+    .summary-totals { padding: 14px 22px; }
+    .summary-row { display: flex; justify-content: space-between; font-size: .82rem; padding: 5px 0; }
+    .summary-row.total {
+      font-size: 1.05rem; font-weight: 900;
+      font-family: var(--font-display);
+      border-top: 2px solid var(--color-near-black);
+      padding-top: 12px; margin-top: 4px;
+    }
+    .summary-footer { padding: 16px 22px; border-top: 1px solid var(--color-border); }
+
+    /* Security badges */
+    .security-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+      justify-content: center;
+      padding: 14px 22px 0;
+    }
+    .sec-badge {
+      display: flex; align-items: center; gap: 5px;
+      font-size: .65rem; color: var(--color-muted);
+      background: var(--color-off-white);
+      border: 1px solid var(--color-border);
+      border-radius: 20px;
+      padding: 4px 10px;
+    }
+    .sec-badge i { color: var(--color-emerald); }
+
+    /* Step panels */
+    .pp-panel { display: none; }
+    .pp-panel.active { display: block; }
+
+    /* Success screen */
+    .success-screen {
+      text-align: center;
+      padding: 48px 24px;
+    }
+    .success-icon-wrap {
+      width: 80px; height: 80px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--color-emerald), #10b981);
+      display: flex; align-items: center; justify-content: center;
+      margin: 0 auto 24px;
+      font-size: 2rem;
+      color: #fff;
+      box-shadow: 0 8px 24px rgba(16,185,129,.25);
+    }
+    .success-screen h2 {
+      font-family: var(--font-display);
+      font-size: 1.8rem;
+      font-weight: 900;
+      letter-spacing: -.04em;
+      color: var(--color-near-black);
+      margin-bottom: 10px;
+    }
+    .success-screen p { font-size: .92rem; color: var(--color-muted); max-width: 400px; margin: 0 auto 28px; }
+    .success-ref {
+      background: var(--color-off-white);
+      border: 1.5px solid var(--color-border);
+      border-radius: var(--radius-md);
+      padding: 16px 24px;
+      margin: 0 auto 28px;
+      max-width: 360px;
+      display: inline-block;
+    }
+    .success-ref__label { font-size: .68rem; font-weight: 800; text-transform: uppercase; letter-spacing: .08em; color: var(--color-muted); margin-bottom: 6px; }
+    .success-ref__num { font-size: 1.3rem; font-weight: 900; font-family: monospace; color: var(--color-accent); letter-spacing: .04em; }
+
+    /* Confirm step */
+    .confirm-row {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 10px 0;
+      border-bottom: 1px solid var(--color-off-white);
+      font-size: .875rem;
+    }
+    .confirm-row:last-child { border-bottom: none; }
+    .confirm-row__label { color: var(--color-muted); font-size: .78rem; }
+    .confirm-row__val { font-weight: 700; color: var(--color-near-black); }
+
+    /* Animate in */
+    @keyframes slideUp {
+      from { opacity: 0; transform: translateY(18px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    .pp-panel.active { animation: slideUp .28s ease; }
+  </style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<aside class="sidebar" id="sidebar">
+  <div class="sidebar__logo">
+    <a href="dashboard.html" class="logo-mark">
+      <span class="logo-icon"><i class="fas fa-chevron-right"></i></span>
+      <span class="logo-word">BRND <span class="logo-accent">DIRECT</span></span>
+    </a>
+  </div>
+  <nav class="sidebar__nav">
+    <div class="nav-section">
+      <span class="nav-section-label">Main Menu</span>
+      <a href="dashboard.html" class="nav-item"><i class="fas fa-table-columns"></i><span>Dashboard</span></a>
+      <a href="products.html" class="nav-item"><i class="fas fa-boxes-stacked"></i><span>Products</span></a>
+      <a href="orders.html" class="nav-item"><i class="fas fa-file-invoice"></i><span>Orders</span><span class="nav-badge">18</span></a>
+      <a href="cart.html" class="nav-item" id="navCartLink"><i class="fas fa-cart-shopping"></i><span>Order Cart</span><span class="nav-badge" id="sidebarCartBadge" style="display:none;">0</span></a>
+      <a href="rfq.html" class="nav-item"><i class="fas fa-comment-dollar"></i><span>RFQ</span><span class="nav-badge new">5</span></a>
+      <a href="dropship.html" class="nav-item"><i class="fas fa-rotate"></i><span>Dropship</span></a>
+      <a href="analytics.html" class="nav-item"><i class="fas fa-chart-line"></i><span>Analytics</span></a>
+    </div>
+    <div class="nav-section">
+      <span class="nav-section-label">Finance</span>
+      <a href="invoices.html" class="nav-item active"><i class="fas fa-file-invoice-dollar"></i><span>Invoices &amp; Payments</span></a>
+      <a href="trade-finance.html" class="nav-item"><i class="fas fa-credit-card"></i><span>Trade Finance</span></a>
+      <a href="reports.html" class="nav-item"><i class="fas fa-chart-bar"></i><span>Reports</span></a>
+    </div>
+    <div class="nav-section">
+      <span class="nav-section-label">Operations</span>
+      <a href="warehousing.html" class="nav-item"><i class="fas fa-warehouse"></i><span>Warehousing</span></a>
+      <a href="shipping-logistics.html" class="nav-item"><i class="fas fa-truck-fast"></i><span>Shipping &amp; Logistics</span></a>
+    </div>
+    <div class="sidebar__divider"></div>
+    <a href="messages.html" class="nav-item"><i class="fas fa-message"></i><span>Messages</span><span class="nav-badge">3</span></a>
+    <a href="account.html" class="nav-item"><i class="fas fa-gear"></i><span>Settings</span></a>
+    <a href="help.html" class="nav-item"><i class="fas fa-circle-question"></i><span>Help &amp; Support</span></a>
+  </nav>
+  <div class="sidebar__bottom">
+    <div class="sidebar__user">
+      <div class="sidebar__user-avatar">AJ</div>
+      <div class="sidebar__user-info">
+        <div class="sidebar__user-name">Alex Johnson</div>
+        <div class="sidebar__user-role">Wholesale Buyer</div>
+      </div>
+      <button class="sidebar__user-logout" onclick="window.location.href='index.html'" title="Sign out"><i class="fas fa-arrow-right-from-bracket"></i></button>
+    </div>
+  </div>
+</aside>
+<div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+<!-- TOPBAR -->
+<header class="topbar">
+  <div class="topbar__left" style="display:flex;align-items:center;gap:12px;">
+    <button class="topbar__mobile-toggle" id="sidebarToggle"><i class="fas fa-bars"></i></button>
+    <div>
+      <div class="topbar__title">Payment Portal</div>
+      <div class="topbar__breadcrumb"><a href="invoices.html" style="color:var(--color-accent);text-decoration:none;">Invoices &amp; Payments</a> → Make a Payment</div>
+    </div>
+  </div>
+  <div class="topbar__right">
+    <div class="topbar__btn"><i class="fas fa-bell"></i><span class="notif-dot"></span></div>
+    <div class="topbar__avatar">AJ</div>
+  </div>
+</header>
+
+<!-- MAIN -->
+<main class="app-main">
+
+  <!-- Page Header -->
+  <div class="page-header-bar fade-in">
+    <div style="display:flex;align-items:center;gap:14px;">
+      <a href="invoices.html" class="btn btn-secondary btn-sm"><i class="fas fa-arrow-left"></i> Back to Invoices</a>
+      <div>
+        <h1>Payment Portal</h1>
+        <div class="page-header-sub">Secure, encrypted payment processing for your wholesale account</div>
+      </div>
+    </div>
+    <div class="security-row" style="padding:0;">
+      <div class="sec-badge"><i class="fas fa-lock"></i> SSL Encrypted</div>
+      <div class="sec-badge"><i class="fas fa-shield-halved"></i> PCI DSS Level 1</div>
+      <div class="sec-badge"><i class="fas fa-check-circle"></i> Verified Secure</div>
+    </div>
+  </div>
+
+  <!-- Progress Steps -->
+  <div class="pp-steps fade-in d1" id="ppSteps">
+    <div class="pp-step active" id="step1">
+      <div class="pp-step__num">1</div>
+      <span>Select Invoices</span>
+    </div>
+    <div class="pp-step__line" id="line1"></div>
+    <div class="pp-step" id="step2">
+      <div class="pp-step__num">2</div>
+      <span>Payment Method</span>
+    </div>
+    <div class="pp-step__line" id="line2"></div>
+    <div class="pp-step" id="step3">
+      <div class="pp-step__num">3</div>
+      <span>Review &amp; Confirm</span>
+    </div>
+    <div class="pp-step__line" id="line3"></div>
+    <div class="pp-step" id="step4">
+      <div class="pp-step__num"><i class="fas fa-check" style="font-size:.55rem;"></i></div>
+      <span>Done</span>
+    </div>
+  </div>
+
+  <div class="pp-layout fade-in d2">
+
+    <!-- LEFT: Step panels -->
+    <div>
+
+      <!-- ── STEP 1: Select Invoices ── -->
+      <div class="pp-panel active" id="panel1">
+        <div class="card">
+          <div class="card-header">
+            <div>
+              <h3>Select Invoices to Pay</h3>
+              <div style="font-size:.78rem;color:var(--color-muted);margin-top:3px;">Choose one or more outstanding invoices to settle</div>
+            </div>
+            <button class="btn btn-secondary btn-xs" id="selectAllBtn" onclick="toggleSelectAll()">Select All</button>
+          </div>
+          <div class="card-body" style="padding-top:12px;">
+            <div class="inv-select-row" id="invSelectList"></div>
+            <div style="margin-top:16px;padding-top:16px;border-top:1px solid var(--color-border);display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;">
+              <div id="selectionSummary" style="font-size:.82rem;color:var(--color-muted);">No invoices selected</div>
+              <button class="btn btn-primary btn-sm" id="step1Next" onclick="goStep(2)" disabled>
+                Continue to Payment <i class="fas fa-arrow-right"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── STEP 2: Payment Method ── -->
+      <div class="pp-panel" id="panel2">
+        <div class="card" style="margin-bottom:20px;">
+          <div class="card-header">
+            <h3>Choose Payment Method</h3>
+          </div>
+          <div class="card-body" style="padding-top:14px;">
+            <div class="pm-grid">
+              <label class="pm-option selected" id="pmCardOpt" onclick="selectPayMethod('card')">
+                <input type="radio" name="paymethod" value="card" checked>
+                <div class="pm-option__icon" style="background:linear-gradient(135deg,#1a1f71,#00579f);">VISA</div>
+                <div>
+                  <div class="pm-option__label">Credit / Debit Card</div>
+                  <div class="pm-option__sub">Visa, Mastercard, Amex</div>
+                </div>
+              </label>
+              <label class="pm-option" id="pmAchOpt" onclick="selectPayMethod('ach')">
+                <input type="radio" name="paymethod" value="ach">
+                <div class="pm-option__icon" style="background:linear-gradient(135deg,#065f46,#059669);font-size:.55rem;">ACH</div>
+                <div>
+                  <div class="pm-option__label">Bank Transfer (ACH)</div>
+                  <div class="pm-option__sub">Direct bank payment</div>
+                </div>
+              </label>
+              <label class="pm-option" id="pmWireOpt" onclick="selectPayMethod('wire')">
+                <input type="radio" name="paymethod" value="wire">
+                <div class="pm-option__icon" style="background:linear-gradient(135deg,#1e3a8a,#3b82f6);font-size:.55rem;">WIRE</div>
+                <div>
+                  <div class="pm-option__label">Wire Transfer</div>
+                  <div class="pm-option__sub">Same-day settlement</div>
+                </div>
+              </label>
+              <label class="pm-option" id="pmCreditOpt" onclick="selectPayMethod('credit')">
+                <input type="radio" name="paymethod" value="credit">
+                <div class="pm-option__icon" style="background:linear-gradient(135deg,#4f46e5,#7c3aed);">
+                  <i class="fas fa-wallet" style="font-size:.8rem;"></i>
+                </div>
+                <div>
+                  <div class="pm-option__label">BRND Credit</div>
+                  <div class="pm-option__sub">$32,660 available</div>
+                </div>
+              </label>
+            </div>
+          </div>
+        </div>
+
+        <!-- Card Form -->
+        <div class="card" id="cardForm">
+          <div class="card-header">
+            <h3><i class="fas fa-credit-card" style="color:var(--color-accent);margin-right:6px;"></i> Card Details</h3>
+            <div class="sec-badge"><i class="fas fa-lock"></i> Encrypted</div>
+          </div>
+          <div class="card-body">
+            <div style="margin-bottom:14px;">
+              <div style="font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--color-muted);margin-bottom:8px;">Saved Cards</div>
+              <div style="display:flex;flex-direction:column;gap:8px;">
+                <label style="display:flex;align-items:center;gap:10px;padding:10px 14px;border:1.5px solid var(--color-accent);border-radius:var(--radius-sm);background:var(--color-accent-glow);cursor:pointer;">
+                  <input type="radio" name="savedcard" value="4242" checked style="accent-color:var(--color-accent);">
+                  <div style="width:36px;height:24px;background:linear-gradient(135deg,#1a1f71,#00579f);border-radius:4px;display:flex;align-items:center;justify-content:center;color:white;font-size:.5rem;font-weight:800;">VISA</div>
+                  <div style="flex:1;font-size:.82rem;font-weight:700;color:var(--color-near-black);">•••• •••• •••• 4242</div>
+                  <span class="badge badge-confirmed" style="font-size:.6rem;">Default</span>
+                </label>
+                <label style="display:flex;align-items:center;gap:10px;padding:10px 14px;border:1.5px solid var(--color-border);border-radius:var(--radius-sm);background:#fff;cursor:pointer;">
+                  <input type="radio" name="savedcard" value="8891" style="accent-color:var(--color-accent);">
+                  <div style="width:36px;height:24px;background:linear-gradient(135deg,#eb001b,#f79e1b);border-radius:4px;display:flex;align-items:center;justify-content:center;color:white;font-size:.5rem;font-weight:800;">MC</div>
+                  <div style="flex:1;font-size:.82rem;font-weight:700;color:var(--color-near-black);">•••• •••• •••• 8891</div>
+                  <span style="font-size:.72rem;color:var(--color-muted);">Exp 03/2026</span>
+                </label>
+              </div>
+            </div>
+
+            <div style="display:flex;align-items:center;gap:10px;margin:16px 0 14px;">
+              <div style="flex:1;height:1px;background:var(--color-border);"></div>
+              <span style="font-size:.72rem;color:var(--color-muted);font-weight:600;">OR ADD NEW CARD</span>
+              <div style="flex:1;height:1px;background:var(--color-border);"></div>
+            </div>
+
+            <div class="card-form-grid">
+              <div class="form-group span-2">
+                <label>Card Number</label>
+                <div class="card-number-wrap">
+                  <input type="text" id="cardNumber" placeholder="1234 5678 9012 3456" maxlength="19" oninput="formatCardNumber(this)" />
+                  <span class="card-type-badge" id="cardTypeBadge" style="background:#1a1f71;display:none;"></span>
+                </div>
+              </div>
+              <div class="form-group span-2">
+                <label>Cardholder Name</label>
+                <input type="text" id="cardName" placeholder="Alex Johnson" />
+              </div>
+              <div class="form-group">
+                <label>Expiry Date</label>
+                <input type="text" id="cardExpiry" placeholder="MM / YY" maxlength="7" oninput="formatExpiry(this)" />
+              </div>
+              <div class="form-group">
+                <label>CVV / CVC</label>
+                <input type="text" id="cardCvv" placeholder="•••" maxlength="4" />
+              </div>
+              <div class="form-group span-2" style="flex-direction:row;align-items:center;gap:8px;padding:10px 12px;background:var(--color-off-white);border-radius:var(--radius-sm);">
+                <input type="checkbox" id="saveCard" style="accent-color:var(--color-accent);width:15px;height:15px;">
+                <label for="saveCard" style="font-size:.78rem;color:var(--color-near-black);font-weight:600;cursor:pointer;text-transform:none;letter-spacing:0;">Save this card for future payments</label>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ACH Form -->
+        <div class="card" id="achForm" style="display:none;">
+          <div class="card-header">
+            <h3><i class="fas fa-building-columns" style="color:var(--color-accent);margin-right:6px;"></i> Bank Account Details</h3>
+          </div>
+          <div class="card-body">
+            <div class="ach-form-grid">
+              <div class="form-group span-2" style="grid-column:span 2;">
+                <label>Account Holder Name</label>
+                <input type="text" placeholder="Johnson Retail Group LLC" />
+              </div>
+              <div class="form-group">
+                <label>Routing Number</label>
+                <input type="text" placeholder="021000021" maxlength="9" />
+              </div>
+              <div class="form-group">
+                <label>Account Number</label>
+                <input type="text" placeholder="••••••••••••" />
+              </div>
+              <div class="form-group" style="grid-column:span 2;">
+                <label>Account Type</label>
+                <select>
+                  <option>Checking</option>
+                  <option>Savings</option>
+                  <option>Business Checking</option>
+                </select>
+              </div>
+            </div>
+            <div style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:var(--radius-sm);padding:10px 14px;margin-top:12px;font-size:.78rem;color:#1e40af;">
+              <i class="fas fa-info-circle" style="margin-right:6px;"></i>ACH payments typically settle within <strong>1–3 business days</strong>.
+            </div>
+          </div>
+        </div>
+
+        <!-- Wire Form -->
+        <div class="card" id="wireForm" style="display:none;">
+          <div class="card-header">
+            <h3><i class="fas fa-landmark" style="color:var(--color-accent);margin-right:6px;"></i> Wire Transfer Instructions</h3>
+          </div>
+          <div class="card-body">
+            <div style="background:var(--color-off-white);border:1.5px solid var(--color-border);border-radius:var(--radius-md);padding:18px;">
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;font-size:.82rem;">
+                <div><div style="font-size:.68rem;font-weight:800;text-transform:uppercase;letter-spacing:.07em;color:var(--color-muted);margin-bottom:4px;">Bank Name</div><div style="font-weight:700;">Chase Bank N.A.</div></div>
+                <div><div style="font-size:.68rem;font-weight:800;text-transform:uppercase;letter-spacing:.07em;color:var(--color-muted);margin-bottom:4px;">ABA Routing</div><div style="font-weight:700;font-family:monospace;">021000021</div></div>
+                <div><div style="font-size:.68rem;font-weight:800;text-transform:uppercase;letter-spacing:.07em;color:var(--color-muted);margin-bottom:4px;">Account Number</div><div style="font-weight:700;font-family:monospace;">4000-0012-3456</div></div>
+                <div><div style="font-size:.68rem;font-weight:800;text-transform:uppercase;letter-spacing:.07em;color:var(--color-muted);margin-bottom:4px;">SWIFT / BIC</div><div style="font-weight:700;font-family:monospace;">CHASUS33</div></div>
+                <div style="grid-column:span 2;"><div style="font-size:.68rem;font-weight:800;text-transform:uppercase;letter-spacing:.07em;color:var(--color-muted);margin-bottom:4px;">Beneficiary</div><div style="font-weight:700;">BRND Direct Inc. — Payments</div></div>
+              </div>
+            </div>
+            <div style="background:#fef3c7;border:1px solid #fde68a;border-radius:var(--radius-sm);padding:10px 14px;margin-top:12px;font-size:.78rem;color:#92400e;">
+              <i class="fas fa-triangle-exclamation" style="margin-right:6px;"></i>Include your <strong>invoice number(s)</strong> in the wire memo. Wires typically settle <strong>same-day</strong>.
+            </div>
+            <div class="form-group" style="margin-top:16px;">
+              <label>Wire Memo / Reference (required)</label>
+              <input type="text" id="wireMemo" placeholder="e.g. INV-2891, INV-2888" />
+            </div>
+          </div>
+        </div>
+
+        <!-- BRND Credit -->
+        <div class="card" id="creditForm" style="display:none;">
+          <div class="card-header">
+            <h3><i class="fas fa-wallet" style="color:var(--color-accent);margin-right:6px;"></i> BRND Credit Balance</h3>
+          </div>
+          <div class="card-body">
+            <div style="display:flex;justify-content:space-between;align-items:center;padding:16px;background:var(--color-accent-glow);border:1.5px solid rgba(79,70,229,.2);border-radius:var(--radius-md);margin-bottom:16px;">
+              <div>
+                <div style="font-size:.72rem;font-weight:800;text-transform:uppercase;letter-spacing:.07em;color:var(--color-accent);">Available Credit</div>
+                <div style="font-family:var(--font-display);font-size:1.8rem;font-weight:900;color:var(--color-accent);letter-spacing:-.04em;">$32,660.00</div>
+              </div>
+              <i class="fas fa-wallet" style="font-size:2rem;color:var(--color-accent);opacity:.3;"></i>
+            </div>
+            <div style="font-size:.82rem;color:var(--color-muted);line-height:1.6;">
+              Your BRND credit line will be used to cover the selected invoices immediately. The amount will be applied against your <strong style="color:var(--color-near-black);">Net-30</strong> credit terms and appear on your next statement.
+            </div>
+          </div>
+        </div>
+
+        <div style="display:flex;justify-content:space-between;margin-top:20px;">
+          <button class="btn btn-secondary btn-sm" onclick="goStep(1)"><i class="fas fa-arrow-left"></i> Back</button>
+          <button class="btn btn-primary btn-sm" onclick="goStep(3)">Review Payment <i class="fas fa-arrow-right"></i></button>
+        </div>
+      </div>
+
+      <!-- ── STEP 3: Review & Confirm ── -->
+      <div class="pp-panel" id="panel3">
+        <div class="card">
+          <div class="card-header">
+            <h3>Review Payment Details</h3>
+          </div>
+          <div class="card-body">
+            <div style="font-size:.72rem;font-weight:800;text-transform:uppercase;letter-spacing:.08em;color:var(--color-muted);margin-bottom:10px;">Invoices Being Paid</div>
+            <div id="confirmInvList" style="margin-bottom:20px;display:flex;flex-direction:column;gap:6px;"></div>
+
+            <div style="font-size:.72rem;font-weight:800;text-transform:uppercase;letter-spacing:.08em;color:var(--color-muted);margin-bottom:10px;border-top:1px solid var(--color-border);padding-top:16px;">Payment Details</div>
+            <div id="confirmDetails" style="margin-bottom:16px;"></div>
+
+            <div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:var(--radius-sm);padding:12px 16px;font-size:.82rem;color:#065f46;margin-bottom:16px;">
+              <i class="fas fa-shield-halved" style="margin-right:6px;"></i> This payment is <strong>SSL-encrypted</strong> and processed securely through BRND Direct's PCI-compliant payment gateway.
+            </div>
+
+            <div style="display:flex;align-items:flex-start;gap:8px;margin-bottom:0;">
+              <input type="checkbox" id="termsCheck" style="accent-color:var(--color-accent);width:15px;height:15px;margin-top:2px;flex-shrink:0;">
+              <label for="termsCheck" style="font-size:.78rem;color:var(--color-muted);cursor:pointer;">I authorise BRND Direct to process this payment as described above and agree to the <a href="help.html" style="color:var(--color-accent);">payment terms &amp; conditions</a>.</label>
+            </div>
+          </div>
+        </div>
+
+        <div style="display:flex;justify-content:space-between;margin-top:20px;align-items:center;gap:12px;flex-wrap:wrap;">
+          <button class="btn btn-secondary btn-sm" onclick="goStep(2)"><i class="fas fa-arrow-left"></i> Back</button>
+          <button class="btn btn-primary btn-sm" id="payNowBtn" onclick="processPayment()" style="min-width:200px;justify-content:center;">
+            <i class="fas fa-lock"></i> Pay <span id="payNowAmt"></span> Securely
+          </button>
+        </div>
+      </div>
+
+      <!-- ── STEP 4: Success ── -->
+      <div class="pp-panel" id="panel4">
+        <div class="card">
+          <div class="success-screen">
+            <div class="success-icon-wrap"><i class="fas fa-check"></i></div>
+            <h2>Payment Successful!</h2>
+            <p>Your payment has been processed and confirmed. A receipt has been sent to <strong>alex@johnsonretail.com</strong></p>
+            <div class="success-ref">
+              <div class="success-ref__label">Transaction Reference</div>
+              <div class="success-ref__num" id="txRef">TXN-BD-000000</div>
+            </div>
+            <div id="successMeta" style="font-size:.82rem;color:var(--color-muted);margin-bottom:28px;"></div>
+            <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;">
+              <button class="btn btn-secondary btn-sm" onclick="showToast('Receipt downloaded.','success')"><i class="fas fa-download"></i> Download Receipt</button>
+              <a href="invoices.html" class="btn btn-primary btn-sm"><i class="fas fa-file-invoice-dollar"></i> Back to Invoices</a>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- RIGHT: Order Summary -->
+    <div>
+      <div class="summary-card" id="summarySidebar">
+        <div class="summary-header">
+          <h3><i class="fas fa-receipt" style="margin-right:8px;opacity:.8;"></i> Payment Summary</h3>
+          <p>Selected invoices for this transaction</p>
+        </div>
+        <div class="summary-items" id="summaryItemList">
+          <div style="text-align:center;padding:24px 0;color:var(--color-muted);font-size:.82rem;">
+            <i class="fas fa-file-invoice" style="font-size:1.5rem;display:block;margin-bottom:8px;opacity:.3;"></i>
+            No invoices selected yet
+          </div>
+        </div>
+        <div class="summary-totals">
+          <div class="summary-row">
+            <span style="color:var(--color-muted);">Subtotal</span>
+            <span id="sumSubtotal">$0.00</span>
+          </div>
+          <div class="summary-row">
+            <span style="color:var(--color-muted);">Processing Fee</span>
+            <span id="sumFee">$0.00</span>
+          </div>
+          <div class="summary-row total">
+            <span>Total Due</span>
+            <span id="sumTotal" style="color:var(--color-accent);">$0.00</span>
+          </div>
+        </div>
+        <div class="summary-footer">
+          <div style="font-size:.72rem;color:var(--color-muted);margin-bottom:10px;line-height:1.5;">
+            <i class="fas fa-info-circle" style="margin-right:4px;"></i>
+            ACH &amp; wire transfers: no processing fee. Card payments: 2.9% + $0.30.
+          </div>
+          <div class="security-row" style="padding:0;gap:6px;">
+            <div class="sec-badge"><i class="fas fa-lock"></i> 256-bit SSL</div>
+            <div class="sec-badge"><i class="fas fa-shield-halved"></i> PCI DSS</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</main>
+
+<div class="toast-container" id="toastContainer"></div>
+<script src="js/portal.js"></script>
+<script>(function(){try{var c=JSON.parse(sessionStorage.getItem('brnd_cart')||'[]');var b=document.getElementById('sidebarCartBadge');if(b&&c.length>0){b.textContent=c.length;b.style.display='inline-flex';}}catch(e){}})();</script>
+<script>
+/* ================================================================
+   PAYMENT PORTAL — BRND Direct
+   Reads invoice ID(s) from URL params: ?inv=INV-2891 or ?inv=INV-2891,INV-2888
+================================================================ */
+
+const ALL_INVOICES = [
+  { id:'INV-2891', order:'BD-48291', brand:'Maison Margiela', amount:3840,  terms:'Net-30', issued:'Mar 18, 2026', due:'Apr 17, 2026', status:'outstanding' },
+  { id:'INV-2888', order:'BD-48288', brand:'Chanel',           amount:5760,  terms:'Net-60', issued:'Mar 15, 2026', due:'May 14, 2026', status:'outstanding' },
+  { id:'INV-2887', order:'BD-48287', brand:'Gucci',            amount:7200,  terms:'Net-30', issued:'Mar 14, 2026', due:'Apr 13, 2026', status:'outstanding' },
+  { id:'INV-2882', order:'BD-48282', brand:'Versace',          amount:3060,  terms:'Net-30', issued:'Mar 6, 2026',  due:'Apr 5, 2026',  status:'outstanding' },
+];
+
+/* ── State ── */
+let selectedInvoices = new Set();
+let currentStep = 1;
+let currentMethod = 'card';
+
+/* ── Read URL params on load ── */
+function init() {
+  const params = new URLSearchParams(window.location.search);
+  const invParam = params.get('inv');
+
+  // Render invoice list
+  renderInvSelectList();
+
+  // Pre-select from URL
+  if (invParam) {
+    const ids = invParam.split(',').map(s => s.trim());
+    ids.forEach(id => {
+      if (ALL_INVOICES.find(i => i.id === id)) {
+        selectedInvoices.add(id);
+      }
+    });
+    // Reflect in checkboxes
+    document.querySelectorAll('.inv-item-checkbox').forEach(cb => {
+      if (selectedInvoices.has(cb.dataset.id)) {
+        cb.checked = true;
+        cb.closest('.inv-select-item').classList.add('selected');
+      }
+    });
+    updateSummary();
+    updateStep1Next();
+  }
+}
+
+function renderInvSelectList() {
+  const list = document.getElementById('invSelectList');
+  if (!ALL_INVOICES.length) {
+    list.innerHTML = `<div style="text-align:center;padding:24px;color:var(--color-muted);">
+      <i class="fas fa-check-circle" style="font-size:2rem;color:var(--color-emerald);display:block;margin-bottom:10px;"></i>
+      All invoices are settled. Nothing to pay!
+    </div>`;
+    return;
+  }
+  list.innerHTML = ALL_INVOICES.map(inv => `
+    <div class="inv-select-item" id="invItem-${inv.id}" onclick="toggleInv('${inv.id}')">
+      <input type="checkbox" class="inv-item-checkbox" data-id="${inv.id}" onclick="event.stopPropagation();toggleInv('${inv.id}')" ${selectedInvoices.has(inv.id)?'checked':''}>
+      <div class="inv-select-item__info">
+        <div class="inv-select-item__id">${inv.id}</div>
+        <div class="inv-select-item__meta">${inv.brand} · ${inv.order} · ${inv.terms}</div>
+      </div>
+      <div style="text-align:right;">
+        <div class="inv-select-item__amount">$${inv.amount.toLocaleString()}</div>
+        <div class="inv-select-item__due outstanding">Due ${inv.due}</div>
+      </div>
+    </div>`).join('');
+}
+
+function toggleInv(id) {
+  if (selectedInvoices.has(id)) {
+    selectedInvoices.delete(id);
+  } else {
+    selectedInvoices.add(id);
+  }
+  // Update checkbox + selected class
+  const item = document.getElementById(`invItem-${id}`);
+  const cb = item.querySelector('.inv-item-checkbox');
+  cb.checked = selectedInvoices.has(id);
+  item.classList.toggle('selected', selectedInvoices.has(id));
+  updateSummary();
+  updateStep1Next();
+}
+
+function toggleSelectAll() {
+  const allSelected = ALL_INVOICES.every(i => selectedInvoices.has(i.id));
+  if (allSelected) {
+    selectedInvoices.clear();
+    document.getElementById('selectAllBtn').textContent = 'Select All';
+  } else {
+    ALL_INVOICES.forEach(i => selectedInvoices.add(i.id));
+    document.getElementById('selectAllBtn').textContent = 'Deselect All';
+  }
+  document.querySelectorAll('.inv-item-checkbox').forEach(cb => {
+    cb.checked = selectedInvoices.has(cb.dataset.id);
+    cb.closest('.inv-select-item').classList.toggle('selected', selectedInvoices.has(cb.dataset.id));
+  });
+  updateSummary();
+  updateStep1Next();
+}
+
+function updateStep1Next() {
+  const btn = document.getElementById('step1Next');
+  const sel = document.getElementById('selectionSummary');
+  if (selectedInvoices.size === 0) {
+    btn.disabled = true;
+    sel.textContent = 'No invoices selected';
+  } else {
+    btn.disabled = false;
+    const total = getSelectedTotal();
+    sel.textContent = `${selectedInvoices.size} invoice${selectedInvoices.size>1?'s':''} selected · $${total.toLocaleString()} total`;
+  }
+}
+
+function getSelectedTotal() {
+  return ALL_INVOICES.filter(i => selectedInvoices.has(i.id)).reduce((s, i) => s + i.amount, 0);
+}
+
+function getProcessingFee() {
+  if (currentMethod === 'card') {
+    const total = getSelectedTotal();
+    return Math.round((total * 0.029 + 0.30) * 100) / 100;
+  }
+  return 0;
+}
+
+function updateSummary() {
+  const selected = ALL_INVOICES.filter(i => selectedInvoices.has(i.id));
+  const list = document.getElementById('summaryItemList');
+  const fee = getProcessingFee();
+  const subtotal = getSelectedTotal();
+  const grandTotal = subtotal + fee;
+
+  if (selected.length === 0) {
+    list.innerHTML = `<div style="text-align:center;padding:24px 0;color:var(--color-muted);font-size:.82rem;">
+      <i class="fas fa-file-invoice" style="font-size:1.5rem;display:block;margin-bottom:8px;opacity:.3;"></i>
+      No invoices selected yet
+    </div>`;
+  } else {
+    list.innerHTML = selected.map(inv => `
+      <div class="summary-item">
+        <div>
+          <div class="summary-item__inv">${inv.id}</div>
+          <div class="summary-item__brand">${inv.brand} · ${inv.terms}</div>
+        </div>
+        <div class="summary-item__amt">$${inv.amount.toLocaleString()}</div>
+      </div>`).join('');
+  }
+
+  document.getElementById('sumSubtotal').textContent = `$${subtotal.toLocaleString()}${subtotal > 0 ? '.00' : ''}`;
+  document.getElementById('sumFee').textContent = fee > 0 ? `$${fee.toFixed(2)}` : 'Free';
+  document.getElementById('sumTotal').textContent = `$${grandTotal.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',')}`;
+  document.getElementById('payNowAmt').textContent = `$${grandTotal.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',')}`;
+}
+
+/* ── Payment method ── */
+function selectPayMethod(method) {
+  currentMethod = method;
+  ['card','ach','wire','credit'].forEach(m => {
+    document.getElementById(`pm${m.charAt(0).toUpperCase()+m.slice(1)}Opt`).classList.remove('selected');
+    const form = document.getElementById(`${m}Form`);
+    if (form) form.style.display = 'none';
+  });
+  document.getElementById(`pm${method.charAt(0).toUpperCase()+method.slice(1)}Opt`).classList.add('selected');
+  const activeForm = document.getElementById(`${method}Form`);
+  if (activeForm) activeForm.style.display = '';
+  updateSummary(); // recalc fee
+}
+
+/* ── Step navigation ── */
+function goStep(n) {
+  if (n === 3) buildConfirmStep();
+
+  // Hide all panels
+  [1,2,3,4].forEach(i => {
+    document.getElementById(`panel${i}`).classList.remove('active');
+  });
+  document.getElementById(`panel${n}`).classList.add('active');
+
+  // Update step indicators
+  [1,2,3,4].forEach(i => {
+    const stepEl = document.getElementById(`step${i}`);
+    stepEl.classList.remove('active','done');
+    if (i < n) stepEl.classList.add('done');
+    else if (i === n) stepEl.classList.add('active');
+  });
+  // Update lines
+  [1,2,3].forEach(i => {
+    const line = document.getElementById(`line${i}`);
+    line.classList.toggle('done', i < n);
+  });
+
+  currentStep = n;
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function buildConfirmStep() {
+  const selected = ALL_INVOICES.filter(i => selectedInvoices.has(i.id));
+  const fee = getProcessingFee();
+  const total = getSelectedTotal() + fee;
+
+  // Invoice list
+  document.getElementById('confirmInvList').innerHTML = selected.map(inv => `
+    <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 14px;background:var(--color-off-white);border-radius:var(--radius-sm);">
+      <div>
+        <span style="font-size:.82rem;font-weight:800;font-family:monospace;color:var(--color-accent);">${inv.id}</span>
+        <span style="font-size:.78rem;color:var(--color-muted);margin-left:10px;">${inv.brand}</span>
+      </div>
+      <strong>$${inv.amount.toLocaleString()}.00</strong>
+    </div>`).join('');
+
+  // Method label
+  const methodLabels = { card: '💳 Credit Card ending in ••••4242', ach: '🏦 ACH Bank Transfer', wire: '🏛 Wire Transfer', credit: '💼 BRND Credit Balance' };
+  const rows = [
+    { label: 'Payment Method', val: methodLabels[currentMethod] || currentMethod },
+    { label: 'Processing Fee', val: fee > 0 ? `$${fee.toFixed(2)}` : 'Free' },
+    { label: 'Total Amount', val: `<strong style="font-size:1rem;color:var(--color-accent);">$${total.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',')}</strong>` },
+    { label: 'Payment Date', val: new Date().toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'}) },
+    { label: 'Account', val: 'Johnson Retail Group LLC' },
+  ];
+  document.getElementById('confirmDetails').innerHTML = `<div style="border:1.5px solid var(--color-border);border-radius:var(--radius-md);overflow:hidden;">${
+    rows.map(r => `<div class="confirm-row" style="padding:10px 16px;"><span class="confirm-row__label">${r.label}</span><span class="confirm-row__val">${r.val}</span></div>`).join('')
+  }</div>`;
+}
+
+/* ── Process payment ── */
+function processPayment() {
+  if (!document.getElementById('termsCheck').checked) {
+    showToast('Please agree to the payment terms to continue.', 'error');
+    return;
+  }
+
+  const btn = document.getElementById('payNowBtn');
+  btn.disabled = true;
+  btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing…';
+
+  setTimeout(() => {
+    // Generate ref
+    const ref = 'TXN-BD-' + Math.random().toString(36).substr(2,8).toUpperCase();
+    document.getElementById('txRef').textContent = ref;
+
+    const total = getSelectedTotal() + getProcessingFee();
+    const invIds = [...selectedInvoices].join(', ');
+    document.getElementById('successMeta').innerHTML = `
+      <strong>$${total.toFixed(2)}</strong> paid for ${invIds}<br>
+      <span>Processed on ${new Date().toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'})}</span>`;
+
+    goStep(4);
+    showToast('Payment processed successfully!', 'success');
+  }, 2200);
+}
+
+/* ── Card number helpers ── */
+function formatCardNumber(input) {
+  let val = input.value.replace(/\D/g,'').substr(0,16);
+  input.value = val.replace(/(.{4})/g,'$1 ').trim();
+  const badge = document.getElementById('cardTypeBadge');
+  if (val.startsWith('4')) { badge.textContent='VISA'; badge.style.background='#1a1f71'; badge.style.display=''; }
+  else if (val.startsWith('5')) { badge.textContent='MC'; badge.style.background='#eb001b'; badge.style.display=''; }
+  else if (val.startsWith('3')) { badge.textContent='AMEX'; badge.style.background='#006fcf'; badge.style.display=''; }
+  else { badge.style.display='none'; }
+}
+function formatExpiry(input) {
+  let val = input.value.replace(/\D/g,'').substr(0,4);
+  if (val.length >= 3) val = val.substr(0,2) + ' / ' + val.substr(2);
+  input.value = val;
+}
+
+/* ── Toast ── */
+function showToast(msg, type='success') {
+  const c = document.getElementById('toastContainer');
+  const icon = type === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle';
+  const t = document.createElement('div');
+  t.className = `toast ${type}`;
+  t.innerHTML = `<i class="fas ${icon}"></i><span>${msg}</span>`;
+  c.appendChild(t);
+  setTimeout(() => { t.style.opacity='0'; t.style.transform='translateX(60px)'; t.style.transition='all .3s'; setTimeout(()=>t.remove(),350); }, 3500);
+}
+
+/* ── Boot ── */
+init();
+</script>
+</body>
+</html>

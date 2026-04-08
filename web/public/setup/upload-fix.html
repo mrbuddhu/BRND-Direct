@@ -1,0 +1,686 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BRND Direct — Go Live (Upload Method)</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css" />
+  <style>
+    :root {
+      --bg: #0a0a0f;
+      --surface: #13131a;
+      --surface2: #1c1c26;
+      --border: #2a2a3a;
+      --accent: #7c5cfc;
+      --accent2: #a78bfa;
+      --green: #22c55e;
+      --yellow: #f59e0b;
+      --red: #ef4444;
+      --blue: #3b82f6;
+      --text: #e2e8f0;
+      --muted: #94a3b8;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body { background: var(--bg); color: var(--text); font-family: 'Inter', sans-serif; font-size: 15px; line-height: 1.7; }
+
+    /* NAV */
+    .topnav {
+      position: sticky; top: 0; z-index: 100;
+      background: rgba(10,10,15,0.95); backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+      padding: 0 2rem; display: flex; align-items: center; justify-content: space-between; height: 60px;
+    }
+    .nav-logo { display: flex; align-items: center; gap: 10px; font-weight: 800; font-size: 1rem; }
+    .nav-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--accent); }
+    .nav-badge { background: rgba(34,197,94,.12); border: 1px solid rgba(34,197,94,.25); color: var(--green); padding: 4px 14px; border-radius: 20px; font-size: 12px; font-weight: 700; }
+
+    /* HERO */
+    .hero {
+      text-align: center; padding: 3.5rem 2rem 2.5rem;
+      background: radial-gradient(ellipse 70% 50% at 50% -5%, rgba(34,197,94,.1), transparent);
+    }
+    .hero-badge {
+      display: inline-flex; align-items: center; gap: 8px;
+      background: rgba(34,197,94,.1); border: 1px solid rgba(34,197,94,.25);
+      color: var(--green); padding: 6px 18px; border-radius: 20px;
+      font-size: 12px; font-weight: 700; letter-spacing:.04em; text-transform:uppercase; margin-bottom: 1.2rem;
+    }
+    .hero h1 { font-size: clamp(1.7rem,4vw,2.6rem); font-weight: 800; line-height: 1.2; margin-bottom: .7rem; }
+    .hero h1 span { color: var(--green); }
+    .hero p { color: var(--muted); max-width: 500px; margin: 0 auto; font-size: .9rem; }
+
+    /* WRAPPER */
+    .wrapper { max-width: 800px; margin: 0 auto; padding: 2rem 1.5rem 5rem; }
+
+    /* PHASE LABEL */
+    .phase-label {
+      display: flex; align-items: center; gap: 10px; margin: 2rem 0 .8rem;
+      font-size: .72rem; font-weight: 700; text-transform: uppercase; letter-spacing: .1em; color: var(--muted);
+    }
+    .phase-label::before, .phase-label::after { content:''; flex:1; height:1px; background: var(--border); }
+    .phase-label span { white-space: nowrap; }
+
+    /* BIG STEP */
+    .big-step {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 16px; margin-bottom: 1.2rem; overflow: hidden;
+    }
+    .big-step-header {
+      display: flex; align-items: center; gap: 16px;
+      padding: 1.3rem 1.6rem; border-bottom: 1px solid var(--border);
+    }
+    .step-circle {
+      width: 48px; height: 48px; border-radius: 50%; flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.2rem; font-weight: 900;
+    }
+    .step-circle.num { background: rgba(124,92,252,.15); color: var(--accent2); border: 2px solid rgba(124,92,252,.3); }
+    .step-circle.done-c { background: rgba(34,197,94,.12); color: var(--green); border: 2px solid rgba(34,197,94,.3); }
+    .step-title { font-size: 1rem; font-weight: 800; }
+    .step-sub { font-size: .78rem; color: var(--muted); margin-top: 2px; }
+    .step-body { padding: 1.6rem; }
+
+    /* MINI STEPS */
+    .mini { display: flex; gap: 14px; margin-bottom: 1.3rem; align-items: flex-start; }
+    .mini-num {
+      width: 26px; height: 26px; border-radius: 7px; flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center;
+      font-size: .72rem; font-weight: 800;
+      background: rgba(124,92,252,.1); color: var(--accent2); border: 1px solid rgba(124,92,252,.2);
+    }
+    .mini-body { flex: 1; padding-top: 2px; }
+    .mini-body strong { font-weight: 700; font-size: .92rem; }
+    .mini-body p { color: var(--muted); font-size: .82rem; margin-top: 3px; }
+
+    /* FILE TREE */
+    .file-tree {
+      background: #0d0d14; border: 1px solid var(--border);
+      border-radius: 12px; padding: 1.2rem 1.4rem; font-family: monospace;
+      font-size: .82rem; line-height: 2; margin: 1rem 0;
+    }
+    .ft-folder { color: #fbbf24; }
+    .ft-file   { color: #93c5fd; }
+    .ft-note   { color: #4b5563; font-size: .72rem; }
+    .ft-hl     { color: var(--green); font-weight: 700; }
+    .ft-indent { padding-left: 1.4rem; display: block; }
+
+    /* MOCKUP */
+    .mockup { background: var(--surface2); border: 1px solid var(--border); border-radius: 12px; margin: 1rem 0; overflow: hidden; }
+    .mockup-bar { background: #1a1a24; padding: 8px 14px; display: flex; align-items: center; gap: 6px; border-bottom: 1px solid var(--border); }
+    .mock-dot { width: 10px; height: 10px; border-radius: 50%; }
+    .mock-dot.r { background: #ff5f57; }
+    .mock-dot.y { background: #febc2e; }
+    .mock-dot.g { background: #28c840; }
+    .mockup-url { flex:1; background: var(--surface); border-radius:5px; padding:4px 12px; font-size:11px; color:var(--muted); font-family:monospace; border:1px solid var(--border); max-width:420px; margin:0 auto; text-align:center; }
+    .mock-body { padding: 1rem 1.2rem; }
+
+    /* UI BITS */
+    .ui-sidebar { width: 180px; background: #0e0e18; border-right: 1px solid var(--border); padding: 10px; font-size: 11px; flex-shrink: 0; }
+    .ui-main { flex: 1; padding: 1rem; }
+    .ui-item { padding: 5px 8px; border-radius: 6px; margin-bottom: 3px; font-size: 11px; font-weight: 600; color: var(--muted); display: flex; align-items: center; gap: 6px; }
+    .ui-item.active { background: rgba(34,197,94,.1); color: var(--green); }
+    .ui-item.hl { background: rgba(124,92,252,.12); color: var(--accent2); animation: glow 1.6s ease-in-out infinite; }
+    @keyframes glow { 0%,100%{box-shadow:none} 50%{box-shadow:0 0 8px rgba(124,92,252,.3)} }
+    .ui-btn { display:inline-flex; align-items:center; gap:6px; padding:7px 16px; border-radius:8px; font-size:12px; font-weight:700; border:none; cursor:default; }
+    .ui-btn.green { background:rgba(34,197,94,.12); color:var(--green); border:1px solid rgba(34,197,94,.25); }
+    .ui-btn.purple { background:rgba(124,92,252,.15); color:var(--accent2); border:1px solid rgba(124,92,252,.3); }
+    .ui-btn.blue { background:rgba(59,130,246,.12); color:#93c5fd; border:1px solid rgba(59,130,246,.25); }
+    .ui-btn.orange { background:rgba(245,158,11,.1); color:var(--yellow); border:1px solid rgba(245,158,11,.25); }
+
+    /* OPTION CARDS */
+    .os-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 1rem 0; }
+    .os-card { background: var(--surface2); border: 1px solid var(--border); border-radius: 12px; padding: 1rem; cursor: default; }
+    .os-card.win { border-color: rgba(59,130,246,.3); background: rgba(59,130,246,.06); }
+    .os-card.mac { border-color: rgba(124,92,252,.3); background: rgba(124,92,252,.06); }
+    .os-icon { font-size: 1.6rem; margin-bottom: .4rem; }
+    .os-title { font-weight: 700; font-size: .85rem; margin-bottom: .3rem; }
+    .os-steps { font-size: .78rem; color: var(--muted); line-height: 1.9; }
+    .os-steps b { color: var(--text); }
+
+    /* CALLOUT */
+    .callout { display:flex; gap:12px; padding:.9rem 1.1rem; border-radius:10px; margin:.8rem 0; font-size:.83rem; }
+    .callout.info { background:rgba(59,130,246,.07); border:1px solid rgba(59,130,246,.18); color:#93c5fd; }
+    .callout.tip  { background:rgba(245,158,11,.07); border:1px solid rgba(245,158,11,.2); color:#fcd34d; }
+    .callout.warn { background:rgba(239,68,68,.07); border:1px solid rgba(239,68,68,.2); color:#fca5a5; }
+    .callout.success { background:rgba(34,197,94,.07); border:1px solid rgba(34,197,94,.2); color:#86efac; }
+    .callout-icon { font-size:.95rem; flex-shrink:0; margin-top:2px; }
+    .callout strong { font-weight:700; display:block; margin-bottom:2px; }
+
+    /* UPLOAD AREA */
+    .upload-zone {
+      border: 2px dashed rgba(34,197,94,.35); border-radius: 12px;
+      padding: 2rem; text-align: center; margin: 1rem 0;
+      background: rgba(34,197,94,.04);
+      animation: borderpulse 2s ease-in-out infinite;
+    }
+    @keyframes borderpulse { 0%,100%{border-color:rgba(34,197,94,.25)} 50%{border-color:rgba(34,197,94,.6)} }
+    .upload-icon { font-size: 2.2rem; margin-bottom: .5rem; }
+    .upload-title { font-weight: 700; font-size: .95rem; color: var(--green); margin-bottom: .3rem; }
+    .upload-sub { font-size: .78rem; color: var(--muted); }
+
+    /* BUILD SETTINGS TABLE */
+    .settings-table { width: 100%; border-collapse: collapse; font-size: .82rem; margin: 1rem 0; }
+    .settings-table th { background: var(--surface2); color: var(--muted); font-weight: 600; padding: 8px 12px; text-align: left; border-bottom: 1px solid var(--border); }
+    .settings-table td { padding: 10px 12px; border-bottom: 1px solid rgba(42,42,58,.5); vertical-align: middle; }
+    .settings-table tr:last-child td { border-bottom: none; }
+    .field-name { font-weight: 600; color: var(--text); }
+    .field-val { font-family: monospace; background: var(--surface2); border: 1px solid var(--border); border-radius: 6px; padding: 3px 10px; color: var(--accent2); font-size: .8rem; display: inline-block; }
+    .field-val.green { color: var(--green); border-color: rgba(34,197,94,.25); background: rgba(34,197,94,.05); }
+
+    /* SUCCESS SCREEN */
+    .success-card {
+      background: rgba(34,197,94,.06); border: 1px solid rgba(34,197,94,.25);
+      border-radius: 16px; padding: 2rem; text-align: center; margin-top: 2rem;
+    }
+
+    /* SCROLL ANCHOR */
+    .anchor { scroll-margin-top: 75px; }
+
+    /* DIVIDER */
+    hr { border: none; border-top: 1px solid var(--border); margin: 1.2rem 0; }
+
+    @media (max-width: 600px) {
+      .topnav { padding: 0 1rem; }
+      .wrapper { padding: 1.5rem 1rem 4rem; }
+      .os-grid { grid-template-columns: 1fr; }
+      .step-body { padding: 1.1rem; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav class="topnav">
+  <div class="nav-logo"><div class="nav-dot"></div>BRND Direct</div>
+  <span class="nav-badge"><i class="fas fa-rocket" style="margin-right:5px;"></i>Go Live — Upload Method</span>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-badge"><i class="fas fa-upload"></i> Fix 3 — Direct Upload</div>
+  <h1>Skip GitHub.<br><span>Just Zip &amp; Upload.</span></h1>
+  <p>No Git, no terminal, no errors. Download your files, zip them, drag into Cloudflare. Live in under 5 minutes.</p>
+</section>
+
+<div class="wrapper">
+
+  <div class="callout success">
+    <span class="callout-icon"><i class="fas fa-check-circle"></i></span>
+    <div>
+      <strong>This is the easiest option</strong>
+      You're going to: download your project files → put them in one folder → zip that folder → upload the zip to Cloudflare. That's it.
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════
+       PHASE 1 — DOWNLOAD THE FILES
+  ══════════════════════════════════════ -->
+  <div class="phase-label"><span>📥 Phase 1 — Get your project files onto your computer</span></div>
+
+  <div class="big-step anchor" id="phase1">
+    <div class="big-step-header">
+      <div class="step-circle num">1</div>
+      <div>
+        <div class="step-title">Download all project files</div>
+        <div class="step-sub">Use the "Download" button in the project panel (top right of this editor)</div>
+      </div>
+    </div>
+    <div class="step-body">
+
+      <div class="mini">
+        <div class="mini-num">1</div>
+        <div class="mini-body">
+          <strong>Look for the Download / Export button in your project tool</strong>
+          <p>In the tool you're using to build this project (this AI website builder), there should be a <strong>Download</strong> or <strong>Export</strong> button somewhere in the top toolbar or sidebar. Click it to download all your files as a zip.</p>
+        </div>
+      </div>
+
+      <div class="callout tip">
+        <span class="callout-icon"><i class="fas fa-lightbulb"></i></span>
+        <div>
+          <strong>Can't find a download button?</strong>
+          Look for options labelled: <em>Export Project</em>, <em>Download ZIP</em>, <em>Download Files</em>, or a <i class="fas fa-download"></i> icon in the top-right area of the builder interface.
+        </div>
+      </div>
+
+      <hr />
+
+      <div class="mini">
+        <div class="mini-num">2</div>
+        <div class="mini-body">
+          <strong>Your project contains these files and folders</strong>
+          <p>When downloaded, your folder should look exactly like this. All of these files and folders need to be inside ONE folder together:</p>
+        </div>
+      </div>
+
+      <div class="file-tree">
+        <span class="ft-folder">📁 brnd-direct/</span>  <span class="ft-note">← this is your main project folder</span>
+        <span class="ft-indent"><span class="ft-folder">📁 admin/</span>
+          <span class="ft-indent"><span class="ft-file">📄 index.html</span></span>
+        </span>
+        <span class="ft-indent"><span class="ft-folder">📁 buyer/</span>
+          <span class="ft-indent"><span class="ft-file">📄 index.html</span> <span class="ft-note">← buyer login</span></span>
+          <span class="ft-indent"><span class="ft-file">📄 register.html</span></span>
+          <span class="ft-indent"><span class="ft-file">📄 dashboard.html</span></span>
+          <span class="ft-indent"><span class="ft-file">📄 products.html</span></span>
+          <span class="ft-indent"><span class="ft-file">📄 orders.html</span></span>
+          <span class="ft-indent"><span class="ft-file">📄 reset-password.html</span></span>
+          <span class="ft-indent"><span class="ft-note">… and more pages</span></span>
+        </span>
+        <span class="ft-indent"><span class="ft-folder">📁 css/</span>
+          <span class="ft-indent"><span class="ft-file">📄 portal.css</span></span>
+        </span>
+        <span class="ft-indent"><span class="ft-folder">📁 js/</span>
+          <span class="ft-indent"><span class="ft-file">📄 supabase.js</span></span>
+          <span class="ft-indent"><span class="ft-file">📄 auth.js</span></span>
+          <span class="ft-indent"><span class="ft-file">📄 api.js</span></span>
+          <span class="ft-indent"><span class="ft-file">📄 portal.js</span></span>
+          <span class="ft-indent"><span class="ft-file">📄 stripe.js</span></span>
+        </span>
+        <span class="ft-indent"><span class="ft-folder">📁 seller/</span></span>
+        <span class="ft-indent"><span class="ft-folder">📁 setup/</span></span>
+        <span class="ft-indent"><span class="ft-folder">📁 workers/</span></span>
+        <span class="ft-indent"><span class="ft-hl">📄 index.html</span>  <span class="ft-note">← root index file (important!)</span></span>
+        <span class="ft-indent"><span class="ft-file">📄 _headers</span></span>
+        <span class="ft-indent"><span class="ft-file">📄 _redirects</span></span>
+        <span class="ft-indent"><span class="ft-file">📄 README.md</span></span>
+      </div>
+
+      <div class="callout info">
+        <span class="callout-icon"><i class="fas fa-info-circle"></i></span>
+        <div>
+          <strong>Where does the downloaded folder appear on your computer?</strong>
+          It will be in your <strong>Downloads</strong> folder by default. On Windows: <code style="color:#93c5fd">C:\Users\YourName\Downloads\</code> — On Mac: <code style="color:#93c5fd">/Users/YourName/Downloads/</code>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+
+  <!-- ══════════════════════════════════════
+       PHASE 2 — CREATE THE ZIP
+  ══════════════════════════════════════ -->
+  <div class="phase-label"><span>📦 Phase 2 — Create the ZIP file</span></div>
+
+  <div class="big-step anchor" id="phase2">
+    <div class="big-step-header">
+      <div class="step-circle num">2</div>
+      <div>
+        <div class="step-title">Zip your project folder</div>
+        <div class="step-sub">Select all files inside the folder → right-click → compress</div>
+      </div>
+    </div>
+    <div class="step-body">
+
+      <div class="os-grid">
+
+        <!-- WINDOWS -->
+        <div class="os-card win">
+          <div class="os-icon">🪟</div>
+          <div class="os-title" style="color:#93c5fd;">Windows</div>
+          <div class="os-steps">
+            1. Open your <b>Downloads</b> folder<br>
+            2. Open the <b>brnd-direct</b> folder<br>
+            3. Press <b>Ctrl+A</b> to select ALL files inside<br>
+            4. Right-click any selected file<br>
+            5. Click <b>"Send to"</b><br>
+            6. Click <b>"Compressed (zipped) folder"</b><br>
+            7. Name it <b>brnd-direct.zip</b>
+          </div>
+        </div>
+
+        <!-- MAC -->
+        <div class="os-card mac">
+          <div class="os-icon">🍎</div>
+          <div class="os-title" style="color:var(--accent2);">Mac</div>
+          <div class="os-steps">
+            1. Open <b>Finder</b> → <b>Downloads</b><br>
+            2. Open the <b>brnd-direct</b> folder<br>
+            3. Press <b>⌘+A</b> to select ALL files inside<br>
+            4. Right-click (or Ctrl+click) any file<br>
+            5. Click <b>"Compress X items"</b><br>
+            6. A file called <b>Archive.zip</b> is created<br>
+            7. Rename it <b>brnd-direct.zip</b>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- VISUAL: what the zip looks like -->
+      <div class="callout warn">
+        <span class="callout-icon"><i class="fas fa-exclamation-triangle"></i></span>
+        <div>
+          <strong>Important — zip the CONTENTS, not the folder itself</strong>
+          Open the folder first, then select everything inside it (Ctrl+A / ⌘+A), then zip. If you zip the folder itself, Cloudflare will see an extra layer and may not find index.html.
+        </div>
+      </div>
+
+      <!-- VISUAL DIAGRAM -->
+      <div style="display:grid;grid-template-columns:1fr auto 1fr;gap:12px;align-items:center;margin:1.2rem 0;">
+        <div style="background:rgba(239,68,68,.06);border:1px solid rgba(239,68,68,.2);border-radius:10px;padding:1rem;text-align:center;font-size:.78rem;">
+          <div style="font-size:1.3rem;margin-bottom:.4rem;">❌</div>
+          <div style="font-weight:700;color:#fca5a5;margin-bottom:.3rem;">Wrong way</div>
+          <div style="color:var(--muted);">Right-click the <strong>folder</strong> and zip it → creates <code>brnd-direct.zip</code> containing a <code>brnd-direct/</code> folder inside</div>
+        </div>
+        <div style="color:var(--muted);font-size:1.2rem;">vs</div>
+        <div style="background:rgba(34,197,94,.06);border:1px solid rgba(34,197,94,.2);border-radius:10px;padding:1rem;text-align:center;font-size:.78rem;">
+          <div style="font-size:1.3rem;margin-bottom:.4rem;">✅</div>
+          <div style="font-weight:700;color:var(--green);margin-bottom:.3rem;">Correct way</div>
+          <div style="color:var(--muted);">Open the folder, select ALL files inside (Ctrl+A), zip those → <code>index.html</code> is at the root of the zip</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+
+  <!-- ══════════════════════════════════════
+       PHASE 3 — UPLOAD TO CLOUDFLARE
+  ══════════════════════════════════════ -->
+  <div class="phase-label"><span>☁️ Phase 3 — Upload to Cloudflare Pages</span></div>
+
+  <div class="big-step anchor" id="phase3">
+    <div class="big-step-header">
+      <div class="step-circle num">3</div>
+      <div>
+        <div class="step-title">Delete the old broken project in Cloudflare</div>
+        <div class="step-sub">Start fresh — takes 30 seconds</div>
+      </div>
+    </div>
+    <div class="step-body">
+
+      <div class="mini">
+        <div class="mini-num">1</div>
+        <div class="mini-body">
+          <strong>Go to dash.cloudflare.com → Workers &amp; Pages</strong>
+          <p>Find the broken <strong>brnd-direct</strong> project and click into it.</p>
+        </div>
+      </div>
+
+      <div class="mini">
+        <div class="mini-num">2</div>
+        <div class="mini-body">
+          <strong>Click Settings → scroll all the way to the bottom → Delete project</strong>
+        </div>
+      </div>
+
+      <!-- MOCKUP: Delete project -->
+      <div class="mockup">
+        <div class="mockup-bar">
+          <div class="mock-dot r"></div><div class="mock-dot y"></div><div class="mock-dot g"></div>
+          <div class="mockup-url">dash.cloudflare.com → Pages → brnd-direct → Settings</div>
+        </div>
+        <div style="display:flex;">
+          <div class="ui-sidebar">
+            <div class="ui-item"><i class="fas fa-cog"></i> General</div>
+            <div class="ui-item"><i class="fas fa-tools"></i> Builds</div>
+            <div class="ui-item"><i class="fas fa-key"></i> Env Vars</div>
+            <div class="ui-item"><i class="fas fa-globe"></i> Domains</div>
+          </div>
+          <div class="ui-main">
+            <div style="font-size:.78rem;color:var(--muted);margin-bottom:10px;">General Settings</div>
+            <div style="font-size:.8rem;font-weight:600;margin-bottom:4px;">Project name</div>
+            <div style="font-size:.8rem;color:var(--muted);margin-bottom:16px;">brnd-direct</div>
+            <div style="border-top:1px solid var(--border);padding-top:12px;margin-top:8px;">
+              <div style="font-size:.75rem;color:#fca5a5;font-weight:700;margin-bottom:6px;">⚠ Danger Zone</div>
+              <button class="ui-btn" style="background:rgba(239,68,68,.1);color:#fca5a5;border:1px solid rgba(239,68,68,.25);font-size:11px;">
+                <i class="fas fa-trash"></i> Delete project ← Click this
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="callout info">
+        <span class="callout-icon"><i class="fas fa-info-circle"></i></span>
+        <div>This only deletes the broken Cloudflare deployment — it does NOT delete any of your actual project code or files.</div>
+      </div>
+
+    </div>
+  </div>
+
+  <div class="big-step anchor" id="phase4">
+    <div class="big-step-header">
+      <div class="step-circle num">4</div>
+      <div>
+        <div class="step-title">Create a new Pages project using Upload Assets</div>
+        <div class="step-sub">This is the method that bypasses GitHub entirely</div>
+      </div>
+    </div>
+    <div class="step-body">
+
+      <div class="mini">
+        <div class="mini-num">1</div>
+        <div class="mini-body">
+          <strong>Click "Create" in Workers &amp; Pages</strong>
+          <p>On the Workers &amp; Pages overview page, click the blue <strong>Create</strong> button (top right).</p>
+        </div>
+      </div>
+
+      <!-- MOCKUP: Create screen -->
+      <div class="mockup">
+        <div class="mockup-bar">
+          <div class="mock-dot r"></div><div class="mock-dot y"></div><div class="mock-dot g"></div>
+          <div class="mockup-url">dash.cloudflare.com → Workers &amp; Pages → Create</div>
+        </div>
+        <div class="mock-body">
+          <div style="display:flex;gap:8px;margin-bottom:12px;">
+            <div style="flex:1;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:10px;text-align:center;font-size:.78rem;opacity:.45;">
+              <div style="font-size:1rem;margin-bottom:4px;">⚡</div>
+              <div style="font-weight:700;">Worker</div>
+            </div>
+            <div style="flex:1;background:rgba(124,92,252,.08);border:2px solid rgba(124,92,252,.3);border-radius:8px;padding:10px;text-align:center;font-size:.78rem;">
+              <div style="font-size:1rem;margin-bottom:4px;">📄</div>
+              <div style="font-weight:700;color:var(--accent2);">Pages ← Select this</div>
+            </div>
+          </div>
+          <div style="font-size:.78rem;font-weight:700;margin-bottom:8px;">How would you like to deploy?</div>
+          <div style="display:flex;gap:8px;">
+            <div style="flex:1;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:10px;text-align:center;font-size:.75rem;opacity:.4;">
+              <div>🐙</div>
+              Connect to Git<br><span style="color:#fca5a5;font-size:.7rem;">(had the error)</span>
+            </div>
+            <div style="flex:1;background:rgba(34,197,94,.07);border:2px solid rgba(34,197,94,.3);border-radius:8px;padding:10px;text-align:center;font-size:.75rem;">
+              <div>📁</div>
+              <strong style="color:var(--green);">Upload assets</strong><br>
+              <span style="color:var(--green);font-size:.7rem;">← Click this one</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="mini">
+        <div class="mini-num">2</div>
+        <div class="mini-body">
+          <strong>Name your project <code style="color:var(--accent2);background:var(--surface2);padding:1px 6px;border-radius:4px;">brnd-direct</code> and click Create project</strong>
+          <p>Type the name exactly as shown. This becomes part of your live URL.</p>
+        </div>
+      </div>
+
+      <!-- MOCKUP: Name project -->
+      <div class="mockup">
+        <div class="mockup-bar">
+          <div class="mock-dot r"></div><div class="mock-dot y"></div><div class="mock-dot g"></div>
+          <div class="mockup-url">Cloudflare Pages — Create project</div>
+        </div>
+        <div class="mock-body">
+          <div style="font-size:.8rem;font-weight:700;margin-bottom:10px;">Project name</div>
+          <div style="background:var(--surface);border:2px solid var(--accent2);border-radius:8px;padding:8px 14px;font-family:monospace;font-size:.9rem;color:var(--accent2);margin-bottom:10px;">brnd-direct</div>
+          <div style="font-size:.75rem;color:var(--muted);margin-bottom:12px;">Your site will be live at: <span style="color:var(--green);">brnd-direct.pages.dev</span></div>
+          <button class="ui-btn green">Create project →</button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <div class="big-step anchor" id="phase5">
+    <div class="big-step-header">
+      <div class="step-circle num">5</div>
+      <div>
+        <div class="step-title">Upload your ZIP file</div>
+        <div class="step-sub">Drag and drop the zip file you created in Phase 2</div>
+      </div>
+    </div>
+    <div class="step-body">
+
+      <div class="mini">
+        <div class="mini-num">1</div>
+        <div class="mini-body">
+          <strong>After clicking "Create project", you'll see an upload screen</strong>
+          <p>It looks like the box below. Open your <strong>Downloads</strong> folder in another window, find <strong>brnd-direct.zip</strong>, and drag it onto the upload area.</p>
+        </div>
+      </div>
+
+      <!-- MOCKUP: Upload zone -->
+      <div class="mockup">
+        <div class="mockup-bar">
+          <div class="mock-dot r"></div><div class="mock-dot y"></div><div class="mock-dot g"></div>
+          <div class="mockup-url">Cloudflare Pages — Upload assets for brnd-direct</div>
+        </div>
+        <div class="mock-body">
+          <div class="upload-zone">
+            <div class="upload-icon">📦</div>
+            <div class="upload-title">Drag your brnd-direct.zip file here</div>
+            <div class="upload-sub">or click to browse → find it in your Downloads folder</div>
+          </div>
+          <div style="font-size:.75rem;color:var(--muted);text-align:center;">Supported: .zip files up to 25MB</div>
+        </div>
+      </div>
+
+      <div class="mini">
+        <div class="mini-num">2</div>
+        <div class="mini-body">
+          <strong>Wait for the files to upload (usually 5–15 seconds)</strong>
+          <p>You'll see a progress bar. Once it finishes, a <strong>Deploy site</strong> button will appear.</p>
+        </div>
+      </div>
+
+      <!-- MOCKUP: Files uploaded -->
+      <div class="mockup">
+        <div class="mockup-bar">
+          <div class="mock-dot r"></div><div class="mock-dot y"></div><div class="mock-dot g"></div>
+          <div class="mockup-url">Cloudflare Pages — Files ready</div>
+        </div>
+        <div class="mock-body">
+          <div style="font-size:.8rem;font-weight:700;margin-bottom:8px;color:var(--green);">✅ Files uploaded successfully</div>
+          <div style="font-size:.75rem;color:var(--muted);margin-bottom:12px;">
+            Found: index.html, buyer/, admin/, css/, js/, seller/ … (all your project files)
+          </div>
+          <button class="ui-btn green" style="font-size:.9rem;padding:9px 22px;">
+            <i class="fas fa-rocket"></i> Deploy site ← Click this
+          </button>
+        </div>
+      </div>
+
+      <div class="mini">
+        <div class="mini-num">3</div>
+        <div class="mini-body">
+          <strong>Click "Deploy site" and wait ~30 seconds</strong>
+          <p>Cloudflare will process and publish your files. You'll see a spinning indicator, then a green success screen.</p>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+
+  <!-- ══════════════════════════════════════
+       PHASE 4 — SUCCESS
+  ══════════════════════════════════════ -->
+  <div class="phase-label"><span>🎉 Phase 4 — You're live!</span></div>
+
+  <div class="big-step anchor" id="phase6">
+    <div class="big-step-header">
+      <div class="step-circle done-c"><i class="fas fa-check"></i></div>
+      <div>
+        <div class="step-title">Your portal is live — what you'll see</div>
+        <div class="step-sub">The success screen and your live URL</div>
+      </div>
+    </div>
+    <div class="step-body">
+
+      <!-- MOCKUP: Success -->
+      <div class="mockup">
+        <div class="mockup-bar">
+          <div class="mock-dot r"></div><div class="mock-dot y"></div><div class="mock-dot g"></div>
+          <div class="mockup-url">dash.cloudflare.com → Pages → brnd-direct</div>
+        </div>
+        <div class="mock-body" style="text-align:center;padding:1.5rem;">
+          <div style="font-size:2rem;margin-bottom:.5rem;">🎉</div>
+          <div style="font-weight:800;font-size:1rem;color:var(--green);margin-bottom:.4rem;">Deployment successful!</div>
+          <div style="font-size:.8rem;color:var(--muted);margin-bottom:1rem;">Your project is now live at:</div>
+          <div style="background:rgba(34,197,94,.08);border:1px solid rgba(34,197,94,.25);border-radius:8px;padding:10px 20px;font-family:monospace;font-size:.9rem;color:var(--green);display:inline-block;margin-bottom:1rem;">
+            https://brnd-direct.pages.dev
+          </div>
+          <br/>
+          <button class="ui-btn green"><i class="fas fa-external-link-alt"></i> Visit site →</button>
+        </div>
+      </div>
+
+      <div class="callout success">
+        <span class="callout-icon"><i class="fas fa-rocket"></i></span>
+        <div>
+          <strong>Click "Visit site" to see your live BRND Direct portal!</strong>
+          The buyer login page will load at <code>brnd-direct.pages.dev/buyer/</code>
+        </div>
+      </div>
+
+      <hr />
+
+      <!-- FINAL STEP: Make yourself admin -->
+      <div style="background:rgba(124,92,252,.07);border:1px solid rgba(124,92,252,.2);border-radius:12px;padding:1.3rem;">
+        <div style="font-weight:700;font-size:.9rem;margin-bottom:.6rem;color:var(--accent2);">
+          <i class="fas fa-shield-alt" style="margin-right:6px;"></i>Last thing — make yourself Admin (takes 1 minute)
+        </div>
+        <div style="font-size:.82rem;color:var(--muted);margin-bottom:1rem;">
+          After your site is live, register an account on it, then run this one line in Supabase to give yourself admin access:
+        </div>
+        <div style="background:#0d0d14;border:1px solid var(--border);border-radius:8px;padding:.8rem 1rem;font-family:monospace;font-size:.82rem;color:#a5b4fc;position:relative;">
+          <button class="copy-btn" onclick="copyAdmin(this)" style="position:absolute;top:6px;right:6px;">
+            <i class="fas fa-copy"></i> Copy
+          </button>
+          <span id="adminLine">UPDATE profiles SET role = 'admin' WHERE id = auth.uid();</span>
+        </div>
+        <div style="font-size:.75rem;color:var(--muted);margin-top:.6rem;">
+          Paste this in Supabase → SQL Editor → Run. Then go to <code>brnd-direct.pages.dev/admin/</code> to access your admin dashboard.
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- HELP -->
+  <div style="text-align:center;margin-top:2rem;padding:1.5rem;background:var(--surface);border:1px solid var(--border);border-radius:14px;">
+    <div style="font-size:1.3rem;margin-bottom:.4rem;">💬</div>
+    <div style="font-weight:700;margin-bottom:.3rem;">Still having trouble?</div>
+    <p style="color:var(--muted);font-size:.82rem;max-width:420px;margin:0 auto;">
+      Come back to the chat and tell me exactly what you see on screen — paste any error message and I'll fix it right away.
+    </p>
+  </div>
+
+</div>
+
+<script>
+  function copyAdmin(btn) {
+    const txt = document.getElementById('adminLine').innerText;
+    navigator.clipboard.writeText(txt).then(() => {
+      const orig = btn.innerHTML;
+      btn.innerHTML = '<i class="fas fa-check"></i> Copied!';
+      btn.style.background = 'rgba(34,197,94,.15)';
+      btn.style.borderColor = 'rgba(34,197,94,.3)';
+      btn.style.color = '#86efac';
+      setTimeout(() => {
+        btn.innerHTML = orig;
+        btn.style.background = '';
+        btn.style.borderColor = '';
+        btn.style.color = '';
+      }, 2500);
+    });
+  }
+</script>
+</body>
+</html>

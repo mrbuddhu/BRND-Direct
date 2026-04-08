@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Payouts – BRND Direct Brand Portal</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&family=Inter:wght@300;400;500;600;700&family=Outfit:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.5.0/css/all.min.css" />
+  <link rel="stylesheet" href="css/portal.css" />
+  <style>
+    :root { --seller-accent:#10b981; }
+    .sidebar { background:linear-gradient(180deg,#0d1a14 0%,#0f1f18 40%,#111a15 100%); }
+    .sidebar .nav-item.active { background:rgba(16,185,129,.15);color:#34d399;border-left-color:#10b981; }
+    .sidebar .nav-item:hover { background:rgba(16,185,129,.08); }
+    .sidebar .nav-badge { background:var(--seller-accent); }
+    .sidebar .nav-badge.new { background:#f59e0b; }
+
+    .payout-hero {
+      background: linear-gradient(135deg,#064e3b,#065f46,#047857);
+      border-radius: var(--radius-lg);
+      padding: 32px 36px;
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 28px; position: relative; overflow: hidden;
+    }
+    .payout-hero::before { content:''; position:absolute;inset:0;background:radial-gradient(ellipse at 80% 50%,rgba(255,255,255,.08) 0%,transparent 55%); }
+    .payout-hero__left { position:relative;z-index:1; }
+    .payout-hero__label { font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:rgba(255,255,255,.5);margin-bottom:8px; }
+    .payout-hero__amount { font-family:var(--font-outfit);font-size:2.8rem;font-weight:900;color:white;letter-spacing:-.04em;line-height:1; }
+    .payout-hero__sub { font-size:.875rem;color:rgba(255,255,255,.6);margin-top:6px; }
+    .payout-hero__right { display:flex;gap:10px;flex-shrink:0;position:relative;z-index:1;flex-wrap:wrap; }
+
+    .payout-filter { display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:20px; }
+    .pf { padding:6px 16px;border-radius:100px;font-size:.78rem;font-weight:700;cursor:pointer;border:1.5px solid var(--color-border);background:white;color:var(--color-muted);transition:all .18s; }
+    .pf.active,.pf:hover { background:var(--seller-accent);color:white;border-color:var(--seller-accent); }
+
+    .payout-row { display:flex;align-items:center;gap:12px;padding:14px 0;border-bottom:1px solid var(--color-border); }
+    .payout-row:last-child { border-bottom:none; }
+    .payout-icon { width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:.9rem;flex-shrink:0; }
+    .payout-info { flex:1;min-width:0; }
+    .payout-ref { font-size:.82rem;font-weight:700;font-family:var(--font-outfit);color:var(--color-near-black); }
+    .payout-desc { font-size:.72rem;color:var(--color-muted);margin-top:2px; }
+    .payout-amount { font-size:1rem;font-weight:900;font-family:var(--font-outfit);text-align:right; }
+    .payout-date { font-size:.72rem;color:var(--color-muted);text-align:right;margin-top:2px; }
+
+    .bank-card { background:linear-gradient(135deg,#1e293b,#0f172a);border-radius:var(--radius-md);padding:22px 24px;color:white;position:relative;overflow:hidden; }
+    .bank-card::before { content:'';position:absolute;right:-20px;top:-20px;width:120px;height:120px;border-radius:50%;background:rgba(255,255,255,.04); }
+    .bank-card__label { font-size:.68rem;text-transform:uppercase;letter-spacing:.08em;color:rgba(255,255,255,.4);margin-bottom:8px; }
+    .bank-card__bank { font-size:.92rem;font-weight:700;color:white;margin-bottom:4px; }
+    .bank-card__acct { font-size:.78rem;color:rgba(255,255,255,.5); }
+    .bank-card__badge { display:inline-flex;align-items:center;gap:4px;font-size:.65rem;font-weight:700;background:rgba(16,185,129,.2);color:#34d399;padding:3px 8px;border-radius:100px;margin-top:8px; }
+
+    .schedule-item { display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--color-border); }
+    .schedule-item:last-child { border-bottom:none; }
+    .schedule-date { font-family:var(--font-outfit);font-size:.82rem;font-weight:700;color:var(--color-near-black);width:72px;flex-shrink:0; }
+    .schedule-orders { font-size:.78rem;color:var(--color-muted);flex:1; }
+    .schedule-amount { font-family:var(--font-outfit);font-size:.9rem;font-weight:700;color:var(--color-near-black); }
+    .schedule-status { font-size:.68rem;font-weight:700;padding:2px 8px;border-radius:100px; }
+    .ss-pending { background:rgba(245,158,11,.12);color:var(--color-amber); }
+    .ss-confirmed { background:rgba(79,70,229,.1);color:var(--color-accent); }
+    .ss-paid { background:rgba(16,185,129,.12);color:var(--color-emerald); }
+  </style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<aside class="sidebar" id="sidebar">
+  <div class="sidebar__logo">
+    <a href="seller-dashboard.html" class="logo-mark">
+      <span class="logo-icon" style="background:linear-gradient(135deg,#10b981,#059669);"><i class="fas fa-chevron-right"></i></span>
+      <span class="logo-word">BRND <span class="logo-accent">DIRECT</span></span>
+    </a>
+  </div>
+  <nav class="sidebar__nav">
+    <div class="nav-section">
+      <span class="nav-section-label">Brand HQ</span>
+      <a href="seller-dashboard.html" class="nav-item"><i class="fas fa-table-columns"></i><span>Dashboard</span></a>
+      <a href="seller-products.html" class="nav-item"><i class="fas fa-boxes-stacked"></i><span>Products</span></a>
+      <a href="seller-orders.html" class="nav-item"><i class="fas fa-file-invoice"></i><span>Orders</span><span class="nav-badge">7</span></a>
+      <a href="seller-analytics.html" class="nav-item"><i class="fas fa-chart-line"></i><span>Analytics</span></a>
+    </div>
+    <div class="nav-section">
+      <span class="nav-section-label">Brand Tools</span>
+      <a href="seller-brand-hub.html" class="nav-item"><i class="fas fa-gem"></i><span>Brand Hub</span></a>
+      <a href="seller-wholesale-pricing.html" class="nav-item"><i class="fas fa-tags"></i><span>Wholesale Pricing</span></a>
+      <a href="seller-payouts.html" class="nav-item active"><i class="fas fa-wallet"></i><span>Payouts</span><span class="nav-badge new">!</span></a>
+    </div>
+    <div class="nav-section">
+      <span class="nav-section-label">Account</span>
+      <a href="seller-messages.html" class="nav-item"><i class="fas fa-message"></i><span>Messages</span><span class="nav-badge">3</span></a>
+      <a href="seller-account.html" class="nav-item"><i class="fas fa-gear"></i><span>Settings</span></a>
+      <a href="help.html" class="nav-item"><i class="fas fa-circle-question"></i><span>Help & Support</span></a>
+    </div>
+  </nav>
+  <div class="sidebar__bottom">
+    <div class="divider"></div>
+    <div class="sidebar__user">
+      <div class="sidebar__avatar" style="background:linear-gradient(135deg,#10b981,#059669);">AP</div>
+      <div class="sidebar__user-info"><div class="sidebar__user-name">Apex Apparel Co.</div><div class="sidebar__user-role">Brand Partner</div></div>
+      <a href="seller-login.html" class="sidebar__user-logout" title="Sign out"><i class="fas fa-arrow-right-from-bracket"></i></a>
+    </div>
+  </div>
+</aside>
+<div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+<!-- TOPBAR -->
+<header class="topbar" id="topbar">
+  <div class="topbar__left">
+    <button class="topbar__mobile-toggle" id="sidebarToggle"><i class="fas fa-bars"></i></button>
+    <div><div class="topbar__title">Payouts</div><div class="topbar__breadcrumb">Manage earnings & bank transfers</div></div>
+  </div>
+  <div class="topbar__right">
+    <div class="search-bar">
+      <i class="fas fa-magnifying-glass search-bar__icon"></i>
+      <input class="search-bar__input" type="text" placeholder="Search payouts…" />
+    </div>
+    <button class="topbar__btn" style="position:relative;"><i class="fas fa-bell"></i><span class="notif-dot"></span></button>
+    <a href="seller-messages.html" class="topbar__btn"><i class="fas fa-message"></i></a>
+    <div class="topbar__avatar" style="background:linear-gradient(135deg,#10b981,#059669);">AP</div>
+  </div>
+</header>
+
+<!-- MAIN -->
+<main class="app-main">
+
+  <div class="page-header-bar fade-in">
+    <div><h1>Payouts & Earnings</h1><p class="page-header-sub">Track all your wholesale revenue and bank transfers</p></div>
+    <div style="display:flex;gap:10px;">
+      <button class="btn btn-outline" onclick="showToast('Earnings statement downloading…','success')"><i class="fas fa-download"></i> Statement</button>
+      <button class="btn btn-primary" style="background:var(--seller-accent);" onclick="showToast('Payout request submitted!','success')"><i class="fas fa-wallet"></i> Request Payout</button>
+    </div>
+  </div>
+
+  <!-- Payout Hero -->
+  <div class="payout-hero fade-in">
+    <div class="payout-hero__left">
+      <div class="payout-hero__label">Available for Payout</div>
+      <div class="payout-hero__amount">$12,480</div>
+      <div class="payout-hero__sub">From 7 settled orders · Next auto-payout: Mar 26, 2026</div>
+    </div>
+    <div class="payout-hero__right">
+      <button class="banner-btn banner-btn--white" style="display:flex;align-items:center;gap:8px;padding:10px 20px;border-radius:var(--radius-sm);font-size:.82rem;font-weight:700;cursor:pointer;background:white;color:#065f46;border:none;" onclick="showToast('Initiating payout transfer…','success')">
+        <i class="fas fa-paper-plane"></i> Pay Out Now
+      </button>
+      <button class="banner-btn banner-btn--outline" style="display:flex;align-items:center;gap:8px;padding:10px 20px;border-radius:var(--radius-sm);font-size:.82rem;font-weight:700;cursor:pointer;background:rgba(255,255,255,.12);color:white;border:1px solid rgba(255,255,255,.25);" onclick="showToast('Viewing payout history…','success')">
+        <i class="fas fa-clock"></i> View History
+      </button>
+    </div>
+  </div>
+
+  <!-- Stats -->
+  <div class="grid-4 mb-6 fade-in">
+    <div class="stat-card">
+      <div class="stat-card__icon" style="background:rgba(16,185,129,.12);color:var(--color-emerald);"><i class="fas fa-dollar-sign"></i></div>
+      <div class="stat-card__label">Total Paid Out YTD</div>
+      <div class="stat-card__value" style="font-family:var(--font-outfit);">$247,840</div>
+      <div class="stat-card__change up"><i class="fas fa-arrow-trend-up"></i> +34% vs last year</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-card__icon" style="background:rgba(245,158,11,.12);color:var(--color-amber);"><i class="fas fa-clock"></i></div>
+      <div class="stat-card__label">Pending</div>
+      <div class="stat-card__value" style="font-family:var(--font-outfit);">$12,480</div>
+      <div class="stat-card__change neutral"><i class="fas fa-hourglass-half"></i> Releases in 3 days</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-card__icon" style="background:rgba(79,70,229,.12);color:var(--color-accent);"><i class="fas fa-calendar"></i></div>
+      <div class="stat-card__label">This Month</div>
+      <div class="stat-card__value" style="font-family:var(--font-outfit);">$84,320</div>
+      <div class="stat-card__change up"><i class="fas fa-arrow-trend-up"></i> +22% vs Feb</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-card__icon" style="background:rgba(14,165,233,.1);color:var(--color-sky);"><i class="fas fa-rotate"></i></div>
+      <div class="stat-card__label">Avg Payout Cycle</div>
+      <div class="stat-card__value" style="font-family:var(--font-outfit);">7 days</div>
+      <div class="stat-card__change neutral"><i class="fas fa-info-circle"></i> After order settlement</div>
+    </div>
+  </div>
+
+  <div style="display:grid;grid-template-columns:1fr 320px;gap:20px;align-items:start;" class="fade-in">
+
+    <!-- Payout History -->
+    <div class="card">
+      <div class="card__header">
+        <span class="card__title">Payout History</span>
+        <div class="payout-filter">
+          <button class="pf active" onclick="setPF(this,'all')">All</button>
+          <button class="pf" onclick="setPF(this,'paid')">Paid</button>
+          <button class="pf" onclick="setPF(this,'pending')">Pending</button>
+          <button class="pf" onclick="setPF(this,'processing')">Processing</button>
+        </div>
+      </div>
+      <div class="card__body">
+        <div class="payout-row" data-pstatus="paid">
+          <div class="payout-icon" style="background:rgba(16,185,129,.12);color:var(--color-emerald);"><i class="fas fa-check"></i></div>
+          <div class="payout-info">
+            <div class="payout-ref">PAY-0031</div>
+            <div class="payout-desc">12 orders · Mar 16–22 · Chase Bank ••4821</div>
+          </div>
+          <div>
+            <div class="payout-amount" style="color:var(--color-emerald);">+$18,750</div>
+            <div class="payout-date">Mar 23, 2026 <span class="schedule-status ss-paid" style="margin-left:4px;">Paid</span></div>
+          </div>
+        </div>
+        <div class="payout-row" data-pstatus="pending">
+          <div class="payout-icon" style="background:rgba(245,158,11,.12);color:var(--color-amber);"><i class="fas fa-clock"></i></div>
+          <div class="payout-info">
+            <div class="payout-ref">PAY-0030</div>
+            <div class="payout-desc">7 orders · Mar 9–15 · Chase Bank ••4821</div>
+          </div>
+          <div>
+            <div class="payout-amount" style="color:var(--color-amber);">$12,480</div>
+            <div class="payout-date">Due Mar 26, 2026 <span class="schedule-status ss-pending" style="margin-left:4px;">Pending</span></div>
+          </div>
+        </div>
+        <div class="payout-row" data-pstatus="paid">
+          <div class="payout-icon" style="background:rgba(16,185,129,.12);color:var(--color-emerald);"><i class="fas fa-check"></i></div>
+          <div class="payout-info">
+            <div class="payout-ref">PAY-0029</div>
+            <div class="payout-desc">9 orders · Mar 2–8 · Chase Bank ••4821</div>
+          </div>
+          <div>
+            <div class="payout-amount" style="color:var(--color-emerald);">+$14,200</div>
+            <div class="payout-date">Mar 16, 2026 <span class="schedule-status ss-paid" style="margin-left:4px;">Paid</span></div>
+          </div>
+        </div>
+        <div class="payout-row" data-pstatus="paid">
+          <div class="payout-icon" style="background:rgba(16,185,129,.12);color:var(--color-emerald);"><i class="fas fa-check"></i></div>
+          <div class="payout-info">
+            <div class="payout-ref">PAY-0028</div>
+            <div class="payout-desc">15 orders · Feb 20–28 · Chase Bank ••4821</div>
+          </div>
+          <div>
+            <div class="payout-amount" style="color:var(--color-emerald);">+$22,400</div>
+            <div class="payout-date">Mar 9, 2026 <span class="schedule-status ss-paid" style="margin-left:4px;">Paid</span></div>
+          </div>
+        </div>
+        <div class="payout-row" data-pstatus="paid">
+          <div class="payout-icon" style="background:rgba(16,185,129,.12);color:var(--color-emerald);"><i class="fas fa-check"></i></div>
+          <div class="payout-info">
+            <div class="payout-ref">PAY-0027</div>
+            <div class="payout-desc">11 orders · Feb 13–19 · Chase Bank ••4821</div>
+          </div>
+          <div>
+            <div class="payout-amount" style="color:var(--color-emerald);">+$16,890</div>
+            <div class="payout-date">Mar 2, 2026 <span class="schedule-status ss-paid" style="margin-left:4px;">Paid</span></div>
+          </div>
+        </div>
+        <div class="payout-row" data-pstatus="processing">
+          <div class="payout-icon" style="background:rgba(79,70,229,.12);color:var(--color-accent);"><i class="fas fa-rotate"></i></div>
+          <div class="payout-info">
+            <div class="payout-ref">PAY-0026</div>
+            <div class="payout-desc">4 orders · Feb 7–12 · Chase Bank ••4821</div>
+          </div>
+          <div>
+            <div class="payout-amount" style="color:var(--color-accent);">$6,240</div>
+            <div class="payout-date">Feb 23, 2026 <span class="schedule-status ss-confirmed" style="margin-left:4px;">Processing</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right: Bank + Schedule -->
+    <div style="display:flex;flex-direction:column;gap:20px;">
+
+      <!-- Bank Account -->
+      <div class="card">
+        <div class="card__header"><span class="card__title">Payout Account</span><button class="btn btn-outline" style="font-size:.72rem;padding:5px 10px;" onclick="showToast('Opening bank settings…','success')">Edit</button></div>
+        <div class="card__body">
+          <div class="bank-card">
+            <div class="bank-card__label">Connected Bank</div>
+            <div class="bank-card__bank">Chase Business Checking</div>
+            <div class="bank-card__acct">Account ending ••••4821</div>
+            <div class="bank-card__badge"><i class="fas fa-check"></i> Verified</div>
+          </div>
+          <div style="margin-top:16px;display:flex;flex-direction:column;gap:8px;">
+            <div style="display:flex;justify-content:space-between;font-size:.82rem;">
+              <span style="color:var(--color-muted);">Payout Schedule</span>
+              <span style="font-weight:700;">Weekly (every Mon)</span>
+            </div>
+            <div style="display:flex;justify-content:space-between;font-size:.82rem;">
+              <span style="color:var(--color-muted);">Settlement Period</span>
+              <span style="font-weight:700;">7 days after delivery</span>
+            </div>
+            <div style="display:flex;justify-content:space-between;font-size:.82rem;">
+              <span style="color:var(--color-muted);">Currency</span>
+              <span style="font-weight:700;">USD</span>
+            </div>
+          </div>
+          <button class="btn btn-outline btn-full" style="margin-top:16px;font-size:.8rem;" onclick="showToast('Adding bank account…','success')"><i class="fas fa-plus"></i> Add Bank Account</button>
+        </div>
+      </div>
+
+      <!-- Upcoming Schedule -->
+      <div class="card">
+        <div class="card__header"><span class="card__title">Upcoming Payouts</span></div>
+        <div class="card__body">
+          <div class="schedule-item">
+            <span class="schedule-date">Mar 26</span>
+            <span class="schedule-orders">7 orders settled</span>
+            <span class="schedule-amount" style="font-family:var(--font-outfit);font-weight:700;">$12,480</span>
+            <span class="schedule-status ss-pending">Pending</span>
+          </div>
+          <div class="schedule-item">
+            <span class="schedule-date">Apr 2</span>
+            <span class="schedule-orders">Projected</span>
+            <span class="schedule-amount" style="font-family:var(--font-outfit);font-weight:700;color:var(--color-muted);">~$21,000</span>
+            <span class="schedule-status ss-confirmed">Projected</span>
+          </div>
+          <div class="schedule-item">
+            <span class="schedule-date">Apr 9</span>
+            <span class="schedule-orders">Projected</span>
+            <span class="schedule-amount" style="font-family:var(--font-outfit);font-weight:700;color:var(--color-muted);">~$18,500</span>
+            <span class="schedule-status ss-confirmed">Projected</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tax Documents -->
+      <div class="card">
+        <div class="card__header"><span class="card__title">Tax Documents</span></div>
+        <div class="card__body">
+          <div style="display:flex;flex-direction:column;gap:10px;">
+            <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 12px;background:var(--color-off-white);border-radius:var(--radius-sm);">
+              <div><div style="font-size:.82rem;font-weight:600;">1099-K · 2025</div><div style="font-size:.72rem;color:var(--color-muted);">Annual tax form</div></div>
+              <button class="btn btn-outline" style="font-size:.72rem;padding:4px 10px;" onclick="showToast('Downloading 1099-K…','success')"><i class="fas fa-download"></i></button>
+            </div>
+            <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 12px;background:var(--color-off-white);border-radius:var(--radius-sm);">
+              <div><div style="font-size:.82rem;font-weight:600;">W-9 On File</div><div style="font-size:.72rem;color:var(--color-muted);">Tax identification</div></div>
+              <span style="font-size:.72rem;font-weight:700;color:var(--color-emerald);">✓ Filed</span>
+            </div>
+            <button class="btn btn-outline btn-full" style="font-size:.8rem;" onclick="showToast('Opening tax settings…','success')"><i class="fas fa-file-tax"></i> Update W-9</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</main>
+
+<div class="toast-container" id="toastContainer"></div>
+<script src="js/portal.js"></script>
+<script>
+  function setPF(btn, status) {
+    document.querySelectorAll('.pf').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    document.querySelectorAll('.payout-row').forEach(row => {
+      row.style.display = (status === 'all' || row.dataset.pstatus === status) ? '' : 'none';
+    });
+  }
+
+  function showToast(msg, type = 'success') {
+    const c = document.getElementById('toastContainer');
+    const icon = type === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle';
+    const t = document.createElement('div'); t.className = `toast ${type}`;
+    t.innerHTML = `<i class="fas ${icon}"></i><span>${msg}</span>`;
+    c.appendChild(t);
+    setTimeout(() => { t.style.opacity='0'; t.style.transform='translateX(60px)'; t.style.transition='all .3s'; setTimeout(() => t.remove(), 350); }, 3500);
+  }
+</script>
+</body>
+</html>

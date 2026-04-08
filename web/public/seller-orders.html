@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Orders – BRND Direct Brand Portal</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&family=Inter:wght@300;400;500;600;700&family=Outfit:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.5.0/css/all.min.css" />
+  <link rel="stylesheet" href="css/portal.css" />
+  <style>
+    :root { --seller-accent: #10b981; }
+    .sidebar { background: linear-gradient(180deg,#0d1a14 0%,#0f1f18 40%,#111a15 100%); }
+    .sidebar .nav-item.active { background:rgba(16,185,129,.15);color:#34d399;border-left-color:#10b981; }
+    .sidebar .nav-item:hover { background:rgba(16,185,129,.08); }
+    .sidebar .nav-badge { background:var(--seller-accent); }
+    .sidebar .nav-badge.new { background:#f59e0b; }
+
+    .status-filter-row { display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:20px; }
+    .sfilter { display:inline-flex;align-items:center;gap:6px;padding:6px 16px;border-radius:100px;font-size:.78rem;font-weight:700;cursor:pointer;border:1.5px solid var(--color-border);background:white;color:var(--color-muted);transition:all .18s; }
+    .sfilter.active { background:var(--seller-accent);color:white;border-color:var(--seller-accent); }
+    .sfilter:hover:not(.active) { border-color:var(--seller-accent);color:var(--seller-accent); }
+    .dot { width:7px;height:7px;border-radius:50%;background:currentColor; }
+
+    /* Order Detail Drawer */
+    .drawer { position:fixed;right:0;top:0;bottom:0;width:480px;background:white;box-shadow:-4px 0 40px rgba(0,0,0,.12);z-index:500;display:flex;flex-direction:column;transform:translateX(100%);transition:transform .28s ease; }
+    .drawer.open { transform:translateX(0); }
+    .drawer-header { padding:24px 28px;border-bottom:1px solid var(--color-border);display:flex;align-items:center;justify-content:space-between; }
+    .drawer-title { font-family:var(--font-display);font-size:1.1rem;font-weight:800; }
+    .drawer-close { width:32px;height:32px;border-radius:8px;border:1.5px solid var(--color-border);background:white;cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--color-muted); }
+    .drawer-body { flex:1;overflow-y:auto;padding:24px 28px; }
+    .drawer-section { margin-bottom:24px; }
+    .drawer-section-title { font-size:.72rem;font-weight:800;text-transform:uppercase;letter-spacing:.08em;color:var(--color-muted);margin-bottom:12px; }
+    .detail-row { display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--color-border);font-size:.82rem; }
+    .detail-row:last-child { border-bottom:none; }
+    .detail-label { color:var(--color-muted); }
+    .detail-val { font-weight:600;color:var(--color-near-black); }
+    .order-item-row { display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--color-border); }
+    .order-item-row:last-child { border-bottom:none; }
+    .order-item-thumb { width:44px;height:44px;border-radius:8px;background:var(--color-off-white);display:flex;align-items:center;justify-content:center;font-size:1.2rem;flex-shrink:0; }
+    .order-item-info { flex:1; }
+    .order-item-name { font-size:.82rem;font-weight:600; }
+    .order-item-sku { font-size:.72rem;color:var(--color-muted); }
+    .order-item-qty { font-size:.82rem;font-weight:700;text-align:right; }
+    .timeline { display:flex;flex-direction:column;gap:0; }
+    .tl-step { display:flex;align-items:flex-start;gap:12px;padding-bottom:16px;position:relative; }
+    .tl-step:last-child { padding-bottom:0; }
+    .tl-dot { width:10px;height:10px;border-radius:50%;flex-shrink:0;margin-top:4px;background:var(--color-border); }
+    .tl-dot.done { background:var(--seller-accent); }
+    .tl-dot.active { background:var(--seller-accent);box-shadow:0 0 0 3px rgba(16,185,129,.2); }
+    .tl-line { position:absolute;left:4px;top:14px;bottom:0;width:2px;background:var(--color-border); }
+    .tl-line.done { background:var(--seller-accent); }
+    .tl-content { flex:1; }
+    .tl-label { font-size:.82rem;font-weight:600;color:var(--color-near-black); }
+    .tl-time { font-size:.72rem;color:var(--color-muted);margin-top:2px; }
+    .drawer-footer { padding:16px 28px;border-top:1px solid var(--color-border);display:flex;gap:10px; }
+
+    @media (max-width:768px) { .drawer { width:100%; } }
+  </style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<aside class="sidebar" id="sidebar">
+  <div class="sidebar__logo">
+    <a href="seller-dashboard.html" class="logo-mark">
+      <span class="logo-icon" style="background:linear-gradient(135deg,#10b981,#059669);"><i class="fas fa-chevron-right"></i></span>
+      <span class="logo-word">BRND <span class="logo-accent">DIRECT</span></span>
+    </a>
+  </div>
+  <nav class="sidebar__nav">
+    <div class="nav-section">
+      <span class="nav-section-label">Brand HQ</span>
+      <a href="seller-dashboard.html" class="nav-item"><i class="fas fa-table-columns"></i><span>Dashboard</span></a>
+      <a href="seller-products.html" class="nav-item"><i class="fas fa-boxes-stacked"></i><span>Products</span></a>
+      <a href="seller-orders.html" class="nav-item active"><i class="fas fa-file-invoice"></i><span>Orders</span><span class="nav-badge">7</span></a>
+      <a href="seller-analytics.html" class="nav-item"><i class="fas fa-chart-line"></i><span>Analytics</span></a>
+    </div>
+    <div class="nav-section">
+      <span class="nav-section-label">Brand Tools</span>
+      <a href="seller-brand-hub.html" class="nav-item"><i class="fas fa-gem"></i><span>Brand Hub</span></a>
+      <a href="seller-wholesale-pricing.html" class="nav-item"><i class="fas fa-tags"></i><span>Wholesale Pricing</span></a>
+      <a href="seller-payouts.html" class="nav-item"><i class="fas fa-wallet"></i><span>Payouts</span><span class="nav-badge new">!</span></a>
+    </div>
+    <div class="nav-section">
+      <span class="nav-section-label">Account</span>
+      <a href="seller-messages.html" class="nav-item"><i class="fas fa-message"></i><span>Messages</span><span class="nav-badge">3</span></a>
+      <a href="seller-account.html" class="nav-item"><i class="fas fa-gear"></i><span>Settings</span></a>
+      <a href="help.html" class="nav-item"><i class="fas fa-circle-question"></i><span>Help & Support</span></a>
+    </div>
+  </nav>
+  <div class="sidebar__bottom">
+    <div class="divider"></div>
+    <div class="sidebar__user">
+      <div class="sidebar__avatar" style="background:linear-gradient(135deg,#10b981,#059669);">AP</div>
+      <div class="sidebar__user-info"><div class="sidebar__user-name">Apex Apparel Co.</div><div class="sidebar__user-role">Brand Partner</div></div>
+      <a href="seller-login.html" class="sidebar__user-logout" title="Sign out"><i class="fas fa-arrow-right-from-bracket"></i></a>
+    </div>
+  </div>
+</aside>
+<div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+<!-- TOPBAR -->
+<header class="topbar" id="topbar">
+  <div class="topbar__left">
+    <button class="topbar__mobile-toggle" id="sidebarToggle"><i class="fas fa-bars"></i></button>
+    <div><div class="topbar__title">Wholesale Orders</div><div class="topbar__breadcrumb">142 total orders this year</div></div>
+  </div>
+  <div class="topbar__right">
+    <div class="search-bar">
+      <i class="fas fa-magnifying-glass search-bar__icon"></i>
+      <input class="search-bar__input" type="text" placeholder="Search orders, buyers…" />
+    </div>
+    <button class="topbar__btn" style="position:relative;"><i class="fas fa-bell"></i><span class="notif-dot"></span></button>
+    <a href="seller-messages.html" class="topbar__btn"><i class="fas fa-message"></i></a>
+    <div class="topbar__avatar" style="background:linear-gradient(135deg,#10b981,#059669);">AP</div>
+  </div>
+</header>
+
+<!-- MAIN -->
+<main class="app-main">
+
+  <div class="page-header-bar fade-in">
+    <div>
+      <h1>Orders</h1>
+      <p class="page-header-sub">Manage all your wholesale orders from BRND Direct buyers</p>
+    </div>
+    <div style="display:flex;gap:10px;">
+      <button class="btn btn-outline" onclick="showToast('Exporting order CSV…','success')"><i class="fas fa-download"></i> Export CSV</button>
+      <button class="btn btn-primary" style="background:var(--seller-accent);" onclick="showToast('Print packing slips feature coming soon.','success')"><i class="fas fa-print"></i> Print All</button>
+    </div>
+  </div>
+
+  <!-- Stats -->
+  <div class="grid-4 mb-6 fade-in">
+    <div class="stat-card">
+      <div class="stat-card__icon" style="background:rgba(79,70,229,.12);color:var(--color-accent);"><i class="fas fa-circle-dot"></i></div>
+      <div class="stat-card__label">New Orders</div>
+      <div class="stat-card__value">7</div>
+      <div class="stat-card__change up"><i class="fas fa-arrow-trend-up"></i> Awaiting fulfilment</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-card__icon" style="background:rgba(245,158,11,.12);color:var(--color-amber);"><i class="fas fa-rotate"></i></div>
+      <div class="stat-card__label">In Progress</div>
+      <div class="stat-card__value">23</div>
+      <div class="stat-card__change neutral"><i class="fas fa-truck"></i> Processing & shipped</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-card__icon" style="background:rgba(16,185,129,.12);color:var(--color-emerald);"><i class="fas fa-check-circle"></i></div>
+      <div class="stat-card__label">Delivered MTD</div>
+      <div class="stat-card__value">112</div>
+      <div class="stat-card__change up"><i class="fas fa-arrow-trend-up"></i> 96.5% on-time</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-card__icon" style="background:rgba(244,63,94,.1);color:var(--color-rose);"><i class="fas fa-rotate-left"></i></div>
+      <div class="stat-card__label">Returns</div>
+      <div class="stat-card__value">3</div>
+      <div class="stat-card__change down"><i class="fas fa-arrow-trend-down"></i> 1.8% return rate</div>
+    </div>
+  </div>
+
+  <!-- Status Filters -->
+  <div class="status-filter-row fade-in">
+    <button class="sfilter active" onclick="filterOrders(this,'all')">All Orders <strong style="margin-left:4px;">145</strong></button>
+    <button class="sfilter" onclick="filterOrders(this,'new')"><span class="dot" style="color:var(--color-accent);"></span> New (7)</button>
+    <button class="sfilter" onclick="filterOrders(this,'processing')"><span class="dot" style="color:var(--color-amber);"></span> Processing (14)</button>
+    <button class="sfilter" onclick="filterOrders(this,'shipped')"><span class="dot" style="color:var(--color-sky);"></span> Shipped (9)</button>
+    <button class="sfilter" onclick="filterOrders(this,'delivered')"><span class="dot" style="color:var(--color-emerald);"></span> Delivered (112)</button>
+    <button class="sfilter" onclick="filterOrders(this,'cancelled')"><span class="dot" style="color:var(--color-rose);"></span> Cancelled (3)</button>
+    <div style="margin-left:auto;display:flex;gap:8px;">
+      <select class="form-input" style="width:auto;font-size:.78rem;padding:7px 12px;">
+        <option>All Channels</option>
+        <option>BRND Direct B2B</option>
+        <option>TikTok Shop</option>
+        <option>Amazon</option>
+        <option>Target</option>
+      </select>
+      <select class="form-input" style="width:auto;font-size:.78rem;padding:7px 12px;">
+        <option>All Time</option>
+        <option>Last 7 days</option>
+        <option>Last 30 days</option>
+        <option>This quarter</option>
+      </select>
+    </div>
+  </div>
+
+  <!-- Orders Table -->
+  <div class="card fade-in">
+    <div class="card__body" style="padding:0;">
+      <div class="table-wrap">
+        <table class="data-table" id="ordersTable">
+          <thead><tr>
+            <th>Order #</th>
+            <th>Buyer</th>
+            <th>Channel</th>
+            <th>Products</th>
+            <th>Units</th>
+            <th>Total</th>
+            <th>Status</th>
+            <th>Date</th>
+            <th>Action</th>
+          </tr></thead>
+          <tbody>
+            <tr data-status="new">
+              <td><span class="font-mono" style="font-weight:700;font-size:.82rem;">WO-4521</span></td>
+              <td><span class="td-primary">SportZone Retail</span><span class="td-secondary">Los Angeles, CA</span></td>
+              <td><span style="font-size:.72rem;background:rgba(79,70,229,.1);color:var(--color-accent);padding:2px 8px;border-radius:100px;font-weight:700;">B2B</span></td>
+              <td><span class="td-primary">Classic Hoodie</span><span class="td-secondary">+ 2 items</span></td>
+              <td><span class="font-mono">250</span></td>
+              <td><span class="font-mono" style="font-weight:700;">$4,200</span></td>
+              <td><span class="status-chip status-chip--active">New</span></td>
+              <td><span class="td-secondary">Mar 23, 2026</span></td>
+              <td><button class="btn btn-outline" style="font-size:.72rem;padding:5px 10px;" onclick="openDrawer('WO-4521')">View</button></td>
+            </tr>
+            <tr data-status="new">
+              <td><span class="font-mono" style="font-weight:700;font-size:.82rem;">WO-4520</span></td>
+              <td><span class="td-primary">Urban Threads Co.</span><span class="td-secondary">New York, NY</span></td>
+              <td><span style="font-size:.72rem;background:rgba(79,70,229,.1);color:var(--color-accent);padding:2px 8px;border-radius:100px;font-weight:700;">B2B</span></td>
+              <td><span class="td-primary">Premium Graphic Tee</span><span class="td-secondary">+ 1 item</span></td>
+              <td><span class="font-mono">520</span></td>
+              <td><span class="font-mono" style="font-weight:700;">$6,750</span></td>
+              <td><span class="status-chip status-chip--active">New</span></td>
+              <td><span class="td-secondary">Mar 22, 2026</span></td>
+              <td><button class="btn btn-outline" style="font-size:.72rem;padding:5px 10px;" onclick="openDrawer('WO-4520')">View</button></td>
+            </tr>
+            <tr data-status="processing">
+              <td><span class="font-mono" style="font-weight:700;font-size:.82rem;">WO-4519</span></td>
+              <td><span class="td-primary">Boutique District</span><span class="td-secondary">Chicago, IL</span></td>
+              <td><span style="font-size:.72rem;background:rgba(244,63,94,.1);color:#f43f5e;padding:2px 8px;border-radius:100px;font-weight:700;">TikTok</span></td>
+              <td><span class="td-primary">Performance Jogger Set</span></td>
+              <td><span class="font-mono">150</span></td>
+              <td><span class="font-mono" style="font-weight:700;">$3,375</span></td>
+              <td><span class="status-chip status-chip--pending">Processing</span></td>
+              <td><span class="td-secondary">Mar 21, 2026</span></td>
+              <td><button class="btn btn-outline" style="font-size:.72rem;padding:5px 10px;" onclick="openDrawer('WO-4519')">View</button></td>
+            </tr>
+            <tr data-status="shipped">
+              <td><span class="font-mono" style="font-weight:700;font-size:.82rem;">WO-4518</span></td>
+              <td><span class="td-primary">FashionForward LLC</span><span class="td-secondary">Miami, FL</span></td>
+              <td><span style="font-size:.72rem;background:rgba(16,185,129,.1);color:var(--color-emerald);padding:2px 8px;border-radius:100px;font-weight:700;">B2B</span></td>
+              <td><span class="td-primary">Summer Collection</span></td>
+              <td><span class="font-mono">300</span></td>
+              <td><span class="font-mono" style="font-weight:700;">$8,100</span></td>
+              <td><span class="status-chip status-chip--shipped">Shipped</span></td>
+              <td><span class="td-secondary">Mar 19, 2026</span></td>
+              <td><button class="btn btn-outline" style="font-size:.72rem;padding:5px 10px;" onclick="openDrawer('WO-4518')">View</button></td>
+            </tr>
+            <tr data-status="shipped">
+              <td><span class="font-mono" style="font-weight:700;font-size:.82rem;">WO-4517</span></td>
+              <td><span class="td-primary">TrendSetters Inc.</span><span class="td-secondary">Dallas, TX</span></td>
+              <td><span style="font-size:.72rem;background:rgba(245,158,11,.1);color:var(--color-amber);padding:2px 8px;border-radius:100px;font-weight:700;">Amazon</span></td>
+              <td><span class="td-primary">Varsity Bomber Jacket</span></td>
+              <td><span class="font-mono">80</span></td>
+              <td><span class="font-mono" style="font-weight:700;">$5,600</span></td>
+              <td><span class="status-chip status-chip--shipped">Shipped</span></td>
+              <td><span class="td-secondary">Mar 18, 2026</span></td>
+              <td><button class="btn btn-outline" style="font-size:.72rem;padding:5px 10px;" onclick="openDrawer('WO-4517')">View</button></td>
+            </tr>
+            <tr data-status="delivered">
+              <td><span class="font-mono" style="font-weight:700;font-size:.82rem;">WO-4516</span></td>
+              <td><span class="td-primary">StyleHouse Group</span><span class="td-secondary">Atlanta, GA</span></td>
+              <td><span style="font-size:.72rem;background:rgba(79,70,229,.1);color:var(--color-accent);padding:2px 8px;border-radius:100px;font-weight:700;">B2B</span></td>
+              <td><span class="td-primary">Classic Hoodie Bundle</span></td>
+              <td><span class="font-mono">400</span></td>
+              <td><span class="font-mono" style="font-weight:700;">$7,400</span></td>
+              <td><span class="status-chip status-chip--delivered">Delivered</span></td>
+              <td><span class="td-secondary">Mar 16, 2026</span></td>
+              <td><button class="btn btn-outline" style="font-size:.72rem;padding:5px 10px;" onclick="openDrawer('WO-4516')">View</button></td>
+            </tr>
+            <tr data-status="cancelled">
+              <td><span class="font-mono" style="font-weight:700;font-size:.82rem;">WO-4512</span></td>
+              <td><span class="td-primary">QuickFashion.co</span><span class="td-secondary">Seattle, WA</span></td>
+              <td><span style="font-size:.72rem;background:rgba(79,70,229,.1);color:var(--color-accent);padding:2px 8px;border-radius:100px;font-weight:700;">B2B</span></td>
+              <td><span class="td-primary">Graphic Tee Pack</span></td>
+              <td><span class="font-mono">100</span></td>
+              <td><span class="font-mono" style="font-weight:700;color:var(--color-muted);">$1,200</span></td>
+              <td><span class="status-chip status-chip--cancelled">Cancelled</span></td>
+              <td><span class="td-secondary">Mar 14, 2026</span></td>
+              <td><button class="btn btn-outline" style="font-size:.72rem;padding:5px 10px;opacity:.6;" onclick="showToast('Order WO-4512 was cancelled.','error')">View</button></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-top:16px;padding-top:12px;">
+    <span style="font-size:.82rem;color:var(--color-muted);">Showing 7 of 145 orders</span>
+    <div style="display:flex;gap:8px;">
+      <button class="btn btn-outline" style="font-size:.78rem;" disabled>← Previous</button>
+      <button class="btn btn-outline" style="font-size:.78rem;background:var(--seller-accent);color:white;border-color:var(--seller-accent);">1</button>
+      <button class="btn btn-outline" style="font-size:.78rem;" onclick="showToast('Loading page 2…','success')">2</button>
+      <button class="btn btn-outline" style="font-size:.78rem;" onclick="showToast('Loading page 2…','success')">Next →</button>
+    </div>
+  </div>
+</main>
+
+<!-- Order Detail Drawer -->
+<div class="drawer" id="orderDrawer">
+  <div class="drawer-header">
+    <span class="drawer-title" id="drawerTitle">Order WO-4521</span>
+    <button class="drawer-close" onclick="closeDrawer()"><i class="fas fa-times"></i></button>
+  </div>
+  <div class="drawer-body">
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:20px;">
+      <span class="status-chip status-chip--active" id="drawerStatus">New</span>
+      <span style="font-size:.78rem;color:var(--color-muted);" id="drawerDate">Mar 23, 2026</span>
+    </div>
+
+    <div class="drawer-section">
+      <div class="drawer-section-title">Buyer Information</div>
+      <div class="detail-row"><span class="detail-label">Company</span><span class="detail-val" id="drawerBuyer">SportZone Retail</span></div>
+      <div class="detail-row"><span class="detail-label">Location</span><span class="detail-val">Los Angeles, CA 90015</span></div>
+      <div class="detail-row"><span class="detail-label">Contact</span><span class="detail-val">buyer@sportzone.com</span></div>
+      <div class="detail-row"><span class="detail-label">Account Type</span><span class="detail-val">Verified Wholesale Buyer</span></div>
+    </div>
+
+    <div class="drawer-section">
+      <div class="drawer-section-title">Order Items</div>
+      <div class="order-item-row">
+        <div class="order-item-thumb">🧥</div>
+        <div class="order-item-info">
+          <div class="order-item-name">Apex Classic Hoodie – Black XL</div>
+          <div class="order-item-sku">SKU: APX-CHD-001 · $18.50/unit</div>
+        </div>
+        <div class="order-item-qty">× 120</div>
+      </div>
+      <div class="order-item-row">
+        <div class="order-item-thumb">👕</div>
+        <div class="order-item-info">
+          <div class="order-item-name">Premium Graphic Tee – White L</div>
+          <div class="order-item-sku">SKU: APX-PGT-002 · $12.00/unit</div>
+        </div>
+        <div class="order-item-qty">× 80</div>
+      </div>
+      <div class="order-item-row">
+        <div class="order-item-thumb">🩳</div>
+        <div class="order-item-info">
+          <div class="order-item-name">Performance Jogger Set – M</div>
+          <div class="order-item-sku">SKU: APX-PJS-004 · $22.50/unit</div>
+        </div>
+        <div class="order-item-qty">× 50</div>
+      </div>
+    </div>
+
+    <div class="drawer-section">
+      <div class="drawer-section-title">Order Summary</div>
+      <div class="detail-row"><span class="detail-label">Subtotal</span><span class="detail-val">$4,200.00</span></div>
+      <div class="detail-row"><span class="detail-label">Shipping</span><span class="detail-val">Included</span></div>
+      <div class="detail-row"><span class="detail-label">Payment Terms</span><span class="detail-val">Net 30</span></div>
+      <div class="detail-row"><span class="detail-label">Channel</span><span class="detail-val">BRND Direct B2B</span></div>
+      <div class="detail-row" style="font-size:.9rem;"><span class="detail-label" style="font-weight:700;">Total</span><span class="detail-val" style="font-size:1rem;color:var(--color-emerald);">$4,200.00</span></div>
+    </div>
+
+    <div class="drawer-section">
+      <div class="drawer-section-title">Order Timeline</div>
+      <div class="timeline">
+        <div class="tl-step">
+          <div><div class="tl-dot done"></div></div>
+          <div class="tl-line done"></div>
+          <div class="tl-content"><div class="tl-label">Order Placed</div><div class="tl-time">Mar 23, 2026 · 9:14 AM</div></div>
+        </div>
+        <div class="tl-step">
+          <div><div class="tl-dot active"></div></div>
+          <div class="tl-line"></div>
+          <div class="tl-content"><div class="tl-label">Awaiting Fulfilment</div><div class="tl-time">Confirm &amp; ship within 24h</div></div>
+        </div>
+        <div class="tl-step">
+          <div><div class="tl-dot"></div></div>
+          <div class="tl-line"></div>
+          <div class="tl-content"><div class="tl-label">Shipped</div><div class="tl-time">Pending</div></div>
+        </div>
+        <div class="tl-step">
+          <div><div class="tl-dot"></div></div>
+          <div class="tl-content"><div class="tl-label">Delivered</div><div class="tl-time">Pending</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="drawer-footer">
+    <button class="btn btn-outline btn-full" onclick="showToast('Packing slip generated.','success')"><i class="fas fa-print"></i> Print Slip</button>
+    <button class="btn btn-primary btn-full" style="background:var(--seller-accent);" onclick="showToast('Order confirmed & sent to fulfilment.','success');closeDrawer();">
+      <i class="fas fa-check"></i> Confirm Order
+    </button>
+  </div>
+</div>
+
+<div class="toast-container" id="toastContainer"></div>
+<script src="js/portal.js"></script>
+<script>
+  function openDrawer(orderId) {
+    document.getElementById('drawerTitle').textContent = 'Order ' + orderId;
+    document.getElementById('orderDrawer').classList.add('open');
+  }
+  function closeDrawer() { document.getElementById('orderDrawer').classList.remove('open'); }
+
+  function filterOrders(btn, status) {
+    document.querySelectorAll('.sfilter').forEach(f => f.classList.remove('active'));
+    btn.classList.add('active');
+    const rows = document.querySelectorAll('#ordersTable tbody tr');
+    rows.forEach(row => {
+      row.style.display = (status === 'all' || row.dataset.status === status) ? '' : 'none';
+    });
+  }
+
+  function showToast(msg, type = 'success') {
+    const c = document.getElementById('toastContainer');
+    const icon = type === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle';
+    const t = document.createElement('div'); t.className = `toast ${type}`;
+    t.innerHTML = `<i class="fas ${icon}"></i><span>${msg}</span>`;
+    c.appendChild(t);
+    setTimeout(() => { t.style.opacity='0'; t.style.transform='translateX(60px)'; t.style.transition='all .3s'; setTimeout(() => t.remove(), 350); }, 3500);
+  }
+</script>
+</body>
+</html>

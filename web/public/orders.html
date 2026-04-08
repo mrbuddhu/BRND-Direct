@@ -1,0 +1,567 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Order Management – BRND Direct Portal</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&family=Inter:wght@300;400;500;600;700&family=Outfit:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.5.0/css/all.min.css" />
+  <link rel="stylesheet" href="css/portal.css" />
+
+  <style>
+    /* Stats chips row for orders */
+    .order-stats-row {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-bottom: 20px;
+    }
+    .order-stat-chip {
+      display: flex;
+      flex-direction: column;
+      padding: 16px 20px;
+      background: var(--color-white);
+      border: 1.5px solid var(--color-border);
+      border-radius: var(--radius-md);
+      cursor: pointer;
+      transition: all .18s;
+      min-width: 110px;
+      text-align: center;
+      flex: 1;
+    }
+    .order-stat-chip:hover { border-color: var(--color-accent); }
+    .order-stat-chip.active { background: var(--color-accent); border-color: var(--color-accent); }
+    .order-stat-chip.active .chip-label,
+    .order-stat-chip.active .chip-count { color: white; }
+    .order-stat-chip.pending.active   { background: var(--color-amber); border-color: var(--color-amber); }
+    .order-stat-chip.confirmed.active { background: var(--color-accent); border-color: var(--color-accent); }
+    .order-stat-chip.shipped.active   { background: var(--color-sky); border-color: var(--color-sky); }
+    .order-stat-chip.delivered.active { background: var(--color-emerald); border-color: var(--color-emerald); }
+    .order-stat-chip.cancelled.active { background: var(--color-rose); border-color: var(--color-rose); }
+    .chip-count {
+      font-family: var(--font-display);
+      font-size: 1.4rem;
+      font-weight: 800;
+      color: var(--color-near-black);
+      letter-spacing: -.04em;
+      line-height: 1;
+      margin-bottom: 4px;
+    }
+    .chip-label {
+      font-size: .7rem;
+      font-weight: 600;
+      color: var(--color-muted);
+      text-transform: uppercase;
+      letter-spacing: .06em;
+    }
+
+    /* Filters bar */
+    .filters-bar {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 16px;
+      flex-wrap: wrap;
+    }
+    .filters-bar .form-input,
+    .filters-bar .form-select {
+      padding: 9px 14px;
+      font-size: .875rem;
+    }
+
+    /* Action cell */
+    .action-btn {
+      font-size: .78rem;
+      font-weight: 600;
+      color: var(--color-accent);
+      border: 1.5px solid var(--color-accent);
+      background: transparent;
+      padding: 5px 12px;
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      transition: all .15s;
+      font-family: var(--font-sans);
+      white-space: nowrap;
+    }
+    .action-btn:hover { background: var(--color-accent); color: white; }
+
+    /* Modal order details */
+    .order-detail-section { margin-bottom: 20px; }
+    .order-detail-section h4 {
+      font-size: .72rem;
+      font-weight: 700;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      color: var(--color-muted);
+      margin-bottom: 12px;
+    }
+    .detail-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 8px 0;
+      border-bottom: 1px solid var(--color-border);
+      font-size: .875rem;
+    }
+    .detail-row:last-child { border-bottom: none; }
+    .detail-row .label { color: var(--color-muted); }
+    .detail-row .value { font-weight: 600; color: var(--color-near-black); text-align: right; }
+    .detail-total {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 16px 0 0;
+      border-top: 2px solid var(--color-near-black);
+      font-size: 1rem;
+      font-weight: 800;
+      font-family: var(--font-display);
+      margin-top: 8px;
+    }
+  </style>
+</head>
+<body>
+
+<!-- ===== SIDEBAR ===== -->
+<aside class="sidebar" id="sidebar">
+  <div class="sidebar__logo">
+    <a href="dashboard.html" class="logo-mark">
+      <span class="logo-icon"><i class="fas fa-chevron-right"></i></span>
+      <span class="logo-word">BRND <span class="logo-accent">DIRECT</span></span>
+    </a>
+  </div>
+  <nav class="sidebar__nav">
+    <div class="nav-section">
+      <span class="nav-section-label">Main Menu</span>
+      <a href="dashboard.html" class="nav-item"><i class="fas fa-table-columns"></i><span>Dashboard</span></a>
+      <a href="products.html" class="nav-item"><i class="fas fa-boxes-stacked"></i><span>Products</span></a>
+      <a href="orders.html" class="nav-item active"><i class="fas fa-file-invoice"></i><span>Orders</span><span class="nav-badge">18</span></a>
+      <a href="rfq.html" class="nav-item"><i class="fas fa-comment-dollar"></i><span>RFQ</span><span class="nav-badge new">5</span></a>
+      <a href="dropship.html" class="nav-item"><i class="fas fa-rotate"></i><span>Dropship</span></a>
+      <a href="analytics.html" class="nav-item"><i class="fas fa-chart-line"></i><span>Analytics</span></a>
+    </div>
+    <div class="nav-section">
+      <span class="nav-section-label">Finance</span>
+      <a href="invoices.html" class="nav-item"><i class="fas fa-file-invoice-dollar"></i><span>Invoices &amp; Payments</span></a>
+      <a href="trade-finance.html" class="nav-item"><i class="fas fa-credit-card"></i><span>Trade Finance</span></a>
+      <a href="reports.html" class="nav-item"><i class="fas fa-chart-bar"></i><span>Reports</span></a>
+    </div>
+    <div class="nav-section">
+      <span class="nav-section-label">Operations</span>
+      <a href="warehousing.html" class="nav-item"><i class="fas fa-warehouse"></i><span>Warehousing</span></a>
+      <a href="shipping-logistics.html" class="nav-item"><i class="fas fa-truck-fast"></i><span>Shipping &amp; Logistics</span></a>
+    </div>
+    <div class="sidebar__divider"></div>
+    <a href="messages.html" class="nav-item"><i class="fas fa-message"></i><span>Messages</span><span class="nav-badge">3</span></a>
+    <a href="account.html" class="nav-item"><i class="fas fa-gear"></i><span>Settings</span></a>
+    <a href="help.html" class="nav-item"><i class="fas fa-circle-question"></i><span>Help &amp; Support</span></a>
+  </nav>
+  <div class="sidebar__bottom">
+    <div class="sidebar__user">
+      <div class="sidebar__user-avatar">AJ</div>
+      <div class="sidebar__user-info">
+        <div class="sidebar__user-name">Alex Johnson</div>
+        <div class="sidebar__user-role">Wholesale Buyer</div>
+      </div>
+      <button class="sidebar__user-logout" title="Sign out" onclick="window.location.href='index.html'">
+        <i class="fas fa-arrow-right-from-bracket"></i>
+      </button>
+    </div>
+  </div>
+</aside>
+
+<div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+<!-- ===== TOPBAR ===== -->
+<header class="topbar">
+  <div class="topbar__left" style="display:flex;align-items:center;gap:12px;">
+    <button class="topbar__mobile-toggle" id="sidebarToggle"><i class="fas fa-bars"></i></button>
+    <div>
+      <div class="topbar__title">Order Management</div>
+      <div class="topbar__breadcrumb">Track and manage all your wholesale orders</div>
+    </div>
+  </div>
+  <div class="topbar__right">
+    <div class="search-bar">
+      <i class="fas fa-magnifying-glass"></i>
+      <input type="text" id="orderSearch" placeholder="Search order # or brand…" />
+    </div>
+    <div class="topbar__btn"><i class="fas fa-bell"></i><span class="notif-dot"></span></div>
+    <div class="topbar__avatar">AJ</div>
+  </div>
+</header>
+
+<!-- ===== MAIN CONTENT ===== -->
+<main class="app-main">
+
+  <!-- Page Header -->
+  <div class="page-header-bar fade-in">
+    <div>
+      <h1>Orders</h1>
+      <div class="page-header-sub">247 total orders this year</div>
+    </div>
+    <div class="page-header-bar__actions">
+      <button class="btn btn-secondary btn-sm" id="exportCsvBtn">
+        <i class="fas fa-download"></i> Export CSV
+      </button>
+      <a href="products.html" class="btn btn-primary btn-sm">
+        <i class="fas fa-plus"></i> New Order
+      </a>
+    </div>
+  </div>
+
+  <!-- Status Chips -->
+  <div class="order-stats-row fade-in d1" id="statusChips">
+    <div class="order-stat-chip active" data-status="all">
+      <div class="chip-count">247</div>
+      <div class="chip-label">All Orders</div>
+    </div>
+    <div class="order-stat-chip pending" data-status="pending">
+      <div class="chip-count" style="color:var(--color-amber);">18</div>
+      <div class="chip-label">Pending</div>
+    </div>
+    <div class="order-stat-chip confirmed" data-status="confirmed">
+      <div class="chip-count" style="color:var(--color-accent);">64</div>
+      <div class="chip-label">Confirmed</div>
+    </div>
+    <div class="order-stat-chip shipped" data-status="shipped">
+      <div class="chip-count" style="color:var(--color-sky);">89</div>
+      <div class="chip-label">Shipped</div>
+    </div>
+    <div class="order-stat-chip delivered" data-status="delivered">
+      <div class="chip-count" style="color:var(--color-emerald);">76</div>
+      <div class="chip-label">Delivered</div>
+    </div>
+    <div class="order-stat-chip cancelled" data-status="cancelled">
+      <div class="chip-count" style="color:var(--color-rose);">0</div>
+      <div class="chip-label">Cancelled</div>
+    </div>
+  </div>
+
+  <!-- Filters Bar -->
+  <div class="filters-bar fade-in d2">
+    <div class="input-group" style="flex:0 0 auto;">
+      <i class="fas fa-calendar input-icon"></i>
+      <input type="date" class="form-input" style="width:150px;" id="dateFrom" />
+    </div>
+    <span style="color:var(--color-muted);font-size:.85rem;">to</span>
+    <input type="date" class="form-input" style="width:150px;" id="dateTo" />
+    <select class="form-select" style="width:160px;" id="statusFilter">
+      <option value="all">All Statuses</option>
+      <option value="pending">Pending</option>
+      <option value="confirmed">Confirmed</option>
+      <option value="shipped">Shipped</option>
+      <option value="delivered">Delivered</option>
+      <option value="cancelled">Cancelled</option>
+    </select>
+    <div style="margin-left:auto;display:flex;align-items:center;gap:8px;">
+      <span id="filteredCount" style="font-size:.82rem;color:var(--color-muted);">Showing 15 of 247</span>
+    </div>
+  </div>
+
+  <!-- Orders Table -->
+  <div class="card fade-in d3">
+    <div class="table-wrap">
+      <table class="data-table" id="ordersTable">
+        <thead>
+          <tr>
+            <th>Order #</th>
+            <th>Brand</th>
+            <th>Product</th>
+            <th>Units</th>
+            <th>Unit Price</th>
+            <th>Total</th>
+            <th>Status</th>
+            <th>Ship Date</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody id="ordersBody">
+          <!-- Populated by JS -->
+        </tbody>
+      </table>
+    </div>
+    <div class="card-footer" style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;">
+      <span style="font-size:.82rem;color:var(--color-muted);">Page 1 of 17</span>
+      <div style="display:flex;gap:6px;">
+        <button class="page-btn" disabled><i class="fas fa-chevron-left"></i></button>
+        <button class="page-btn active">1</button>
+        <button class="page-btn">2</button>
+        <button class="page-btn">3</button>
+        <span style="color:var(--color-muted);padding:0 4px;display:flex;align-items:center;">…</span>
+        <button class="page-btn">17</button>
+        <button class="page-btn"><i class="fas fa-chevron-right"></i></button>
+      </div>
+    </div>
+  </div>
+
+</main>
+
+<!-- ===== ORDER DETAIL MODAL ===== -->
+<div class="modal-overlay" id="orderModal">
+  <div class="modal">
+    <div class="modal-header">
+      <div>
+        <div class="modal-title" id="modalOrderNum">Order BD-48291</div>
+        <div style="display:flex;align-items:center;gap:8px;margin-top:6px;">
+          <span id="modalStatus" class="badge badge-confirmed">Confirmed</span>
+          <span style="font-size:.78rem;color:var(--color-muted);" id="modalDate">Placed Mar 18, 2026</span>
+        </div>
+      </div>
+      <button class="modal-close" id="modalClose"><i class="fas fa-times"></i></button>
+    </div>
+    <div class="modal-body">
+
+      <!-- Order Info -->
+      <div class="order-detail-section">
+        <h4>Order Details</h4>
+        <div class="detail-row">
+          <span class="label">Brand</span>
+          <span class="value" id="modalBrand">Maison Margiela</span>
+        </div>
+        <div class="detail-row">
+          <span class="label">Product</span>
+          <span class="value" id="modalProduct">Replica Fragrance Set</span>
+        </div>
+        <div class="detail-row">
+          <span class="label">SKU</span>
+          <span class="value td-mono" id="modalSku">SKU-4821</span>
+        </div>
+        <div class="detail-row">
+          <span class="label">Quantity</span>
+          <span class="value" id="modalUnits">48 units</span>
+        </div>
+        <div class="detail-row">
+          <span class="label">Unit Price</span>
+          <span class="value" id="modalPrice">$80.00 / unit</span>
+        </div>
+        <div class="detail-total">
+          <span>Total</span>
+          <span id="modalTotal">$3,840.00</span>
+        </div>
+      </div>
+
+      <!-- Fulfillment Timeline -->
+      <div class="order-detail-section">
+        <h4>Fulfillment Timeline</h4>
+        <div class="order-timeline" id="modalTimeline">
+          <div class="timeline-step done">
+            <div class="timeline-dot"><i class="fas fa-check"></i></div>
+            <div class="timeline-label">Order Placed</div>
+            <div class="timeline-date" id="tDate1">Mar 15</div>
+          </div>
+          <div class="timeline-step done">
+            <div class="timeline-dot"><i class="fas fa-check"></i></div>
+            <div class="timeline-label">Confirmed</div>
+            <div class="timeline-date" id="tDate2">Mar 16</div>
+          </div>
+          <div class="timeline-step current">
+            <div class="timeline-dot"><i class="fas fa-truck"></i></div>
+            <div class="timeline-label">Shipped</div>
+            <div class="timeline-date" id="tDate3">Mar 18</div>
+          </div>
+          <div class="timeline-step">
+            <div class="timeline-dot"><i class="fas fa-home"></i></div>
+            <div class="timeline-label">Delivered</div>
+            <div class="timeline-date" id="tDate4">Est. Mar 22</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Payment -->
+      <div class="order-detail-section">
+        <h4>Payment &amp; Terms</h4>
+        <div class="detail-row">
+          <span class="label">Payment Terms</span>
+          <span class="value">Net-30</span>
+        </div>
+        <div class="detail-row">
+          <span class="label">Invoice #</span>
+          <span class="value td-mono">INV-2891</span>
+        </div>
+        <div class="detail-row">
+          <span class="label">Due Date</span>
+          <span class="value" id="modalDue">Apr 17, 2026</span>
+        </div>
+      </div>
+
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary btn-sm" id="modalCloseBtn">Close</button>
+      <button class="btn btn-outline btn-sm" onclick="showToast('Invoice downloaded.','success')">
+        <i class="fas fa-download"></i> Download Invoice
+      </button>
+      <button class="btn btn-primary btn-sm" onclick="showToast('Reorder initiated!','success')">
+        <i class="fas fa-rotate-right"></i> Reorder
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="toast-container" id="toastContainer"></div>
+
+<script src="js/portal.js"></script>
+<script>
+  /* ---- Order data ---- */
+  const orders = [
+    { id:'BD-48291', brand:'Maison Margiela', product:'Replica Fragrance Set',        units:48,  price:80,   total:3840,  status:'confirmed', ship:'Mar 19, 2026', sku:'SKU-4821', placed:'Mar 18, 2026' },
+    { id:'BD-48290', brand:'Charlotte Tilbury', product:'Pillow Talk Collection',      units:120, price:80,   total:9600,  status:'shipped',   ship:'Mar 17, 2026', sku:'SKU-2290', placed:'Mar 17, 2026' },
+    { id:'BD-48289', brand:'New Balance',       product:'990v6 Assorted Sizes',        units:36,  price:60,   total:2160,  status:'delivered', ship:'Mar 16, 2026', sku:'SKU-0033', placed:'Mar 14, 2026' },
+    { id:'BD-48288', brand:'Chanel',            product:'No. 5 EDP 50ml',              units:24,  price:240,  total:5760,  status:'pending',   ship:'—',            sku:'SKU-5510', placed:'Mar 15, 2026' },
+    { id:'BD-48287', brand:'Gucci',             product:'GG Marmont Mini Bag',         units:12,  price:600,  total:7200,  status:'confirmed', ship:'Mar 15, 2026', sku:'SKU-3381', placed:'Mar 14, 2026' },
+    { id:'BD-48286', brand:'Jordan Brand',      product:'Air Jordan 1 Retro High OG', units:18,  price:180,  total:3240,  status:'shipped',   ship:'Mar 14, 2026', sku:'SKU-0123', placed:'Mar 13, 2026' },
+    { id:'BD-48285', brand:'Dior',              product:'Sauvage EDT 100ml',           units:60,  price:95,   total:5700,  status:'delivered', ship:'Mar 12, 2026', sku:'SKU-6688', placed:'Mar 10, 2026' },
+    { id:'BD-48284', brand:'NARS Cosmetics',    product:'Iconic Lipstick Set',         units:72,  price:28,   total:2016,  status:'delivered', ship:'Mar 11, 2026', sku:'SKU-7742', placed:'Mar 8, 2026'  },
+    { id:'BD-48283', brand:'Prada',             product:'Saffiano Leather Tote',       units:4,   price:720,  total:2880,  status:'shipped',   ship:'Mar 10, 2026', sku:'SKU-9021', placed:'Mar 7, 2026'  },
+    { id:'BD-48282', brand:'Versace',           product:'Jeans Couture Polo SS26',    units:36,  price:85,   total:3060,  status:'confirmed', ship:'Mar 9, 2026',  sku:'SKU-4455', placed:'Mar 6, 2026'  },
+    { id:'BD-48281', brand:'MAC Cosmetics',     product:'Studio Fix Foundation',       units:96,  price:22,   total:2112,  status:'delivered', ship:'Mar 8, 2026',  sku:'SKU-8823', placed:'Mar 5, 2026'  },
+    { id:'BD-48280', brand:'Ralph Lauren',      product:'Oxford Piqué Polo — Classic',units:24,  price:65,   total:1560,  status:'delivered', ship:'Mar 7, 2026',  sku:'SKU-6654', placed:'Mar 4, 2026'  },
+    { id:'BD-48279', brand:'Maison Margiela',   product:'Beach Walk EDP 100ml',        units:30,  price:90,   total:2700,  status:'pending',   ship:'—',            sku:'SKU-4822', placed:'Mar 17, 2026' },
+    { id:'BD-48278', brand:'Balenciaga',        product:'Triple S Sneaker — White',    units:6,   price:450,  total:2700,  status:'pending',   ship:'—',            sku:'SKU-7721', placed:'Mar 16, 2026' },
+    { id:'BD-48277', brand:'YSL Beauty',        product:'Rouge Pur Couture Set',       units:48,  price:52,   total:2496,  status:'shipped',   ship:'Mar 13, 2026', sku:'SKU-3311', placed:'Mar 11, 2026' },
+  ];
+
+  const badgeMap = {
+    confirmed: 'badge-confirmed',
+    shipped:   'badge-shipped',
+    delivered: 'badge-delivered',
+    pending:   'badge-pending',
+    cancelled: 'badge-cancelled',
+  };
+
+  /* ---- Render orders ---- */
+  function renderOrders(data) {
+    const tbody = document.getElementById('ordersBody');
+    tbody.innerHTML = data.map(o => `
+      <tr data-status="${o.status}" data-id="${o.id}">
+        <td><span class="td-mono">${o.id}</span></td>
+        <td>
+          <div class="td-primary">${o.brand}</div>
+        </td>
+        <td>${o.product}</td>
+        <td>${o.units} units</td>
+        <td>$${o.price.toFixed(2)}</td>
+        <td><strong>$${o.total.toLocaleString()}</strong></td>
+        <td><span class="badge ${badgeMap[o.status]}">${o.status}</span></td>
+        <td style="font-size:.78rem;color:var(--color-muted);">${o.ship}</td>
+        <td>
+          <button class="action-btn view-order-btn" data-id="${o.id}">
+            <i class="fas fa-eye"></i> View
+          </button>
+        </td>
+      </tr>
+    `).join('');
+
+    // Attach view handlers
+    document.querySelectorAll('.view-order-btn').forEach(btn => {
+      btn.addEventListener('click', () => openModal(btn.dataset.id));
+    });
+  }
+
+  renderOrders(orders);
+
+  /* ---- Status chip filtering ---- */
+  document.querySelectorAll('.order-stat-chip').forEach(chip => {
+    chip.addEventListener('click', function() {
+      document.querySelectorAll('.order-stat-chip').forEach(c => c.classList.remove('active'));
+      this.classList.add('active');
+      const status = this.dataset.status;
+      const filtered = status === 'all' ? orders : orders.filter(o => o.status === status);
+      renderOrders(filtered);
+      document.getElementById('filteredCount').textContent = `Showing ${filtered.length} of ${orders.length}`;
+    });
+  });
+
+  /* ---- Status dropdown filter ---- */
+  document.getElementById('statusFilter').addEventListener('change', function() {
+    const val = this.value;
+    const filtered = val === 'all' ? orders : orders.filter(o => o.status === val);
+    renderOrders(filtered);
+    document.getElementById('filteredCount').textContent = `Showing ${filtered.length} of ${orders.length}`;
+  });
+
+  /* ---- Search ---- */
+  document.getElementById('orderSearch').addEventListener('input', function() {
+    const q = this.value.toLowerCase();
+    document.querySelectorAll('#ordersBody tr').forEach(row => {
+      row.style.display = row.textContent.toLowerCase().includes(q) ? '' : 'none';
+    });
+  });
+
+  /* ---- Export CSV ---- */
+  document.getElementById('exportCsvBtn').addEventListener('click', () => {
+    const headers = ['Order #','Brand','Product','Units','Unit Price','Total','Status','Ship Date'];
+    const rows = orders.map(o => [o.id, o.brand, o.product, o.units, `$${o.price}`, `$${o.total}`, o.status, o.ship]);
+    const csv = [headers, ...rows].map(r => r.join(',')).join('\n');
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url  = URL.createObjectURL(blob);
+    const a    = document.createElement('a');
+    a.href = url; a.download = 'brnd-direct-orders.csv'; a.click();
+    URL.revokeObjectURL(url);
+    showToast('Orders exported to CSV!', 'success');
+  });
+
+  /* ---- Modal ---- */
+  function openModal(orderId) {
+    const o = orders.find(x => x.id === orderId);
+    if (!o) return;
+    document.getElementById('modalOrderNum').textContent  = `Order ${o.id}`;
+    document.getElementById('modalStatus').textContent    = o.status;
+    document.getElementById('modalStatus').className      = `badge ${badgeMap[o.status]}`;
+    document.getElementById('modalDate').textContent      = `Placed ${o.placed}`;
+    document.getElementById('modalBrand').textContent     = o.brand;
+    document.getElementById('modalProduct').textContent   = o.product;
+    document.getElementById('modalSku').textContent       = o.sku;
+    document.getElementById('modalUnits').textContent     = `${o.units} units`;
+    document.getElementById('modalPrice').textContent     = `$${o.price.toFixed(2)} / unit`;
+    document.getElementById('modalTotal').textContent     = `$${o.total.toLocaleString()}.00`;
+
+    // Timeline states
+    const steps = document.querySelectorAll('.timeline-step');
+    const map   = { pending: 0, confirmed: 1, shipped: 2, delivered: 3 };
+    const idx   = map[o.status] ?? 0;
+    steps.forEach((s, i) => {
+      s.classList.remove('done','current');
+      if (i < idx)  s.classList.add('done');
+      if (i === idx) s.classList.add('current');
+    });
+
+    document.getElementById('orderModal').classList.add('open');
+    document.body.style.overflow = 'hidden';
+  }
+
+  function closeModal() {
+    document.getElementById('orderModal').classList.remove('open');
+    document.body.style.overflow = '';
+  }
+
+  document.getElementById('modalClose').addEventListener('click', closeModal);
+  document.getElementById('modalCloseBtn').addEventListener('click', closeModal);
+  document.getElementById('orderModal').addEventListener('click', function(e) {
+    if (e.target === this) closeModal();
+  });
+
+  /* ---- Pagination buttons ---- */
+  document.querySelectorAll('.page-btn:not([disabled])').forEach(btn => {
+    btn.addEventListener('click', function() {
+      document.querySelectorAll('.page-btn').forEach(b => b.classList.remove('active'));
+      if (!this.querySelector('i')) this.classList.add('active');
+    });
+  });
+
+  function showToast(msg, type = 'success') {
+    const container = document.getElementById('toastContainer');
+    const icon = type === 'success' ? 'fa-check-circle' : 'fa-info-circle';
+    const toast = document.createElement('div');
+    toast.className = `toast ${type}`;
+    toast.innerHTML = `<i class="fas ${icon}"></i><span>${msg}</span>`;
+    container.appendChild(toast);
+    setTimeout(() => { toast.style.opacity='0'; toast.style.transform='translateX(60px)'; toast.style.transition='all .3s'; setTimeout(()=>toast.remove(),350); }, 3200);
+  }
+</script>
+
+</body>
+</html>

@@ -1,0 +1,1585 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Order Management – BRND Direct Portal</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&family=Inter:wght@300;400;500;600;700&family=Outfit:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.5.0/css/all.min.css" />
+  <link rel="stylesheet" href="css/portal.css" />
+  <script src="js/auth-guard.js"></script>
+  <style>
+
+/* ═══════════════════════════════════════════════════════
+   MASTER 6-STEP FLOW TRACKER
+═══════════════════════════════════════════════════════ */
+.flow-tracker {
+  background:#fff;
+  border:1.5px solid var(--color-border);
+  border-radius:var(--radius-md);
+  overflow:hidden;
+  margin-bottom:20px;
+}
+.flow-tracker__head {
+  display:flex; align-items:center; justify-content:space-between;
+  padding:10px 20px;
+  background:var(--color-near-black);
+  color:#fff;
+}
+.flow-tracker__head h3 {
+  font-size:.72rem; font-weight:800; text-transform:uppercase;
+  letter-spacing:.1em; opacity:.75; display:flex; align-items:center; gap:8px;
+}
+.flow-tracker__head span {
+  font-size:.7rem; font-weight:600; opacity:.5;
+}
+.flow-steps {
+  display:flex; align-items:stretch; overflow-x:auto;
+}
+.flow-step {
+  flex:1; min-width:130px;
+  display:flex; flex-direction:column; align-items:center;
+  padding:16px 10px 14px;
+  border-right:1px solid var(--color-border);
+  cursor:pointer;
+  transition:background .15s;
+  position:relative;
+  text-align:center;
+}
+.flow-step:last-child { border-right:none; }
+.flow-step:hover { background:var(--color-off-white); }
+.flow-step.fs-active { background:rgba(79,70,229,.05); }
+.flow-step.fs-done  { background:rgba(16,185,129,.03); }
+
+.flow-step__num {
+  width:36px; height:36px; border-radius:50%;
+  border:2px solid var(--color-border);
+  display:flex; align-items:center; justify-content:center;
+  font-size:.78rem; font-weight:800; color:var(--color-muted);
+  margin-bottom:8px; flex-shrink:0; transition:all .2s;
+  position:relative; z-index:1;
+}
+.flow-step.fs-active .flow-step__num {
+  background:var(--color-accent);
+  border-color:var(--color-accent); color:#fff;
+  box-shadow:0 0 0 5px rgba(79,70,229,.15);
+}
+.flow-step.fs-done .flow-step__num {
+  background:#10b981; border-color:#10b981; color:#fff;
+}
+.flow-step__label {
+  font-size:.7rem; font-weight:800;
+  color:var(--color-muted); line-height:1.3; margin-bottom:3px;
+}
+.flow-step.fs-active .flow-step__label { color:var(--color-near-black); }
+.flow-step.fs-done  .flow-step__label { color:#059669; }
+.flow-step__sub {
+  font-size:.6rem; color:var(--color-muted); line-height:1.3;
+}
+.flow-step__action-badge {
+  position:absolute; top:8px; right:8px;
+  background:#f43f5e; color:#fff;
+  font-size:.52rem; font-weight:800;
+  width:16px; height:16px; border-radius:50%;
+  display:flex; align-items:center; justify-content:center;
+}
+.flow-step__cta {
+  margin-top:8px;
+  font-size:.6rem; font-weight:800;
+  padding:4px 10px; border-radius:20px;
+  text-decoration:none; display:inline-flex; align-items:center; gap:4px;
+  border:none; cursor:pointer; font-family:var(--font-sans);
+  transition:all .15s;
+}
+.cta-active { background:var(--color-accent); color:#fff; }
+.cta-active:hover { background:#3730a3; color:#fff; }
+.cta-done   { background:rgba(16,185,129,.1); color:#059669; cursor:default; }
+.cta-next   { background:var(--color-off-white); color:var(--color-muted); cursor:default; }
+
+/* connector line between steps */
+.flow-step:not(.flow-step:last-child)::after {
+  content:''; position:absolute; top:34px; right:-1px;
+  width:0; height:0; /* handled by border-right */
+}
+
+/* ═══════════════════════════════════════════════════════
+   STEP PANEL TABS — ordered 1→6 then All Orders
+═══════════════════════════════════════════════════════ */
+.step-tabs-bar {
+  display:flex; gap:0;
+  border-bottom:2px solid var(--color-border);
+  margin-bottom:22px; overflow-x:auto;
+  background:#fff;
+}
+.step-tab {
+  display:flex; align-items:center; gap:6px;
+  padding:13px 16px;
+  font-size:.8rem; font-weight:700;
+  border:none; background:transparent; color:var(--color-muted);
+  border-bottom:3px solid transparent; margin-bottom:-2px;
+  cursor:pointer; font-family:var(--font-sans);
+  white-space:nowrap; transition:all .18s;
+  position:relative;
+}
+.step-tab:hover { color:var(--color-near-black); background:var(--color-off-white); }
+.step-tab.active { color:var(--color-accent); border-bottom-color:var(--color-accent); background:#fff; }
+.step-tab__num {
+  width:20px; height:20px; border-radius:50%;
+  background:var(--color-off-white); border:1.5px solid var(--color-border);
+  display:flex; align-items:center; justify-content:center;
+  font-size:.58rem; font-weight:900; flex-shrink:0;
+  color:var(--color-muted);
+}
+.step-tab.active .step-tab__num {
+  background:var(--color-accent); border-color:var(--color-accent); color:#fff;
+}
+.step-tab__badge {
+  font-size:.55rem; font-weight:800; padding:2px 7px;
+  border-radius:20px; line-height:1.4;
+  background:#f43f5e; color:#fff;
+}
+.step-tab__badge.green { background:#10b981; }
+.step-tab__badge.amber { background:#f59e0b; color:#fff; }
+.step-tab__badge.blue  { background:#0ea5e9; color:#fff; }
+.step-tab__badge.gray  { background:#e5e7eb; color:#6b7280; }
+.step-tab__badge.purple{ background:#7c3aed; color:#fff; }
+
+.step-panel { display:none; }
+.step-panel.active { display:block; animation:spFadeIn .22s ease; }
+@keyframes spFadeIn { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
+
+/* ═══════════════════════════════════════════════════════
+   STEP PANEL — action card header
+═══════════════════════════════════════════════════════ */
+.step-action-card {
+  border-radius:var(--radius-md);
+  overflow:hidden;
+  margin-bottom:20px;
+}
+.sac-head {
+  display:flex; align-items:center; gap:14px;
+  padding:20px 24px;
+  color:#fff;
+}
+.sac-head__icon {
+  width:52px; height:52px; border-radius:14px;
+  background:rgba(255,255,255,.15);
+  display:flex; align-items:center; justify-content:center;
+  font-size:1.3rem; flex-shrink:0;
+}
+.sac-head__step {
+  font-size:.6rem; font-weight:800; text-transform:uppercase;
+  letter-spacing:.1em; opacity:.7; margin-bottom:4px;
+}
+.sac-head__title {
+  font-size:1rem; font-weight:800; font-family:var(--font-display);
+  margin-bottom:3px;
+}
+.sac-head__sub { font-size:.8rem; opacity:.85; }
+.sac-head__actions { margin-left:auto; display:flex; gap:8px; flex-wrap:wrap; flex-shrink:0; }
+.sac-body {
+  padding:18px 24px;
+  background:#fff; border:1.5px solid var(--color-border);
+  border-top:none; border-radius:0 0 var(--radius-md) var(--radius-md);
+}
+
+/* ═══════════════════════════════════════════════════════
+   ORDER CARDS (used in each step panel)
+═══════════════════════════════════════════════════════ */
+.order-card {
+  background:#fff; border:1.5px solid var(--color-border);
+  border-radius:var(--radius-md); overflow:hidden;
+  margin-bottom:12px; transition:box-shadow .18s, border-color .18s;
+}
+.order-card:hover { box-shadow:0 4px 18px rgba(0,0,0,.07); }
+.order-card__head {
+  display:flex; align-items:center; gap:12px;
+  padding:14px 18px;
+  background:var(--color-off-white);
+  border-bottom:1px solid var(--color-border);
+  flex-wrap:wrap;
+}
+.order-card__num {
+  font-family:monospace; font-weight:800; font-size:.9rem;
+  color:var(--color-accent);
+}
+.order-card__brand { font-size:.78rem; font-weight:600; color:var(--color-near-black); }
+.order-card__date  { font-size:.72rem; color:var(--color-muted); margin-left:auto; }
+.order-card__body  { padding:14px 18px; display:flex; align-items:center; gap:14px; flex-wrap:wrap; }
+.order-card__meta  { flex:1; min-width:0; display:flex; gap:20px; flex-wrap:wrap; }
+.ocard-field { display:flex; flex-direction:column; gap:2px; min-width:80px; }
+.ocard-field__label { font-size:.58rem; font-weight:800; text-transform:uppercase; letter-spacing:.07em; color:var(--color-muted); }
+.ocard-field__value { font-size:.82rem; font-weight:700; color:var(--color-near-black); }
+.order-card__actions { display:flex; gap:7px; flex-wrap:wrap; flex-shrink:0; }
+
+.btn-step-primary {
+  display:inline-flex; align-items:center; gap:6px;
+  padding:9px 18px; border-radius:var(--radius-sm);
+  font-size:.8rem; font-weight:800; font-family:var(--font-sans);
+  border:none; cursor:pointer; transition:all .18s;
+  text-decoration:none; white-space:nowrap;
+}
+.btn-step-primary:hover { transform:translateY(-1px); }
+.bsp-green  { background:#10b981; color:#fff; box-shadow:0 4px 12px rgba(16,185,129,.3); }
+.bsp-indigo { background:var(--color-accent); color:#fff; box-shadow:0 4px 12px rgba(79,70,229,.3); }
+.bsp-amber  { background:#f59e0b; color:#fff; box-shadow:0 4px 12px rgba(245,158,11,.3); }
+.bsp-purple { background:#7c3aed; color:#fff; box-shadow:0 4px 12px rgba(124,58,237,.3); }
+.btn-step-outline {
+  display:inline-flex; align-items:center; gap:6px;
+  padding:8px 14px; border-radius:var(--radius-sm);
+  font-size:.78rem; font-weight:700; font-family:var(--font-sans);
+  background:transparent; cursor:pointer; transition:all .18s;
+  text-decoration:none; white-space:nowrap;
+  border:1.5px solid var(--color-border); color:var(--color-muted);
+}
+.btn-step-outline:hover { border-color:var(--color-accent); color:var(--color-accent); }
+
+/* empty step state */
+.step-empty {
+  text-align:center; padding:60px 24px;
+  background:#fff; border:1.5px solid var(--color-border);
+  border-radius:var(--radius-md);
+}
+.step-empty__icon { font-size:2.5rem; margin-bottom:14px; opacity:.3; }
+.step-empty__title { font-size:1rem; font-weight:800; color:var(--color-near-black); margin-bottom:6px; }
+.step-empty__sub   { font-size:.82rem; color:var(--color-muted); max-width:360px; margin:0 auto 20px; line-height:1.6; }
+
+/* ═══════════════════════════════════════════════════════
+   STATUS BADGES
+═══════════════════════════════════════════════════════ */
+.badge-pill {
+  font-size:.65rem; font-weight:800; padding:3px 10px;
+  border-radius:20px; white-space:nowrap; display:inline-block;
+}
+.bp-amber   { background:#fef3c7; color:#92400e; }
+.bp-indigo  { background:rgba(79,70,229,.1); color:#4f46e5; }
+.bp-green   { background:rgba(16,185,129,.1); color:#059669; border:1px solid rgba(16,185,129,.2); }
+.bp-blue    { background:rgba(14,165,233,.1); color:#0ea5e9; }
+.bp-emerald { background:#d1fae5; color:#065f46; }
+.bp-purple  { background:rgba(124,58,237,.1); color:#7c3aed; }
+
+/* ═══════════════════════════════════════════════════════
+   ALL ORDERS TABLE (last tab)
+═══════════════════════════════════════════════════════ */
+.order-stats-row { display:flex; gap:8px; flex-wrap:wrap; margin-bottom:16px; }
+.ostat-chip {
+  display:flex; flex-direction:column; padding:12px 16px;
+  background:#fff; border:1.5px solid var(--color-border);
+  border-radius:var(--radius-md); cursor:pointer; transition:all .18s;
+  min-width:90px; text-align:center; flex:1;
+}
+.ostat-chip:hover { border-color:var(--color-accent); }
+.ostat-chip.active { background:var(--color-accent); border-color:var(--color-accent); }
+.ostat-chip.active .ostat-count, .ostat-chip.active .ostat-label { color:#fff !important; }
+.ostat-count { font-family:var(--font-display); font-size:1.25rem; font-weight:800; line-height:1; margin-bottom:3px; }
+.ostat-label { font-size:.62rem; font-weight:700; color:var(--color-muted); text-transform:uppercase; letter-spacing:.06em; }
+.order-num-link {
+  font-family:monospace; font-weight:700; color:var(--color-accent);
+  border:none; border-bottom:1.5px dashed var(--color-accent);
+  background:none; cursor:pointer; padding:0; font-size:.85rem;
+}
+.order-num-link:hover { border-bottom-style:solid; }
+.action-btn {
+  font-size:.72rem; font-weight:700; color:var(--color-accent);
+  border:1.5px solid var(--color-accent); background:transparent;
+  padding:4px 10px; border-radius:var(--radius-sm); cursor:pointer; transition:all .15s;
+  text-decoration:none; display:inline-flex; align-items:center; gap:4px;
+}
+.action-btn:hover { background:var(--color-accent); color:#fff; }
+
+/* ═══════════════════════════════════════════════════════
+   PO UPLOAD & MANUAL ORDER (kept from previous)
+═══════════════════════════════════════════════════════ */
+.po-upload-zone { border:2.5px dashed #c4b5fd; border-radius:16px; padding:48px 28px; text-align:center; background:linear-gradient(135deg,#faf5ff,#f5f3ff); cursor:pointer; transition:all .2s; }
+.po-upload-zone:hover { border-color:#7c3aed; background:linear-gradient(135deg,#ede9fe,#f0ebff); }
+.po-upload-icon { width:64px; height:64px; border-radius:18px; background:linear-gradient(135deg,#4f46e5,#7c3aed); display:flex; align-items:center; justify-content:center; font-size:1.6rem; color:#fff; margin:0 auto 16px; }
+.po-upload-title { font-size:1rem; font-weight:800; color:#1e1b4b; margin-bottom:5px; }
+.po-upload-sub { font-size:.82rem; color:#6b7280; margin-bottom:14px; }
+.po-format-chips { display:flex; gap:7px; justify-content:center; flex-wrap:wrap; }
+.po-format-chip { font-size:.68rem; font-weight:700; padding:4px 12px; border-radius:20px; border:1.5px solid #ddd6fe; color:#5b21b6; background:#fff; }
+.demo-po-card { background:#fff; border:1.5px solid var(--color-border); border-radius:12px; padding:16px 18px; cursor:pointer; transition:all .2s; }
+.demo-po-card:hover { border-color:#7c3aed; box-shadow:0 6px 20px rgba(124,58,237,.12); transform:translateY(-2px); }
+.ai-parse-card { background:#fff; border:1.5px solid var(--color-border); border-radius:16px; overflow:hidden; }
+.ai-parse-header { background:linear-gradient(135deg,#0f172a,#1e1b4b); color:#fff; padding:20px 24px; display:flex; align-items:center; gap:14px; }
+.ai-brain-icon { width:44px; height:44px; border-radius:12px; background:rgba(255,255,255,.15); display:flex; align-items:center; justify-content:center; font-size:1.3rem; }
+.ai-confidence-val { font-family:var(--font-display); font-size:1.5rem; font-weight:900; color:#10b981; }
+.ai-confidence-lbl { font-size:.58rem; opacity:.55; text-transform:uppercase; letter-spacing:.07em; }
+.ai-parse-body { padding:22px; }
+.ai-field-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:14px; margin-bottom:20px; }
+@media(max-width:700px){ .ai-field-grid{ grid-template-columns:1fr 1fr; } }
+.ai-field { display:flex; flex-direction:column; gap:5px; }
+.ai-field-label { font-size:.6rem; font-weight:800; text-transform:uppercase; letter-spacing:.08em; color:var(--color-muted); }
+.ai-field-input { border:1.5px solid var(--color-border); border-radius:7px; padding:7px 11px; font-family:var(--font-sans); font-size:.85rem; font-weight:600; color:var(--color-near-black); background:#fff; outline:none; transition:border-color .15s; }
+.ai-field-input:focus { border-color:#7c3aed; }
+.parsed-tbl { width:100%; border-collapse:collapse; font-size:.82rem; }
+.parsed-tbl thead th { padding:9px 12px; background:#f8f7ff; border-bottom:2px solid #ede9fe; font-size:.63rem; font-weight:800; text-transform:uppercase; letter-spacing:.07em; color:#5b21b6; text-align:left; }
+.parsed-tbl tbody td { padding:9px 12px; border-bottom:1px solid var(--color-border); vertical-align:middle; }
+.parsed-tbl tbody tr:last-child td { border-bottom:none; }
+.parsed-tbl input { border:1.5px solid var(--color-border); border-radius:6px; padding:5px 9px; font-family:var(--font-sans); font-size:.82rem; width:100%; box-sizing:border-box; outline:none; }
+.parsed-tbl input:focus { border-color:#7c3aed; }
+.match-chip { font-size:.63rem; font-weight:700; padding:3px 9px; border-radius:20px; display:inline-flex; align-items:center; gap:4px; white-space:nowrap; }
+.match-found   { background:#d1fae5; color:#065f46; }
+.match-partial { background:#fef3c7; color:#92400e; }
+.match-missing { background:#fee2e2; color:#991b1b; }
+.gen-overlay { position:fixed; inset:0; z-index:1000; background:rgba(15,23,42,.75); backdrop-filter:blur(6px); display:flex; align-items:center; justify-content:center; }
+.gen-card { background:#fff; border-radius:20px; padding:44px 52px; text-align:center; max-width:400px; width:90%; box-shadow:0 32px 80px rgba(0,0,0,.25); }
+.gen-spinner { width:52px; height:52px; border-radius:50%; border:4px solid #ede9fe; border-top-color:#7c3aed; animation:spin 1s linear infinite; margin:0 auto 20px; }
+@keyframes spin { to{ transform:rotate(360deg); } }
+.gen-step-item { font-size:.8rem; display:flex; align-items:center; gap:10px; padding:5px 10px; border-radius:8px; color:var(--color-muted); transition:all .3s; }
+.gen-step-item.active { background:#f5f3ff; color:#5b21b6; font-weight:600; }
+.gen-step-item.done   { color:#059669; }
+.manual-layout { display:grid; grid-template-columns:1fr 300px; gap:18px; align-items:start; }
+@media(max-width:960px){ .manual-layout{ grid-template-columns:1fr; } }
+.prod-search-row { display:flex; gap:8px; margin-bottom:14px; flex-wrap:wrap; }
+.prod-search-row input { flex:1; min-width:180px; padding:9px 13px; border:1.5px solid var(--color-border); border-radius:var(--radius-sm); font-family:var(--font-sans); font-size:.875rem; outline:none; }
+.prod-search-row input:focus { border-color:#7c3aed; }
+.prod-search-row select { padding:9px 13px; border:1.5px solid var(--color-border); border-radius:var(--radius-sm); font-family:var(--font-sans); font-size:.83rem; background:#fff; outline:none; cursor:pointer; }
+.prod-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(165px,1fr)); gap:10px; max-height:460px; overflow-y:auto; padding-bottom:4px; }
+.prod-card { background:#fff; border:1.5px solid var(--color-border); border-radius:11px; padding:13px; cursor:pointer; transition:all .18s; position:relative; }
+.prod-card:hover { border-color:#7c3aed; box-shadow:0 5px 16px rgba(124,58,237,.1); }
+.prod-card.selected { border-color:#7c3aed; background:#faf5ff; }
+.prod-card .selected-check { position:absolute; top:9px; right:9px; width:21px; height:21px; border-radius:50%; background:#7c3aed; color:#fff; display:none; align-items:center; justify-content:center; font-size:.58rem; }
+.prod-card.selected .selected-check { display:flex; }
+.prod-card-emoji { font-size:1.4rem; margin-bottom:7px; }
+.prod-card-brand { font-size:.58rem; font-weight:800; text-transform:uppercase; letter-spacing:.06em; color:var(--color-muted); margin-bottom:2px; }
+.prod-card-name  { font-size:.78rem; font-weight:700; color:var(--color-near-black); margin-bottom:5px; line-height:1.3; }
+.prod-card-price { font-size:.82rem; font-weight:900; color:#7c3aed; }
+.prod-card-sku   { font-size:.6rem; color:var(--color-muted); font-family:monospace; margin-top:2px; }
+.order-summary-panel { background:#fff; border:1.5px solid var(--color-border); border-radius:12px; overflow:hidden; position:sticky; top:84px; }
+.osp-head { background:#0f172a; color:#fff; padding:14px 18px; display:flex; align-items:center; justify-content:space-between; }
+.osp-head h3 { font-family:var(--font-display); font-size:.9rem; font-weight:800; }
+.osp-body { max-height:320px; overflow-y:auto; }
+.osp-empty { padding:32px 18px; text-align:center; color:var(--color-muted); font-size:.8rem; }
+.osp-item { display:grid; grid-template-columns:1fr auto auto; gap:7px; align-items:center; padding:9px 14px; border-bottom:1px solid var(--color-border); }
+.osp-item:last-child { border-bottom:none; }
+.osp-item-name  { font-size:.78rem; font-weight:700; color:var(--color-near-black); }
+.osp-item-brand { font-size:.65rem; color:var(--color-muted); }
+.osp-qty-ctrl { display:flex; align-items:center; gap:3px; }
+.osp-qty-btn { width:21px; height:21px; border-radius:5px; border:1.5px solid var(--color-border); background:#fff; cursor:pointer; display:flex; align-items:center; justify-content:center; font-size:.68rem; color:var(--color-muted); transition:all .15s; }
+.osp-qty-btn:hover { border-color:#7c3aed; color:#7c3aed; }
+.osp-qty-val { width:24px; text-align:center; font-weight:800; font-size:.8rem; }
+.osp-item-total { font-weight:800; color:#7c3aed; font-size:.8rem; white-space:nowrap; }
+.osp-foot { padding:14px 16px; border-top:2px solid var(--color-near-black); }
+.osp-totrow { display:flex; justify-content:space-between; font-size:.8rem; margin-bottom:5px; }
+.osp-totrow strong { font-family:var(--font-display); font-size:.95rem; font-weight:900; }
+
+/* order detail overlay */
+.order-detail-page { display:none; position:fixed; inset:0; z-index:300; background:var(--color-bg,#f8f9fb); overflow-y:auto; }
+.order-detail-page.open { display:block; }
+.odp-topbar { position:sticky; top:0; z-index:10; background:#fff; border-bottom:1px solid var(--color-border); padding:13px 24px; display:flex; align-items:center; gap:14px; box-shadow:0 1px 8px rgba(0,0,0,.06); flex-wrap:wrap; }
+.odp-back { display:flex; align-items:center; gap:7px; font-size:.85rem; font-weight:700; color:var(--color-accent); background:none; border:none; cursor:pointer; padding:6px 12px; border-radius:7px; transition:background .15s; }
+.odp-back:hover { background:rgba(99,91,255,.08); }
+.odp-title { font-family:var(--font-display); font-size:1.05rem; font-weight:800; }
+.odp-actions { margin-left:auto; display:flex; gap:8px; flex-wrap:wrap; }
+.odp-body { max-width:900px; margin:0 auto; padding:24px 20px 60px; }
+.odp-grid { display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:18px; }
+@media(max-width:640px){ .odp-grid{ grid-template-columns:1fr; } }
+.odp-card { background:#fff; border:1px solid var(--color-border); border-radius:var(--radius-md); padding:16px 18px; }
+.odp-card h4 { font-size:.68rem; font-weight:700; text-transform:uppercase; letter-spacing:.08em; color:var(--color-muted); margin-bottom:12px; display:flex; align-items:center; gap:7px; }
+.odp-hero { background:#fff; border:1px solid var(--color-border); border-radius:var(--radius-md); padding:18px 22px; margin-bottom:18px; display:flex; align-items:flex-start; justify-content:space-between; flex-wrap:wrap; gap:14px; }
+.odp-hero-left h2 { font-family:var(--font-display); font-size:1.4rem; font-weight:900; margin-bottom:3px; }
+.odp-hero-left .placed { font-size:.8rem; color:var(--color-muted); }
+.odp-hero-right { text-align:right; }
+.odp-hero-total { font-family:var(--font-display); font-size:1.7rem; font-weight:900; color:var(--color-near-black); }
+.odp-hero-total-label { font-size:.72rem; color:var(--color-muted); font-weight:600; text-transform:uppercase; letter-spacing:.06em; margin-top:2px; }
+.detail-row { display:flex; justify-content:space-between; align-items:flex-start; padding:7px 0; border-bottom:1px solid var(--color-border); font-size:.875rem; gap:12px; }
+.detail-row:last-child { border-bottom:none; }
+.detail-row .label { color:var(--color-muted); flex-shrink:0; font-size:.78rem; }
+.detail-row .value { font-weight:600; color:var(--color-near-black); text-align:right; }
+.ref-tag { display:inline-flex; align-items:center; gap:5px; background:rgba(99,91,255,.08); border:1px solid rgba(99,91,255,.2); color:var(--color-accent); padding:3px 10px; border-radius:5px; font-size:.75rem; font-weight:700; font-family:monospace; }
+.ref-tag.invoice { background:rgba(16,185,129,.07); border-color:rgba(16,185,129,.25); color:#10b981; }
+.items-table { width:100%; border-collapse:collapse; font-size:.8rem; margin-top:7px; }
+.items-table thead th { background:var(--color-bg-soft,#f4f5f8); padding:7px 10px; text-align:left; font-size:.63rem; font-weight:700; text-transform:uppercase; letter-spacing:.06em; color:var(--color-muted); }
+.items-table tbody td { padding:8px 10px; border-bottom:1px solid var(--color-border); color:var(--color-near-black); }
+.items-table tbody tr:last-child td { border-bottom:none; }
+.pay-now-card { background:linear-gradient(135deg,#f0fdf4,#dcfce7); border:2px solid #10b981; border-radius:var(--radius-md); padding:16px 20px; margin-bottom:18px; display:flex; align-items:center; gap:14px; flex-wrap:wrap; }
+.pay-now-card .pnc-icon { font-size:1.6rem; flex-shrink:0; }
+.pay-now-card h4 { font-size:.9rem; font-weight:800; color:#065f46; margin-bottom:2px; }
+.pay-now-card p  { font-size:.75rem; color:#047857; }
+.pay-now-card__actions { margin-left:auto; display:flex; gap:8px; }
+.tl-steps { display:flex; gap:0; margin-top:10px; }
+.tl-step { flex:1; text-align:center; position:relative; }
+.tl-step:not(:last-child)::after { content:''; position:absolute; top:13px; left:50%; width:100%; height:2px; background:var(--color-border); z-index:0; }
+.tl-step.done:not(:last-child)::after { background:#10b981; }
+.tl-dot { width:27px; height:27px; border-radius:50%; border:2px solid var(--color-border); background:#fff; display:flex; align-items:center; justify-content:center; font-size:.6rem; margin:0 auto 5px; position:relative; z-index:1; }
+.tl-step.done .tl-dot { background:#10b981; border-color:#10b981; color:#fff; }
+.tl-step.current .tl-dot { background:var(--color-accent); border-color:var(--color-accent); color:#fff; box-shadow:0 0 0 4px rgba(79,70,229,.15); }
+.tl-step-label { font-size:.58rem; font-weight:700; color:var(--color-muted); text-transform:uppercase; letter-spacing:.06em; }
+.tl-step.done .tl-step-label { color:#10b981; }
+.tl-step.current .tl-step-label { color:var(--color-accent); }
+
+/* success doc grid */
+.success-doc-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; background:var(--color-off-white); border-radius:10px; padding:14px; margin:18px 0; text-align:left; }
+.success-doc-field .sdl { font-size:.58rem; font-weight:800; text-transform:uppercase; letter-spacing:.07em; color:var(--color-muted); margin-bottom:3px; }
+.success-doc-field .sdv { font-weight:800; font-size:.88rem; }
+
+/* AI FAB */
+.ai-fab { position:fixed; bottom:28px; right:28px; z-index:800; width:52px; height:52px; border-radius:50%; background:linear-gradient(135deg,#4f46e5,#7c3aed); border:none; cursor:pointer; box-shadow:0 8px 24px rgba(79,70,229,.45); display:flex; align-items:center; justify-content:center; color:#fff; font-size:1.1rem; transition:all .22s; animation:fabPulse 3s ease-in-out infinite; }
+.ai-fab:hover { transform:scale(1.08); }
+@keyframes fabPulse { 0%,100%{box-shadow:0 8px 24px rgba(79,70,229,.45)} 50%{box-shadow:0 8px 32px rgba(79,70,229,.7)} }
+.ai-fab-tip { position:absolute; right:62px; background:#0f172a; color:#fff; padding:5px 11px; border-radius:7px; font-size:.68rem; font-weight:700; white-space:nowrap; opacity:0; transition:opacity .2s; pointer-events:none; font-family:var(--font-sans); }
+.ai-fab:hover .ai-fab-tip { opacity:1; }
+.ai-panel { position:fixed; bottom:90px; right:28px; z-index:800; width:360px; max-height:500px; background:#fff; border:1.5px solid var(--color-border); border-radius:16px; box-shadow:0 20px 60px rgba(0,0,0,.18); display:flex; flex-direction:column; overflow:hidden; }
+@media(max-width:480px){ .ai-panel{ width:calc(100vw - 28px); right:14px; } }
+.ai-panel-head { background:linear-gradient(135deg,#0f172a,#1e1b4b); color:#fff; padding:13px 16px; display:flex; align-items:center; gap:11px; flex-shrink:0; }
+.ai-panel-avatar { width:33px; height:33px; border-radius:50%; background:rgba(255,255,255,.15); display:flex; align-items:center; justify-content:center; font-size:.85rem; }
+.ai-panel-close { margin-left:auto; background:none; border:none; color:rgba(255,255,255,.6); cursor:pointer; font-size:.9rem; }
+.ai-msgs { flex:1; overflow-y:auto; padding:13px; display:flex; flex-direction:column; gap:9px; min-height:0; }
+.ai-msg { display:flex; gap:7px; align-items:flex-start; }
+.ai-msg.user { flex-direction:row-reverse; }
+.ai-bubble { max-width:84%; padding:8px 12px; border-radius:11px; font-size:.8rem; line-height:1.55; word-break:break-word; }
+.ai-msg.bot .ai-bubble { background:#f4f5f8; color:#111; border-bottom-left-radius:3px; }
+.ai-msg.user .ai-bubble { background:#4f46e5; color:#fff; border-bottom-right-radius:3px; }
+.ai-av { width:26px; height:26px; border-radius:50%; flex-shrink:0; display:flex; align-items:center; justify-content:center; font-size:.65rem; font-weight:800; }
+.ai-msg.bot .ai-av { background:linear-gradient(135deg,#4f46e5,#7c3aed); color:#fff; }
+.ai-msg.user .ai-av { background:#f4f5f8; color:#6b7280; }
+.ai-quick-chips { padding:0 13px 8px; display:flex; gap:5px; flex-wrap:wrap; flex-shrink:0; }
+.ai-quick-chip { font-size:.68rem; font-weight:700; padding:4px 10px; border-radius:20px; border:1.5px solid var(--color-border); background:#fff; cursor:pointer; color:var(--color-near-black); transition:all .15s; font-family:var(--font-sans); }
+.ai-quick-chip:hover { border-color:#7c3aed; color:#7c3aed; }
+.ai-input-bar { padding:9px 11px; border-top:1px solid var(--color-border); display:flex; gap:6px; align-items:center; flex-shrink:0; }
+.ai-input-bar input { flex:1; border:1.5px solid var(--color-border); border-radius:8px; padding:7px 11px; font-family:var(--font-sans); font-size:.8rem; outline:none; }
+.ai-input-bar input:focus { border-color:#7c3aed; }
+.ai-send-btn { width:32px; height:32px; border-radius:7px; background:#4f46e5; border:none; color:#fff; cursor:pointer; display:flex; align-items:center; justify-content:center; font-size:.8rem; }
+
+@media(max-width:900px){
+  .flow-step { min-width:110px; padding:12px 8px 10px; }
+  .flow-step__label { font-size:.63rem; }
+}
+  </style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<aside class="sidebar" id="sidebar">
+  <div class="sidebar__logo">
+    <a href="dashboard.html" class="logo-mark">
+      <span class="logo-icon"><i class="fas fa-chevron-right"></i></span>
+      <span class="logo-word">BRND <span class="logo-accent">DIRECT</span></span>
+    </a>
+  </div>
+  <nav class="sidebar__nav">
+    <div class="nav-section">
+      <span class="nav-section-label">Main Menu</span>
+      <a href="dashboard.html" class="nav-item"><i class="fas fa-table-columns"></i><span>Dashboard</span></a>
+      <a href="products.html" class="nav-item"><i class="fas fa-boxes-stacked"></i><span>Products</span></a>
+      <a href="orders.html" class="nav-item active"><i class="fas fa-file-invoice"></i><span>Orders</span><span class="nav-badge">4</span></a>
+      <a href="cart.html" class="nav-item" id="navCartLink"><i class="fas fa-cart-shopping"></i><span>Order Cart</span><span class="nav-badge" id="sidebarCartBadge" style="display:none;">0</span></a>
+      <a href="rfq.html" class="nav-item"><i class="fas fa-comment-dollar"></i><span>RFQ</span><span class="nav-badge new">5</span></a>
+      <a href="dropship.html" class="nav-item"><i class="fas fa-rotate"></i><span>Dropship</span></a>
+      <a href="analytics.html" class="nav-item"><i class="fas fa-chart-line"></i><span>Analytics</span></a>
+    </div>
+    <div class="nav-section">
+      <span class="nav-section-label">Finance</span>
+      <a href="invoices.html" class="nav-item"><i class="fas fa-file-invoice-dollar"></i><span>Invoices &amp; Payments</span></a>
+      <a href="trade-finance.html" class="nav-item"><i class="fas fa-credit-card"></i><span>Trade Finance</span></a>
+      <a href="reports.html" class="nav-item"><i class="fas fa-chart-bar"></i><span>Reports</span></a>
+    </div>
+    <div class="nav-section">
+      <span class="nav-section-label">Operations</span>
+      <a href="warehousing.html" class="nav-item"><i class="fas fa-warehouse"></i><span>Warehousing</span></a>
+      <a href="shipping-logistics.html" class="nav-item"><i class="fas fa-truck-fast"></i><span>Shipping &amp; Logistics</span></a>
+    </div>
+    <div class="sidebar__divider"></div>
+    <a href="messages.html" class="nav-item"><i class="fas fa-message"></i><span>Messages</span><span class="nav-badge">3</span></a>
+    <a href="account.html" class="nav-item"><i class="fas fa-gear"></i><span>Settings</span></a>
+    <a href="help.html" class="nav-item"><i class="fas fa-circle-question"></i><span>Help &amp; Support</span></a>
+  </nav>
+  <div class="sidebar__bottom">
+    <div class="sidebar__user">
+      <div class="sidebar__user-avatar">AJ</div>
+      <div class="sidebar__user-info">
+        <div class="sidebar__user-name">Alex Johnson</div>
+        <div class="sidebar__user-role">Wholesale Buyer</div>
+      </div>
+      <button class="sidebar__user-logout" title="Sign out" onclick="window.location.href='index.html'"><i class="fas fa-arrow-right-from-bracket"></i></button>
+    </div>
+  </div>
+</aside>
+<div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+<!-- TOPBAR -->
+<header class="topbar">
+  <div class="topbar__left" style="display:flex;align-items:center;gap:12px;">
+    <button class="topbar__mobile-toggle" id="sidebarToggle"><i class="fas fa-bars"></i></button>
+    <div>
+      <div class="topbar__title">Order Management</div>
+      <div class="topbar__breadcrumb">Follow each step to place, pay and ship your wholesale orders</div>
+    </div>
+  </div>
+  <div class="topbar__right">
+    <div class="search-bar"><i class="fas fa-magnifying-glass"></i><input type="text" id="orderSearch" placeholder="Search order # or brand…" /></div>
+    <div class="topbar__btn" title="Notifications"><i class="fas fa-bell"></i><span class="notif-dot"></span></div>
+    <div class="topbar__avatar">AJ</div>
+  </div>
+</header>
+
+<!-- MAIN -->
+<main class="app-main">
+
+  <!-- Page Header -->
+  <div class="page-header-bar fade-in">
+    <div>
+      <h1>Orders</h1>
+      <div class="page-header-sub">Your complete wholesale order flow — step by step</div>
+    </div>
+    <div class="page-header-bar__actions" style="flex-wrap:wrap;gap:8px;">
+      <button class="btn btn-outline btn-sm" onclick="openStepTab('tab-all-orders')"><i class="fas fa-list-check"></i> All Orders</button>
+      <button class="btn btn-sm" onclick="openStepTab('tab-upload-po')" style="background:linear-gradient(135deg,#4f46e5,#7c3aed);color:#fff;border:none;font-weight:700;display:flex;align-items:center;gap:7px;">
+        <i class="fas fa-brain"></i> Upload PO <span style="font-size:.52rem;background:rgba(255,255,255,.25);padding:1px 6px;border-radius:10px;">AI</span>
+      </button>
+      <a href="products.html" class="btn btn-primary btn-sm"><i class="fas fa-cart-shopping"></i> Start New Order</a>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════
+       MASTER 6-STEP FLOW TRACKER
+  ═══════════════════════════════════════════════════════ -->
+  <div class="flow-tracker fade-in">
+    <div class="flow-tracker__head">
+      <h3><i class="fas fa-route"></i> Your Wholesale Order Journey</h3>
+      <span>Click any step to jump to it</span>
+    </div>
+    <div class="flow-steps">
+
+      <div class="flow-step fs-done" onclick="openStepTab('tab-step1')" title="Step 1 — Browse & add products to cart">
+        <div class="flow-step__num"><i class="fas fa-check" style="font-size:.65rem;"></i></div>
+        <div class="flow-step__label">1. Browse &amp; Cart</div>
+        <div class="flow-step__sub">Add products</div>
+        <a href="products.html" class="flow-step__cta cta-done"><i class="fas fa-boxes-stacked"></i> Shop</a>
+      </div>
+
+      <div class="flow-step fs-done" onclick="openStepTab('tab-step2')" title="Step 2 — Review cart and confirm order">
+        <div class="flow-step__num"><i class="fas fa-check" style="font-size:.65rem;"></i></div>
+        <div class="flow-step__label">2. Confirm Order</div>
+        <div class="flow-step__sub">Review &amp; submit</div>
+        <a href="cart.html" class="flow-step__cta cta-done"><i class="fas fa-cart-shopping"></i> Cart</a>
+      </div>
+
+      <div class="flow-step fs-active" id="ft-step3" onclick="openStepTab('tab-step3')" title="Step 3 — Awaiting seller confirmation">
+        <div class="flow-step__action-badge">2</div>
+        <div class="flow-step__num">3</div>
+        <div class="flow-step__label">3. Seller Confirms</div>
+        <div class="flow-step__sub">Awaiting approval</div>
+        <button class="flow-step__cta cta-active" onclick="event.stopPropagation();openStepTab('tab-step3')"><i class="fas fa-hourglass-half"></i> View</button>
+      </div>
+
+      <div class="flow-step" id="ft-step4" onclick="openStepTab('tab-step4')" title="Step 4 — Pay your invoice">
+        <div class="flow-step__action-badge">4</div>
+        <div class="flow-step__num">4</div>
+        <div class="flow-step__label">4. Pay Invoice</div>
+        <div class="flow-step__sub">Pay to start packing</div>
+        <a href="invoices.html" class="flow-step__cta cta-active" onclick="event.stopPropagation();"><i class="fas fa-credit-card"></i> Pay Now</a>
+      </div>
+
+      <div class="flow-step" id="ft-step5" onclick="openStepTab('tab-step5')" title="Step 5 — Seller packs your order">
+        <div class="flow-step__action-badge" style="background:#7c3aed;">3</div>
+        <div class="flow-step__num">5</div>
+        <div class="flow-step__label">5. Seller Packs</div>
+        <div class="flow-step__sub">Pick &amp; pack / ship-ready</div>
+        <button class="flow-step__cta cta-next" onclick="event.stopPropagation();openStepTab('tab-step5')"><i class="fas fa-box-open"></i> View</button>
+      </div>
+
+      <div class="flow-step" id="ft-step6" onclick="openStepTab('tab-step6')" title="Step 6 — Schedule your shipment">
+        <div class="flow-step__action-badge" style="background:#0ea5e9;">3</div>
+        <div class="flow-step__num">6</div>
+        <div class="flow-step__label">6. Schedule Shipping</div>
+        <div class="flow-step__sub">Book your carrier</div>
+        <a href="shipping-logistics.html" class="flow-step__cta cta-active" onclick="event.stopPropagation();"><i class="fas fa-truck-fast"></i> Schedule</a>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════
+       STEP-ORDERED TABS
+  ═══════════════════════════════════════════════════════ -->
+  <div class="step-tabs-bar fade-in">
+    <button class="step-tab" data-tab="tab-step1" onclick="openStepTab('tab-step1')">
+      <span class="step-tab__num">1</span>
+      Browse &amp; Cart
+    </button>
+    <button class="step-tab" data-tab="tab-step2" onclick="openStepTab('tab-step2')">
+      <span class="step-tab__num">2</span>
+      Order Cart
+    </button>
+    <button class="step-tab active" data-tab="tab-step3" onclick="openStepTab('tab-step3')">
+      <span class="step-tab__num">3</span>
+      Seller Confirms
+      <span class="step-tab__badge amber">2 Pending</span>
+    </button>
+    <button class="step-tab" data-tab="tab-step4" onclick="openStepTab('tab-step4')">
+      <span class="step-tab__num">4</span>
+      Pay Invoice
+      <span class="step-tab__badge green">4 Due</span>
+    </button>
+    <button class="step-tab" data-tab="tab-step5" onclick="openStepTab('tab-step5')">
+      <span class="step-tab__num">5</span>
+      Seller Packs
+      <span class="step-tab__badge purple">3 Packing</span>
+    </button>
+    <button class="step-tab" data-tab="tab-step6" onclick="openStepTab('tab-step6')">
+      <span class="step-tab__num">6</span>
+      Schedule Shipping
+      <span class="step-tab__badge blue">3 Ready</span>
+    </button>
+    <div style="width:1px;background:var(--color-border);margin:8px 6px;flex-shrink:0;"></div>
+    <button class="step-tab" data-tab="tab-upload-po" onclick="openStepTab('tab-upload-po')" style="font-size:.75rem;">
+      <i class="fas fa-brain" style="font-size:.68rem;color:#7c3aed;"></i> Upload PO <span style="font-size:.5rem;background:rgba(124,58,237,.15);color:#7c3aed;padding:1px 5px;border-radius:8px;font-weight:800;">AI</span>
+    </button>
+    <button class="step-tab" data-tab="tab-all-orders" onclick="openStepTab('tab-all-orders')" style="font-size:.75rem;">
+      <i class="fas fa-list-check" style="font-size:.68rem;"></i> All Orders
+    </button>
+  </div>
+
+  <!-- ══════════════════════════════════════════════════
+       STEP 1 — BROWSE & CART
+  ══════════════════════════════════════════════════════ -->
+  <div id="tab-step1" class="step-panel">
+    <div class="step-action-card">
+      <div class="sac-head" style="background:linear-gradient(135deg,#1e3a8a,#1e40af);">
+        <div class="sac-head__icon"><i class="fas fa-boxes-stacked"></i></div>
+        <div>
+          <div class="sac-head__step">Step 1 of 6</div>
+          <div class="sac-head__title">Browse Products &amp; Add to Cart</div>
+          <div class="sac-head__sub">Start here — select the products you want to order wholesale. When ready, go to Step 2.</div>
+        </div>
+        <div class="sac-head__actions">
+          <a href="products.html" class="btn-step-primary bsp-indigo"><i class="fas fa-boxes-stacked"></i> Browse Catalogue</a>
+        </div>
+      </div>
+      <div class="sac-body">
+        <div id="step1CartPreview">
+          <!-- rendered by JS -->
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════════
+       STEP 2 — ORDER CART / CONFIRM ORDER
+  ══════════════════════════════════════════════════════ -->
+  <div id="tab-step2" class="step-panel">
+    <div class="step-action-card">
+      <div class="sac-head" style="background:linear-gradient(135deg,#1e1b4b,#312e81);">
+        <div class="sac-head__icon"><i class="fas fa-cart-shopping"></i></div>
+        <div>
+          <div class="sac-head__step">Step 2 of 6</div>
+          <div class="sac-head__title">Review Your Cart &amp; Confirm Order</div>
+          <div class="sac-head__sub">Check quantities, choose payment terms, add your PO number, then click "Confirm &amp; Place Order".</div>
+        </div>
+        <div class="sac-head__actions">
+          <a href="cart.html" class="btn-step-primary bsp-indigo" style="background:#fff;color:#1e1b4b;box-shadow:none;"><i class="fas fa-shopping-cart"></i> Go to Order Cart</a>
+        </div>
+      </div>
+      <div class="sac-body">
+        <div id="step2CartContent"><!-- rendered by JS --></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════════
+       STEP 3 — AWAITING SELLER CONFIRMATION
+  ══════════════════════════════════════════════════════ -->
+  <div id="tab-step3" class="step-panel active">
+    <div class="step-action-card">
+      <div class="sac-head" style="background:linear-gradient(135deg,#78350f,#b45309);">
+        <div class="sac-head__icon"><i class="fas fa-hourglass-half"></i></div>
+        <div>
+          <div class="sac-head__step">Step 3 of 6 — Seller Action Required</div>
+          <div class="sac-head__title">Waiting for Seller to Confirm Your Orders</div>
+          <div class="sac-head__sub">Your orders have been submitted. Once the seller confirms, your invoice will be issued and you'll move to Step 4.</div>
+        </div>
+
+      </div>
+      <div class="sac-body">
+        <div id="step3Orders"><!-- rendered by JS --></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════════
+       STEP 4 — PAY INVOICE
+  ══════════════════════════════════════════════════════ -->
+  <div id="tab-step4" class="step-panel">
+    <div class="step-action-card">
+      <div class="sac-head" style="background:linear-gradient(135deg,#065f46,#047857);">
+        <div class="sac-head__icon"><i class="fas fa-file-invoice-dollar"></i></div>
+        <div>
+          <div class="sac-head__step">Step 4 of 6 — Your Action Required</div>
+          <div class="sac-head__title">Pay Your Invoice to Start Fulfilment</div>
+          <div class="sac-head__sub">Seller confirmed your orders. Pay the invoice below — once paid the seller will begin picking &amp; packing (Step 5).</div>
+        </div>
+        <div class="sac-head__actions">
+          <a href="invoices.html" class="btn-step-primary bsp-green"><i class="fas fa-credit-card"></i> Go to Invoices &amp; Pay</a>
+        </div>
+      </div>
+      <div class="sac-body">
+        <div id="step4Orders"><!-- rendered by JS --></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════════
+       STEP 5 — SELLER PACKS / AWAITING SHIP-READY
+  ══════════════════════════════════════════════════════ -->
+  <div id="tab-step5" class="step-panel">
+    <div class="step-action-card">
+      <div class="sac-head" style="background:linear-gradient(135deg,#3b0764,#5b21b6);">
+        <div class="sac-head__icon"><i class="fas fa-box-open"></i></div>
+        <div>
+          <div class="sac-head__step">Step 5 of 6 — Seller Action</div>
+          <div class="sac-head__title">Seller is Packing Your Orders</div>
+          <div class="sac-head__sub">Payment received ✓ — the seller is now picking, packing and confirming dimensions &amp; weight. You'll be notified when ready to ship.</div>
+        </div>
+        <div class="sac-head__actions">
+          <button class="btn-step-primary bsp-purple" onclick="showToast('Checking packing status…','success')"><i class="fas fa-rotate"></i> Check Status</button>
+        </div>
+      </div>
+      <div class="sac-body">
+        <div id="step5Orders"><!-- rendered by JS --></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════════
+       STEP 6 — SCHEDULE SHIPPING
+  ══════════════════════════════════════════════════════ -->
+  <div id="tab-step6" class="step-panel">
+    <div class="step-action-card">
+      <div class="sac-head" style="background:linear-gradient(135deg,#0c4a6e,#0369a1);">
+        <div class="sac-head__icon"><i class="fas fa-truck-fast"></i></div>
+        <div>
+          <div class="sac-head__step">Step 6 of 6 — Your Action Required</div>
+          <div class="sac-head__title">Orders Ready to Ship — Schedule Your Carrier Now</div>
+          <div class="sac-head__sub">Seller has packed and confirmed dimensions. Select a shipping provider and schedule your pickup or freight delivery.</div>
+        </div>
+        <div class="sac-head__actions">
+          <a href="shipping-logistics.html" class="btn-step-primary" style="background:#fff;color:#0c4a6e;box-shadow:none;"><i class="fas fa-calendar-check"></i> Schedule Shipment</a>
+        </div>
+      </div>
+      <div class="sac-body">
+        <div id="step6Orders"><!-- rendered by JS --></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════════
+       UPLOAD PO (AI)
+  ══════════════════════════════════════════════════════ -->
+  <div id="tab-upload-po" class="step-panel">
+    <div class="step-action-card" style="margin-bottom:18px;">
+      <div class="sac-head" style="background:linear-gradient(135deg,#2e1065,#4f46e5);">
+        <div class="sac-head__icon"><i class="fas fa-brain"></i></div>
+        <div>
+          <div class="sac-head__step">Alternative Way to Place Orders</div>
+          <div class="sac-head__title">Upload a Purchase Order (AI-Powered)</div>
+          <div class="sac-head__sub">Upload your PO document — our AI extracts all items, matches your catalogue, and generates a Sales Order + Invoice instantly.</div>
+        </div>
+      </div>
+      <div class="sac-body" style="padding:24px;">
+        <div id="po-zone" style="max-width:680px;margin:0 auto;">
+          <div class="po-upload-zone" id="poDropZone" onclick="document.getElementById('poFileInput').click()">
+            <input type="file" id="poFileInput" accept=".pdf,.csv,.xlsx,.xls,.docx,.txt,.png,.jpg,.jpeg" style="display:none" onchange="handlePOFileSelect(this)" />
+            <div class="po-upload-icon"><i class="fas fa-file-arrow-up"></i></div>
+            <div class="po-upload-title">Drop your PO file here or click to browse</div>
+            <div class="po-upload-sub">Supports PDF, Excel, CSV, Word, images &amp; plain text</div>
+            <div class="po-format-chips">
+              <span class="po-format-chip"><i class="fas fa-file-pdf" style="color:#dc2626;margin-right:3px;"></i>PDF</span>
+              <span class="po-format-chip"><i class="fas fa-file-excel" style="color:#16a34a;margin-right:3px;"></i>Excel</span>
+              <span class="po-format-chip"><i class="fas fa-file-csv" style="color:#2563eb;margin-right:3px;"></i>CSV</span>
+              <span class="po-format-chip"><i class="fas fa-file-word" style="color:#1d4ed8;margin-right:3px;"></i>Word</span>
+              <span class="po-format-chip"><i class="fas fa-image" style="color:#7c3aed;margin-right:3px;"></i>Image</span>
+            </div>
+          </div>
+          <div style="display:flex;align-items:center;gap:14px;margin:22px 0;">
+            <div style="flex:1;height:1px;background:var(--color-border);"></div>
+            <span style="font-size:.7rem;font-weight:700;color:var(--color-muted);text-transform:uppercase;letter-spacing:.06em;">or try a sample</span>
+            <div style="flex:1;height:1px;background:var(--color-border);"></div>
+          </div>
+          <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:10px;">
+            <div class="demo-po-card" onclick="loadDemoPO('fashion')">
+              <div style="font-size:1.3rem;margin-bottom:7px;">👗</div>
+              <div style="font-weight:800;font-size:.83rem;margin-bottom:3px;">Fashion &amp; Accessories</div>
+              <div style="font-size:.7rem;color:var(--color-muted);margin-bottom:5px;">4 items · Gucci, Prada, Versace</div>
+              <div style="font-size:.8rem;font-weight:800;color:#7c3aed;">$14,940</div>
+            </div>
+            <div class="demo-po-card" onclick="loadDemoPO('beauty')">
+              <div style="font-size:1.3rem;margin-bottom:7px;">💄</div>
+              <div style="font-weight:800;font-size:.83rem;margin-bottom:3px;">Beauty &amp; Cosmetics</div>
+              <div style="font-size:.7rem;color:var(--color-muted);margin-bottom:5px;">3 items · Charlotte Tilbury, NARS</div>
+              <div style="font-size:.8rem;font-weight:800;color:#7c3aed;">$8,640</div>
+            </div>
+            <div class="demo-po-card" onclick="loadDemoPO('footwear')">
+              <div style="font-size:1.3rem;margin-bottom:7px;">👟</div>
+              <div style="font-weight:800;font-size:.83rem;margin-bottom:3px;">Footwear</div>
+              <div style="font-size:.7rem;color:var(--color-muted);margin-bottom:5px;">2 items · New Balance, Jordan</div>
+              <div style="font-size:.8rem;font-weight:800;color:#7c3aed;">$5,400</div>
+            </div>
+          </div>
+        </div>
+        <div id="po-results" style="display:none;">
+          <div class="ai-parse-card">
+            <div class="ai-parse-header">
+              <div class="ai-brain-icon"><i class="fas fa-brain"></i></div>
+              <div>
+                <h3 style="font-family:var(--font-display);font-size:1rem;font-weight:800;margin-bottom:3px;">AI Parse Complete</h3>
+                <p id="poResultMeta" style="font-size:.7rem;opacity:.6;margin:0;">document.pdf · processed in 1.3s</p>
+              </div>
+              <div style="margin-left:auto;text-align:right;">
+                <div class="ai-confidence-val" id="poConfidence">97%</div>
+                <div class="ai-confidence-lbl">confidence</div>
+              </div>
+            </div>
+            <div class="ai-parse-body">
+              <div class="ai-field-grid" id="poHeaderFields"></div>
+              <div style="font-size:.68rem;font-weight:800;text-transform:uppercase;letter-spacing:.08em;color:var(--color-muted);margin-bottom:9px;">Line Items</div>
+              <div style="overflow-x:auto;margin-bottom:18px;">
+                <table class="parsed-tbl"><thead><tr><th>Brand</th><th>Product / SKU</th><th>Qty</th><th>Unit Price</th><th>Line Total</th><th>Catalogue Match</th></tr></thead>
+                <tbody id="parsedItemsBody"></tbody></table>
+              </div>
+              <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;">
+                <div><span style="font-size:.82rem;color:var(--color-muted);">Order Total: </span><strong id="parsedTotal" style="font-family:var(--font-display);font-size:1.15rem;font-weight:900;color:#7c3aed;">$0.00</strong></div>
+                <div style="display:flex;gap:8px;flex-wrap:wrap;">
+                  <button class="btn btn-outline btn-sm" onclick="resetPOUpload()"><i class="fas fa-arrow-left"></i> Upload Different</button>
+                  <button class="btn btn-sm" onclick="generateFromPO()" style="background:linear-gradient(135deg,#4f46e5,#7c3aed);color:#fff;border:none;font-weight:700;display:flex;align-items:center;gap:7px;">
+                    <i class="fas fa-magic-wand-sparkles"></i> Generate Order + Invoice
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div id="po-success" style="display:none;text-align:center;padding:40px 20px;">
+            <div style="width:68px;height:68px;background:linear-gradient(135deg,#10b981,#059669);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 16px;font-size:1.7rem;color:#fff;box-shadow:0 10px 28px rgba(16,185,129,.28);">✓</div>
+            <h2 style="font-family:var(--font-display);font-size:1.4rem;font-weight:900;margin-bottom:7px;">Order Generated!</h2>
+            <p style="font-size:.85rem;color:var(--color-muted);margin-bottom:0;">Awaiting seller confirmation — you'll be notified shortly.</p>
+            <div class="success-doc-grid" id="poSuccessGrid" style="max-width:460px;margin:16px auto;"></div>
+            <div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap;">
+              <a href="invoices.html" class="btn btn-primary btn-sm"><i class="fas fa-file-invoice-dollar"></i> View Invoice</a>
+              <button class="btn btn-secondary btn-sm" onclick="openStepTab('tab-step3')"><i class="fas fa-hourglass-half"></i> Check Order Status</button>
+              <button class="btn btn-outline btn-sm" onclick="resetPOUpload()"><i class="fas fa-file-arrow-up"></i> Upload Another</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════════
+       ALL ORDERS (history / overview)
+  ══════════════════════════════════════════════════════ -->
+  <div id="tab-all-orders" class="step-panel">
+    <div class="order-stats-row fade-in">
+      <div class="ostat-chip active" data-status="all" onclick="filterByStatus('all',this)"><div class="ostat-count">247</div><div class="ostat-label">All</div></div>
+      <div class="ostat-chip" data-status="pending"          onclick="filterByStatus('pending',this)"><div class="ostat-count" style="color:#f59e0b;">18</div><div class="ostat-label">Pending</div></div>
+      <div class="ostat-chip" data-status="awaiting_payment" onclick="filterByStatus('awaiting_payment',this)"><div class="ostat-count" style="color:#10b981;">4</div><div class="ostat-label">Awaiting Pay</div></div>
+      <div class="ostat-chip" data-status="packed"           onclick="filterByStatus('packed',this)"><div class="ostat-count" style="color:#7c3aed;">3</div><div class="ostat-label">Packing</div></div>
+      <div class="ostat-chip" data-status="shipped"          onclick="filterByStatus('shipped',this)"><div class="ostat-count" style="color:#0ea5e9;">89</div><div class="ostat-label">Shipped</div></div>
+      <div class="ostat-chip" data-status="delivered"        onclick="filterByStatus('delivered',this)"><div class="ostat-count" style="color:#10b981;">76</div><div class="ostat-label">Delivered</div></div>
+      <div class="ostat-chip" data-status="cancelled"        onclick="filterByStatus('cancelled',this)"><div class="ostat-count" style="color:#f43f5e;">0</div><div class="ostat-label">Cancelled</div></div>
+    </div>
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;flex-wrap:wrap;">
+      <input type="date" class="form-input" style="width:140px;padding:8px 11px;" id="dateFrom"/>
+      <span style="color:var(--color-muted);font-size:.85rem;">to</span>
+      <input type="date" class="form-input" style="width:140px;padding:8px 11px;" id="dateTo"/>
+      <select class="form-select" style="width:180px;padding:8px 11px;" id="statusFilter" onchange="filterOrders()">
+        <option value="all">All Statuses</option>
+        <option value="pending">⏳ Pending</option>
+        <option value="awaiting_payment">💳 Awaiting Payment</option>
+        <option value="packed">📦 Packed / Ready to Ship</option>
+        <option value="shipped">🚚 Shipped</option>
+        <option value="delivered">✓ Delivered</option>
+        <option value="cancelled">Cancelled</option>
+      </select>
+      <div style="margin-left:auto;"><span id="filteredCount" style="font-size:.82rem;color:var(--color-muted);">Showing 15 orders</span></div>
+    </div>
+    <div class="card fade-in">
+      <div class="table-wrap">
+        <table class="data-table">
+          <thead><tr>
+            <th>Order #</th><th>Brand</th><th>Product</th><th>Units</th>
+            <th>Total</th><th>Status</th><th>Tracking</th><th>Est. Delivery</th><th>Action</th>
+          </tr></thead>
+          <tbody id="ordersBody"></tbody>
+        </table>
+      </div>
+      <div class="card-footer" style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;">
+        <span id="pageLabel" style="font-size:.82rem;color:var(--color-muted);">Page 1 of 17</span>
+        <div style="display:flex;gap:5px;">
+          <button class="page-btn" disabled><i class="fas fa-chevron-left"></i></button>
+          <button class="page-btn active">1</button>
+          <button class="page-btn">2</button><button class="page-btn">3</button>
+          <span style="color:var(--color-muted);padding:0 3px;display:flex;align-items:center;">…</span>
+          <button class="page-btn">17</button>
+          <button class="page-btn"><i class="fas fa-chevron-right"></i></button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</main>
+
+<!-- ORDER DETAIL OVERLAY -->
+<div class="order-detail-page" id="orderDetailPage">
+  <div class="odp-topbar">
+    <button class="odp-back" onclick="closeDetail()"><i class="fas fa-arrow-left"></i> Back</button>
+    <div class="odp-title" id="odpTitle">Order Detail</div>
+    <span id="odpBadge"></span>
+    <div class="odp-actions">
+      <button class="btn btn-outline btn-sm"><i class="fas fa-download"></i> Download PO</button>
+      <button class="btn btn-outline btn-sm"><i class="fas fa-file-invoice-dollar"></i> Download Invoice</button>
+      <button class="btn btn-secondary btn-sm"><i class="fas fa-rotate"></i> Reorder</button>
+    </div>
+  </div>
+  <div class="odp-body">
+    <div class="pay-now-card" id="odpPayCard" style="display:none;">
+      <div class="pnc-icon">💳</div>
+      <div>
+        <h4>Invoice Ready — Pay Now to Start Packing (Step 5)</h4>
+        <p id="odpPayCardSub">Invoice <strong id="odpPayInvNum"></strong> · Due <strong id="odpPayDue"></strong></p>
+      </div>
+      <div class="pay-now-card__actions">
+        <a href="invoices.html" class="btn btn-sm" style="background:#10b981;color:#fff;border:none;font-weight:800;">Pay Invoice →</a>
+      </div>
+    </div>
+    <div class="odp-hero">
+      <div class="odp-hero-left">
+        <h2 id="odpHeroTitle">BD-00000</h2>
+        <div class="placed" id="odpPlaced"></div>
+        <div style="margin-top:9px;display:flex;gap:7px;flex-wrap:wrap;">
+          <span class="ref-tag" id="odpPOTag"></span>
+          <span class="ref-tag invoice" id="odpInvTag"></span>
+        </div>
+      </div>
+      <div class="odp-hero-right">
+        <div class="odp-hero-total" id="odpTotal"></div>
+        <div class="odp-hero-total-label">Order Total</div>
+      </div>
+    </div>
+    <div class="odp-card" style="margin-bottom:18px;">
+      <h4><i class="fas fa-route"></i> Fulfilment Timeline</h4>
+      <div class="tl-steps" id="odpTimeline"></div>
+    </div>
+    <div class="odp-grid">
+      <div class="odp-card" style="grid-column:span 2;">
+        <h4><i class="fas fa-boxes-stacked"></i> Order Items</h4>
+        <table class="items-table">
+          <thead><tr><th>Brand</th><th>Product</th><th>SKU</th><th>Qty</th><th>Unit Price</th><th style="text-align:right;">Line Total</th></tr></thead>
+          <tbody id="odpItemsBody"></tbody>
+        </table>
+      </div>
+      <div class="odp-card">
+        <h4><i class="fas fa-truck-fast"></i> Tracking &amp; Shipping</h4>
+        <div id="odpTrackBlock"></div>
+      </div>
+      <div class="odp-card">
+        <h4><i class="fas fa-credit-card"></i> Payment &amp; Terms</h4>
+        <div class="detail-row"><span class="label">Terms</span><span class="value" id="odpTerms">—</span></div>
+        <div class="detail-row"><span class="label">Payment Status</span><span class="value" id="odpPayStatus">—</span></div>
+        <div class="detail-row"><span class="label">Due Date</span><span class="value" id="odpPayDueDate">—</span></div>
+        <div class="detail-row"><span class="label">Ship To</span><span class="value" id="odpShipAddr">—</span></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- AI GENERATE OVERLAY -->
+<div id="genOverlay" style="display:none;" class="gen-overlay">
+  <div class="gen-card">
+    <div class="gen-spinner"></div>
+    <h3 style="font-family:var(--font-display);font-size:1.2rem;font-weight:900;margin-bottom:7px;">Processing Your Order</h3>
+    <p style="font-size:.82rem;color:var(--color-muted);margin-bottom:18px;">Generating Sales Order &amp; Invoice…</p>
+    <div id="genStepList" style="display:flex;flex-direction:column;gap:7px;text-align:left;"></div>
+  </div>
+</div>
+
+<!-- AI ASSISTANT FAB -->
+<button class="ai-fab" id="aiFab" onclick="toggleAI()">
+  <i class="fas fa-brain"></i>
+  <span class="ai-fab-tip">AI Assistant</span>
+</button>
+<div class="ai-panel" id="aiPanel" style="display:none;">
+  <div class="ai-panel-head">
+    <div class="ai-panel-avatar"><i class="fas fa-brain"></i></div>
+    <div>
+      <h4 style="font-weight:800;font-size:.88rem;margin:0 0 2px;">BRND AI Assistant</h4>
+      <p style="font-size:.63rem;opacity:.55;margin:0;">Orders · Invoices · Shipping · PO Upload</p>
+    </div>
+    <button class="ai-panel-close" onclick="toggleAI()"><i class="fas fa-xmark"></i></button>
+  </div>
+  <div class="ai-msgs" id="aiMsgs"></div>
+  <div class="ai-quick-chips" id="aiChips">
+    <button class="ai-quick-chip" onclick="aiSend('Show my pending orders')">Pending orders</button>
+    <button class="ai-quick-chip" onclick="aiSend('How do I pay my invoice?')">Pay invoice</button>
+    <button class="ai-quick-chip" onclick="aiSend('How do I schedule shipping?')">Schedule shipping</button>
+    <button class="ai-quick-chip" onclick="aiSend('Upload a PO')">Upload PO</button>
+  </div>
+  <div class="ai-input-bar">
+    <input type="text" id="aiInput" placeholder="Ask anything about your orders…" onkeydown="if(event.key==='Enter')aiSend()" />
+    <button class="ai-send-btn" onclick="aiSend()"><i class="fas fa-paper-plane"></i></button>
+  </div>
+</div>
+
+<div class="toast-container" id="toastContainer"></div>
+<script src="js/portal.js"></script>
+<script>
+/* ══════════════════════════════════════════════════════
+   ORDERS DATA
+══════════════════════════════════════════════════════ */
+const orders = [
+  // Step 3 — Pending (awaiting seller confirmation)
+  { id:'BD-48295', status:'pending',          placed:'Mar 26, 2026', ship:'',            delivery:'',             po:'PO-29485', inv:'INV-2895', terms:'Net-30', payStatus:'Unpaid', due:'Apr 25, 2026', tracking:{type:'',num:'',carrier:''}, items:[{brand:'Chanel',name:'No. 5 EDP 50ml',sku:'SKU-5510',qty:24,price:240}] },
+  { id:'BD-48294', status:'pending',          placed:'Mar 25, 2026', ship:'',            delivery:'',             po:'PO-29484', inv:'INV-2894', terms:'Net-30', payStatus:'Unpaid', due:'Apr 24, 2026', tracking:{type:'',num:'',carrier:''}, items:[{brand:'Jordan Brand',name:'Air Jordan 1 High',sku:'SKU-0110',qty:24,price:180}] },
+  // Step 4 — Awaiting Payment (seller confirmed, invoice ready)
+  { id:'BD-48293', status:'awaiting_payment', placed:'Mar 23, 2026', ship:'',            delivery:'',             po:'PO-29483', inv:'INV-2893', terms:'Net-30', payStatus:'Unpaid', due:'Apr 22, 2026', tracking:{type:'',num:'',carrier:''}, items:[{brand:'Gucci',name:'Bloom Perfume 50ml',sku:'SKU-6601',qty:36,price:195}] },
+  { id:'BD-48292', status:'awaiting_payment', placed:'Mar 22, 2026', ship:'',            delivery:'',             po:'PO-29482', inv:'INV-2892', terms:'Net-60', payStatus:'Unpaid', due:'May 21, 2026', tracking:{type:'',num:'',carrier:''}, items:[{brand:'Versace',name:'Eros Pour Femme 100ml',sku:'SKU-8830',qty:48,price:120}] },
+  { id:'BD-48291', status:'awaiting_payment', placed:'Mar 20, 2026', ship:'',            delivery:'',             po:'PO-29481', inv:'INV-2891', terms:'Net-30', payStatus:'Unpaid', due:'Apr 19, 2026', tracking:{type:'',num:'',carrier:''}, items:[{brand:'Prada',name:'Candy EDP 80ml',sku:'SKU-7720',qty:24,price:320}] },
+  { id:'BD-48290', status:'awaiting_payment', placed:'Mar 19, 2026', ship:'',            delivery:'',             po:'PO-29480', inv:'INV-2890', terms:'Net-30', payStatus:'Unpaid', due:'Apr 18, 2026', tracking:{type:'',num:'',carrier:''}, items:[{brand:'Maison Margiela',name:'Replica Fragrance Set',sku:'SKU-4821',qty:48,price:80}] },
+  // Step 5 — Packed (seller picking & packing)
+  { id:'BD-48289', status:'packed',           placed:'Mar 18, 2026', ship:'',            delivery:'Mar 30, 2026', po:'PO-29479', inv:'INV-2889', terms:'Net-30', payStatus:'Paid',   due:'Apr 17, 2026', tracking:{type:'',num:'',carrier:''},    dims:'18×12×10 in · 42 lbs', items:[{brand:'Charlotte Tilbury',name:'Pillow Talk Lip Set',sku:'SKU-2290',qty:60,price:72}] },
+  { id:'BD-48288', status:'packed',           placed:'Mar 17, 2026', ship:'',            delivery:'Mar 28, 2026', po:'PO-29478', inv:'INV-2888', terms:'Net-30', payStatus:'Paid',   due:'Apr 16, 2026', tracking:{type:'',num:'',carrier:''},    dims:'24×16×12 in · 58 lbs', items:[{brand:'NARS',name:'Soft Matte Lip Kit',sku:'SKU-3310',qty:72,price:48}] },
+  { id:'BD-48287', status:'packed',           placed:'Mar 16, 2026', ship:'',            delivery:'Mar 26, 2026', po:'PO-29477', inv:'INV-2887', terms:'Net-60', payStatus:'Paid',   due:'May 15, 2026', tracking:{type:'',num:'',carrier:''},    dims:'20×14×11 in · 50 lbs', items:[{brand:'Gucci',name:'Bloom Perfume 50ml',sku:'SKU-6601',qty:36,price:195}] },
+  // Step 6+ — Shipped / Delivered
+  { id:'BD-48286', status:'shipped',          placed:'Mar 13, 2026', ship:'Mar 14, 2026', delivery:'Mar 20, 2026', po:'PO-29476', inv:'INV-2886', terms:'Net-30', payStatus:'Paid',   due:'Apr 12, 2026', tracking:{type:'ups',num:'1Z999AA10123456000',carrier:'UPS'}, items:[{brand:'Prada',name:'Candy EDP 80ml',sku:'SKU-7720',qty:24,price:320}] },
+  { id:'BD-48285', status:'delivered',        placed:'Mar 11, 2026', ship:'Mar 12, 2026', delivery:'Mar 17, 2026', po:'PO-29475', inv:'INV-2885', terms:'Net-30', payStatus:'Paid',   due:'Apr 10, 2026', tracking:{type:'fedex',num:'771899009876543',carrier:'FedEx'}, items:[{brand:'NARS',name:'Soft Matte Lip Kit',sku:'SKU-3310',qty:72,price:48}] },
+  { id:'BD-48284', status:'delivered',        placed:'Mar 12, 2026', ship:'Mar 13, 2026', delivery:'Mar 18, 2026', po:'PO-29474', inv:'INV-2884', terms:'Net-30', payStatus:'Paid',   due:'Apr 11, 2026', tracking:{type:'usps',num:'9400111899223397910000',carrier:'USPS'}, items:[{brand:'Jordan Brand',name:'Air Jordan 1 High',sku:'SKU-0110',qty:24,price:180}] },
+  { id:'BD-48283', status:'shipped',          placed:'Mar 10, 2026', ship:'Mar 11, 2026', delivery:'Mar 17, 2026', po:'PO-29473', inv:'INV-2883', terms:'Net-30', payStatus:'Paid',   due:'Apr 9, 2026',  tracking:{type:'fedex',num:'771899002345678',carrier:'FedEx'}, items:[{brand:'Versace',name:'Eros Pour Femme 100ml',sku:'SKU-8830',qty:48,price:120}] },
+  { id:'BD-48282', status:'shipped',          placed:'Mar 9, 2026',  ship:'Mar 10, 2026', delivery:'Mar 15, 2026', po:'PO-29472', inv:'INV-2882', terms:'Net-60', payStatus:'Paid',   due:'May 8, 2026',  tracking:{type:'ups',num:'1Z999AA10123456222',carrier:'UPS'}, items:[{brand:'Charlotte Tilbury',name:'Flawless Filter',sku:'SKU-2295',qty:60,price:56}] },
+  { id:'BD-48281', status:'delivered',        placed:'Mar 7, 2026',  ship:'Mar 8, 2026',  delivery:'Mar 13, 2026', po:'PO-29471', inv:'INV-2881', terms:'Net-30', payStatus:'Paid',   due:'Apr 6, 2026',  tracking:{type:'fedex',num:'771899001234560',carrier:'FedEx'}, items:[{brand:'Balenciaga',name:'Speed Trainer 2.0',sku:'SKU-9900',qty:12,price:490}] },
+];
+
+/* ══════════════════════════════════════════════════════
+   HELPERS
+══════════════════════════════════════════════════════ */
+function fmt(n){ return '$'+Number(n).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2}); }
+function orderTotal(o){ return o.items.reduce((s,i)=>s+i.qty*i.price,0); }
+function orderUnits(o){ return o.items.reduce((s,i)=>s+i.qty,0); }
+function avgPrice(o){ const t=orderTotal(o),u=orderUnits(o); return u?t/u:0; }
+function brandCell(o){ return o.items.length===1?o.items[0].brand:`<span style="font-size:.75rem;font-weight:700;color:var(--color-muted);">Multiple (${o.items.length})</span>`; }
+function productCell(o){ return o.items.length===1?o.items[0].name:o.items.slice(0,2).map(i=>i.name).join(', ')+(o.items.length>2?' …':''); }
+
+function badgeHTML(status){
+  const m = {
+    pending:          ['⏳ Pending',          'bp-amber'],
+    awaiting_payment: ['💳 Awaiting Payment',  'bp-green'],
+    packed:           ['📦 Ready to Ship',     'bp-purple'],
+    shipped:          ['🚚 Shipped',           'bp-blue'],
+    delivered:        ['✓ Delivered',          'bp-emerald'],
+    cancelled:        ['Cancelled',            'bp-rose'],
+  };
+  const [l,c] = m[status]||['—',''];
+  return `<span class="badge-pill ${c}">${l}</span>`;
+}
+function trackingCell(o){
+  if(!o.tracking||!o.tracking.num) return `<span style="font-style:italic;font-size:.72rem;color:var(--color-muted);">—</span>`;
+  const ic = o.tracking.type==='fedex'?'🟣':o.tracking.type==='ups'?'🟤':'🔵';
+  return `<span style="font-size:.72rem;font-weight:600;color:#0ea5e9;"><i class="fas fa-truck-fast" style="margin-right:3px;"></i>${ic} ${o.tracking.num.slice(-8)}</span>`;
+}
+function deliveryCell(o){
+  if(!o.delivery) return `<span style="font-style:italic;font-size:.72rem;color:var(--color-muted);">TBD</span>`;
+  const cls = o.status==='delivered'?'color:#10b981;font-weight:600;':'color:#f59e0b;font-weight:600;';
+  return `<span style="font-size:.78rem;${cls}">${o.delivery}</span>`;
+}
+
+/* ══════════════════════════════════════════════════════
+   TAB SWITCHING
+══════════════════════════════════════════════════════ */
+function openStepTab(tabId) {
+  document.querySelectorAll('.step-panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.step-tab').forEach(b => b.classList.remove('active'));
+  const panel = document.getElementById(tabId);
+  const btn = document.querySelector(`.step-tab[data-tab="${tabId}"]`);
+  if(panel) panel.classList.add('active');
+  if(btn)   btn.classList.add('active');
+  if(tabId==='tab-step1'||tabId==='tab-step2') renderCartPanels();
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+/* ══════════════════════════════════════════════════════
+   CART PANELS (Step 1 & 2)
+══════════════════════════════════════════════════════ */
+function renderCartPanels() {
+  let cart = [];
+  try { cart = JSON.parse(sessionStorage.getItem('brndCart')||'[]'); } catch(e){}
+  if(!cart.length) try { cart = JSON.parse(sessionStorage.getItem('brnd_cart')||'[]'); } catch(e){}
+
+  // Step 1 preview
+  const s1 = document.getElementById('step1CartPreview');
+  if(s1) {
+    if(cart.length===0) {
+      s1.innerHTML = `<div class="step-empty">
+        <div class="step-empty__icon">🛒</div>
+        <div class="step-empty__title">Your cart is empty</div>
+        <div class="step-empty__sub">Browse the product catalogue to start adding wholesale items to your cart.</div>
+        <a href="products.html" class="btn-step-primary bsp-indigo"><i class="fas fa-boxes-stacked"></i> Browse Catalogue Now</a>
+      </div>`;
+    } else {
+      const sub = cart.reduce((s,i)=>s+i.qty*i.price,0);
+      const units = cart.reduce((s,i)=>s+i.qty,0);
+      s1.innerHTML = `<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:10px;">
+        <div style="font-size:.875rem;font-weight:700;"><strong>${cart.length}</strong> products · <strong>${units}</strong> units · <strong style="color:var(--color-accent);">${fmt(sub)}</strong></div>
+        <div style="display:flex;gap:8px;">
+          <a href="products.html" class="btn-step-outline"><i class="fas fa-plus"></i> Add More</a>
+          <a href="cart.html" class="btn-step-primary bsp-indigo"><i class="fas fa-arrow-right"></i> Go to Step 2 →</a>
+        </div>
+      </div>
+      ${cart.slice(0,5).map(i=>`<div class="order-card" style="margin-bottom:8px;">
+        <div class="order-card__body" style="padding:12px 16px;">
+          <div style="font-size:1.2rem;margin-right:8px;">${i.emoji||'📦'}</div>
+          <div style="flex:1;">
+            <div style="font-size:.82rem;font-weight:700;">${i.name}</div>
+            <div style="font-size:.7rem;color:var(--color-muted);">${i.brand||''} · SKU: ${i.sku||'—'}</div>
+          </div>
+          <div style="text-align:right;">
+            <div style="font-size:.85rem;font-weight:800;">$${(i.price).toFixed(2)}/unit</div>
+            <div style="font-size:.72rem;color:var(--color-muted);">Qty: ${i.qty}</div>
+          </div>
+          <div style="font-weight:900;color:var(--color-accent);font-family:var(--font-display);min-width:80px;text-align:right;">${fmt(i.qty*i.price)}</div>
+        </div>
+      </div>`).join('')}
+      ${cart.length>5?`<div style="text-align:center;padding:8px 0;font-size:.78rem;color:var(--color-muted);">+${cart.length-5} more items in cart</div>`:''}
+      <div style="margin-top:16px;padding-top:16px;border-top:2px solid var(--color-border);text-align:right;">
+        <a href="cart.html" class="btn-step-primary bsp-indigo" style="font-size:.88rem;padding:12px 24px;"><i class="fas fa-lock"></i> Proceed to Step 2 — Confirm Order →</a>
+      </div>`;
+    }
+  }
+
+  // Step 2 — same but focused on confirm
+  const s2 = document.getElementById('step2CartContent');
+  if(s2) {
+    if(cart.length===0) {
+      s2.innerHTML = `<div class="step-empty">
+        <div class="step-empty__icon">🛒</div>
+        <div class="step-empty__title">Nothing in your cart yet</div>
+        <div class="step-empty__sub">Start at Step 1 — browse products and add items to your cart first.</div>
+        <a href="products.html" class="btn-step-primary bsp-indigo"><i class="fas fa-arrow-left"></i> Go to Step 1 — Browse Products</a>
+      </div>`;
+    } else {
+      const sub = cart.reduce((s,i)=>s+i.qty*i.price,0);
+      const units = cart.reduce((s,i)=>s+i.qty,0);
+      s2.innerHTML = `<div style="background:linear-gradient(135deg,rgba(79,70,229,.05),rgba(79,70,229,.02));border:1.5px solid rgba(79,70,229,.15);border-radius:10px;padding:16px 20px;margin-bottom:16px;display:flex;align-items:center;gap:14px;flex-wrap:wrap;">
+        <div style="font-size:1.5rem;">🛒</div>
+        <div>
+          <div style="font-weight:800;font-size:.9rem;">${cart.length} items · ${units} units · ${fmt(sub)}</div>
+          <div style="font-size:.75rem;color:var(--color-muted);margin-top:2px;">Your cart is ready — go to the Order Cart page to review, choose payment terms, and confirm your order.</div>
+        </div>
+        <a href="cart.html" class="btn-step-primary bsp-indigo" style="margin-left:auto;"><i class="fas fa-lock"></i> Open Cart &amp; Confirm Order</a>
+      </div>
+      <div style="background:var(--color-off-white);border-radius:10px;padding:14px 18px;">
+        <div style="font-size:.68rem;font-weight:800;text-transform:uppercase;letter-spacing:.08em;color:var(--color-muted);margin-bottom:10px;">What happens on the cart page:</div>
+        <div style="display:flex;flex-direction:column;gap:7px;">
+          <div style="display:flex;align-items:center;gap:10px;font-size:.8rem;"><span style="width:22px;height:22px;border-radius:50%;background:var(--color-accent);color:#fff;display:flex;align-items:center;justify-content:center;font-size:.58rem;flex-shrink:0;font-weight:800;">1</span>Review items, adjust quantities</div>
+          <div style="display:flex;align-items:center;gap:10px;font-size:.8rem;"><span style="width:22px;height:22px;border-radius:50%;background:var(--color-accent);color:#fff;display:flex;align-items:center;justify-content:center;font-size:.58rem;flex-shrink:0;font-weight:800;">2</span>Choose shipping method</div>
+          <div style="display:flex;align-items:center;gap:10px;font-size:.8rem;"><span style="width:22px;height:22px;border-radius:50%;background:var(--color-accent);color:#fff;display:flex;align-items:center;justify-content:center;font-size:.58rem;flex-shrink:0;font-weight:800;">3</span>Select payment terms (Net-30, Net-60, Prepay)</div>
+          <div style="display:flex;align-items:center;gap:10px;font-size:.8rem;"><span style="width:22px;height:22px;border-radius:50%;background:var(--color-accent);color:#fff;display:flex;align-items:center;justify-content:center;font-size:.58rem;flex-shrink:0;font-weight:800;">4</span>Add your PO number (optional)</div>
+          <div style="display:flex;align-items:center;gap:10px;font-size:.8rem;font-weight:700;"><span style="width:22px;height:22px;border-radius:50%;background:#10b981;color:#fff;display:flex;align-items:center;justify-content:center;font-size:.58rem;flex-shrink:0;"><i class="fas fa-check"></i></span>Click "Confirm &amp; Place Order" → moves to Step 3</div>
+        </div>
+      </div>`;
+    }
+  }
+}
+
+/* ══════════════════════════════════════════════════════
+   RENDER STEP PANELS
+══════════════════════════════════════════════════════ */
+function renderStepPanel(containerId, statusFilter, emptyTitle, emptySub, actionFn) {
+  const container = document.getElementById(containerId);
+  if(!container) return;
+  const list = orders.filter(o => (Array.isArray(statusFilter) ? statusFilter.includes(o.status) : o.status===statusFilter));
+  if(list.length===0) {
+    container.innerHTML = `<div class="step-empty">
+      <div class="step-empty__icon">✅</div>
+      <div class="step-empty__title">${emptyTitle}</div>
+      <div class="step-empty__sub">${emptySub}</div>
+    </div>`;
+    return;
+  }
+  container.innerHTML = list.map(o => {
+    const total = orderTotal(o);
+    const units = orderUnits(o);
+    const actions = actionFn(o);
+    return `<div class="order-card">
+      <div class="order-card__head">
+        <button class="order-num-link" onclick="openDetail('${o.id}')">${o.id}</button>
+        <span class="order-card__brand">${brandCell(o)}</span>
+        ${badgeHTML(o.status)}
+        <span class="order-card__date"><i class="fas fa-clock" style="margin-right:4px;"></i>${o.placed}</span>
+      </div>
+      <div class="order-card__body">
+        <div class="order-card__meta">
+          <div class="ocard-field"><div class="ocard-field__label">Product</div><div class="ocard-field__value" style="max-width:200px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${productCell(o)}</div></div>
+          <div class="ocard-field"><div class="ocard-field__label">Units</div><div class="ocard-field__value">${units}</div></div>
+          <div class="ocard-field"><div class="ocard-field__label">Order Total</div><div class="ocard-field__value" style="color:var(--color-accent);font-family:var(--font-display);">${fmt(total)}</div></div>
+          <div class="ocard-field"><div class="ocard-field__label">Invoice</div><div class="ocard-field__value" style="font-family:monospace;font-size:.78rem;">${o.inv}</div></div>
+          <div class="ocard-field"><div class="ocard-field__label">Terms</div><div class="ocard-field__value">${o.terms}</div></div>
+          ${o.dims?`<div class="ocard-field"><div class="ocard-field__label">Dimensions</div><div class="ocard-field__value" style="font-size:.75rem;">${o.dims}</div></div>`:''}
+          ${o.due?`<div class="ocard-field"><div class="ocard-field__label">${o.payStatus==='Paid'?'Paid':'Due Date'}</div><div class="ocard-field__value" style="${o.payStatus==='Paid'?'color:#10b981;':'color:#f59e0b;'}">${o.payStatus==='Paid'?'✓ Paid':o.due}</div></div>`:''}
+        </div>
+        <div class="order-card__actions">${actions}</div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+/* ══════════════════════════════════════════════════════
+   RENDER ALL STEP PANELS
+══════════════════════════════════════════════════════ */
+function renderAllPanels() {
+  // Step 3: Pending
+  renderStepPanel('step3Orders','pending',
+    'No orders awaiting confirmation',
+    'All your submitted orders have been confirmed by the seller. Check Step 4 to pay your invoices.',
+    o => `<button class="btn-step-outline" onclick="openDetail('${o.id}')"><i class="fas fa-eye"></i> View</button>`
+  );
+
+  // Step 4: Awaiting Payment
+  renderStepPanel('step4Orders','awaiting_payment',
+    'No invoices awaiting payment',
+    'Once the seller confirms your orders, invoices will appear here for you to pay.',
+    o => `<button class="btn-step-outline" onclick="openDetail('${o.id}')"><i class="fas fa-eye"></i> View</button>
+          <a href="invoices.html" class="btn-step-primary bsp-green"><i class="fas fa-credit-card"></i> Pay Now — ${fmt(orderTotal(o))}</a>`
+  );
+
+  // Step 5: Packed
+  renderStepPanel('step5Orders','packed',
+    'No orders being packed right now',
+    'Once you pay your invoice, the seller will begin packing. Orders will appear here while being prepared.',
+    o => `<button class="btn-step-outline" onclick="openDetail('${o.id}')"><i class="fas fa-eye"></i> View</button>
+          <button class="btn-step-outline" onclick="showToast('Checking packing status…','success')"><i class="fas fa-rotate"></i> Check Status</button>`
+  );
+
+  // Step 6: Ready to Schedule — packed orders awaiting carrier booking
+  renderStepPanel('step6Orders','packed',
+    'No orders ready to schedule shipping yet',
+    'Once the seller packs your order and confirms dimensions/weight, it will appear here for you to schedule your carrier.',
+    o => `<button class="btn-step-outline" onclick="openDetail('${o.id}')"><i class="fas fa-eye"></i> View Details</button>
+          <a href="shipping-logistics.html" class="btn-step-primary bsp-indigo"><i class="fas fa-calendar-check"></i> Schedule Shipment</a>`
+  );
+}
+
+/* ══════════════════════════════════════════════════════
+   ALL ORDERS TABLE
+══════════════════════════════════════════════════════ */
+let currentFilter = 'all';
+function renderOrders(list) {
+  const body = document.getElementById('ordersBody');
+  if(!body) return;
+  const shown = list.slice(0,15);
+  body.innerHTML = shown.map(o => `
+    <tr>
+      <td><button class="order-num-link" onclick="openDetail('${o.id}')">${o.id}</button></td>
+      <td style="font-size:.82rem;">${brandCell(o)}</td>
+      <td style="font-size:.8rem;max-width:160px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${productCell(o)}</td>
+      <td style="font-weight:700;">${orderUnits(o)}</td>
+      <td style="font-weight:800;font-family:var(--font-display);">${fmt(orderTotal(o))}</td>
+      <td>${badgeHTML(o.status)}</td>
+      <td>${trackingCell(o)}</td>
+      <td>${deliveryCell(o)}</td>
+      <td>
+        <div style="display:flex;gap:4px;flex-wrap:wrap;">
+          <button class="action-btn" onclick="openDetail('${o.id}')"><i class="fas fa-eye"></i> View</button>
+          ${o.status==='awaiting_payment'?`<a href="invoices.html" class="action-btn" style="background:#10b981;border-color:#10b981;color:#fff;"><i class="fas fa-credit-card"></i> Pay</a>`:''}
+          ${o.status==='packed'?`<a href="shipping-logistics.html" class="action-btn" style="background:#7c3aed;border-color:#7c3aed;color:#fff;"><i class="fas fa-truck-fast"></i> Ship</a>`:''}
+          ${(o.status==='shipped')?`<a href="shipping-logistics.html" class="action-btn" style="background:#0ea5e9;border-color:#0ea5e9;color:#fff;"><i class="fas fa-map-marker-alt"></i> Track</a>`:''}
+        </div>
+      </td>
+    </tr>`).join('');
+  document.getElementById('filteredCount').textContent = `Showing ${shown.length} of ${list.length} orders`;
+}
+
+function filterOrders() {
+  const status = document.getElementById('statusFilter').value;
+  const filtered = status==='all' ? orders : orders.filter(o=>o.status===status);
+  renderOrders(filtered);
+}
+
+function filterByStatus(status, chip) {
+  document.querySelectorAll('.ostat-chip').forEach(c => c.classList.remove('active'));
+  chip.classList.add('active');
+  document.getElementById('statusFilter').value = status;
+  filterOrders();
+}
+
+/* ══════════════════════════════════════════════════════
+   ORDER DETAIL OVERLAY
+══════════════════════════════════════════════════════ */
+function openDetail(id) {
+  const o = orders.find(x=>x.id===id);
+  if(!o) return;
+  document.getElementById('orderDetailPage').classList.add('open');
+  document.body.style.overflow='hidden';
+  document.getElementById('odpTitle').textContent = 'Order ' + o.id;
+  document.getElementById('odpHeroTitle').textContent = o.id;
+  document.getElementById('odpPlaced').textContent = 'Placed ' + o.placed;
+  document.getElementById('odpPOTag').innerHTML = `<i class="fas fa-file-lines"></i> ${o.po}`;
+  document.getElementById('odpInvTag').innerHTML = `<i class="fas fa-file-invoice"></i> ${o.inv}`;
+  document.getElementById('odpTotal').textContent = fmt(orderTotal(o));
+  document.getElementById('odpBadge').outerHTML = badgeHTML(o.status).replace('<span ','<span id="odpBadge" ');
+
+  // Pay now card
+  const payCard = document.getElementById('odpPayCard');
+  if((o.status==='awaiting_payment') && o.payStatus==='Unpaid') {
+    payCard.style.display='flex';
+    document.getElementById('odpPayInvNum').textContent = o.inv;
+    document.getElementById('odpPayDue').textContent = o.due;
+  } else { payCard.style.display='none'; }
+
+  // Timeline
+  const steps = ['Order Placed','Seller Confirms','Invoice Paid','Packed & Ready','Shipped','Delivered'];
+  let activeIdx = 0;
+  if(o.status==='pending')          activeIdx=0;
+  else if(o.status==='awaiting_payment') activeIdx=1;
+  else if(o.status==='packed')      activeIdx=2;
+  else if(o.status==='shipped')     activeIdx=4;
+  else if(o.status==='delivered')   activeIdx=5;
+  document.getElementById('odpTimeline').innerHTML = steps.map((s,i)=>`
+    <div class="tl-step ${i<activeIdx?'done':i===activeIdx?'current':''}">
+      <div class="tl-dot">${i<activeIdx?'<i class="fas fa-check" style="font-size:.55rem;"></i>':i===activeIdx?'<i class="fas fa-circle-dot" style="font-size:.55rem;"></i>':i+1}</div>
+      <div class="tl-step-label">${s}</div>
+    </div>`).join('');
+
+  // Items
+  document.getElementById('odpItemsBody').innerHTML = o.items.map(i=>`
+    <tr>
+      <td>${i.brand}</td><td>${i.name}</td>
+      <td style="font-family:monospace;font-size:.75rem;">${i.sku}</td>
+      <td>${i.qty}</td><td>${fmt(i.price)}</td>
+      <td style="text-align:right;font-weight:800;">${fmt(i.qty*i.price)}</td>
+    </tr>`).join('');
+
+  // Tracking
+  const tb = document.getElementById('odpTrackBlock');
+  if(o.tracking&&o.tracking.num) {
+    tb.innerHTML = `<div style="display:flex;align-items:center;gap:10px;background:var(--color-off-white);border:1px solid var(--color-border);border-radius:8px;padding:10px 14px;font-size:.82rem;">
+      <i class="fas fa-truck-fast" style="color:#0ea5e9;"></i>
+      <div><div style="font-size:.65rem;text-transform:uppercase;letter-spacing:.06em;color:var(--color-muted);font-weight:700;">${o.tracking.carrier}</div>
+      <div style="font-weight:700;font-family:monospace;font-size:.82rem;">${o.tracking.num}</div></div>
+      <button style="margin-left:auto;font-size:.7rem;font-weight:700;color:var(--color-accent);border:1px solid var(--color-accent);background:transparent;padding:3px 9px;border-radius:4px;cursor:pointer;" onclick="navigator.clipboard.writeText('${o.tracking.num}').catch(()=>{});showToast('Copied!')">Copy</button>
+    </div>
+    <div class="detail-row" style="margin-top:8px;"><span class="label">Ship Date</span><span class="value">${o.ship||'—'}</span></div>
+    <div class="detail-row"><span class="label">Est. Delivery</span><span class="value">${o.delivery||'—'}</span></div>`;
+  } else if(o.dims) {
+    tb.innerHTML = `<div class="detail-row"><span class="label">Dimensions</span><span class="value">${o.dims}</span></div>
+    <div class="detail-row"><span class="label">Est. Delivery</span><span class="value">${o.delivery||'TBD'}</span></div>
+    <div style="margin-top:10px;"><a href="shipping-logistics.html" class="btn-step-primary bsp-purple" style="font-size:.78rem;padding:8px 16px;"><i class="fas fa-truck-fast"></i> Schedule Shipment</a></div>`;
+  } else {
+    tb.innerHTML = `<div style="padding:16px 0;text-align:center;color:var(--color-muted);font-size:.8rem;"><i class="fas fa-hourglass-half" style="margin-right:6px;"></i>${
+      o.status==='pending'?'Awaiting seller confirmation':
+      o.status==='awaiting_payment'?'Pay your invoice to start packing':'Tracking not yet available'
+    }</div>`;
+  }
+
+  // Payment
+  document.getElementById('odpTerms').textContent = o.terms;
+  document.getElementById('odpPayStatus').innerHTML = o.payStatus==='Paid'
+    ? '<span style="color:#10b981;font-weight:700;"><i class="fas fa-circle-check"></i> Paid</span>'
+    : `<span style="color:#f59e0b;font-weight:700;"><i class="fas fa-clock"></i> Unpaid</span>${
+        o.status==='awaiting_payment'?` <a href="invoices.html" style="margin-left:8px;font-size:.72rem;color:#10b981;font-weight:700;text-decoration:none;background:rgba(16,185,129,.1);padding:2px 10px;border-radius:20px;">Pay Now →</a>`:''
+      }`;
+  document.getElementById('odpPayDueDate').textContent = o.due||'—';
+  document.getElementById('odpShipAddr').textContent = 'Alex Johnson — Boutique Collective, Chicago, IL 60607';
+}
+
+function closeDetail() {
+  document.getElementById('orderDetailPage').classList.remove('open');
+  document.body.style.overflow='';
+}
+
+/* ══════════════════════════════════════════════════════
+   UPLOAD PO — AI PARSING
+══════════════════════════════════════════════════════ */
+const demoPOs = {
+  fashion: {
+    confidence:'97%', meta:'PO-Fashion-2026.pdf · 4 items · AI parsed in 1.2s',
+    header:{ po:'PO-FA-2026-001', buyer:'Boutique Collective', seller:'BRND Direct', date:'Mar 26, 2026', terms:'Net-30', currency:'USD' },
+    items:[
+      {brand:'Gucci',name:'Bloom Perfume 50ml',sku:'SKU-6601',qty:36,price:195,match:'found'},
+      {brand:'Prada',name:'Candy EDP 80ml',sku:'SKU-7720',qty:24,price:320,match:'found'},
+      {brand:'Versace',name:'Eros Pour Femme 100ml',sku:'SKU-8830',qty:48,price:120,match:'found'},
+      {brand:'Balenciaga',name:'Speed Trainer 2.0',sku:'SKU-9900',qty:12,price:490,match:'partial'}
+    ]
+  },
+  beauty: {
+    confidence:'99%', meta:'PO-Beauty-2026.xlsx · 3 items · AI parsed in 0.9s',
+    header:{ po:'PO-BE-2026-002', buyer:'Boutique Collective', seller:'BRND Direct', date:'Mar 26, 2026', terms:'Net-30', currency:'USD' },
+    items:[
+      {brand:'Charlotte Tilbury',name:'Pillow Talk Lip Set',sku:'SKU-2290',qty:60,price:72,match:'found'},
+      {brand:'Charlotte Tilbury',name:'Magic Cream Moisturiser',sku:'SKU-2291',qty:48,price:88,match:'found'},
+      {brand:'NARS',name:'Soft Matte Lip Kit',sku:'SKU-3310',qty:72,price:48,match:'partial'}
+    ]
+  },
+  footwear: {
+    confidence:'95%', meta:'PO-Footwear-2026.csv · 2 items · AI parsed in 0.7s',
+    header:{ po:'PO-FW-2026-003', buyer:'Boutique Collective', seller:'BRND Direct', date:'Mar 26, 2026', terms:'Net-60', currency:'USD' },
+    items:[
+      {brand:'New Balance',name:'990v6 Assorted Sizes',sku:'SKU-0033',qty:36,price:60,match:'found'},
+      {brand:'Jordan Brand',name:'Air Jordan 1 High',sku:'SKU-0110',qty:24,price:180,match:'missing'}
+    ]
+  }
+};
+let currentPO = null;
+
+function handlePOFileSelect(input) {
+  if(input.files&&input.files[0]) { currentPO={...demoPOs.fashion}; currentPO.meta=input.files[0].name+' · AI processing…'; startAIParse(currentPO); }
+}
+function loadDemoPO(type) { currentPO={...demoPOs[type]}; startAIParse(currentPO); }
+function startAIParse(po) {
+  document.getElementById('po-zone').style.display='none';
+  document.getElementById('po-results').style.display='block';
+  document.getElementById('po-success').style.display='none';
+  document.getElementById('poResultMeta').textContent='⚙️ AI reading document…';
+  document.getElementById('poConfidence').textContent='—';
+  document.getElementById('poHeaderFields').innerHTML='<div style="grid-column:span 3;text-align:center;padding:16px;color:var(--color-muted);font-size:.8rem;"><div class="gen-spinner" style="width:32px;height:32px;margin:0 auto 8px;"></div>Analysing…</div>';
+  document.getElementById('parsedItemsBody').innerHTML='';
+  document.getElementById('parsedTotal').textContent='$—';
+  setTimeout(()=>{
+    document.getElementById('poResultMeta').textContent=po.meta;
+    document.getElementById('poConfidence').textContent=po.confidence;
+    const hf=po.header;
+    document.getElementById('poHeaderFields').innerHTML=[
+      ['PO Number',hf.po],['Buyer',hf.buyer],['Seller',hf.seller],['Date',hf.date],['Terms',hf.terms],['Currency',hf.currency]
+    ].map(([l,v])=>`<div class="ai-field"><div class="ai-field-label">${l}</div><input class="ai-field-input" value="${v}" /></div>`).join('');
+    const total=po.items.reduce((s,i)=>s+i.qty*i.price,0);
+    document.getElementById('parsedItemsBody').innerHTML=po.items.map(i=>`<tr>
+      <td><input value="${i.brand}" style="width:110px;" /></td>
+      <td><input value="${i.name}" style="width:180px;" /><br><span style="font-family:monospace;font-size:.68rem;color:var(--color-muted);">${i.sku}</span></td>
+      <td><input value="${i.qty}" style="width:56px;text-align:center;" type="number" min="1" onchange="recalcPOTotal()" /></td>
+      <td><input value="${i.price}" style="width:76px;text-align:right;" type="number" step="0.01" onchange="recalcPOTotal()" /></td>
+      <td style="font-weight:800;" class="po-line-total">${fmt(i.qty*i.price)}</td>
+      <td><span class="match-chip match-${i.match==='found'?'found':i.match==='partial'?'partial':'missing'}">
+        <i class="fas fa-${i.match==='found'?'check':i.match==='partial'?'exclamation':'xmark'}"></i>
+        ${i.match==='found'?'Matched':i.match==='partial'?'Partial':'Not Found'}
+      </span></td></tr>`).join('');
+    document.getElementById('parsedTotal').textContent=fmt(total);
+  },1800);
+}
+function recalcPOTotal() {
+  let total=0;
+  document.querySelectorAll('#parsedItemsBody tr').forEach(row=>{
+    const ins=row.querySelectorAll('input[type=number]');
+    if(ins.length>=2){ const line=(parseFloat(ins[0].value)||0)*(parseFloat(ins[1].value)||0); const cell=row.querySelector('.po-line-total'); if(cell)cell.textContent=fmt(line); total+=line; }
+  });
+  document.getElementById('parsedTotal').textContent=fmt(total);
+}
+function resetPOUpload() {
+  currentPO=null;
+  document.getElementById('po-zone').style.display='block';
+  document.getElementById('po-results').style.display='none';
+  document.getElementById('po-success').style.display='none';
+  document.getElementById('poFileInput').value='';
+}
+function generateFromPO() {
+  if(!currentPO) return;
+  showGenOverlay(['Reading PO data','Matching catalogue items','Creating Sales Order','Generating Invoice','Finalising documents'],()=>{
+    const ordNum='BD-'+(48300+Math.floor(Math.random()*200));
+    const invNum='INV-'+(2900+Math.floor(Math.random()*200));
+    const poNum=document.querySelector('#poHeaderFields .ai-field-input')?.value||currentPO.header.po;
+    const total=currentPO.items.reduce((s,i)=>s+i.qty*i.price,0);
+    const todayStr=new Date().toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
+    document.getElementById('po-success').style.display='block';
+    document.getElementById('po-results').querySelector('.ai-parse-card').style.display='none';
+    document.getElementById('poSuccessGrid').innerHTML=[
+      ['Sales Order #',ordNum,'color:var(--color-accent);font-family:monospace;'],
+      ['Invoice #',invNum,'color:#10b981;font-family:monospace;'],
+      ['PO Reference',poNum,''],
+      ['Order Total',fmt(total),'color:var(--color-near-black);'],
+      ['Created',todayStr,''],
+      ['Status','⏳ Awaiting Seller','color:#f59e0b;']
+    ].map(([l,v,s])=>`<div class="success-doc-field"><div class="sdl">${l}</div><div class="sdv" style="${s}">${v}</div></div>`).join('');
+    showToast('Order & Invoice generated!','success');
+  });
+}
+
+function showGenOverlay(steps, onDone) {
+  const ov=document.getElementById('genOverlay');
+  const sl=document.getElementById('genStepList');
+  ov.style.display='flex';
+  sl.innerHTML=steps.map((s,i)=>`<div class="gen-step-item" id="gsi${i}"><span style="width:18px;height:18px;border-radius:50%;border:2px solid #e5e7eb;display:inline-flex;align-items:center;justify-content:center;font-size:.55rem;flex-shrink:0;"></span>${s}</div>`).join('');
+  let idx=0;
+  const tick=setInterval(()=>{
+    if(idx>0) { const prev=document.getElementById('gsi'+(idx-1)); if(prev){prev.classList.remove('active');prev.classList.add('done');prev.querySelector('span').innerHTML='<i class="fas fa-check" style="color:#10b981;"></i>';} }
+    if(idx<steps.length) { const cur=document.getElementById('gsi'+idx); if(cur)cur.classList.add('active'); idx++; }
+    else { clearInterval(tick); setTimeout(()=>{ ov.style.display='none'; onDone&&onDone(); },400); }
+  },700);
+}
+
+/* ══════════════════════════════════════════════════════
+   AI ASSISTANT
+══════════════════════════════════════════════════════ */
+const aiReplies = {
+  'pending':'You have 2 orders awaiting seller confirmation. Go to the "Seller Confirms" tab (Step 3) to monitor them.',
+  'pay':'Go to Step 4 "Pay Invoice" tab — you have 4 orders ready for payment totalling $12,340. Click "Pay Now" on any order or visit the Invoices section.',
+  'ship':'Go to Step 6 "Schedule Shipping" tab or the Shipping & Logistics page to book your carrier for packed orders.',
+  'po':'Click the "Upload PO" tab to use our AI-powered PO processor. Drag &amp; drop your PDF, Excel, or CSV.',
+  'default':'I can help with your orders. Try asking about: pending orders, paying invoices, scheduling shipping, or uploading a PO.'
+};
+function toggleAI() {
+  const p=document.getElementById('aiPanel');
+  p.style.display=p.style.display==='flex'?'none':'flex';
+  if(p.style.display==='flex'&&!document.getElementById('aiMsgs').children.length) {
+    addAIMsg('bot',"Hi Alex! 👋 I'm your BRND order assistant. Ask me about your order status, how to pay invoices, or scheduling shipments.");
+  }
+}
+function addAIMsg(who,text) {
+  const m=document.getElementById('aiMsgs');
+  const d=document.createElement('div'); d.className=`ai-msg ${who}`;
+  d.innerHTML=`<div class="ai-av">${who==='bot'?'🤖':'AJ'}</div><div class="ai-bubble">${text}</div>`;
+  m.appendChild(d); m.scrollTop=m.scrollHeight;
+}
+function aiSend(msg) {
+  const inp=document.getElementById('aiInput');
+  const text=msg||inp.value.trim(); if(!text) return;
+  addAIMsg('user',text); inp.value='';
+  const tl=text.toLowerCase();
+  setTimeout(()=>{
+    const reply = tl.includes('pend')||tl.includes('confirm')?aiReplies.pending:
+                  tl.includes('pay')||tl.includes('invoice')?aiReplies.pay:
+                  tl.includes('ship')||tl.includes('carrier')||tl.includes('logistics')?aiReplies.ship:
+                  tl.includes('po')||tl.includes('upload')?aiReplies.po:aiReplies.default;
+    addAIMsg('bot',reply);
+  },600);
+}
+
+/* ══════════════════════════════════════════════════════
+   TOAST
+══════════════════════════════════════════════════════ */
+function showToast(msg,type) {
+  if(window._portalShowToast){window._portalShowToast(msg,type);return;}
+  const c=document.getElementById('toastContainer'); if(!c) return;
+  const t=document.createElement('div'); t.className=`toast ${type||''}`;
+  t.innerHTML=`<i class="fas fa-info-circle"></i><span>${msg}</span>`;
+  c.appendChild(t);
+  setTimeout(()=>{t.style.opacity='0';t.style.transform='translateX(60px)';t.style.transition='all .3s';setTimeout(()=>t.remove(),350);},3200);
+}
+
+/* ══════════════════════════════════════════════════════
+   SIDEBAR CART BADGE
+══════════════════════════════════════════════════════ */
+(function(){
+  let cart=[];
+  try{cart=JSON.parse(sessionStorage.getItem('brndCart')||'[]');}catch(e){}
+  const b=document.getElementById('sidebarCartBadge');
+  if(b&&cart.length>0){b.textContent=cart.length;b.style.display='inline-flex';}
+})();
+
+/* ══════════════════════════════════════════════════════
+   INIT — check URL params to open specific tab
+══════════════════════════════════════════════════════ */
+renderAllPanels();
+renderOrders(orders);
+renderCartPanels();
+
+// Support ?tab=stepN URL parameter to auto-open a tab
+(function(){
+  const params = new URLSearchParams(window.location.search);
+  const tab = params.get('tab');
+  if(tab) {
+    const tabId = 'tab-' + tab; // e.g. tab-step5
+    const panel = document.getElementById(tabId);
+    if(panel) { setTimeout(()=>openStepTab(tabId), 100); }
+  }
+})();
+</script>
+</body>
+</html>

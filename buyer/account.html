@@ -1,0 +1,1312 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Account Settings – BRND Direct Portal</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&family=Inter:wght@300;400;500;600;700&family=Outfit:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.5.0/css/all.min.css" />
+  <link rel="stylesheet" href="css/portal.css" />
+  <script src="js/auth-guard.js"></script>
+
+  <style>
+    /* Settings panel header */
+    .settings-panel-title {
+      font-family: var(--font-display);
+      font-size: 1.15rem;
+      font-weight: 800;
+      letter-spacing: -.02em;
+      margin-bottom: 4px;
+    }
+    .settings-panel-sub {
+      font-size: .85rem;
+      color: var(--color-muted);
+      margin-bottom: 28px;
+    }
+    /* Toggle switch */
+    .toggle-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 14px 0;
+      border-bottom: 1px solid var(--color-border);
+    }
+    .toggle-row:last-child { border-bottom: none; }
+    .toggle-info h4 { font-size: .875rem; font-weight: 600; color: var(--color-near-black); margin-bottom: 2px; }
+    .toggle-info p  { font-size: .78rem; color: var(--color-muted); }
+    .toggle {
+      position: relative;
+      display: inline-block;
+      width: 44px;
+      height: 24px;
+      flex-shrink: 0;
+    }
+    .toggle input { opacity: 0; width: 0; height: 0; }
+    .toggle-slider {
+      position: absolute;
+      cursor: pointer;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: var(--color-border);
+      border-radius: 100px;
+      transition: .3s;
+    }
+    .toggle-slider::before {
+      content: '';
+      position: absolute;
+      width: 18px; height: 18px;
+      left: 3px; top: 3px;
+      background: white;
+      border-radius: 50%;
+      transition: .3s;
+      box-shadow: 0 1px 3px rgba(0,0,0,.15);
+    }
+    .toggle input:checked + .toggle-slider { background: var(--color-accent); }
+    .toggle input:checked + .toggle-slider::before { transform: translateX(20px); }
+
+    /* Integrations card */
+    .integration-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 16px 0;
+      border-bottom: 1px solid var(--color-border);
+    }
+    .integration-item:last-child { border-bottom: none; }
+    .integration-icon {
+      width: 44px; height: 44px;
+      border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.1rem;
+      flex-shrink: 0;
+    }
+    .integration-info h4 { font-size: .875rem; font-weight: 600; color: var(--color-near-black); margin-bottom: 2px; }
+    .integration-info p  { font-size: .78rem; color: var(--color-muted); }
+    .integration-status {
+      display: flex; align-items: center; gap: 8px;
+    }
+    .status-dot {
+      width: 8px; height: 8px; border-radius: 50%;
+    }
+    .status-dot.connected { background: var(--color-emerald); }
+    .status-dot.disconnected { background: var(--color-border); }
+
+    /* Address card */
+    .address-card {
+      border: 1.5px solid var(--color-border);
+      border-radius: var(--radius-md);
+      padding: 20px;
+      position: relative;
+      margin-bottom: 12px;
+      transition: border-color .18s;
+    }
+    .address-card:hover { border-color: var(--color-accent); }
+    .address-card.default { border-color: var(--color-accent); background: var(--color-accent-glow); }
+    .address-card h4 { font-size: .875rem; font-weight: 700; margin-bottom: 4px; }
+    .address-card p  { font-size: .82rem; color: var(--color-muted); line-height: 1.6; }
+    .address-badge {
+      position: absolute;
+      top: 12px; right: 12px;
+      background: var(--color-accent);
+      color: white;
+      font-size: .6rem;
+      font-weight: 700;
+      padding: 2px 8px;
+      border-radius: 100px;
+      text-transform: uppercase;
+      letter-spacing: .06em;
+    }
+
+    /* Security item */
+    .security-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 16px;
+      padding: 18px 0;
+      border-bottom: 1px solid var(--color-border);
+    }
+    .security-item:last-child { border-bottom: none; }
+    .security-icon {
+      width: 40px; height: 40px; border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: .9rem; flex-shrink: 0;
+    }
+    .security-info { flex: 1; }
+    .security-info h4 { font-size: .875rem; font-weight: 600; margin-bottom: 3px; }
+    .security-info p  { font-size: .78rem; color: var(--color-muted); }
+
+    /* Integration grid cards (Settings panel) */
+    .int-cat-tab {
+      padding: 7px 14px; border-radius: 7px; font-size: .8rem; font-weight: 600;
+      cursor: pointer; border: none; background: transparent; color: var(--color-muted);
+      font-family: var(--font-sans); transition: all .18s;
+    }
+    .int-cat-tab.active { background: #fff; color: var(--color-near-black); box-shadow: var(--shadow-sm); }
+    .int-card {
+      background: #fff; border: 1.5px solid var(--color-border); border-radius: var(--radius-md);
+      padding: 20px; display: flex; align-items: flex-start; gap: 14px; transition: all .2s;
+    }
+    .int-card:hover { border-color: var(--color-accent); box-shadow: var(--shadow-sm); }
+    .int-card.connected { border-color: var(--color-emerald); }
+    .int-logo {
+      width: 48px; height: 48px; border-radius: 11px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.25rem; flex-shrink: 0;
+    }
+    .int-name { font-size: .9rem; font-weight: 700; color: var(--color-near-black); margin-bottom: 3px; }
+    .int-desc { font-size: .75rem; color: var(--color-muted); line-height: 1.55; margin-bottom: 9px; }
+    .int-status { display: flex; align-items: center; gap: 6px; }
+    .int-status-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+    @media (max-width: 900px) {
+      #intGrid, #apiWebhookGrid { grid-template-columns: 1fr !important; }
+    }
+
+    /* ---- Team Members ---- */
+    .team-limit-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      background: var(--color-accent-glow);
+      border: 1.5px solid rgba(79,70,229,.18);
+      border-radius: var(--radius-md);
+      padding: 14px 18px;
+      margin-bottom: 22px;
+    }
+    .team-limit-label { font-size: .82rem; font-weight: 600; color: var(--color-accent); }
+    .team-limit-sub   { font-size: .73rem; color: var(--color-muted); margin-top: 1px; }
+    .team-limit-count { font-family: var(--font-display); font-size: 1.5rem; font-weight: 900; color: var(--color-accent); white-space: nowrap; }
+    .team-limit-denom { font-size: .75rem; color: var(--color-muted); font-weight: 600; }
+    .team-member-row {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 14px 0;
+      border-bottom: 1px solid var(--color-border);
+    }
+    .team-member-row:last-child { border-bottom: none; }
+    .team-member-avatar {
+      width: 40px; height: 40px; border-radius: 50%; flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center;
+      font-weight: 800; font-size: .78rem; color: white;
+    }
+    .team-member-info { flex: 1; min-width: 0; }
+    .team-member-name { font-size: .875rem; font-weight: 600; color: var(--color-near-black); }
+    .team-member-email { font-size: .75rem; color: var(--color-muted); margin-top: 1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .team-member-role-tag {
+      display: inline-flex; align-items: center; gap: 5px;
+      padding: 3px 10px; border-radius: 100px;
+      font-size: .7rem; font-weight: 700; text-transform: uppercase; letter-spacing: .05em;
+      flex-shrink: 0;
+    }
+    .team-member-role-tag.owner   { background: var(--color-accent-glow); color: var(--color-accent); }
+    .team-member-role-tag.manager { background: rgba(16,185,129,.1); color: var(--color-emerald); }
+    .team-member-role-tag.viewer  { background: var(--color-off-white); color: var(--color-muted); border: 1px solid var(--color-border); }
+    .team-member-actions { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+
+    /* Invite form */
+    .invite-form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr auto;
+      gap: 12px;
+      align-items: flex-end;
+    }
+    @media (max-width: 720px) {
+      .invite-form-row { grid-template-columns: 1fr; }
+      #intGrid, #apiWebhookGrid { grid-template-columns: 1fr !important; }
+    }
+    .invite-form-hint { font-size: .75rem; color: var(--color-muted); margin-top: 8px; }
+  </style>
+</head>
+<body>
+
+<!-- ===== SIDEBAR ===== -->
+<aside class="sidebar" id="sidebar">
+  <div class="sidebar__logo">
+    <a href="dashboard.html" class="logo-mark">
+      <span class="logo-icon"><i class="fas fa-chevron-right"></i></span>
+      <span class="logo-word">BRND <span class="logo-accent">DIRECT</span></span>
+    </a>
+  </div>
+  <nav class="sidebar__nav">
+    <div class="nav-section">
+      <span class="nav-section-label">Main Menu</span>
+      <a href="dashboard.html" class="nav-item"><i class="fas fa-table-columns"></i><span>Dashboard</span></a>
+      <a href="products.html" class="nav-item"><i class="fas fa-boxes-stacked"></i><span>Products</span></a>
+      <a href="orders.html" class="nav-item"><i class="fas fa-file-invoice"></i><span>Orders</span><span class="nav-badge">18</span></a>
+      <a href="cart.html" class="nav-item" id="navCartLink"><i class="fas fa-cart-shopping"></i><span>Order Cart</span><span class="nav-badge" id="sidebarCartBadge" style="display:none;">0</span></a>
+      <a href="rfq.html" class="nav-item"><i class="fas fa-comment-dollar"></i><span>RFQ</span><span class="nav-badge new">5</span></a>
+      <a href="dropship.html" class="nav-item"><i class="fas fa-rotate"></i><span>Dropship</span></a>
+      <a href="analytics.html" class="nav-item"><i class="fas fa-chart-line"></i><span>Analytics</span></a>
+    </div>
+    <div class="nav-section">
+      <span class="nav-section-label">Finance</span>
+      <a href="invoices.html" class="nav-item"><i class="fas fa-file-invoice-dollar"></i><span>Invoices &amp; Payments</span></a>
+      <a href="trade-finance.html" class="nav-item"><i class="fas fa-credit-card"></i><span>Trade Finance</span></a>
+      <a href="reports.html" class="nav-item"><i class="fas fa-chart-bar"></i><span>Reports</span></a>
+    </div>
+    <div class="nav-section">
+      <span class="nav-section-label">Operations</span>
+      <a href="warehousing.html" class="nav-item"><i class="fas fa-warehouse"></i><span>Warehousing</span></a>
+      <a href="shipping-logistics.html" class="nav-item"><i class="fas fa-truck-fast"></i><span>Shipping &amp; Logistics</span></a>
+    </div>
+    <div class="sidebar__divider"></div>
+    <a href="messages.html" class="nav-item"><i class="fas fa-message"></i><span>Messages</span><span class="nav-badge">3</span></a>
+    <a href="account.html" class="nav-item active"><i class="fas fa-gear"></i><span>Settings</span></a>
+    <a href="help.html" class="nav-item"><i class="fas fa-circle-question"></i><span>Help &amp; Support</span></a>
+  </nav>
+  <div class="sidebar__bottom">
+    <div class="sidebar__user">
+      <div class="sidebar__user-avatar">AJ</div>
+      <div class="sidebar__user-info">
+        <div class="sidebar__user-name">Alex Johnson</div>
+        <div class="sidebar__user-role">Wholesale Buyer</div>
+      </div>
+      <button class="sidebar__user-logout" title="Sign out" onclick="window.location.href='index.html'">
+        <i class="fas fa-arrow-right-from-bracket"></i>
+      </button>
+    </div>
+  </div>
+</aside>
+
+<div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+<!-- ===== TOPBAR ===== -->
+<header class="topbar">
+  <div class="topbar__left" style="display:flex;align-items:center;gap:12px;">
+    <button class="topbar__mobile-toggle" id="sidebarToggle"><i class="fas fa-bars"></i></button>
+    <div>
+      <div class="topbar__title">Account Settings</div>
+      <div class="topbar__breadcrumb">Manage your profile, billing, and preferences</div>
+    </div>
+  </div>
+  <div class="topbar__right">
+    <div class="search-bar"><i class="fas fa-magnifying-glass"></i><input type="text" placeholder="Search settings…" /></div>
+    <div class="topbar__btn"><i class="fas fa-bell"></i><span class="notif-dot"></span></div>
+    <div class="topbar__avatar">AJ</div>
+  </div>
+</header>
+
+<!-- ===== MAIN CONTENT ===== -->
+<main class="app-main">
+
+  <div class="page-header-bar fade-in">
+    <div>
+      <h1>Settings</h1>
+      <div class="page-header-sub">Alex Johnson · Wholesale Buyer Account</div>
+    </div>
+  </div>
+
+  <!-- Settings Layout -->
+  <div class="settings-layout fade-in d1">
+
+    <!-- Settings Nav -->
+    <div class="settings-nav">
+      <a class="settings-nav-item active" data-panel="profile" href="#">
+        <i class="fas fa-user"></i> Profile Information
+      </a>
+      <a class="settings-nav-item" data-panel="business" href="#">
+        <i class="fas fa-building"></i> Business Details
+      </a>
+      <a class="settings-nav-item" data-panel="billing" href="#">
+        <i class="fas fa-credit-card"></i> Payment &amp; Billing
+      </a>
+      <a class="settings-nav-item" data-panel="shipping" href="#">
+        <i class="fas fa-truck"></i> Shipping Addresses
+      </a>
+      <a class="settings-nav-item" data-panel="integrations" href="#">
+        <i class="fas fa-plug"></i> Integrations &amp; API
+      </a>
+      <a class="settings-nav-item" data-panel="notifications" href="#">
+        <i class="fas fa-bell"></i> Notifications
+      </a>
+      <a class="settings-nav-item" data-panel="team" href="#">
+        <i class="fas fa-users"></i> Team Members
+      </a>
+      <a class="settings-nav-item" data-panel="security" href="#">
+        <i class="fas fa-shield-halved"></i> Security
+      </a>
+    </div>
+
+    <!-- Settings Content -->
+    <div id="settingsContent">
+
+      <!-- ---- PROFILE PANEL ---- -->
+      <div class="settings-panel" id="panel-profile">
+        <div class="card">
+          <div class="card-header">
+            <div>
+              <div class="settings-panel-title">Profile Information</div>
+              <div style="font-size:.82rem;color:var(--color-muted);margin-top:2px;">Update your personal details and display name</div>
+            </div>
+          </div>
+          <div class="card-body">
+
+            <!-- Avatar Upload -->
+            <div class="avatar-upload">
+              <div class="avatar-upload__img">AJ</div>
+              <div class="avatar-upload__info">
+                <div class="avatar-label">Profile Photo</div>
+                <div class="avatar-hint">JPG or PNG, max 2MB. Shown across your portal profile.</div>
+                <button class="btn btn-secondary btn-xs" onclick="showToast('Upload feature coming soon.','')">
+                  <i class="fas fa-upload"></i> Upload Photo
+                </button>
+              </div>
+            </div>
+
+            <form id="profileForm">
+              <div class="form-row">
+                <div class="form-group">
+                  <label class="form-label" for="p-first">First Name</label>
+                  <input type="text" id="p-first" class="form-input" value="Alex" required />
+                </div>
+                <div class="form-group">
+                  <label class="form-label" for="p-last">Last Name</label>
+                  <input type="text" id="p-last" class="form-input" value="Johnson" required />
+                </div>
+              </div>
+              <div class="form-row">
+                <div class="form-group">
+                  <label class="form-label" for="p-email">Email Address</label>
+                  <div class="input-group">
+                    <i class="fas fa-envelope input-icon"></i>
+                    <input type="email" id="p-email" class="form-input" value="alex@johnsonretail.com" required />
+                  </div>
+                </div>
+                <div class="form-group">
+                  <label class="form-label" for="p-phone">Phone Number</label>
+                  <div class="input-group">
+                    <i class="fas fa-phone input-icon"></i>
+                    <input type="tel" id="p-phone" class="form-input" value="+1 (212) 555-0192" />
+                  </div>
+                </div>
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="p-title">Job Title</label>
+                <input type="text" id="p-title" class="form-input" value="Director of Procurement" />
+              </div>
+              <div style="display:flex;gap:10px;flex-wrap:wrap;">
+                <button type="submit" class="btn btn-primary">
+                  <i class="fas fa-save"></i> Save Changes
+                </button>
+                <button type="button" class="btn btn-secondary" onclick="showToast('Changes discarded.','')">
+                  Discard
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+
+      <!-- ---- BUSINESS PANEL ---- -->
+      <div class="settings-panel hidden" id="panel-business">
+        <div class="card">
+          <div class="card-header">
+            <div>
+              <div class="settings-panel-title">Business Details</div>
+              <div style="font-size:.82rem;color:var(--color-muted);margin-top:2px;">Company information for invoices and compliance</div>
+            </div>
+          </div>
+          <div class="card-body">
+            <form>
+              <div class="form-group">
+                <label class="form-label" for="b-name">Business Name</label>
+                <input type="text" id="b-name" class="form-input" value="Johnson Retail Group LLC" />
+              </div>
+              <div class="form-row">
+                <div class="form-group">
+                  <label class="form-label" for="b-type2">Business Type</label>
+                  <select id="b-type2" class="form-select">
+                    <option selected>Retailer / Physical Store</option>
+                    <option>E-commerce / Online Store</option>
+                    <option>Distributor / Wholesaler</option>
+                    <option>Boutique / Specialty Shop</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label class="form-label" for="b-ein">EIN / Tax ID</label>
+                  <input type="text" id="b-ein" class="form-input" value="12-3456789" />
+                </div>
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="b-website">Business Website</label>
+                <div class="input-group">
+                  <i class="fas fa-globe input-icon"></i>
+                  <input type="url" id="b-website" class="form-input" value="https://johnsonretailgroup.com" />
+                </div>
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="b-address">Business Address</label>
+                <input type="text" id="b-address" class="form-input" placeholder="123 Main Street" value="350 Fifth Avenue, Suite 4100" />
+              </div>
+              <div class="form-row">
+                <div class="form-group">
+                  <label class="form-label" for="b-city">City</label>
+                  <input type="text" id="b-city" class="form-input" value="New York" />
+                </div>
+                <div class="form-group">
+                  <label class="form-label" for="b-state">State / Province</label>
+                  <input type="text" id="b-state" class="form-input" value="NY" />
+                </div>
+              </div>
+              <div class="form-row">
+                <div class="form-group">
+                  <label class="form-label" for="b-zip">ZIP / Postal Code</label>
+                  <input type="text" id="b-zip" class="form-input" value="10118" />
+                </div>
+                <div class="form-group">
+                  <label class="form-label" for="b-country">Country</label>
+                  <select id="b-country" class="form-select">
+                    <option selected>United States</option>
+                    <option>Canada</option>
+                    <option>United Kingdom</option>
+                    <option>Germany</option>
+                    <option>UAE</option>
+                  </select>
+                </div>
+              </div>
+              <button type="submit" class="btn btn-primary" onclick="event.preventDefault();showToast('Business details saved!','success')">
+                <i class="fas fa-save"></i> Save Changes
+              </button>
+            </form>
+          </div>
+        </div>
+      </div>
+
+      <!-- ---- BILLING PANEL ---- -->
+      <div class="settings-panel hidden" id="panel-billing">
+        <div class="card mb-6" style="margin-bottom:20px;">
+          <div class="card-header">
+            <div>
+              <div class="settings-panel-title">Payment Methods</div>
+              <div style="font-size:.82rem;color:var(--color-muted);margin-top:2px;">Manage cards and payment options for wholesale orders</div>
+            </div>
+            <button class="btn btn-primary btn-sm" onclick="showToast('Add card flow coming soon.','')">
+              <i class="fas fa-plus"></i> Add Card
+            </button>
+          </div>
+          <div class="card-body">
+            <!-- Existing card -->
+            <div style="display:flex;align-items:center;justify-content:space-between;padding:16px;background:var(--color-off-white);border:1.5px solid var(--color-border);border-radius:var(--radius-md);margin-bottom:12px;">
+              <div style="display:flex;align-items:center;gap:14px;">
+                <div style="width:44px;height:30px;background:linear-gradient(135deg,#1a1f71,#00579f);border-radius:4px;display:flex;align-items:center;justify-content:center;color:white;font-size:.6rem;font-weight:800;letter-spacing:.04em;">VISA</div>
+                <div>
+                  <div style="font-size:.875rem;font-weight:600;color:var(--color-near-black);">Visa ending in •••• 4242</div>
+                  <div style="font-size:.75rem;color:var(--color-muted);">Expires 09/2027 · Default</div>
+                </div>
+              </div>
+              <div style="display:flex;align-items:center;gap:8px;">
+                <span class="badge badge-confirmed">Default</span>
+                <button class="btn btn-secondary btn-xs" onclick="showToast('Card updated.','success')">Edit</button>
+              </div>
+            </div>
+            <div style="display:flex;align-items:center;justify-content:space-between;padding:16px;background:var(--color-off-white);border:1.5px solid var(--color-border);border-radius:var(--radius-md);">
+              <div style="display:flex;align-items:center;gap:14px;">
+                <div style="width:44px;height:30px;background:linear-gradient(135deg,#eb001b,#f79e1b);border-radius:4px;display:flex;align-items:center;justify-content:center;color:white;font-size:.55rem;font-weight:800;letter-spacing:.02em;">MC</div>
+                <div>
+                  <div style="font-size:.875rem;font-weight:600;color:var(--color-near-black);">Mastercard ending in •••• 8891</div>
+                  <div style="font-size:.75rem;color:var(--color-muted);">Expires 03/2026 · Backup</div>
+                </div>
+              </div>
+              <div style="display:flex;align-items:center;gap:8px;">
+                <button class="btn btn-secondary btn-xs" onclick="showToast('Set as default.','success')">Set Default</button>
+                <button class="btn btn-danger btn-xs" onclick="showToast('Card removed.','error')"><i class="fas fa-trash"></i></button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Trade Terms -->
+        <div class="card">
+          <div class="card-header">
+            <div>
+              <div class="settings-panel-title">Trade Finance &amp; Credit Terms</div>
+            </div>
+          </div>
+          <div class="card-body">
+            <div style="display:flex;justify-content:space-between;padding:12px 0;border-bottom:1px solid var(--color-border);">
+              <div>
+                <div style="font-size:.875rem;font-weight:600;">Available Credit Line</div>
+                <div style="font-size:.75rem;color:var(--color-muted);">Net-30 revolving credit</div>
+              </div>
+              <div style="font-size:1.2rem;font-weight:800;font-family:var(--font-display);color:var(--color-accent);">$45,000</div>
+            </div>
+            <div style="display:flex;justify-content:space-between;padding:12px 0;border-bottom:1px solid var(--color-border);">
+              <div>
+                <div style="font-size:.875rem;font-weight:600;">Current Balance</div>
+                <div style="font-size:.75rem;color:var(--color-muted);">Outstanding invoices</div>
+              </div>
+              <div style="font-size:1.2rem;font-weight:800;font-family:var(--font-display);color:var(--color-amber);">$12,340</div>
+            </div>
+            <div style="display:flex;justify-content:space-between;padding:12px 0;">
+              <div>
+                <div style="font-size:.875rem;font-weight:600;">Payment Terms Active</div>
+                <div style="font-size:.75rem;color:var(--color-muted);">Current agreement</div>
+              </div>
+              <span class="badge badge-confirmed" style="align-self:center;">Net-30</span>
+            </div>
+            <div class="progress-bar mt-3" style="height:8px;">
+              <div class="progress-fill amber" style="width:27%;"></div>
+            </div>
+            <div style="display:flex;justify-content:space-between;font-size:.72rem;color:var(--color-muted);margin-top:5px;">
+              <span>$12,340 used</span>
+              <span>$45,000 limit</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ---- SHIPPING PANEL ---- -->
+      <div class="settings-panel hidden" id="panel-shipping">
+        <div class="card">
+          <div class="card-header">
+            <div>
+              <div class="settings-panel-title">Shipping Addresses</div>
+              <div style="font-size:.82rem;color:var(--color-muted);margin-top:2px;">Manage delivery locations for your orders</div>
+            </div>
+            <button class="btn btn-primary btn-sm" onclick="showToast('Add address flow coming soon.','')">
+              <i class="fas fa-plus"></i> Add Address
+            </button>
+          </div>
+          <div class="card-body">
+            <div class="address-card default">
+              <div class="address-badge">Default</div>
+              <h4>Main Warehouse</h4>
+              <p>350 Fifth Avenue, Suite 4100<br/>New York, NY 10118<br/>United States</p>
+              <div style="display:flex;gap:8px;margin-top:12px;">
+                <button class="btn btn-secondary btn-xs" onclick="showToast('Address updated.','success')">Edit</button>
+              </div>
+            </div>
+            <div class="address-card">
+              <h4>Distribution Center — NJ</h4>
+              <p>1000 Commerce Drive<br/>Newark, NJ 07102<br/>United States</p>
+              <div style="display:flex;gap:8px;margin-top:12px;">
+                <button class="btn btn-secondary btn-xs" onclick="showToast('Set as default.','success')">Set Default</button>
+                <button class="btn btn-secondary btn-xs" onclick="showToast('Address updated.','success')">Edit</button>
+                <button class="btn btn-danger btn-xs" onclick="showToast('Address removed.','error')"><i class="fas fa-trash"></i></button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ---- INTEGRATIONS PANEL ---- -->
+      <div class="settings-panel hidden" id="panel-integrations">
+
+        <!-- Hero banner -->
+        <div style="background:linear-gradient(135deg,#111,#1e1b4b,#0f2027);border-radius:var(--radius-lg);padding:28px 32px;color:white;position:relative;overflow:hidden;margin-bottom:24px;">
+          <div style="position:absolute;inset:0;background:radial-gradient(ellipse 70% 70% at 90% 10%,rgba(79,70,229,.3) 0%,transparent 60%),radial-gradient(ellipse 40% 40% at 10% 90%,rgba(16,185,129,.1) 0%,transparent 60%);"></div>
+          <div style="position:relative;z-index:1;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:16px;">
+            <div>
+              <div style="font-size:.7rem;text-transform:uppercase;letter-spacing:.1em;color:rgba(255,255,255,.4);margin-bottom:6px;">Settings → Integrations &amp; API</div>
+              <h2 style="font-family:var(--font-display);font-size:1.4rem;font-weight:800;margin-bottom:6px;">Connect Your Platforms</h2>
+              <p style="font-size:.85rem;color:rgba(255,255,255,.6);max-width:480px;">Sync orders, inventory and fulfilment across every channel — all in one place.</p>
+            </div>
+            <div style="display:flex;gap:12px;flex-wrap:wrap;">
+              <div style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.08);border-radius:var(--radius-md);padding:12px 20px;text-align:center;"><div style="font-family:var(--font-display);font-size:1.4rem;font-weight:900;">2</div><div style="font-size:.68rem;color:rgba(255,255,255,.4);text-transform:uppercase;letter-spacing:.06em;margin-top:2px;">Connected</div></div>
+              <div style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.08);border-radius:var(--radius-md);padding:12px 20px;text-align:center;"><div style="font-family:var(--font-display);font-size:1.4rem;font-weight:900;">30+</div><div style="font-size:.68rem;color:rgba(255,255,255,.4);text-transform:uppercase;letter-spacing:.06em;margin-top:2px;">Available</div></div>
+              <div style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.08);border-radius:var(--radius-md);padding:12px 20px;text-align:center;"><div style="font-family:var(--font-display);font-size:1.4rem;font-weight:900;">99.9%</div><div style="font-size:.68rem;color:rgba(255,255,255,.4);text-transform:uppercase;letter-spacing:.06em;margin-top:2px;">Uptime</div></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Category tabs -->
+        <div style="display:flex;gap:4px;background:var(--color-off-white);border:1.5px solid var(--color-border);border-radius:10px;padding:4px;width:fit-content;margin-bottom:20px;flex-wrap:wrap;" id="intCatTabs">
+          <button class="int-cat-tab active" data-cat="all">All</button>
+          <button class="int-cat-tab" data-cat="ecommerce">E-Commerce</button>
+          <button class="int-cat-tab" data-cat="marketplace">Marketplaces</button>
+          <button class="int-cat-tab" data-cat="erp">ERP &amp; Finance</button>
+          <button class="int-cat-tab" data-cat="shipping">Shipping &amp; 3PL</button>
+          <button class="int-cat-tab" data-cat="social">Social Commerce</button>
+        </div>
+
+        <!-- Integration grid -->
+        <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:14px;margin-bottom:24px;" id="intGrid">
+
+          <div class="int-card connected" data-cat="ecommerce">
+            <div class="int-logo" style="background:rgba(150,191,74,.12);color:#96bf4a;"><i class="fab fa-shopify"></i></div>
+            <div style="flex:1;">
+              <div class="int-name">Shopify</div>
+              <div class="int-desc">Full order sync, inventory updates, automatic fulfilment routing, and branded packing slips.</div>
+              <div class="int-status"><div class="int-status-dot" style="background:var(--color-emerald);"></div><span style="font-size:.72rem;font-weight:700;color:var(--color-emerald);">Connected</span><span style="font-size:.7rem;color:var(--color-muted);margin-left:6px;">Last sync: 2 min ago</span></div>
+            </div>
+            <button class="btn btn-secondary btn-xs" onclick="showToast('Shopify settings opened.','success')">Manage</button>
+          </div>
+
+          <div class="int-card" data-cat="ecommerce">
+            <div class="int-logo" style="background:rgba(40,76,134,.1);color:#284c86;"><i class="fas fa-store" style="font-size:1.2rem;"></i></div>
+            <div style="flex:1;">
+              <div class="int-name">WooCommerce</div>
+              <div class="int-desc">WordPress store integration for automatic order routing and real-time inventory sync.</div>
+              <div class="int-status"><div class="int-status-dot" style="background:var(--color-border);"></div><span style="font-size:.72rem;color:var(--color-muted);">Not Connected</span></div>
+            </div>
+            <button class="btn btn-primary btn-xs" onclick="showToast('WooCommerce connect started.','success')">Connect</button>
+          </div>
+
+          <div class="int-card" data-cat="ecommerce">
+            <div class="int-logo" style="background:rgba(0,109,203,.1);color:#006dcb;"><i class="fas fa-bolt" style="font-size:1.1rem;"></i></div>
+            <div style="flex:1;">
+              <div class="int-name">BigCommerce</div>
+              <div class="int-desc">Enterprise e-commerce platform with bulk order processing and EDI compliance built in.</div>
+              <div class="int-status"><div class="int-status-dot" style="background:var(--color-border);"></div><span style="font-size:.72rem;color:var(--color-muted);">Not Connected</span></div>
+            </div>
+            <button class="btn btn-primary btn-xs" onclick="showToast('BigCommerce connect started.','success')">Connect</button>
+          </div>
+
+          <div class="int-card" data-cat="marketplace">
+            <div class="int-logo" style="background:rgba(255,153,0,.1);color:#ff9900;"><i class="fab fa-amazon"></i></div>
+            <div style="flex:1;">
+              <div class="int-name">Amazon Seller Central</div>
+              <div class="int-desc">Route BRND Direct fulfilment to your Amazon listings. FBA and FBM compatible.</div>
+              <div class="int-status"><div class="int-status-dot" style="background:var(--color-border);"></div><span style="font-size:.72rem;color:var(--color-muted);">Not Connected</span></div>
+            </div>
+            <button class="btn btn-primary btn-xs" onclick="showToast('Amazon connect started.','success')">Connect</button>
+          </div>
+
+          <div class="int-card connected" data-cat="social">
+            <div class="int-logo" style="background:rgba(254,44,85,.1);color:#fe2c55;"><i class="fab fa-tiktok"></i></div>
+            <div style="flex:1;">
+              <div class="int-name">TikTok Shop</div>
+              <div class="int-desc">Auto-fulfill TikTok Shop orders with premium brands. Live sync, branded unboxing.</div>
+              <div class="int-status"><div class="int-status-dot" style="background:var(--color-emerald);"></div><span style="font-size:.72rem;font-weight:700;color:var(--color-emerald);">Connected</span><span style="font-size:.7rem;color:var(--color-muted);margin-left:6px;">Last sync: 5 min ago</span></div>
+            </div>
+            <button class="btn btn-secondary btn-xs" onclick="showToast('TikTok Shop settings opened.','success')">Manage</button>
+          </div>
+
+          <div class="int-card" data-cat="marketplace">
+            <div class="int-logo" style="background:rgba(0,112,192,.1);color:#0070c0;"><i class="fas fa-shopping-cart" style="font-size:1.1rem;"></i></div>
+            <div style="flex:1;">
+              <div class="int-name">Walmart Marketplace</div>
+              <div class="int-desc">List and fulfil on Walmart.com. Includes Walmart DSV (drop-ship vendor) support.</div>
+              <div class="int-status"><div class="int-status-dot" style="background:var(--color-border);"></div><span style="font-size:.72rem;color:var(--color-muted);">Not Connected</span></div>
+            </div>
+            <button class="btn btn-primary btn-xs" onclick="showToast('Walmart connect started.','success')">Connect</button>
+          </div>
+
+          <div class="int-card" data-cat="erp">
+            <div class="int-logo" style="background:rgba(0,118,189,.1);color:#0076bd;"><i class="fas fa-calculator" style="font-size:1.1rem;"></i></div>
+            <div style="flex:1;">
+              <div class="int-name">QuickBooks Online</div>
+              <div class="int-desc">Sync invoices, payments, and purchase orders directly to your QuickBooks account.</div>
+              <div class="int-status"><div class="int-status-dot" style="background:var(--color-border);"></div><span style="font-size:.72rem;color:var(--color-muted);">Not Connected</span></div>
+            </div>
+            <button class="btn btn-primary btn-xs" onclick="showToast('QuickBooks connect started.','success')">Connect</button>
+          </div>
+
+          <div class="int-card" data-cat="erp">
+            <div class="int-logo" style="background:rgba(33,93,168,.1);color:#215da8;"><i class="fas fa-building-columns" style="font-size:1.1rem;"></i></div>
+            <div style="flex:1;">
+              <div class="int-name">NetSuite ERP</div>
+              <div class="int-desc">Enterprise-grade ERP sync. Orders, inventory, invoices, and financial reporting.</div>
+              <div class="int-status"><div class="int-status-dot" style="background:var(--color-border);"></div><span style="font-size:.72rem;color:var(--color-muted);">Not Connected</span></div>
+            </div>
+            <button class="btn btn-primary btn-xs" onclick="showToast('NetSuite connect started.','success')">Connect</button>
+          </div>
+
+          <div class="int-card" data-cat="shipping">
+            <div class="int-logo" style="background:rgba(80,0,80,.1);color:#500050;"><i class="fas fa-shipping-fast" style="font-size:1.1rem;"></i></div>
+            <div style="flex:1;">
+              <div class="int-name">ShipBob 3PL</div>
+              <div class="int-desc">Connect your ShipBob warehouses as secondary fulfilment nodes for overflow orders.</div>
+              <div class="int-status"><div class="int-status-dot" style="background:var(--color-border);"></div><span style="font-size:.72rem;color:var(--color-muted);">Not Connected</span></div>
+            </div>
+            <button class="btn btn-primary btn-xs" onclick="showToast('ShipBob connect started.','success')">Connect</button>
+          </div>
+
+          <div class="int-card" data-cat="shipping">
+            <div class="int-logo" style="background:rgba(171,59,58,.1);color:#ab3b3a;"><i class="fas fa-box" style="font-size:1.1rem;"></i></div>
+            <div style="flex:1;">
+              <div class="int-name">ShipStation</div>
+              <div class="int-desc">Multi-carrier shipping management. Print labels, track shipments, manage returns.</div>
+              <div class="int-status"><div class="int-status-dot" style="background:var(--color-border);"></div><span style="font-size:.72rem;color:var(--color-muted);">Not Connected</span></div>
+            </div>
+            <button class="btn btn-primary btn-xs" onclick="showToast('ShipStation connect started.','success')">Connect</button>
+          </div>
+
+          <div class="int-card" data-cat="social">
+            <div class="int-logo" style="background:rgba(225,48,108,.1);color:#e1306c;"><i class="fab fa-instagram" style="font-size:1.2rem;"></i></div>
+            <div style="flex:1;">
+              <div class="int-name">Instagram Shopping</div>
+              <div class="int-desc">Tag products in posts and stories. Auto-route orders to BRND Direct fulfilment.</div>
+              <div class="int-status"><div class="int-status-dot" style="background:var(--color-border);"></div><span style="font-size:.72rem;color:var(--color-muted);">Not Connected</span></div>
+            </div>
+            <button class="btn btn-primary btn-xs" onclick="showToast('Instagram connect started.','success')">Connect</button>
+          </div>
+
+          <div class="int-card" data-cat="social">
+            <div class="int-logo" style="background:rgba(24,119,242,.1);color:#1877f2;"><i class="fab fa-facebook" style="font-size:1.2rem;"></i></div>
+            <div style="flex:1;">
+              <div class="int-name">Facebook Shop</div>
+              <div class="int-desc">Connect your Facebook catalog and auto-fulfil orders through BRND Direct.</div>
+              <div class="int-status"><div class="int-status-dot" style="background:var(--color-border);"></div><span style="font-size:.72rem;color:var(--color-muted);">Not Connected</span></div>
+            </div>
+            <button class="btn btn-primary btn-xs" onclick="showToast('Facebook connect started.','success')">Connect</button>
+          </div>
+
+        </div><!-- /intGrid -->
+
+        <!-- API Key + Webhooks -->
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;" id="apiWebhookGrid">
+
+          <!-- API Access -->
+          <div class="card">
+            <div class="card-header"><h3>API Access</h3></div>
+            <div class="card-body">
+              <div style="background:var(--color-near-black);border-radius:var(--radius-md);padding:20px;margin-bottom:16px;">
+                <div style="font-size:.7rem;text-transform:uppercase;letter-spacing:.08em;color:rgba(255,255,255,.35);margin-bottom:8px;">Live API Key</div>
+                <div style="display:flex;align-items:center;gap:10px;">
+                  <code style="font-family:'SF Mono','Fira Code',monospace;font-size:.78rem;color:#818cf8;word-break:break-all;flex:1;">bd_live_aJK2xMvLqP9nRtWs4FhD7cEbYgZu6oNr</code>
+                  <button onclick="showToast('API key copied to clipboard!','success')" style="background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.1);color:rgba(255,255,255,.6);border-radius:6px;padding:5px 10px;cursor:pointer;font-size:.72rem;font-family:var(--font-sans);white-space:nowrap;"><i class="fas fa-copy"></i> Copy</button>
+                </div>
+              </div>
+              <h4 style="font-size:.78rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--color-muted);margin-bottom:10px;">API Endpoints</h4>
+              <div style="background:var(--color-near-black);border-radius:var(--radius-md);padding:14px;margin-bottom:8px;">
+                <span style="display:inline-block;font-size:.65rem;font-weight:800;padding:2px 7px;border-radius:4px;background:rgba(16,185,129,.2);color:#34d399;margin-right:8px;">GET</span><span style="font-family:'SF Mono','Fira Code',monospace;font-size:.78rem;color:rgba(255,255,255,.7);">/v1/products</span>
+                <div style="font-size:.72rem;color:rgba(255,255,255,.35);margin-top:4px;">List all available wholesale products</div>
+              </div>
+              <div style="background:var(--color-near-black);border-radius:var(--radius-md);padding:14px;margin-bottom:8px;">
+                <span style="display:inline-block;font-size:.65rem;font-weight:800;padding:2px 7px;border-radius:4px;background:rgba(79,70,229,.25);color:#818cf8;margin-right:8px;">POST</span><span style="font-family:'SF Mono','Fira Code',monospace;font-size:.78rem;color:rgba(255,255,255,.7);">/v1/orders</span>
+                <div style="font-size:.72rem;color:rgba(255,255,255,.35);margin-top:4px;">Create a new wholesale order</div>
+              </div>
+              <div style="background:var(--color-near-black);border-radius:var(--radius-md);padding:14px;margin-bottom:8px;">
+                <span style="display:inline-block;font-size:.65rem;font-weight:800;padding:2px 7px;border-radius:4px;background:rgba(16,185,129,.2);color:#34d399;margin-right:8px;">GET</span><span style="font-family:'SF Mono','Fira Code',monospace;font-size:.78rem;color:rgba(255,255,255,.7);">/v1/inventory</span>
+                <div style="font-size:.72rem;color:rgba(255,255,255,.35);margin-top:4px;">Real-time inventory levels by SKU</div>
+              </div>
+              <div style="background:var(--color-near-black);border-radius:var(--radius-md);padding:14px;margin-bottom:16px;">
+                <span style="display:inline-block;font-size:.65rem;font-weight:800;padding:2px 7px;border-radius:4px;background:rgba(245,158,11,.2);color:#fbbf24;margin-right:8px;">PUT</span><span style="font-family:'SF Mono','Fira Code',monospace;font-size:.78rem;color:rgba(255,255,255,.7);">/v1/orders/{id}/cancel</span>
+                <div style="font-size:.72rem;color:rgba(255,255,255,.35);margin-top:4px;">Cancel a pending order</div>
+              </div>
+              <div style="display:flex;gap:8px;flex-wrap:wrap;">
+                <button class="btn btn-outline btn-sm" onclick="showToast('Full API documentation opened.','success')"><i class="fas fa-book"></i> Full Docs</button>
+                <button class="btn btn-danger btn-sm" onclick="showToast('New API key generated! Store it safely.','error')"><i class="fas fa-rotate-right"></i> Regenerate Key</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Webhooks -->
+          <div class="card">
+            <div class="card-header">
+              <h3>Webhooks</h3>
+              <button class="btn btn-primary btn-xs" onclick="showToast('Webhook endpoint added.','success')"><i class="fas fa-plus"></i> Add Endpoint</button>
+            </div>
+            <div class="card-body">
+              <div style="margin-bottom:16px;">
+                <div class="form-group">
+                  <label class="form-label">Webhook Endpoint URL</label>
+                  <div class="input-group"><i class="fas fa-globe input-icon"></i><input type="url" class="form-input" placeholder="https://yourapp.com/webhooks/brnd" /></div>
+                </div>
+                <button class="btn btn-primary btn-sm w-full" onclick="showToast('Test webhook sent!','success')"><i class="fas fa-paper-plane"></i> Send Test Event</button>
+              </div>
+              <div class="divider"></div>
+              <div style="font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--color-muted);margin-bottom:10px;">Active Webhook Events</div>
+              <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 0;border-bottom:1px solid var(--color-border);gap:10px;">
+                <div><div style="font-size:.8rem;font-weight:600;font-family:'SF Mono','Fira Code',monospace;color:var(--color-accent);">order.created</div><div style="font-size:.72rem;color:var(--color-muted);">Fires when a new order is placed</div></div>
+                <button style="background:none;border:none;cursor:pointer;" onclick="showToast('Event toggled.','')"><i class="fas fa-toggle-on" style="color:var(--color-emerald);font-size:1.1rem;"></i></button>
+              </div>
+              <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 0;border-bottom:1px solid var(--color-border);gap:10px;">
+                <div><div style="font-size:.8rem;font-weight:600;font-family:'SF Mono','Fira Code',monospace;color:var(--color-accent);">order.shipped</div><div style="font-size:.72rem;color:var(--color-muted);">Fires when tracking is generated</div></div>
+                <button style="background:none;border:none;cursor:pointer;" onclick="showToast('Event toggled.','')"><i class="fas fa-toggle-on" style="color:var(--color-emerald);font-size:1.1rem;"></i></button>
+              </div>
+              <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 0;border-bottom:1px solid var(--color-border);gap:10px;">
+                <div><div style="font-size:.8rem;font-weight:600;font-family:'SF Mono','Fira Code',monospace;color:var(--color-accent);">inventory.low_stock</div><div style="font-size:.72rem;color:var(--color-muted);">Fires when SKU drops below threshold</div></div>
+                <button style="background:none;border:none;cursor:pointer;" onclick="showToast('Event toggled.','')"><i class="fas fa-toggle-on" style="color:var(--color-emerald);font-size:1.1rem;"></i></button>
+              </div>
+              <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 0;border-bottom:1px solid var(--color-border);gap:10px;">
+                <div><div style="font-size:.8rem;font-weight:600;font-family:'SF Mono','Fira Code',monospace;color:var(--color-muted-light);">invoice.created</div><div style="font-size:.72rem;color:var(--color-muted);">Fires when a new invoice is issued</div></div>
+                <button style="background:none;border:none;cursor:pointer;" onclick="showToast('Event enabled.','success')"><i class="fas fa-toggle-off" style="color:var(--color-muted-light);font-size:1.1rem;"></i></button>
+              </div>
+              <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 0;gap:10px;">
+                <div><div style="font-size:.8rem;font-weight:600;font-family:'SF Mono','Fira Code',monospace;color:var(--color-muted-light);">payment.received</div><div style="font-size:.72rem;color:var(--color-muted);">Fires when payment is recorded</div></div>
+                <button style="background:none;border:none;cursor:pointer;" onclick="showToast('Event enabled.','success')"><i class="fas fa-toggle-off" style="color:var(--color-muted-light);font-size:1.1rem;"></i></button>
+              </div>
+            </div>
+          </div>
+
+        </div><!-- /apiWebhookGrid -->
+
+      </div><!-- /panel-integrations -->
+
+      <!-- ---- NOTIFICATIONS PANEL ---- -->
+      <div class="settings-panel hidden" id="panel-notifications">
+        <div class="card">
+          <div class="card-header">
+            <div class="settings-panel-title">Notification Preferences</div>
+          </div>
+          <div class="card-body">
+            <div class="toggle-row">
+              <div class="toggle-info">
+                <h4>Order Confirmations</h4>
+                <p>Get notified when an order is confirmed by the seller</p>
+              </div>
+              <label class="toggle"><input type="checkbox" checked /><span class="toggle-slider"></span></label>
+            </div>
+            <div class="toggle-row">
+              <div class="toggle-info">
+                <h4>Shipment Updates</h4>
+                <p>Track your order from warehouse to delivery</p>
+              </div>
+              <label class="toggle"><input type="checkbox" checked /><span class="toggle-slider"></span></label>
+            </div>
+            <div class="toggle-row">
+              <div class="toggle-info">
+                <h4>Invoice &amp; Payment Due</h4>
+                <p>Get reminders for upcoming payment due dates</p>
+              </div>
+              <label class="toggle"><input type="checkbox" checked /><span class="toggle-slider"></span></label>
+            </div>
+            <div class="toggle-row">
+              <div class="toggle-info">
+                <h4>Reorder Alerts</h4>
+                <p>Be notified when favorite brands have low stock</p>
+              </div>
+              <label class="toggle"><input type="checkbox" checked /><span class="toggle-slider"></span></label>
+            </div>
+            <div class="toggle-row">
+              <div class="toggle-info">
+                <h4>New Brand Arrivals</h4>
+                <p>Hear about new brands and exclusive wholesale deals</p>
+              </div>
+              <label class="toggle"><input type="checkbox" /><span class="toggle-slider"></span></label>
+            </div>
+            <div class="toggle-row">
+              <div class="toggle-info">
+                <h4>Marketing &amp; Platform News</h4>
+                <p>Platform updates, tips, and promotional offers</p>
+              </div>
+              <label class="toggle"><input type="checkbox" /><span class="toggle-slider"></span></label>
+            </div>
+          </div>
+          <div class="card-footer">
+            <button class="btn btn-primary btn-sm" onclick="showToast('Notification preferences saved!','success')">
+              <i class="fas fa-save"></i> Save Preferences
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ---- TEAM MEMBERS PANEL ---- -->
+      <div class="settings-panel hidden" id="panel-team">
+
+        <!-- Limit bar -->
+        <div class="team-limit-bar">
+          <div>
+            <div class="team-limit-label"><i class="fas fa-users" style="margin-right:6px;"></i>Team Access</div>
+            <div class="team-limit-sub">Manage who can access and use this buyer portal account</div>
+          </div>
+          <div style="text-align:right;flex-shrink:0;">
+            <div>
+              <span class="team-limit-count" id="memberCount">2</span>
+              <span class="team-limit-denom"> / 10 members</span>
+            </div>
+            <div id="slotsLeft" style="font-size:.72rem;color:var(--color-muted);margin-top:2px;">8 slots remaining</div>
+          </div>
+        </div>
+
+        <!-- Current members card -->
+        <div class="card" style="margin-bottom:20px;">
+          <div class="card-header">
+            <div>
+              <h3>Current Team Members</h3>
+              <div style="font-size:.78rem;color:var(--color-muted);margin-top:2px;">All members share the same portal access. The account owner cannot be removed.</div>
+            </div>
+          </div>
+          <div class="card-body">
+            <div id="teamMembersList">
+
+              <!-- Owner (static, cannot be removed) -->
+              <div class="team-member-row" id="member-owner">
+                <div class="team-member-avatar" style="background:var(--color-accent);">AJ</div>
+                <div class="team-member-info">
+                  <div class="team-member-name">Alex Johnson <span style="font-size:.68rem;color:var(--color-muted);font-weight:500;">(You)</span></div>
+                  <div class="team-member-email">alex@johnsonretail.com</div>
+                </div>
+                <span class="team-member-role-tag owner"><i class="fas fa-crown" style="font-size:.65rem;"></i> Owner</span>
+                <div class="team-member-actions">
+                  <button class="btn btn-secondary btn-xs" disabled style="opacity:.45;cursor:default;">Remove</button>
+                </div>
+              </div>
+
+              <!-- Existing member 2 -->
+              <div class="team-member-row" data-member-id="m1">
+                <div class="team-member-avatar" style="background:var(--color-emerald);">SR</div>
+                <div class="team-member-info">
+                  <div class="team-member-name">Sarah Rodriguez</div>
+                  <div class="team-member-email">sarah.r@johnsonretail.com</div>
+                </div>
+                <div class="team-member-actions" style="flex-wrap:wrap;gap:6px;">
+                  <select class="form-select" style="font-size:.72rem;padding:4px 8px;width:auto;" onchange="updateRoleTag(this,'m1')">
+                    <option value="manager" selected>Manager</option>
+                    <option value="viewer">View Only</option>
+                  </select>
+                  <span class="team-member-role-tag manager" id="role-tag-m1">Manager</span>
+                  <button class="btn btn-danger btn-xs" onclick="removeMember('m1')"><i class="fas fa-trash"></i></button>
+                </div>
+              </div>
+
+            </div>
+          </div>
+        </div>
+
+        <!-- Invite new member card -->
+        <div class="card" id="inviteCard">
+          <div class="card-header">
+            <div>
+              <h3><i class="fas fa-user-plus" style="color:var(--color-accent);margin-right:6px;"></i>Invite a New Member</h3>
+              <div style="font-size:.78rem;color:var(--color-muted);margin-top:2px;">They will receive an email invitation to join your portal account.</div>
+            </div>
+          </div>
+          <div class="card-body">
+            <div class="invite-form-row">
+              <div class="form-group" style="margin-bottom:0;">
+                <label class="form-label" for="inviteName">Full Name</label>
+                <input type="text" id="inviteName" class="form-input" placeholder="e.g. James Carter" />
+              </div>
+              <div class="form-group" style="margin-bottom:0;">
+                <label class="form-label" for="inviteEmail">Work Email</label>
+                <div class="input-group">
+                  <i class="fas fa-envelope input-icon"></i>
+                  <input type="email" id="inviteEmail" class="form-input" placeholder="james@yourcompany.com" />
+                </div>
+              </div>
+              <div class="form-group" style="margin-bottom:0;">
+                <label class="form-label" for="inviteRole">Role</label>
+                <select id="inviteRole" class="form-select">
+                  <option value="manager">Manager</option>
+                  <option value="viewer">View Only</option>
+                </select>
+              </div>
+            </div>
+            <div class="invite-form-hint">
+              <i class="fas fa-circle-info" style="margin-right:4px;"></i>
+              <strong>Manager</strong> — can browse products, place orders, view invoices &amp; messages. &nbsp;|&nbsp;
+              <strong>View Only</strong> — can browse and view but cannot place orders or make changes.
+            </div>
+            <div style="margin-top:16px;display:flex;gap:10px;flex-wrap:wrap;align-items:center;">
+              <button class="btn btn-primary" id="inviteBtn" onclick="inviteMember()">
+                <i class="fas fa-paper-plane"></i> Send Invite
+              </button>
+              <span id="inviteLimitNote" style="font-size:.78rem;color:var(--color-muted);display:none;">
+                <i class="fas fa-lock" style="color:var(--color-amber);margin-right:4px;"></i>
+                You've reached the 10-member limit. Remove a member to add a new one.
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Role guide card -->
+        <div class="card" style="margin-top:20px;background:var(--color-off-white);border:1.5px solid var(--color-border);">
+          <div class="card-body" style="padding:18px 20px;">
+            <div style="font-size:.78rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--color-muted);margin-bottom:14px;">Role Permissions</div>
+            <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;">
+              <div style="background:white;border:1.5px solid var(--color-border);border-radius:var(--radius-md);padding:14px;">
+                <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
+                  <span class="team-member-role-tag owner" style="font-size:.65rem;"><i class="fas fa-crown" style="font-size:.6rem;"></i> Owner</span>
+                </div>
+                <ul style="font-size:.75rem;color:var(--color-muted);line-height:1.9;list-style:none;padding:0;margin:0;">
+                  <li><i class="fas fa-check" style="color:var(--color-emerald);margin-right:5px;"></i>Full portal access</li>
+                  <li><i class="fas fa-check" style="color:var(--color-emerald);margin-right:5px;"></i>Place &amp; manage orders</li>
+                  <li><i class="fas fa-check" style="color:var(--color-emerald);margin-right:5px;"></i>Manage team members</li>
+                  <li><i class="fas fa-check" style="color:var(--color-emerald);margin-right:5px;"></i>Account settings</li>
+                </ul>
+              </div>
+              <div style="background:white;border:1.5px solid var(--color-border);border-radius:var(--radius-md);padding:14px;">
+                <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
+                  <span class="team-member-role-tag manager" style="font-size:.65rem;">Manager</span>
+                </div>
+                <ul style="font-size:.75rem;color:var(--color-muted);line-height:1.9;list-style:none;padding:0;margin:0;">
+                  <li><i class="fas fa-check" style="color:var(--color-emerald);margin-right:5px;"></i>Browse products</li>
+                  <li><i class="fas fa-check" style="color:var(--color-emerald);margin-right:5px;"></i>Place &amp; track orders</li>
+                  <li><i class="fas fa-check" style="color:var(--color-emerald);margin-right:5px;"></i>View invoices &amp; messages</li>
+                  <li><i class="fas fa-times" style="color:var(--color-muted);margin-right:5px;"></i>Cannot manage team</li>
+                </ul>
+              </div>
+              <div style="background:white;border:1.5px solid var(--color-border);border-radius:var(--radius-md);padding:14px;">
+                <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
+                  <span class="team-member-role-tag viewer" style="font-size:.65rem;">View Only</span>
+                </div>
+                <ul style="font-size:.75rem;color:var(--color-muted);line-height:1.9;list-style:none;padding:0;margin:0;">
+                  <li><i class="fas fa-check" style="color:var(--color-emerald);margin-right:5px;"></i>Browse products</li>
+                  <li><i class="fas fa-check" style="color:var(--color-emerald);margin-right:5px;"></i>View orders &amp; invoices</li>
+                  <li><i class="fas fa-times" style="color:var(--color-muted);margin-right:5px;"></i>Cannot place orders</li>
+                  <li><i class="fas fa-times" style="color:var(--color-muted);margin-right:5px;"></i>Cannot manage team</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div><!-- /panel-team -->
+
+      <!-- ---- SECURITY PANEL ---- -->
+      <div class="settings-panel hidden" id="panel-security">
+        <div class="card">
+          <div class="card-header">
+            <div class="settings-panel-title">Security Settings</div>
+          </div>
+          <div class="card-body">
+
+            <div class="security-item">
+              <div class="security-icon" style="background:var(--color-accent-glow);color:var(--color-accent);">
+                <i class="fas fa-lock"></i>
+              </div>
+              <div class="security-info">
+                <h4>Password</h4>
+                <p>Last changed 42 days ago. Use a strong, unique password.</p>
+              </div>
+              <button class="btn btn-outline btn-sm" onclick="showToast('Password change flow opened.','success')">Change Password</button>
+            </div>
+
+            <div class="security-item">
+              <div class="security-icon" style="background:var(--color-emerald-glow);color:var(--color-emerald);">
+                <i class="fas fa-mobile-screen"></i>
+              </div>
+              <div class="security-info">
+                <h4>Two-Factor Authentication (2FA)</h4>
+                <p>Currently enabled via authenticator app. Adds an extra layer of security.</p>
+              </div>
+              <span class="badge badge-confirmed" style="flex-shrink:0;">Enabled</span>
+            </div>
+
+            <div class="security-item">
+              <div class="security-icon" style="background:var(--color-amber-glow);color:var(--color-amber);">
+                <i class="fas fa-clock-rotate-left"></i>
+              </div>
+              <div class="security-info">
+                <h4>Login Sessions</h4>
+                <p>You're signed in on 2 devices. New York · Chrome / macOS</p>
+              </div>
+              <button class="btn btn-secondary btn-sm" onclick="showToast('All other sessions signed out.','success')">Sign Out All</button>
+            </div>
+
+            <div class="security-item">
+              <div class="security-icon" style="background:var(--color-rose-glow);color:var(--color-rose);">
+                <i class="fas fa-triangle-exclamation"></i>
+              </div>
+              <div class="security-info">
+                <h4>Delete Account</h4>
+                <p>Permanently delete your BRND Direct account and all data. This is irreversible.</p>
+              </div>
+              <button class="btn btn-danger btn-sm" onclick="showToast('Please contact support to delete your account.','error')">Delete Account</button>
+            </div>
+
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /settingsContent -->
+  </div><!-- /settings-layout -->
+
+</main>
+
+<!-- Toast -->
+<div class="toast-container" id="toastContainer"></div>
+
+<script src="js/portal.js"></script>
+<script>(function(){try{var c=JSON.parse(sessionStorage.getItem('brnd_cart')||'[]');var b=document.getElementById('sidebarCartBadge');if(b&&c.length>0){b.textContent=c.length;b.style.display='inline-flex';}}catch(e){}})();</script>
+<script>
+  /* ---- Settings nav tabs ---- */
+  document.querySelectorAll('.settings-nav-item').forEach(item => {
+    item.addEventListener('click', function(e) {
+      e.preventDefault();
+      // Update nav active state
+      document.querySelectorAll('.settings-nav-item').forEach(i => i.classList.remove('active'));
+      this.classList.add('active');
+      // Show correct panel
+      const panelId = this.dataset.panel;
+      document.querySelectorAll('.settings-panel').forEach(p => p.classList.add('hidden'));
+      const panel = document.getElementById(`panel-${panelId}`);
+      if (panel) panel.classList.remove('hidden');
+    });
+  });
+
+  /* ---- Integration category filter ---- */
+  document.addEventListener('click', function(e) {
+    if (!e.target.classList.contains('int-cat-tab')) return;
+    const tabs = document.querySelectorAll('.int-cat-tab');
+    tabs.forEach(t => t.classList.remove('active'));
+    e.target.classList.add('active');
+    const cat = e.target.dataset.cat;
+    document.querySelectorAll('.int-card').forEach(card => {
+      card.style.display = (cat === 'all' || card.dataset.cat === cat) ? '' : 'none';
+    });
+  });
+
+  /* ---- Profile form save ---- */
+  document.getElementById('profileForm').addEventListener('submit', (e) => {
+    e.preventDefault();
+    showToast('Profile saved successfully!', 'success');
+  });
+
+  function showToast(msg, type = 'success') {
+    const container = document.getElementById('toastContainer');
+    const icon = type === 'success' ? 'fa-check-circle' : type === 'error' ? 'fa-exclamation-circle' : 'fa-info-circle';
+    const toast = document.createElement('div');
+    toast.className = `toast ${type}`;
+    toast.innerHTML = `<i class="fas ${icon}"></i><span>${msg}</span>`;
+    container.appendChild(toast);
+    setTimeout(() => { toast.style.opacity='0'; toast.style.transform='translateX(60px)'; toast.style.transition='all .3s'; setTimeout(()=>toast.remove(),350); }, 3200);
+  }
+
+  /* ============================================================
+     TEAM MEMBERS — state & helpers
+  ============================================================ */
+  const MAX_MEMBERS = 10;
+  // Tracks all members: owner (fixed) + dynamic ones
+  let teamMembers = [
+    { id: 'owner', name: 'Alex Johnson',    email: 'alex@johnsonretail.com',    role: 'owner',   initials: 'AJ', color: 'var(--color-accent)',   isOwner: true },
+    { id: 'm1',   name: 'Sarah Rodriguez', email: 'sarah.r@johnsonretail.com', role: 'manager', initials: 'SR', color: 'var(--color-emerald)', isOwner: false },
+  ];
+
+  const AVATAR_COLORS = [
+    'var(--color-accent)','var(--color-emerald)','var(--color-amber)',
+    'var(--color-rose)','var(--color-sky)','#64748b','#7c3aed','#db2777',
+    '#0891b2','#059669'
+  ];
+
+  function getInitials(name) {
+    const parts = name.trim().split(/\s+/);
+    if (parts.length >= 2) return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+    return name.slice(0, 2).toUpperCase();
+  }
+
+  function updateCountDisplay() {
+    const count = teamMembers.length;
+    document.getElementById('memberCount').textContent = count;
+    const rem = MAX_MEMBERS - count;
+    document.getElementById('slotsLeft').textContent = rem === 0 ? 'No slots remaining' : `${rem} slot${rem === 1 ? '' : 's'} remaining`;
+    // Show/hide invite limit note & disable button
+    const btn  = document.getElementById('inviteBtn');
+    const note = document.getElementById('inviteLimitNote');
+    if (count >= MAX_MEMBERS) {
+      btn.disabled = true; btn.style.opacity = '.5'; btn.style.cursor = 'default';
+      note.style.display = 'inline-flex';
+    } else {
+      btn.disabled = false; btn.style.opacity = ''; btn.style.cursor = '';
+      note.style.display = 'none';
+    }
+  }
+
+  function renderTeamList() {
+    const list = document.getElementById('teamMembersList');
+    list.innerHTML = '';
+    teamMembers.forEach(m => {
+      const row = document.createElement('div');
+      row.className = 'team-member-row';
+      row.dataset.memberId = m.id;
+
+      if (m.isOwner) {
+        row.innerHTML = `
+          <div class="team-member-avatar" style="background:${m.color};">${m.initials}</div>
+          <div class="team-member-info">
+            <div class="team-member-name">${m.name} <span style="font-size:.68rem;color:var(--color-muted);font-weight:500;">(You)</span></div>
+            <div class="team-member-email">${m.email}</div>
+          </div>
+          <span class="team-member-role-tag owner"><i class="fas fa-crown" style="font-size:.65rem;"></i> Owner</span>
+          <div class="team-member-actions">
+            <button class="btn btn-secondary btn-xs" disabled style="opacity:.45;cursor:default;">Remove</button>
+          </div>`;
+      } else {
+        const manSel = m.role === 'manager' ? 'selected' : '';
+        const vieSel = m.role === 'viewer'  ? 'selected' : '';
+        const roleClass = m.role === 'manager' ? 'manager' : 'viewer';
+        const roleLabel = m.role === 'manager' ? 'Manager' : 'View Only';
+        row.innerHTML = `
+          <div class="team-member-avatar" style="background:${m.color};">${m.initials}</div>
+          <div class="team-member-info">
+            <div class="team-member-name">${m.name}</div>
+            <div class="team-member-email">${m.email}</div>
+          </div>
+          <div class="team-member-actions" style="flex-wrap:wrap;gap:6px;">
+            <select class="form-select" style="font-size:.72rem;padding:4px 8px;width:auto;"
+              onchange="changeRole('${m.id}', this.value)">
+              <option value="manager" ${manSel}>Manager</option>
+              <option value="viewer"  ${vieSel}>View Only</option>
+            </select>
+            <span class="team-member-role-tag ${roleClass}" id="role-tag-${m.id}">${roleLabel}</span>
+            <button class="btn btn-danger btn-xs" onclick="removeMember('${m.id}')"><i class="fas fa-trash"></i></button>
+          </div>`;
+      }
+      list.appendChild(row);
+    });
+    updateCountDisplay();
+  }
+
+  function changeRole(id, newRole) {
+    const m = teamMembers.find(x => x.id === id);
+    if (!m) return;
+    m.role = newRole;
+    const tag = document.getElementById(`role-tag-${id}`);
+    if (tag) {
+      tag.className = `team-member-role-tag ${newRole === 'manager' ? 'manager' : 'viewer'}`;
+      tag.textContent = newRole === 'manager' ? 'Manager' : 'View Only';
+    }
+    showToast(`${m.name}'s role updated to ${newRole === 'manager' ? 'Manager' : 'View Only'}.`, 'success');
+  }
+
+  function removeMember(id) {
+    const m = teamMembers.find(x => x.id === id);
+    if (!m || m.isOwner) return;
+    if (!confirm(`Remove ${m.name} from your team? They will lose portal access immediately.`)) return;
+    teamMembers = teamMembers.filter(x => x.id !== id);
+    renderTeamList();
+    showToast(`${m.name} has been removed from your team.`, 'error');
+  }
+
+  async function inviteMember() {
+    if (teamMembers.length >= MAX_MEMBERS) {
+      showToast('You\'ve reached the 10-member limit. Remove a member first.', 'error');
+      return;
+    }
+    const name  = document.getElementById('inviteName').value.trim();
+    const email = document.getElementById('inviteEmail').value.trim();
+    const role  = document.getElementById('inviteRole').value;
+
+    if (!name)  { showToast('Please enter the member\'s full name.', 'error'); document.getElementById('inviteName').focus(); return; }
+    if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      showToast('Please enter a valid email address.', 'error');
+      document.getElementById('inviteEmail').focus(); return;
+    }
+    if (teamMembers.some(x => x.email.toLowerCase() === email.toLowerCase())) {
+      showToast('This email is already in your team.', 'error'); return;
+    }
+
+    const newId   = 'tm_' + Date.now();
+    const color   = AVATAR_COLORS[teamMembers.length % AVATAR_COLORS.length];
+    teamMembers.push({ id: newId, name, email, role, initials: getInitials(name), color, isOwner: false });
+    renderTeamList();
+
+    /* Persist to Tables API so admin can see team members */
+    try {
+      await fetch('tables/bd_team_members', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          account_owner_name:  'Alex Johnson',
+          account_owner_email: 'alex@johnsonretail.com',
+          business_name:       'Johnson Retail Group LLC',
+          member_name:         name,
+          member_email:        email,
+          role:                role,
+          status:              'invited',
+          invited_at:          new Date().toLocaleDateString('en-US', {month:'short',day:'numeric',year:'numeric'})
+        })
+      });
+    } catch(e) { console.warn('Team member save failed:', e); }
+
+    // Clear form
+    document.getElementById('inviteName').value  = '';
+    document.getElementById('inviteEmail').value = '';
+    document.getElementById('inviteRole').value  = 'manager';
+
+    showToast(`✉️ Invite sent to ${name} (${email}) as ${role === 'manager' ? 'Manager' : 'View Only'}.`, 'success');
+  }
+
+  // Init team panel on first render
+  renderTeamList();
+</script>
+
+</body>
+</html>

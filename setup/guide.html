@@ -1,0 +1,1573 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BRND Direct — Setup Guide</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css" />
+  <style>
+    :root {
+      --bg: #0a0a0f;
+      --surface: #13131a;
+      --surface2: #1c1c26;
+      --border: #2a2a3a;
+      --accent: #7c5cfc;
+      --accent2: #a78bfa;
+      --green: #22c55e;
+      --yellow: #f59e0b;
+      --red: #ef4444;
+      --blue: #3b82f6;
+      --text: #e2e8f0;
+      --muted: #94a3b8;
+      --radius: 12px;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Inter', sans-serif;
+      font-size: 15px;
+      line-height: 1.7;
+      min-height: 100vh;
+    }
+
+    /* ─── TOP NAV ─── */
+    .topnav {
+      position: sticky; top: 0; z-index: 100;
+      background: rgba(10,10,15,0.92);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+      padding: 0 2rem;
+      display: flex; align-items: center; justify-content: space-between;
+      height: 60px;
+    }
+    .nav-logo { display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 1rem; }
+    .nav-logo .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--accent); }
+    .nav-badge {
+      background: rgba(124,92,252,.15); border: 1px solid rgba(124,92,252,.3);
+      color: var(--accent2); padding: 3px 10px; border-radius: 20px; font-size: 12px; font-weight: 600;
+    }
+    .nav-steps { display: flex; gap: 4px; }
+    .nav-step {
+      width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
+      font-size: 12px; font-weight: 700; cursor: pointer; text-decoration: none;
+      background: var(--surface2); color: var(--muted); border: 1px solid var(--border);
+      transition: all .2s;
+    }
+    .nav-step:hover, .nav-step.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+    .nav-step.done { background: rgba(34,197,94,.15); color: var(--green); border-color: rgba(34,197,94,.3); }
+
+    /* ─── HERO ─── */
+    .hero {
+      text-align: center;
+      padding: 4rem 2rem 3rem;
+      background: radial-gradient(ellipse 80% 60% at 50% -10%, rgba(124,92,252,.18), transparent);
+    }
+    .hero-label {
+      display: inline-block; background: rgba(124,92,252,.12); border: 1px solid rgba(124,92,252,.25);
+      color: var(--accent2); padding: 5px 16px; border-radius: 20px; font-size: 12px;
+      font-weight: 600; letter-spacing: .05em; text-transform: uppercase; margin-bottom: 1.2rem;
+    }
+    .hero h1 { font-size: clamp(1.8rem, 4vw, 2.8rem); font-weight: 800; line-height: 1.2; margin-bottom: .8rem; }
+    .hero h1 span { color: var(--accent2); }
+    .hero p { color: var(--muted); max-width: 560px; margin: 0 auto 1.8rem; font-size: .95rem; }
+    .progress-row {
+      display: flex; justify-content: center; gap: 0; flex-wrap: wrap;
+      max-width: 680px; margin: 0 auto;
+    }
+    .progress-item {
+      flex: 1; min-width: 80px; display: flex; flex-direction: column; align-items: center;
+      position: relative;
+    }
+    .progress-item:not(:last-child)::after {
+      content: ''; position: absolute; top: 16px; left: 50%; width: 100%;
+      height: 2px; background: var(--border);
+    }
+    .progress-item.done:not(:last-child)::after { background: var(--green); }
+    .progress-item.active:not(:last-child)::after { background: var(--accent); }
+    .p-circle {
+      width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center;
+      justify-content: center; font-size: 13px; font-weight: 700; z-index: 1;
+      border: 2px solid var(--border); background: var(--surface2); color: var(--muted);
+    }
+    .progress-item.done .p-circle { background: rgba(34,197,94,.15); border-color: var(--green); color: var(--green); }
+    .progress-item.active .p-circle { background: rgba(124,92,252,.2); border-color: var(--accent); color: var(--accent2); }
+    .p-label { font-size: 11px; color: var(--muted); margin-top: 6px; text-align: center; font-weight: 500; }
+    .progress-item.done .p-label, .progress-item.active .p-label { color: var(--text); }
+
+    /* ─── MAIN LAYOUT ─── */
+    .wrapper { max-width: 860px; margin: 0 auto; padding: 0 1.5rem 5rem; }
+
+    /* ─── STEP CARD ─── */
+    .step-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      margin-bottom: 2rem;
+      overflow: hidden;
+    }
+    .step-header {
+      display: flex; align-items: center; gap: 16px;
+      padding: 1.4rem 1.8rem;
+      border-bottom: 1px solid var(--border);
+      cursor: pointer; user-select: none;
+    }
+    .step-header:hover { background: rgba(255,255,255,.02); }
+    .step-num {
+      width: 44px; height: 44px; border-radius: 12px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.1rem; font-weight: 800; flex-shrink: 0;
+      background: rgba(124,92,252,.15); color: var(--accent2);
+      border: 1px solid rgba(124,92,252,.25);
+    }
+    .step-num.done { background: rgba(34,197,94,.1); color: var(--green); border-color: rgba(34,197,94,.25); }
+    .step-num.current { background: rgba(124,92,252,.25); color: #fff; border-color: var(--accent); box-shadow: 0 0 0 4px rgba(124,92,252,.15); }
+    .step-title-wrap { flex: 1; }
+    .step-title { font-size: 1rem; font-weight: 700; }
+    .step-subtitle { font-size: .8rem; color: var(--muted); margin-top: 2px; }
+    .step-badge {
+      padding: 4px 12px; border-radius: 20px; font-size: 11px; font-weight: 700;
+      letter-spacing: .03em; text-transform: uppercase; flex-shrink: 0;
+    }
+    .badge-done { background: rgba(34,197,94,.12); color: var(--green); border: 1px solid rgba(34,197,94,.25); }
+    .badge-now  { background: rgba(124,92,252,.15); color: var(--accent2); border: 1px solid rgba(124,92,252,.3); }
+    .badge-next { background: rgba(148,163,184,.08); color: var(--muted); border: 1px solid var(--border); }
+    .step-chevron { color: var(--muted); font-size: .8rem; transition: transform .3s; }
+    .step-header.open .step-chevron { transform: rotate(180deg); }
+
+    .step-body { padding: 1.8rem; display: none; }
+    .step-body.open { display: block; }
+
+    /* ─── VISUAL BLOCKS ─── */
+    .visual-step {
+      display: flex; gap: 16px; margin-bottom: 1.6rem; align-items: flex-start;
+    }
+    .vs-num {
+      width: 30px; height: 30px; border-radius: 8px; flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center;
+      font-size: .8rem; font-weight: 800;
+      background: rgba(124,92,252,.12); color: var(--accent2);
+      border: 1px solid rgba(124,92,252,.2);
+    }
+    .vs-content { flex: 1; padding-top: 4px; }
+    .vs-content strong { font-weight: 700; color: var(--text); }
+    .vs-content p { color: var(--muted); font-size: .88rem; margin-top: 4px; }
+
+    /* ─── SCREEN MOCKUP ─── */
+    .mockup {
+      background: var(--surface2); border: 1px solid var(--border); border-radius: 12px;
+      margin: 1.2rem 0; overflow: hidden;
+    }
+    .mockup-bar {
+      background: #1e1e28; padding: 8px 14px;
+      display: flex; align-items: center; gap: 6px;
+      border-bottom: 1px solid var(--border);
+    }
+    .mock-dot { width: 10px; height: 10px; border-radius: 50%; }
+    .mock-dot.r { background: #ff5f57; }
+    .mock-dot.y { background: #febc2e; }
+    .mock-dot.g { background: #28c840; }
+    .mockup-url {
+      flex: 1; background: var(--surface); border-radius: 6px; padding: 4px 12px;
+      font-size: 11px; color: var(--muted); font-family: monospace;
+      border: 1px solid var(--border); max-width: 380px; margin: 0 auto; text-align: center;
+    }
+    .mockup-body { padding: 1.2rem 1.4rem; }
+
+    /* ─── UI ELEMENT HIGHLIGHTS ─── */
+    .ui-nav {
+      background: #1a1a24; border-bottom: 1px solid var(--border);
+      padding: .6rem 1rem; display: flex; gap: 6px; flex-wrap: wrap;
+    }
+    .ui-tab {
+      padding: 4px 12px; border-radius: 6px; font-size: 12px; font-weight: 600;
+      background: var(--surface); color: var(--muted); border: 1px solid var(--border);
+    }
+    .ui-tab.active { background: rgba(124,92,252,.2); color: var(--accent2); border-color: rgba(124,92,252,.35); }
+    .ui-tab.highlight { background: rgba(34,197,94,.1); color: var(--green); border-color: rgba(34,197,94,.3); animation: pulse-glow 1.5s ease-in-out infinite; }
+    @keyframes pulse-glow { 0%,100%{box-shadow:none} 50%{box-shadow:0 0 12px rgba(34,197,94,.4)} }
+    .ui-content { padding: 1rem; }
+    .ui-button {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 7px 16px; border-radius: 8px; font-size: 12px; font-weight: 700;
+      border: none; cursor: pointer;
+    }
+    .ui-button.green { background: rgba(34,197,94,.15); color: var(--green); border: 1px solid rgba(34,197,94,.3); }
+    .ui-button.purple { background: rgba(124,92,252,.2); color: var(--accent2); border: 1px solid rgba(124,92,252,.3); }
+    .ui-field {
+      background: var(--surface); border: 1px solid var(--border); border-radius: 8px;
+      padding: 8px 12px; font-size: 12px; color: var(--muted); width: 100%; margin-bottom: 8px;
+      font-family: monospace;
+    }
+    .ui-field.highlighted { border-color: var(--accent2); color: var(--text); }
+
+    /* ─── CALLOUT ─── */
+    .callout {
+      display: flex; gap: 12px; padding: 1rem 1.2rem; border-radius: 10px; margin: 1rem 0;
+      font-size: .85rem;
+    }
+    .callout.info { background: rgba(59,130,246,.08); border: 1px solid rgba(59,130,246,.2); color: #93c5fd; }
+    .callout.tip  { background: rgba(245,158,11,.07); border: 1px solid rgba(245,158,11,.2); color: #fcd34d; }
+    .callout.warn { background: rgba(239,68,68,.07); border: 1px solid rgba(239,68,68,.2); color: #fca5a5; }
+    .callout.success { background: rgba(34,197,94,.07); border: 1px solid rgba(34,197,94,.2); color: #86efac; }
+    .callout-icon { font-size: 1rem; flex-shrink: 0; margin-top: 1px; }
+    .callout-text strong { display: block; font-weight: 700; margin-bottom: 2px; }
+
+    /* ─── CODE BLOCK ─── */
+    .code-block {
+      position: relative; background: #0d0d14; border: 1px solid var(--border);
+      border-radius: 10px; padding: 1.2rem 1.2rem 1.2rem 1.4rem; margin: 1rem 0;
+      font-family: 'Courier New', monospace; font-size: .8rem; line-height: 1.7;
+      overflow-x: auto; color: #a5b4fc;
+    }
+    .code-block .comment { color: #4b5563; }
+    .code-block .keyword { color: #f472b6; }
+    .code-block .string { color: #6ee7b7; }
+    .code-block .fn { color: #93c5fd; }
+    .copy-btn {
+      position: absolute; top: 10px; right: 10px;
+      background: rgba(124,92,252,.2); border: 1px solid rgba(124,92,252,.3);
+      color: var(--accent2); padding: 5px 12px; border-radius: 6px; font-size: 11px;
+      font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 5px;
+      transition: all .2s;
+    }
+    .copy-btn:hover { background: rgba(124,92,252,.35); }
+    .copy-btn.copied { background: rgba(34,197,94,.15); border-color: rgba(34,197,94,.3); color: var(--green); }
+
+    /* ─── BIG COPY BUTTON ─── */
+    .big-copy-btn {
+      display: flex; align-items: center; justify-content: center; gap: 10px;
+      width: 100%; padding: 1rem; border-radius: 12px;
+      background: linear-gradient(135deg, rgba(124,92,252,.2), rgba(167,139,250,.15));
+      border: 1px solid rgba(124,92,252,.35);
+      color: var(--accent2); font-size: 1rem; font-weight: 700;
+      cursor: pointer; transition: all .25s; margin: 1.5rem 0;
+    }
+    .big-copy-btn:hover { background: linear-gradient(135deg,rgba(124,92,252,.35),rgba(167,139,250,.25)); transform: translateY(-1px); }
+    .big-copy-btn.copied { background: rgba(34,197,94,.12); border-color: rgba(34,197,94,.3); color: var(--green); }
+
+    /* ─── ARROW ─── */
+    .arrow-row { display: flex; align-items: center; gap: 10px; color: var(--muted); font-size: .8rem; margin: .5rem 0; padding-left: 10px; }
+    .arrow-row i { color: var(--accent2); }
+
+    /* ─── SECTION DIVIDER ─── */
+    .divider { border: none; border-top: 1px solid var(--border); margin: 1.5rem 0; }
+
+    /* ─── SUCCESS SECTION ─── */
+    .expected-result {
+      background: rgba(34,197,94,.06); border: 1px solid rgba(34,197,94,.2);
+      border-radius: 12px; padding: 1.2rem 1.4rem; margin-top: 1.4rem;
+    }
+    .expected-result h4 { color: var(--green); font-size: .85rem; font-weight: 700; margin-bottom: .6rem; display: flex; align-items: center; gap: 8px; }
+    .expected-result p { color: #86efac; font-size: .82rem; }
+    .result-code { font-family: monospace; background: rgba(34,197,94,.08); padding: 8px 12px; border-radius: 6px; margin-top: .6rem; font-size: .8rem; color: var(--green); }
+
+    /* ─── TABLE ─── */
+    .mini-table { width: 100%; border-collapse: collapse; font-size: .82rem; margin: 1rem 0; }
+    .mini-table th { background: var(--surface2); color: var(--muted); font-weight: 600; padding: 8px 12px; text-align: left; border-bottom: 1px solid var(--border); }
+    .mini-table td { padding: 8px 12px; border-bottom: 1px solid rgba(42,42,58,.6); vertical-align: top; }
+    .mini-table tr:last-child td { border-bottom: none; }
+    .chip { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 600; }
+    .chip.green { background: rgba(34,197,94,.12); color: var(--green); }
+    .chip.purple { background: rgba(124,92,252,.12); color: var(--accent2); }
+    .chip.yellow { background: rgba(245,158,11,.1); color: var(--yellow); }
+
+    /* ─── TABS ─── */
+    .tab-group { margin: 1rem 0; }
+    .tab-buttons { display: flex; gap: 4px; border-bottom: 1px solid var(--border); margin-bottom: 1rem; }
+    .tab-btn { padding: 6px 14px; border: none; background: none; color: var(--muted); font-size: .82rem; font-weight: 600; cursor: pointer; border-bottom: 2px solid transparent; margin-bottom: -1px; transition: all .2s; }
+    .tab-btn.active { color: var(--accent2); border-bottom-color: var(--accent); }
+    .tab-pane { display: none; }
+    .tab-pane.active { display: block; }
+
+    /* ─── FINAL CHECKLIST ─── */
+    .checklist { list-style: none; }
+    .checklist li { display: flex; align-items: flex-start; gap: 12px; padding: .6rem 0; border-bottom: 1px solid rgba(42,42,58,.4); font-size: .88rem; }
+    .checklist li:last-child { border-bottom: none; }
+    .check-icon { width: 22px; height: 22px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: .7rem; flex-shrink: 0; margin-top: 2px; }
+    .check-icon.done { background: rgba(34,197,94,.15); color: var(--green); }
+    .check-icon.pending { background: var(--surface2); color: var(--muted); border: 1px solid var(--border); }
+
+    /* ─── SCROLL ANCHOR ─── */
+    .anchor { scroll-margin-top: 80px; }
+
+    /* ─── RESPONSIVE ─── */
+    @media (max-width: 600px) {
+      .topnav { padding: 0 1rem; }
+      .nav-steps { display: none; }
+      .hero { padding: 2.5rem 1rem 2rem; }
+      .wrapper { padding: 0 1rem 4rem; }
+      .step-body { padding: 1.2rem; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- TOP NAV -->
+<nav class="topnav">
+  <div class="nav-logo">
+    <div class="dot"></div>
+    BRND Direct
+  </div>
+  <div style="display:flex;align-items:center;gap:10px;">
+    <span class="nav-badge">Setup Guide</span>
+    <div class="nav-steps">
+      <a href="#step1" class="nav-step done" title="Supabase Credentials">1</a>
+      <a href="#step2" class="nav-step active" title="Run Schema">2</a>
+      <a href="#step3" class="nav-step" title="Stripe Keys">3</a>
+      <a href="#step4" class="nav-step" title="Deploy Worker">4</a>
+      <a href="#step5" class="nav-step" title="Go Live">5</a>
+    </div>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-label">🚀 Setup Wizard</div>
+  <h1>5 Steps to <span>Go Live</span></h1>
+  <p>Follow each step below — every instruction includes exact screenshots of what you'll see and a one-click copy button for anything you need to paste.</p>
+
+  <div class="progress-row">
+    <div class="progress-item done">
+      <div class="p-circle"><i class="fas fa-check"></i></div>
+      <div class="p-label">Supabase<br>Credentials</div>
+    </div>
+    <div class="progress-item active">
+      <div class="p-circle">2</div>
+      <div class="p-label">Run<br>Schema</div>
+    </div>
+    <div class="progress-item">
+      <div class="p-circle">3</div>
+      <div class="p-label">Stripe<br>Keys</div>
+    </div>
+    <div class="progress-item">
+      <div class="p-circle">4</div>
+      <div class="p-label">Deploy<br>Worker</div>
+    </div>
+    <div class="progress-item">
+      <div class="p-circle">5</div>
+      <div class="p-label">Go<br>Live</div>
+    </div>
+  </div>
+</section>
+
+<div class="wrapper">
+
+  <!-- ══════════════════════════════════════════════════════════
+       STEP 1 — DONE
+  ═══════════════════════════════════════════════════════════ -->
+  <div class="step-card anchor" id="step1">
+    <div class="step-header open" onclick="toggleStep(this)">
+      <div class="step-num done"><i class="fas fa-check"></i></div>
+      <div class="step-title-wrap">
+        <div class="step-title">Supabase Credentials</div>
+        <div class="step-subtitle">URL and anon key saved to js/supabase.js</div>
+      </div>
+      <span class="step-badge badge-done">✓ Done</span>
+      <i class="fas fa-chevron-down step-chevron"></i>
+    </div>
+    <div class="step-body open">
+      <div class="callout success">
+        <span class="callout-icon"><i class="fas fa-check-circle"></i></span>
+        <div class="callout-text">
+          <strong>Already completed!</strong>
+          Your Supabase URL and anon key are saved. Nothing to do here — move to Step 2.
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ══════════════════════════════════════════════════════════
+       STEP 2 — RUN SCHEMA (CURRENT)
+  ═══════════════════════════════════════════════════════════ -->
+  <div class="step-card anchor" id="step2">
+    <div class="step-header open" onclick="toggleStep(this)">
+      <div class="step-num current">2</div>
+      <div class="step-title-wrap">
+        <div class="step-title">Run the Database Schema in Supabase</div>
+        <div class="step-subtitle">Creates all 14 tables, triggers, policies, and seed data</div>
+      </div>
+      <span class="step-badge badge-now">👉 Do This Now</span>
+      <i class="fas fa-chevron-down step-chevron"></i>
+    </div>
+    <div class="step-body open">
+
+      <div class="callout tip">
+        <span class="callout-icon"><i class="fas fa-lightbulb"></i></span>
+        <div class="callout-text">
+          <strong>The problem you had:</strong>
+          You typed the filename "supabase/schema.sql" into the SQL editor instead of the actual SQL code. We'll paste the real code this time using the button below.
+        </div>
+      </div>
+
+      <!-- Sub-step 1 -->
+      <div class="visual-step">
+        <div class="vs-num">1</div>
+        <div class="vs-content">
+          <strong>Open your Supabase project</strong>
+          <p>Go to <a href="https://supabase.com/dashboard" target="_blank" style="color:var(--accent2)">supabase.com/dashboard</a> and click on your project (lthfgkwyrxryereazdnr).</p>
+        </div>
+      </div>
+
+      <!-- Mock: Supabase Dashboard -->
+      <div class="mockup">
+        <div class="mockup-bar">
+          <div class="mock-dot r"></div><div class="mock-dot y"></div><div class="mock-dot g"></div>
+          <div class="mockup-url">supabase.com/dashboard/project/lthfgkwyrxryereazdnr</div>
+        </div>
+        <div class="ui-nav">
+          <div class="ui-tab"><i class="fas fa-home" style="margin-right:4px;font-size:10px"></i>Home</div>
+          <div class="ui-tab highlight"><i class="fas fa-terminal" style="margin-right:4px;font-size:10px"></i>SQL Editor ← Click here</div>
+          <div class="ui-tab">Table Editor</div>
+          <div class="ui-tab">Auth</div>
+          <div class="ui-tab">Storage</div>
+          <div class="ui-tab">Settings</div>
+        </div>
+        <div class="ui-content" style="color:var(--muted);font-size:.8rem;">
+          <i class="fas fa-arrow-left" style="margin-right:6px"></i>Click <strong style="color:var(--green)">SQL Editor</strong> in the left sidebar
+        </div>
+      </div>
+
+      <!-- Sub-step 2 -->
+      <div class="visual-step">
+        <div class="vs-num">2</div>
+        <div class="vs-content">
+          <strong>Click "New Query" (the + button)</strong>
+          <p>In the SQL Editor, look for the <strong>+</strong> icon or <strong>"New Query"</strong> button at the top of the left panel.</p>
+        </div>
+      </div>
+
+      <!-- Mock: SQL Editor sidebar -->
+      <div class="mockup">
+        <div class="mockup-bar">
+          <div class="mock-dot r"></div><div class="mock-dot y"></div><div class="mock-dot g"></div>
+          <div class="mockup-url">SQL Editor</div>
+        </div>
+        <div style="display:flex;min-height:120px;">
+          <div style="width:180px;background:#111118;border-right:1px solid var(--border);padding:10px;font-size:11px;">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;color:var(--muted);">
+              <span style="font-weight:700;">Queries</span>
+              <button class="ui-button green" style="padding:3px 8px;font-size:10px;">
+                <i class="fas fa-plus"></i> New ← Click
+              </button>
+            </div>
+            <div style="color:var(--muted);font-size:10px;padding:4px 6px;">No saved queries yet</div>
+          </div>
+          <div style="flex:1;padding:12px;display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:.8rem;text-align:center;">
+            <span>A blank editor will open →<br>this is where you paste the SQL</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Sub-step 3 -->
+      <div class="visual-step">
+        <div class="vs-num">3</div>
+        <div class="vs-content">
+          <strong>Copy the entire SQL schema (use the button below)</strong>
+          <p>Click the big button — it copies the full 685-line schema to your clipboard automatically.</p>
+        </div>
+      </div>
+
+      <button class="big-copy-btn" id="mainCopyBtn" onclick="copySchema()">
+        <i class="fas fa-copy"></i>
+        Copy Full SQL Schema to Clipboard
+        <span style="font-size:.75rem;opacity:.7;margin-left:4px;">(685 lines)</span>
+      </button>
+
+      <!-- Sub-step 4 -->
+      <div class="visual-step">
+        <div class="vs-num">4</div>
+        <div class="vs-content">
+          <strong>Paste into the SQL editor</strong>
+          <p>Click inside the editor area (the big white/dark text box), then press <kbd style="background:var(--surface2);border:1px solid var(--border);padding:2px 6px;border-radius:4px;font-size:.8rem;">Ctrl+A</kbd> to select all, then <kbd style="background:var(--surface2);border:1px solid var(--border);padding:2px 6px;border-radius:4px;font-size:.8rem;">Ctrl+V</kbd> to paste. On Mac use <kbd style="background:var(--surface2);border:1px solid var(--border);padding:2px 6px;border-radius:4px;font-size:.8rem;">⌘+A</kbd> then <kbd style="background:var(--surface2);border:1px solid var(--border);padding:2px 6px;border-radius:4px;font-size:.8rem;">⌘+V</kbd>.</p>
+        </div>
+      </div>
+
+      <!-- Mock: SQL Editor with pasted code -->
+      <div class="mockup">
+        <div class="mockup-bar">
+          <div class="mock-dot r"></div><div class="mock-dot y"></div><div class="mock-dot g"></div>
+          <div class="mockup-url">SQL Editor — New Query</div>
+        </div>
+        <div style="padding:12px;font-family:monospace;font-size:.75rem;line-height:1.6;color:#6b7280;border-bottom:1px solid var(--border);">
+          <span style="color:#9333ea;">CREATE</span> <span style="color:#3b82f6;">EXTENSION</span> IF NOT EXISTS <span style="color:#16a34a;">"uuid-ossp"</span>;<br>
+          <span style="color:#9333ea;">CREATE</span> <span style="color:#3b82f6;">EXTENSION</span> IF NOT EXISTS <span style="color:#16a34a;">"pgcrypto"</span>;<br>
+          <span style="color:#6b7280;">-- ... 680 more lines ...</span><br>
+          <span style="color:#9333ea;">INSERT INTO</span> brands (name, slug ...) <span style="color:#9333ea;">VALUES</span><br>
+          &nbsp;&nbsp;(<span style="color:#16a34a;">'Maison Margiela'</span>, <span style="color:#16a34a;">'maison-margiela'</span>, ...);
+        </div>
+        <div style="padding:8px 12px;display:flex;justify-content:flex-end;gap:8px;">
+          <button class="ui-button green" style="pointer-events:none;">
+            <i class="fas fa-play"></i> Run ← Click this
+          </button>
+        </div>
+      </div>
+
+      <!-- Sub-step 5 -->
+      <div class="visual-step">
+        <div class="vs-num">5</div>
+        <div class="vs-content">
+          <strong>Click the green "Run" button</strong>
+          <p>The Run button is in the top-right of the SQL editor panel. It may also show as <strong>▶ Run</strong> or <strong>Ctrl+Enter</strong>.</p>
+        </div>
+      </div>
+
+      <div class="callout warn">
+        <span class="callout-icon"><i class="fas fa-exclamation-triangle"></i></span>
+        <div class="callout-text">
+          <strong>If you see errors about existing types:</strong> That means you ran it before partially. No problem — go to <a href="#resetSchema" style="color:#fca5a5;font-weight:600;">the reset fix below</a>, or just come back to me and say "I got an error" and paste the error text.
+        </div>
+      </div>
+
+      <!-- Expected Result -->
+      <div class="expected-result">
+        <h4><i class="fas fa-check-circle"></i> What success looks like</h4>
+        <p>At the bottom of the SQL editor you'll see a green success panel. The last line will be:</p>
+        <div class="result-code">Success. No rows returned.</div>
+        <p style="margin-top:.6rem;">You'll also see the results show no errors — just "Success" messages or result counts. Then go to <strong>Table Editor</strong> in the sidebar and you should see these tables listed:</p>
+        <div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:.8rem;">
+          <span class="chip green">profiles</span>
+          <span class="chip green">buyer_profiles</span>
+          <span class="chip green">seller_profiles</span>
+          <span class="chip green">brands</span>
+          <span class="chip green">products</span>
+          <span class="chip green">orders</span>
+          <span class="chip green">order_items</span>
+          <span class="chip green">invoices</span>
+          <span class="chip green">payouts</span>
+          <span class="chip green">rfqs</span>
+          <span class="chip green">conversations</span>
+          <span class="chip green">messages</span>
+          <span class="chip green">notifications</span>
+          <span class="chip green">analytics_events</span>
+        </div>
+      </div>
+
+      <!-- Fix section if errors -->
+      <div id="resetSchema" style="margin-top:1.5rem;">
+        <hr class="divider" />
+        <p style="font-size:.85rem;font-weight:700;color:var(--yellow);margin-bottom:.8rem;"><i class="fas fa-wrench" style="margin-right:6px;"></i>If you get "type already exists" errors — run this first:</p>
+        <div class="code-block">
+          <button class="copy-btn" onclick="copyCode(this, 'dropSQL')"><i class="fas fa-copy"></i> Copy</button>
+          <span id="dropSQL"><span class="comment">-- Run this ONLY if you see "type already exists" errors</span>
+<span class="comment">-- It drops everything and lets you start clean</span>
+DROP TABLE IF EXISTS analytics_events,notifications,messages,conversations,rfqs,payouts,invoices,order_items,orders,products,brands,seller_profiles,buyer_profiles,profiles CASCADE;
+DROP TYPE  IF EXISTS user_role,account_status,order_status,payment_status,fulfill_type,payout_status,rfq_status,message_status,notification_type CASCADE;
+DROP TABLE IF EXISTS app_settings CASCADE;
+DROP FUNCTION IF EXISTS handle_new_user,set_updated_at,recalc_order_total,update_conversation_ts,is_admin CASCADE;</span>
+        </div>
+        <p style="font-size:.8rem;color:var(--muted);margin-top:.5rem;">Then paste and run the full schema again.</p>
+      </div>
+
+    </div>
+  </div>
+
+
+  <!-- ══════════════════════════════════════════════════════════
+       STEP 3 — STRIPE
+  ═══════════════════════════════════════════════════════════ -->
+  <div class="step-card anchor" id="step3">
+    <div class="step-header" onclick="toggleStep(this)">
+      <div class="step-num">3</div>
+      <div class="step-title-wrap">
+        <div class="step-title">Get Your Stripe Keys</div>
+        <div class="step-subtitle">Publishable key → js/supabase.js · Secret key → Cloudflare Worker</div>
+      </div>
+      <span class="step-badge badge-next">Up Next</span>
+      <i class="fas fa-chevron-down step-chevron"></i>
+    </div>
+    <div class="step-body">
+
+      <div class="callout info">
+        <span class="callout-icon"><i class="fas fa-info-circle"></i></span>
+        <div class="callout-text">
+          <strong>You need two keys from Stripe</strong>
+          A <em>Publishable Key</em> (safe to put in front-end code) and a <em>Secret Key</em> (kept on the server). Both are on the same page.
+        </div>
+      </div>
+
+      <div class="visual-step">
+        <div class="vs-num">1</div>
+        <div class="vs-content">
+          <strong>Go to the Stripe Dashboard</strong>
+          <p>Open <a href="https://dashboard.stripe.com/apikeys" target="_blank" style="color:var(--accent2)">dashboard.stripe.com/apikeys</a> — log in if prompted.</p>
+        </div>
+      </div>
+
+      <!-- Mock: Stripe API Keys page -->
+      <div class="mockup">
+        <div class="mockup-bar">
+          <div class="mock-dot r"></div><div class="mock-dot y"></div><div class="mock-dot g"></div>
+          <div class="mockup-url">dashboard.stripe.com/apikeys</div>
+        </div>
+        <div style="padding:14px;">
+          <div style="font-size:.85rem;font-weight:700;margin-bottom:12px;color:var(--text);">API Keys</div>
+          <table class="mini-table">
+            <tr>
+              <th>Key name</th>
+              <th>Token</th>
+              <th>Action</th>
+            </tr>
+            <tr>
+              <td><span class="chip green">Publishable key</span><br><span style="font-size:.75rem;color:var(--muted);">Share this in your website code</span></td>
+              <td><code style="font-size:.75rem;color:var(--accent2);">pk_live_51…</code></td>
+              <td><button class="ui-button purple" style="pointer-events:none;font-size:11px;">Copy</button></td>
+            </tr>
+            <tr>
+              <td><span class="chip yellow">Secret key</span><br><span style="font-size:.75rem;color:var(--muted);">Keep this private — server only</span></td>
+              <td><code style="font-size:.75rem;color:var(--muted);">sk_live_•••••••••</code></td>
+              <td><button class="ui-button purple" style="pointer-events:none;font-size:11px;">Reveal</button></td>
+            </tr>
+          </table>
+        </div>
+      </div>
+
+      <div class="visual-step">
+        <div class="vs-num">2</div>
+        <div class="vs-content">
+          <strong>Copy the Publishable key (pk_live_…) and share it here</strong>
+          <p>Click the "Copy" button next to the Publishable key row and paste it in our chat. I'll update js/supabase.js automatically.</p>
+        </div>
+      </div>
+
+      <div class="visual-step">
+        <div class="vs-num">3</div>
+        <div class="vs-content">
+          <strong>Click "Reveal" on the Secret key and copy that too</strong>
+          <p>You'll need to confirm with your Stripe password. Copy the full sk_live_… value — this goes into the Cloudflare Worker (Step 4).</p>
+        </div>
+      </div>
+
+      <div class="callout warn">
+        <span class="callout-icon"><i class="fas fa-lock"></i></span>
+        <div class="callout-text">
+          <strong>Never paste the secret key into a chat or code file directly.</strong>
+          We'll add it to Cloudflare as a secret environment variable in Step 4 — it never touches the code.
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+
+  <!-- ══════════════════════════════════════════════════════════
+       STEP 4 — CLOUDFLARE DEPLOY
+  ═══════════════════════════════════════════════════════════ -->
+  <div class="step-card anchor" id="step4">
+    <div class="step-header" onclick="toggleStep(this)">
+      <div class="step-num">4</div>
+      <div class="step-title-wrap">
+        <div class="step-title">Deploy the Cloudflare Worker (API)</div>
+        <div class="step-subtitle">Handles Stripe payments server-side · Takes ~5 min</div>
+      </div>
+      <span class="step-badge badge-next">Up Next</span>
+      <i class="fas fa-chevron-down step-chevron"></i>
+    </div>
+    <div class="step-body">
+
+      <div class="callout info">
+        <span class="callout-icon"><i class="fas fa-info-circle"></i></span>
+        <div class="callout-text">
+          <strong>What is a Cloudflare Worker?</strong>
+          It's a tiny server that runs at Cloudflare's edge — it's free tier covers millions of requests. It handles Stripe payment creation securely without exposing your secret key.
+        </div>
+      </div>
+
+      <div class="tab-group">
+        <div class="tab-buttons">
+          <button class="tab-btn active" onclick="switchTab(this,'tab-a')">Option A — No-Code (Dashboard)</button>
+          <button class="tab-btn" onclick="switchTab(this,'tab-b')">Option B — Terminal (wrangler)</button>
+        </div>
+        <div class="tab-pane active" id="tab-a">
+
+          <div class="visual-step">
+            <div class="vs-num">1</div>
+            <div class="vs-content">
+              <strong>Go to Cloudflare Workers</strong>
+              <p>Open <a href="https://dash.cloudflare.com/" target="_blank" style="color:var(--accent2)">dash.cloudflare.com</a> → click <strong>Workers & Pages</strong> in the left sidebar → click <strong>Create</strong>.</p>
+            </div>
+          </div>
+
+          <div class="mockup">
+            <div class="mockup-bar">
+              <div class="mock-dot r"></div><div class="mock-dot y"></div><div class="mock-dot g"></div>
+              <div class="mockup-url">dash.cloudflare.com</div>
+            </div>
+            <div class="ui-nav">
+              <div class="ui-tab">Home</div>
+              <div class="ui-tab highlight"><i class="fas fa-cloud" style="margin-right:4px;font-size:10px"></i>Workers & Pages ← Click</div>
+              <div class="ui-tab">DNS</div>
+              <div class="ui-tab">SSL</div>
+            </div>
+            <div class="ui-content">
+              <button class="ui-button green" style="pointer-events:none;">+ Create Application ← Click</button>
+            </div>
+          </div>
+
+          <div class="visual-step">
+            <div class="vs-num">2</div>
+            <div class="vs-content">
+              <strong>Choose "Create Worker" → name it <code style="color:var(--accent2)">brnd-direct-api</code></strong>
+              <p>Click "Create Worker", give it the name <strong>brnd-direct-api</strong>, then click Deploy.</p>
+            </div>
+          </div>
+
+          <div class="visual-step">
+            <div class="vs-num">3</div>
+            <div class="vs-content">
+              <strong>Click "Edit Code" and replace the entire content</strong>
+              <p>After deploying, click <strong>Edit code</strong>. Select all (Ctrl+A), delete it, then paste the worker code below.</p>
+            </div>
+          </div>
+
+          <div class="code-block" style="max-height:200px;overflow-y:auto;">
+            <button class="copy-btn" onclick="copyWorkerCode(this)"><i class="fas fa-copy"></i> Copy Worker Code</button>
+            <span id="workerCodeDisplay"><span class="comment">// Copy from workers/api.js in your project files</span>
+<span class="comment">// Click "Copy Worker Code" above to copy it automatically</span></span>
+          </div>
+
+          <div class="visual-step">
+            <div class="vs-num">4</div>
+            <div class="vs-content">
+              <strong>Add your secrets (environment variables)</strong>
+              <p>Go to your Worker → <strong>Settings</strong> → <strong>Variables</strong> → add these:</p>
+            </div>
+          </div>
+
+          <table class="mini-table">
+            <tr><th>Variable Name</th><th>Value</th><th>Type</th></tr>
+            <tr>
+              <td><code>STRIPE_SECRET_KEY</code></td>
+              <td>Your <code>sk_live_…</code> from Step 3</td>
+              <td><span class="chip yellow">Secret</span></td>
+            </tr>
+            <tr>
+              <td><code>STRIPE_WEBHOOK_SECRET</code></td>
+              <td>From Stripe → Webhooks → your endpoint secret</td>
+              <td><span class="chip yellow">Secret</span></td>
+            </tr>
+            <tr>
+              <td><code>SUPABASE_URL</code></td>
+              <td><code>https://lthfgkwyrxryereazdnr.supabase.co</code></td>
+              <td><span class="chip purple">Text</span></td>
+            </tr>
+            <tr>
+              <td><code>SUPABASE_SERVICE_KEY</code></td>
+              <td>From Supabase → Settings → API → <strong>service_role key</strong></td>
+              <td><span class="chip yellow">Secret</span></td>
+            </tr>
+          </table>
+
+          <div class="callout tip">
+            <span class="callout-icon"><i class="fas fa-lightbulb"></i></span>
+            <div class="callout-text">
+              <strong>Where to find the Supabase service_role key:</strong>
+              Supabase Dashboard → Settings (⚙️ gear icon) → API → copy the <strong>service_role</strong> key (NOT the anon key).
+            </div>
+          </div>
+
+        </div>
+        <div class="tab-pane" id="tab-b">
+          <div class="callout info">
+            <span class="callout-icon"><i class="fas fa-terminal"></i></span>
+            <div class="callout-text">
+              <strong>This uses the Wrangler CLI (requires Node.js installed).</strong>
+              If you don't have Node.js, use Option A instead.
+            </div>
+          </div>
+          <div class="code-block">
+            <button class="copy-btn" onclick="copyCode(this,'wranglerCmds')"><i class="fas fa-copy"></i> Copy</button>
+            <span id="wranglerCmds"><span class="comment"># 1. Install wrangler</span>
+npm install -g wrangler
+
+<span class="comment"># 2. Log in to Cloudflare</span>
+wrangler login
+
+<span class="comment"># 3. Add your secrets</span>
+wrangler secret put STRIPE_SECRET_KEY
+wrangler secret put STRIPE_WEBHOOK_SECRET
+wrangler secret put SUPABASE_SERVICE_KEY
+
+<span class="comment"># 4. Deploy the worker</span>
+wrangler deploy</span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+
+  <!-- ══════════════════════════════════════════════════════════
+       STEP 5 — GO LIVE
+  ═══════════════════════════════════════════════════════════ -->
+  <div class="step-card anchor" id="step5">
+    <div class="step-header" onclick="toggleStep(this)">
+      <div class="step-num">5</div>
+      <div class="step-title-wrap">
+        <div class="step-title">Connect GitHub & Go Live</div>
+        <div class="step-subtitle">Push your project to GitHub → Cloudflare Pages deploys it automatically</div>
+      </div>
+      <span class="step-badge badge-next">Final Step</span>
+      <i class="fas fa-chevron-down step-chevron"></i>
+    </div>
+    <div class="step-body">
+
+      <div class="visual-step">
+        <div class="vs-num">1</div>
+        <div class="vs-content">
+          <strong>Create a GitHub repository</strong>
+          <p>Go to <a href="https://github.com/new" target="_blank" style="color:var(--accent2)">github.com/new</a> → name it <code style="color:var(--accent2)">brnd-direct</code> → click "Create repository". Then follow the "push an existing repository" commands GitHub shows you.</p>
+        </div>
+      </div>
+
+      <div class="visual-step">
+        <div class="vs-num">2</div>
+        <div class="vs-content">
+          <strong>Connect GitHub to Cloudflare Pages</strong>
+          <p>Go to <a href="https://dash.cloudflare.com/" target="_blank" style="color:var(--accent2)">dash.cloudflare.com</a> → Workers & Pages → <strong>Pages</strong> tab → <strong>Connect to Git</strong>.</p>
+        </div>
+      </div>
+
+      <div class="mockup">
+        <div class="mockup-bar">
+          <div class="mock-dot r"></div><div class="mock-dot y"></div><div class="mock-dot g"></div>
+          <div class="mockup-url">dash.cloudflare.com → Pages → Connect to Git</div>
+        </div>
+        <div class="ui-content" style="font-size:.8rem;">
+          <div style="background:var(--surface2);border-radius:8px;padding:12px;margin-bottom:8px;">
+            <div style="font-weight:700;margin-bottom:6px;">Build configuration</div>
+            <div class="ui-field">Framework preset: <strong>None</strong></div>
+            <div class="ui-field">Build command: <em>leave blank</em></div>
+            <div class="ui-field highlighted">Build output directory: <strong>/</strong> (just a slash)</div>
+          </div>
+          <button class="ui-button green" style="pointer-events:none;">Save and Deploy →</button>
+        </div>
+      </div>
+
+      <div class="visual-step">
+        <div class="vs-num">3</div>
+        <div class="vs-content">
+          <strong>Make yourself an Admin</strong>
+          <p>After deploying, register an account on your live site. Then run this single SQL line in Supabase to upgrade yourself to admin:</p>
+        </div>
+      </div>
+
+      <div class="code-block">
+        <button class="copy-btn" onclick="copyCode(this,'adminSQL')"><i class="fas fa-copy"></i> Copy</button>
+        <span id="adminSQL">UPDATE profiles SET role = 'admin' WHERE id = auth.uid();</span>
+      </div>
+
+      <div class="callout success">
+        <span class="callout-icon"><i class="fas fa-rocket"></i></span>
+        <div class="callout-text">
+          <strong>You're live!</strong>
+          Visit <code>/admin/</code> on your deployed URL to access the admin dashboard. Your portal is production-ready.
+        </div>
+      </div>
+
+      <hr class="divider" />
+
+      <p style="font-size:.85rem;font-weight:700;margin-bottom:.8rem;">Final checklist:</p>
+      <ul class="checklist">
+        <li><div class="check-icon done"><i class="fas fa-check"></i></div><span>Supabase credentials saved to js/supabase.js</span></li>
+        <li><div class="check-icon pending"><i class="fas fa-circle"></i></div><span>Schema SQL run in Supabase → 14 tables visible in Table Editor</span></li>
+        <li><div class="check-icon pending"><i class="fas fa-circle"></i></div><span>Stripe publishable key added to js/supabase.js</span></li>
+        <li><div class="check-icon pending"><i class="fas fa-circle"></i></div><span>Cloudflare Worker deployed with Stripe secret key</span></li>
+        <li><div class="check-icon pending"><i class="fas fa-circle"></i></div><span>Project pushed to GitHub and connected to Cloudflare Pages</span></li>
+        <li><div class="check-icon pending"><i class="fas fa-circle"></i></div><span>Admin account created and role set via SQL</span></li>
+      </ul>
+
+    </div>
+  </div>
+
+  <!-- Help CTA -->
+  <div style="text-align:center;padding:2rem 1rem;background:var(--surface);border:1px solid var(--border);border-radius:16px;">
+    <div style="font-size:1.5rem;margin-bottom:.5rem;">🆘</div>
+    <div style="font-weight:700;font-size:1rem;margin-bottom:.4rem;">Stuck on any step?</div>
+    <p style="color:var(--muted);font-size:.85rem;max-width:400px;margin:0 auto;">
+      Come back to the chat and say <strong style="color:var(--accent2)">"I'm on Step [number]"</strong> plus paste the error message you see. I'll fix it instantly.
+    </p>
+  </div>
+
+</div><!-- /wrapper -->
+
+
+<!-- HIDDEN SQL CONTENT -->
+<div id="fullSchemaSQL" style="display:none;">-- ============================================================
+--  BRND DIRECT — Complete PostgreSQL Database Schema
+--  Target: Supabase (PostgreSQL 15+)
+--
+--  HOW TO USE:
+--  1. Open your Supabase project → SQL Editor → New query
+--  2. Paste this entire file and click "Run"
+--  3. All tables, policies, indexes, triggers and seed data
+--     will be created automatically.
+-- ============================================================
+
+-- ── Extensions ──────────────────────────────────────────────
+CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+CREATE EXTENSION IF NOT EXISTS "pgcrypto";
+CREATE EXTENSION IF NOT EXISTS "pg_trgm";
+
+-- ============================================================
+--  ENUMS  (wrapped to avoid duplicate-type errors on re-run)
+-- ============================================================
+DO $$ BEGIN
+  CREATE TYPE user_role AS ENUM ('buyer','seller','admin');
+EXCEPTION WHEN duplicate_object THEN NULL; END $$;
+
+DO $$ BEGIN
+  CREATE TYPE account_status AS ENUM ('pending','approved','suspended','rejected');
+EXCEPTION WHEN duplicate_object THEN NULL; END $$;
+
+DO $$ BEGIN
+  CREATE TYPE order_status AS ENUM ('draft','pending','confirmed','processing','shipped','delivered','cancelled','refunded');
+EXCEPTION WHEN duplicate_object THEN NULL; END $$;
+
+DO $$ BEGIN
+  CREATE TYPE payment_status AS ENUM ('unpaid','pending','paid','failed','refunded','partially_refunded');
+EXCEPTION WHEN duplicate_object THEN NULL; END $$;
+
+DO $$ BEGIN
+  CREATE TYPE fulfill_type AS ENUM ('wholesale','dropship','both');
+EXCEPTION WHEN duplicate_object THEN NULL; END $$;
+
+DO $$ BEGIN
+  CREATE TYPE payout_status AS ENUM ('pending','processing','paid','failed');
+EXCEPTION WHEN duplicate_object THEN NULL; END $$;
+
+DO $$ BEGIN
+  CREATE TYPE rfq_status AS ENUM ('open','quoted','accepted','rejected','expired');
+EXCEPTION WHEN duplicate_object THEN NULL; END $$;
+
+DO $$ BEGIN
+  CREATE TYPE message_status AS ENUM ('sent','delivered','read');
+EXCEPTION WHEN duplicate_object THEN NULL; END $$;
+
+DO $$ BEGIN
+  CREATE TYPE notification_type AS ENUM ('order','payment','message','system','rfq','shipment');
+EXCEPTION WHEN duplicate_object THEN NULL; END $$;
+
+-- ============================================================
+--  1. PROFILES
+-- ============================================================
+CREATE TABLE IF NOT EXISTS profiles (
+  id                UUID        PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
+  role              user_role   NOT NULL DEFAULT 'buyer',
+  status            account_status NOT NULL DEFAULT 'pending',
+  first_name        TEXT,
+  last_name         TEXT,
+  display_name      TEXT,
+  avatar_url        TEXT,
+  phone             TEXT,
+  country           TEXT        DEFAULT 'US',
+  timezone          TEXT        DEFAULT 'America/New_York',
+  email_verified    BOOLEAN     DEFAULT FALSE,
+  onboarding_done   BOOLEAN     DEFAULT FALSE,
+  last_seen_at      TIMESTAMPTZ,
+  created_at        TIMESTAMPTZ DEFAULT NOW(),
+  updated_at        TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE OR REPLACE FUNCTION handle_new_user()
+RETURNS TRIGGER LANGUAGE plpgsql SECURITY DEFINER AS $$
+BEGIN
+  INSERT INTO profiles (id, role, first_name, last_name)
+  VALUES (
+    NEW.id,
+    COALESCE((NEW.raw_user_meta_data->>'role')::user_role, 'buyer'),
+    NEW.raw_user_meta_data->>'first_name',
+    NEW.raw_user_meta_data->>'last_name'
+  ) ON CONFLICT (id) DO NOTHING;
+  RETURN NEW;
+END;
+$$;
+
+DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
+CREATE TRIGGER on_auth_user_created
+  AFTER INSERT ON auth.users
+  FOR EACH ROW EXECUTE FUNCTION handle_new_user();
+
+CREATE OR REPLACE FUNCTION set_updated_at()
+RETURNS TRIGGER LANGUAGE plpgsql AS $$
+BEGIN NEW.updated_at = NOW(); RETURN NEW; END;
+$$;
+
+DROP TRIGGER IF EXISTS profiles_updated_at ON profiles;
+CREATE TRIGGER profiles_updated_at
+  BEFORE UPDATE ON profiles
+  FOR EACH ROW EXECUTE FUNCTION set_updated_at();
+
+-- ============================================================
+--  2. BUYER PROFILES
+-- ============================================================
+CREATE TABLE IF NOT EXISTS buyer_profiles (
+  id                  UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  profile_id          UUID NOT NULL REFERENCES profiles(id) ON DELETE CASCADE,
+  business_name       TEXT NOT NULL,
+  business_type       TEXT,
+  ein_tax_id          TEXT,
+  website_url         TEXT,
+  annual_spend_range  TEXT,
+  credit_limit        NUMERIC(12,2) DEFAULT 0,
+  credit_used         NUMERIC(12,2) DEFAULT 0,
+  net_terms           INTEGER       DEFAULT 30,
+  stripe_customer_id  TEXT,
+  approved_at         TIMESTAMPTZ,
+  notes               TEXT,
+  created_at          TIMESTAMPTZ   DEFAULT NOW(),
+  updated_at          TIMESTAMPTZ   DEFAULT NOW(),
+  UNIQUE(profile_id)
+);
+DROP TRIGGER IF EXISTS buyer_updated_at ON buyer_profiles;
+CREATE TRIGGER buyer_updated_at BEFORE UPDATE ON buyer_profiles
+  FOR EACH ROW EXECUTE FUNCTION set_updated_at();
+
+-- ============================================================
+--  3. SELLER / BRAND PROFILES
+-- ============================================================
+CREATE TABLE IF NOT EXISTS seller_profiles (
+  id                  UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  profile_id          UUID NOT NULL REFERENCES profiles(id) ON DELETE CASCADE,
+  brand_name          TEXT NOT NULL,
+  brand_slug          TEXT UNIQUE NOT NULL,
+  description         TEXT,
+  logo_url            TEXT,
+  website_url         TEXT,
+  annual_revenue_range TEXT,
+  primary_category    TEXT,
+  fulfillment_type    fulfill_type  DEFAULT 'both',
+  map_enforcement     BOOLEAN       DEFAULT TRUE,
+  commission_rate     NUMERIC(5,2)  DEFAULT 12.00,
+  stripe_account_id   TEXT,
+  approved_at         TIMESTAMPTZ,
+  notes               TEXT,
+  created_at          TIMESTAMPTZ   DEFAULT NOW(),
+  updated_at          TIMESTAMPTZ   DEFAULT NOW(),
+  UNIQUE(profile_id)
+);
+DROP TRIGGER IF EXISTS seller_updated_at ON seller_profiles;
+CREATE TRIGGER seller_updated_at BEFORE UPDATE ON seller_profiles
+  FOR EACH ROW EXECUTE FUNCTION set_updated_at();
+
+-- ============================================================
+--  4. BRANDS
+-- ============================================================
+CREATE TABLE IF NOT EXISTS brands (
+  id                UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  seller_profile_id UUID REFERENCES seller_profiles(id) ON DELETE SET NULL,
+  name              TEXT NOT NULL,
+  slug              TEXT UNIQUE NOT NULL,
+  logo_url          TEXT,
+  banner_url        TEXT,
+  description       TEXT,
+  category          TEXT,
+  country_of_origin TEXT,
+  is_verified       BOOLEAN   DEFAULT FALSE,
+  is_active         BOOLEAN   DEFAULT TRUE,
+  sort_order        INTEGER   DEFAULT 0,
+  created_at        TIMESTAMPTZ DEFAULT NOW(),
+  updated_at        TIMESTAMPTZ DEFAULT NOW()
+);
+DROP TRIGGER IF EXISTS brands_updated_at ON brands;
+CREATE TRIGGER brands_updated_at BEFORE UPDATE ON brands
+  FOR EACH ROW EXECUTE FUNCTION set_updated_at();
+CREATE INDEX IF NOT EXISTS idx_brands_category ON brands(category);
+CREATE INDEX IF NOT EXISTS idx_brands_slug ON brands(slug);
+CREATE INDEX IF NOT EXISTS idx_brands_name_trgm ON brands USING GIN (name gin_trgm_ops);
+
+-- ============================================================
+--  5. PRODUCTS
+-- ============================================================
+CREATE TABLE IF NOT EXISTS products (
+  id                UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  brand_id          UUID NOT NULL REFERENCES brands(id) ON DELETE CASCADE,
+  seller_profile_id UUID REFERENCES seller_profiles(id) ON DELETE SET NULL,
+  sku               TEXT UNIQUE NOT NULL,
+  upc               TEXT UNIQUE,
+  name              TEXT NOT NULL,
+  description       TEXT,
+  category          TEXT NOT NULL,
+  subcategory       TEXT[],
+  tags              TEXT[],
+  fulfillment_type  fulfill_type DEFAULT 'both',
+  wholesale_price   NUMERIC(10,2) NOT NULL,
+  msrp              NUMERIC(10,2),
+  moq               INTEGER DEFAULT 1,
+  stock_qty         INTEGER DEFAULT 0,
+  is_active         BOOLEAN DEFAULT TRUE,
+  is_top_seller     BOOLEAN DEFAULT FALSE,
+  images            TEXT[],
+  meta              JSONB DEFAULT '{}',
+  created_at        TIMESTAMPTZ DEFAULT NOW(),
+  updated_at        TIMESTAMPTZ DEFAULT NOW()
+);
+DROP TRIGGER IF EXISTS products_updated_at ON products;
+CREATE TRIGGER products_updated_at BEFORE UPDATE ON products
+  FOR EACH ROW EXECUTE FUNCTION set_updated_at();
+CREATE INDEX IF NOT EXISTS idx_products_brand ON products(brand_id);
+CREATE INDEX IF NOT EXISTS idx_products_category ON products(category);
+CREATE INDEX IF NOT EXISTS idx_products_sku ON products(sku);
+CREATE INDEX IF NOT EXISTS idx_products_name_trgm ON products USING GIN (name gin_trgm_ops);
+CREATE INDEX IF NOT EXISTS idx_products_active ON products(is_active, is_top_seller);
+
+-- ============================================================
+--  6. ORDERS
+-- ============================================================
+CREATE TABLE IF NOT EXISTS orders (
+  id                UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  order_number      TEXT UNIQUE NOT NULL DEFAULT 'BD-' || LPAD(FLOOR(RANDOM()*999999)::TEXT, 6, '0'),
+  buyer_profile_id  UUID NOT NULL REFERENCES buyer_profiles(id) ON DELETE RESTRICT,
+  status            order_status    DEFAULT 'pending',
+  payment_status    payment_status  DEFAULT 'unpaid',
+  subtotal          NUMERIC(12,2)   DEFAULT 0,
+  discount_amount   NUMERIC(12,2)   DEFAULT 0,
+  tax_amount        NUMERIC(12,2)   DEFAULT 0,
+  shipping_amount   NUMERIC(12,2)   DEFAULT 0,
+  total_amount      NUMERIC(12,2)   DEFAULT 0,
+  net_terms         INTEGER         DEFAULT 30,
+  due_date          DATE,
+  stripe_payment_intent TEXT,
+  notes             TEXT,
+  shipping_address  JSONB,
+  tracking_info     JSONB,
+  created_at        TIMESTAMPTZ     DEFAULT NOW(),
+  updated_at        TIMESTAMPTZ     DEFAULT NOW()
+);
+DROP TRIGGER IF EXISTS orders_updated_at ON orders;
+CREATE TRIGGER orders_updated_at BEFORE UPDATE ON orders
+  FOR EACH ROW EXECUTE FUNCTION set_updated_at();
+CREATE INDEX IF NOT EXISTS idx_orders_buyer ON orders(buyer_profile_id);
+CREATE INDEX IF NOT EXISTS idx_orders_status ON orders(status);
+CREATE INDEX IF NOT EXISTS idx_orders_created ON orders(created_at DESC);
+
+CREATE TABLE IF NOT EXISTS order_items (
+  id                UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  order_id          UUID NOT NULL REFERENCES orders(id) ON DELETE CASCADE,
+  product_id        UUID NOT NULL REFERENCES products(id) ON DELETE RESTRICT,
+  seller_profile_id UUID REFERENCES seller_profiles(id) ON DELETE SET NULL,
+  sku               TEXT NOT NULL,
+  name              TEXT NOT NULL,
+  quantity          INTEGER NOT NULL CHECK (quantity > 0),
+  unit_price        NUMERIC(10,2) NOT NULL,
+  line_total        NUMERIC(12,2) GENERATED ALWAYS AS (quantity * unit_price) STORED,
+  fulfillment_type  fulfill_type DEFAULT 'wholesale',
+  created_at        TIMESTAMPTZ DEFAULT NOW()
+);
+CREATE INDEX IF NOT EXISTS idx_order_items_order ON order_items(order_id);
+CREATE INDEX IF NOT EXISTS idx_order_items_product ON order_items(product_id);
+
+CREATE OR REPLACE FUNCTION recalc_order_total()
+RETURNS TRIGGER LANGUAGE plpgsql AS $$
+BEGIN
+  UPDATE orders
+  SET subtotal = (SELECT COALESCE(SUM(line_total),0) FROM order_items WHERE order_id = COALESCE(NEW.order_id, OLD.order_id)),
+      updated_at = NOW()
+  WHERE id = COALESCE(NEW.order_id, OLD.order_id);
+  RETURN NULL;
+END;
+$$;
+DROP TRIGGER IF EXISTS order_items_recalc ON order_items;
+CREATE TRIGGER order_items_recalc
+  AFTER INSERT OR UPDATE OR DELETE ON order_items
+  FOR EACH ROW EXECUTE FUNCTION recalc_order_total();
+
+-- ============================================================
+--  7. INVOICES
+-- ============================================================
+CREATE TABLE IF NOT EXISTS invoices (
+  id                UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  invoice_number    TEXT UNIQUE NOT NULL DEFAULT 'INV-' || LPAD(FLOOR(RANDOM()*999999)::TEXT, 6, '0'),
+  order_id          UUID NOT NULL REFERENCES orders(id) ON DELETE RESTRICT,
+  buyer_profile_id  UUID NOT NULL REFERENCES buyer_profiles(id),
+  amount            NUMERIC(12,2) NOT NULL,
+  payment_status    payment_status DEFAULT 'unpaid',
+  stripe_invoice_id TEXT,
+  due_date          DATE,
+  paid_at           TIMESTAMPTZ,
+  pdf_url           TEXT,
+  created_at        TIMESTAMPTZ DEFAULT NOW(),
+  updated_at        TIMESTAMPTZ DEFAULT NOW()
+);
+DROP TRIGGER IF EXISTS invoices_updated_at ON invoices;
+CREATE TRIGGER invoices_updated_at BEFORE UPDATE ON invoices
+  FOR EACH ROW EXECUTE FUNCTION set_updated_at();
+CREATE INDEX IF NOT EXISTS idx_invoices_buyer ON invoices(buyer_profile_id);
+CREATE INDEX IF NOT EXISTS idx_invoices_order ON invoices(order_id);
+
+-- ============================================================
+--  8. PAYOUTS
+-- ============================================================
+CREATE TABLE IF NOT EXISTS payouts (
+  id                UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  seller_profile_id UUID NOT NULL REFERENCES seller_profiles(id) ON DELETE RESTRICT,
+  amount            NUMERIC(12,2) NOT NULL,
+  commission_deducted NUMERIC(12,2) DEFAULT 0,
+  net_amount        NUMERIC(12,2) GENERATED ALWAYS AS (amount - commission_deducted) STORED,
+  status            payout_status DEFAULT 'pending',
+  stripe_transfer_id TEXT,
+  period_start      DATE,
+  period_end        DATE,
+  paid_at           TIMESTAMPTZ,
+  notes             TEXT,
+  created_at        TIMESTAMPTZ DEFAULT NOW(),
+  updated_at        TIMESTAMPTZ DEFAULT NOW()
+);
+DROP TRIGGER IF EXISTS payouts_updated_at ON payouts;
+CREATE TRIGGER payouts_updated_at BEFORE UPDATE ON payouts
+  FOR EACH ROW EXECUTE FUNCTION set_updated_at();
+
+-- ============================================================
+--  9. RFQ
+-- ============================================================
+CREATE TABLE IF NOT EXISTS rfqs (
+  id                UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  rfq_number        TEXT UNIQUE DEFAULT 'RFQ-' || LPAD(FLOOR(RANDOM()*999999)::TEXT, 6, '0'),
+  buyer_profile_id  UUID NOT NULL REFERENCES buyer_profiles(id) ON DELETE CASCADE,
+  seller_profile_id UUID REFERENCES seller_profiles(id) ON DELETE SET NULL,
+  product_id        UUID REFERENCES products(id) ON DELETE SET NULL,
+  quantity_requested INTEGER NOT NULL,
+  target_price      NUMERIC(10,2),
+  quoted_price      NUMERIC(10,2),
+  status            rfq_status DEFAULT 'open',
+  notes             TEXT,
+  expires_at        TIMESTAMPTZ DEFAULT (NOW() + INTERVAL '14 days'),
+  responded_at      TIMESTAMPTZ,
+  created_at        TIMESTAMPTZ DEFAULT NOW(),
+  updated_at        TIMESTAMPTZ DEFAULT NOW()
+);
+DROP TRIGGER IF EXISTS rfqs_updated_at ON rfqs;
+CREATE TRIGGER rfqs_updated_at BEFORE UPDATE ON rfqs
+  FOR EACH ROW EXECUTE FUNCTION set_updated_at();
+
+-- ============================================================
+--  10. MESSAGES
+-- ============================================================
+CREATE TABLE IF NOT EXISTS conversations (
+  id                UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  buyer_profile_id  UUID NOT NULL REFERENCES buyer_profiles(id) ON DELETE CASCADE,
+  seller_profile_id UUID NOT NULL REFERENCES seller_profiles(id) ON DELETE CASCADE,
+  subject           TEXT,
+  last_message_at   TIMESTAMPTZ DEFAULT NOW(),
+  created_at        TIMESTAMPTZ DEFAULT NOW(),
+  UNIQUE(buyer_profile_id, seller_profile_id)
+);
+CREATE TABLE IF NOT EXISTS messages (
+  id                UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  conversation_id   UUID NOT NULL REFERENCES conversations(id) ON DELETE CASCADE,
+  sender_id         UUID NOT NULL REFERENCES profiles(id) ON DELETE CASCADE,
+  body              TEXT NOT NULL,
+  attachment_url    TEXT,
+  status            message_status DEFAULT 'sent',
+  read_at           TIMESTAMPTZ,
+  created_at        TIMESTAMPTZ DEFAULT NOW()
+);
+CREATE INDEX IF NOT EXISTS idx_messages_convo ON messages(conversation_id, created_at DESC);
+
+CREATE OR REPLACE FUNCTION update_conversation_ts()
+RETURNS TRIGGER LANGUAGE plpgsql AS $$
+BEGIN
+  UPDATE conversations SET last_message_at = NOW() WHERE id = NEW.conversation_id;
+  RETURN NEW;
+END;
+$$;
+DROP TRIGGER IF EXISTS messages_update_convo ON messages;
+CREATE TRIGGER messages_update_convo
+  AFTER INSERT ON messages FOR EACH ROW EXECUTE FUNCTION update_conversation_ts();
+
+-- ============================================================
+--  11. NOTIFICATIONS
+-- ============================================================
+CREATE TABLE IF NOT EXISTS notifications (
+  id                UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  profile_id        UUID NOT NULL REFERENCES profiles(id) ON DELETE CASCADE,
+  type              notification_type DEFAULT 'system',
+  title             TEXT NOT NULL,
+  body              TEXT,
+  link              TEXT,
+  is_read           BOOLEAN DEFAULT FALSE,
+  created_at        TIMESTAMPTZ DEFAULT NOW()
+);
+CREATE INDEX IF NOT EXISTS idx_notifs_profile ON notifications(profile_id, is_read, created_at DESC);
+
+-- ============================================================
+--  12. ANALYTICS EVENTS
+-- ============================================================
+CREATE TABLE IF NOT EXISTS analytics_events (
+  id          BIGSERIAL PRIMARY KEY,
+  profile_id  UUID REFERENCES profiles(id) ON DELETE SET NULL,
+  event_type  TEXT NOT NULL,
+  payload     JSONB DEFAULT '{}',
+  created_at  TIMESTAMPTZ DEFAULT NOW()
+);
+CREATE INDEX IF NOT EXISTS idx_analytics_type ON analytics_events(event_type, created_at DESC);
+
+-- ============================================================
+--  13. APP SETTINGS
+-- ============================================================
+CREATE TABLE IF NOT EXISTS app_settings (
+  key         TEXT PRIMARY KEY,
+  value       JSONB,
+  description TEXT,
+  updated_at  TIMESTAMPTZ DEFAULT NOW()
+);
+INSERT INTO app_settings (key, value, description) VALUES
+  ('platform_name','\"BRND Direct\"','Platform display name'),
+  ('commission_rate','12.0','Default seller commission %'),
+  ('default_net_terms','30','Default net payment terms (days)'),
+  ('stripe_mode','\"live\"','live or test'),
+  ('max_credit_limit','100000','Maximum buyer credit limit USD'),
+  ('support_email','\"support@brnddirect.com\"','Customer support email'),
+  ('maintenance_mode','false','Set true to show maintenance page')
+ON CONFLICT (key) DO NOTHING;
+
+-- ============================================================
+--  ROW LEVEL SECURITY
+-- ============================================================
+ALTER TABLE profiles          ENABLE ROW LEVEL SECURITY;
+ALTER TABLE buyer_profiles    ENABLE ROW LEVEL SECURITY;
+ALTER TABLE seller_profiles   ENABLE ROW LEVEL SECURITY;
+ALTER TABLE brands            ENABLE ROW LEVEL SECURITY;
+ALTER TABLE products          ENABLE ROW LEVEL SECURITY;
+ALTER TABLE orders            ENABLE ROW LEVEL SECURITY;
+ALTER TABLE order_items       ENABLE ROW LEVEL SECURITY;
+ALTER TABLE invoices          ENABLE ROW LEVEL SECURITY;
+ALTER TABLE payouts           ENABLE ROW LEVEL SECURITY;
+ALTER TABLE rfqs              ENABLE ROW LEVEL SECURITY;
+ALTER TABLE conversations     ENABLE ROW LEVEL SECURITY;
+ALTER TABLE messages          ENABLE ROW LEVEL SECURITY;
+ALTER TABLE notifications     ENABLE ROW LEVEL SECURITY;
+ALTER TABLE analytics_events  ENABLE ROW LEVEL SECURITY;
+
+CREATE OR REPLACE FUNCTION is_admin()
+RETURNS BOOLEAN LANGUAGE sql STABLE SECURITY DEFINER AS $$
+  SELECT EXISTS (SELECT 1 FROM profiles WHERE id = auth.uid() AND role = 'admin');
+$$;
+
+-- profiles
+DROP POLICY IF EXISTS "Users can view own profile" ON profiles;
+CREATE POLICY "Users can view own profile" ON profiles FOR SELECT USING (id = auth.uid() OR is_admin());
+DROP POLICY IF EXISTS "Users can update own profile" ON profiles;
+CREATE POLICY "Users can update own profile" ON profiles FOR UPDATE USING (id = auth.uid());
+DROP POLICY IF EXISTS "Admins can do anything on profiles" ON profiles;
+CREATE POLICY "Admins can do anything on profiles" ON profiles FOR ALL USING (is_admin());
+
+-- buyer_profiles
+DROP POLICY IF EXISTS "Buyers see own record" ON buyer_profiles;
+CREATE POLICY "Buyers see own record" ON buyer_profiles FOR SELECT USING (profile_id = auth.uid() OR is_admin());
+DROP POLICY IF EXISTS "Buyers update own record" ON buyer_profiles;
+CREATE POLICY "Buyers update own record" ON buyer_profiles FOR UPDATE USING (profile_id = auth.uid());
+DROP POLICY IF EXISTS "Buyers insert own record" ON buyer_profiles;
+CREATE POLICY "Buyers insert own record" ON buyer_profiles FOR INSERT WITH CHECK (profile_id = auth.uid());
+DROP POLICY IF EXISTS "Admins full access buyer_profiles" ON buyer_profiles;
+CREATE POLICY "Admins full access buyer_profiles" ON buyer_profiles FOR ALL USING (is_admin());
+
+-- seller_profiles
+DROP POLICY IF EXISTS "Sellers see own record" ON seller_profiles;
+CREATE POLICY "Sellers see own record" ON seller_profiles FOR SELECT USING (profile_id = auth.uid() OR is_admin());
+DROP POLICY IF EXISTS "Sellers update own record" ON seller_profiles;
+CREATE POLICY "Sellers update own record" ON seller_profiles FOR UPDATE USING (profile_id = auth.uid());
+DROP POLICY IF EXISTS "Sellers insert own record" ON seller_profiles;
+CREATE POLICY "Sellers insert own record" ON seller_profiles FOR INSERT WITH CHECK (profile_id = auth.uid());
+DROP POLICY IF EXISTS "Admins full access seller_profiles" ON seller_profiles;
+CREATE POLICY "Admins full access seller_profiles" ON seller_profiles FOR ALL USING (is_admin());
+
+-- brands & products
+DROP POLICY IF EXISTS "Anyone can read active brands" ON brands;
+CREATE POLICY "Anyone can read active brands" ON brands FOR SELECT USING (is_active = TRUE OR is_admin());
+DROP POLICY IF EXISTS "Sellers manage own brands" ON brands;
+CREATE POLICY "Sellers manage own brands" ON brands FOR ALL USING (
+  seller_profile_id IN (SELECT id FROM seller_profiles WHERE profile_id = auth.uid()) OR is_admin()
+);
+DROP POLICY IF EXISTS "Anyone can read active products" ON products;
+CREATE POLICY "Anyone can read active products" ON products FOR SELECT USING (is_active = TRUE OR is_admin());
+DROP POLICY IF EXISTS "Sellers manage own products" ON products;
+CREATE POLICY "Sellers manage own products" ON products FOR ALL USING (
+  seller_profile_id IN (SELECT id FROM seller_profiles WHERE profile_id = auth.uid()) OR is_admin()
+);
+
+-- orders
+DROP POLICY IF EXISTS "Buyers see own orders" ON orders;
+CREATE POLICY "Buyers see own orders" ON orders FOR SELECT USING (
+  buyer_profile_id IN (SELECT id FROM buyer_profiles WHERE profile_id = auth.uid()) OR is_admin()
+);
+DROP POLICY IF EXISTS "Buyers create orders" ON orders;
+CREATE POLICY "Buyers create orders" ON orders FOR INSERT WITH CHECK (
+  buyer_profile_id IN (SELECT id FROM buyer_profiles WHERE profile_id = auth.uid())
+);
+DROP POLICY IF EXISTS "Admins full access orders" ON orders;
+CREATE POLICY "Admins full access orders" ON orders FOR ALL USING (is_admin());
+
+-- notifications
+DROP POLICY IF EXISTS "Users see own notifications" ON notifications;
+CREATE POLICY "Users see own notifications" ON notifications FOR SELECT USING (profile_id = auth.uid() OR is_admin());
+DROP POLICY IF EXISTS "Users update own notifications" ON notifications;
+CREATE POLICY "Users update own notifications" ON notifications FOR UPDATE USING (profile_id = auth.uid());
+
+-- analytics
+DROP POLICY IF EXISTS "Users insert own events" ON analytics_events;
+CREATE POLICY "Users insert own events" ON analytics_events FOR INSERT WITH CHECK (profile_id = auth.uid() OR profile_id IS NULL);
+DROP POLICY IF EXISTS "Admins read all events" ON analytics_events;
+CREATE POLICY "Admins read all events" ON analytics_events FOR SELECT USING (is_admin());
+
+-- messages
+DROP POLICY IF EXISTS "Conversation participants read" ON conversations;
+CREATE POLICY "Conversation participants read" ON conversations FOR SELECT USING (
+  buyer_profile_id IN (SELECT id FROM buyer_profiles WHERE profile_id = auth.uid())
+  OR seller_profile_id IN (SELECT id FROM seller_profiles WHERE profile_id = auth.uid())
+  OR is_admin()
+);
+DROP POLICY IF EXISTS "Message participants read" ON messages;
+CREATE POLICY "Message participants read" ON messages FOR SELECT USING (
+  conversation_id IN (
+    SELECT c.id FROM conversations c
+    LEFT JOIN buyer_profiles bp ON bp.id = c.buyer_profile_id
+    LEFT JOIN seller_profiles sp ON sp.id = c.seller_profile_id
+    WHERE bp.profile_id = auth.uid() OR sp.profile_id = auth.uid()
+  ) OR is_admin()
+);
+DROP POLICY IF EXISTS "Users send messages in own conversations" ON messages;
+CREATE POLICY "Users send messages in own conversations" ON messages FOR INSERT WITH CHECK (sender_id = auth.uid());
+
+-- ============================================================
+--  VIEWS
+-- ============================================================
+CREATE OR REPLACE VIEW admin_overview AS
+SELECT
+  (SELECT COUNT(*) FROM profiles WHERE role = 'buyer')  AS total_buyers,
+  (SELECT COUNT(*) FROM profiles WHERE role = 'seller') AS total_sellers,
+  (SELECT COUNT(*) FROM profiles WHERE status='pending') AS pending_approvals,
+  (SELECT COUNT(*) FROM products WHERE is_active=TRUE)  AS active_products,
+  (SELECT COUNT(*) FROM orders WHERE status NOT IN ('draft','cancelled')) AS total_orders,
+  (SELECT COALESCE(SUM(total_amount),0) FROM orders WHERE payment_status='paid') AS total_revenue,
+  (SELECT COUNT(*) FROM orders WHERE status='pending') AS pending_orders,
+  (SELECT COUNT(*) FROM orders WHERE created_at > NOW() - INTERVAL '24h') AS orders_today,
+  (SELECT COALESCE(SUM(total_amount),0) FROM orders WHERE created_at > NOW() - INTERVAL '30d' AND payment_status='paid') AS revenue_mtd,
+  (SELECT COUNT(*) FROM rfqs WHERE status='open') AS open_rfqs,
+  (SELECT COUNT(*) FROM payouts WHERE status='pending') AS pending_payouts,
+  (SELECT COALESCE(SUM(net_amount),0) FROM payouts WHERE status='pending') AS payouts_owed;
+
+-- ============================================================
+--  REALTIME
+-- ============================================================
+ALTER PUBLICATION supabase_realtime ADD TABLE orders;
+ALTER PUBLICATION supabase_realtime ADD TABLE messages;
+ALTER PUBLICATION supabase_realtime ADD TABLE notifications;
+
+-- ============================================================
+--  SEED DATA — 21 verified brands
+-- ============================================================
+INSERT INTO brands (name, slug, category, is_verified, is_active) VALUES
+  ('Maison Margiela','maison-margiela','fragrances',TRUE,TRUE),
+  ('Chanel','chanel','fragrances',TRUE,TRUE),
+  ('Dior','dior','fragrances',TRUE,TRUE),
+  ('Yves Saint Laurent','yves-saint-laurent','fragrances',TRUE,TRUE),
+  ('Jo Malone','jo-malone','fragrances',TRUE,TRUE),
+  ('Maison Francis Kurkdjian','maison-francis-kurkdjian','fragrances',TRUE,TRUE),
+  ('Charlotte Tilbury','charlotte-tilbury','beauty',TRUE,TRUE),
+  ('NARS Cosmetics','nars-cosmetics','beauty',TRUE,TRUE),
+  ('MAC Cosmetics','mac-cosmetics','beauty',TRUE,TRUE),
+  ('La Mer','la-mer','skincare',TRUE,TRUE),
+  ('Kiehls','kiehls','skincare',TRUE,TRUE),
+  ('Elemis','elemis','skincare',TRUE,TRUE),
+  ('Clinique','clinique','skincare',TRUE,TRUE),
+  ('Gucci','gucci','bags',TRUE,TRUE),
+  ('Prada','prada','bags',TRUE,TRUE),
+  ('New Balance','new-balance','sneakers',TRUE,TRUE),
+  ('Jordan Brand / Nike','jordan-brand-nike','sneakers',TRUE,TRUE),
+  ('Versace','versace','apparel',TRUE,TRUE),
+  ('Polo Ralph Lauren','polo-ralph-lauren','apparel',TRUE,TRUE),
+  ('Make Up For Ever','make-up-for-ever','cosmetics',TRUE,TRUE),
+  ('Benefit Cosmetics','benefit-cosmetics','cosmetics',TRUE,TRUE)
+ON CONFLICT (slug) DO NOTHING;
+
+SELECT 'BRND Direct database ready! Tables created: profiles, buyer_profiles, seller_profiles, brands, products, orders, order_items, invoices, payouts, rfqs, conversations, messages, notifications, analytics_events, app_settings' AS status;</div>
+
+<script>
+  // ── Toggle step open/closed ──────────────────────────────────
+  function toggleStep(header) {
+    const body = header.nextElementSibling;
+    const isOpen = body.classList.contains('open');
+    header.classList.toggle('open', !isOpen);
+    body.classList.toggle('open', !isOpen);
+  }
+
+  // ── Tab switching ─────────────────────────────────────────────
+  function switchTab(btn, paneId) {
+    const group = btn.closest('.tab-group');
+    group.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    group.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById(paneId).classList.add('active');
+  }
+
+  // ── Copy code snippet ─────────────────────────────────────────
+  function copyCode(btn, spanId) {
+    const txt = document.getElementById(spanId).innerText;
+    navigator.clipboard.writeText(txt).then(() => {
+      const orig = btn.innerHTML;
+      btn.innerHTML = '<i class="fas fa-check"></i> Copied!';
+      btn.classList.add('copied');
+      setTimeout(() => { btn.innerHTML = orig; btn.classList.remove('copied'); }, 2500);
+    });
+  }
+
+  // ── Copy full schema ──────────────────────────────────────────
+  function copySchema() {
+    const sql = document.getElementById('fullSchemaSQL').innerText;
+    const btn = document.getElementById('mainCopyBtn');
+    navigator.clipboard.writeText(sql).then(() => {
+      btn.innerHTML = '<i class="fas fa-check"></i> Copied! Now paste it in Supabase SQL Editor (Ctrl+V)';
+      btn.classList.add('copied');
+      setTimeout(() => {
+        btn.innerHTML = '<i class="fas fa-copy"></i> Copy Full SQL Schema to Clipboard <span style="font-size:.75rem;opacity:.7;margin-left:4px;">(685 lines)</span>';
+        btn.classList.remove('copied');
+      }, 5000);
+    }).catch(() => {
+      // Fallback: select the hidden div text
+      const el = document.getElementById('fullSchemaSQL');
+      el.style.display = 'block';
+      const range = document.createRange();
+      range.selectNode(el);
+      window.getSelection().removeAllRanges();
+      window.getSelection().addRange(range);
+      btn.innerHTML = '<i class="fas fa-copy"></i> Text selected! Press Ctrl+C to copy';
+    });
+  }
+
+  // ── Copy worker code ──────────────────────────────────────────
+  function copyWorkerCode(btn) {
+    // Link them to the actual workers/api.js file
+    const msg = document.createElement('div');
+    msg.innerHTML = `
+      <div style="background:rgba(124,92,252,.12);border:1px solid rgba(124,92,252,.3);border-radius:8px;padding:12px;margin:8px 0;font-size:.82rem;color:var(--accent2);">
+        <strong>👉 The worker code is in your project at <code>workers/api.js</code></strong><br>
+        You can view it in the project files panel or ask me to copy it here for you.
+      </div>`;
+    btn.closest('.code-block').after(msg);
+    btn.innerHTML = '<i class="fas fa-info-circle"></i> See note below';
+    btn.style.background = 'rgba(59,130,246,.2)';
+    btn.style.color = '#93c5fd';
+    btn.style.borderColor = 'rgba(59,130,246,.3)';
+  }
+
+  // ── Highlight active nav step based on scroll ──────────────────
+  const steps = ['step1','step2','step3','step4','step5'];
+  const navLinks = document.querySelectorAll('.nav-step');
+  window.addEventListener('scroll', () => {
+    let current = 0;
+    steps.forEach((id, i) => {
+      const el = document.getElementById(id);
+      if (el && window.scrollY >= el.offsetTop - 120) current = i;
+    });
+    navLinks.forEach((a, i) => {
+      a.classList.toggle('active', i === current);
+    });
+  });
+</script>
+</body>
+</html>

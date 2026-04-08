@@ -1,0 +1,1275 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BRND DIRECT OS — Investor Demo | The Wholesale Cloud</title>
+  <meta name="robots" content="noindex" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.5.0/css/all.min.css" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <link rel="stylesheet" href="css/demo.css" />
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════════════
+     NAVIGATION
+════════════════════════════════════════════════ -->
+<nav class="demo-nav" id="demoNav">
+  <div class="nav-inner">
+    <div class="nav-logo">
+      <div class="logo-mark">BD</div>
+      <div class="logo-text">
+        <span class="logo-main">BRND DIRECT OS</span>
+        <span class="logo-sub">Investor Demo</span>
+      </div>
+    </div>
+    <ul class="nav-links">
+      <li><a href="#overview" class="nav-link active">Overview</a></li>
+      <li><a href="#commerce" class="nav-link">Commerce</a></li>
+      <li><a href="#finance" class="nav-link">Finance</a></li>
+      <li><a href="#logistics" class="nav-link">Logistics</a></li>
+      <li><a href="#data" class="nav-link">Data Moat</a></li>
+      <li><a href="#financials" class="nav-link">Financials</a></li>
+    </ul>
+    <a href="#contact" class="nav-cta">Request Full Demo</a>
+  </div>
+</nav>
+
+<!-- ═══════════════════════════════════════════════
+     HERO
+════════════════════════════════════════════════ -->
+<section class="hero" id="overview">
+  <div class="hero-bg">
+    <div class="grid-lines"></div>
+    <div class="orb orb-1"></div>
+    <div class="orb orb-2"></div>
+    <div class="orb orb-3"></div>
+    <div class="particles" id="particles"></div>
+  </div>
+
+  <div class="hero-content">
+    <div class="hero-badge">
+      <span class="badge-dot"></span>
+      Series A Ready · $5B+ Market Opportunity
+    </div>
+    <h1 class="hero-title">
+      The <span class="gradient-text">Operating System</span><br/>
+      for B2B Wholesale
+    </h1>
+    <p class="hero-subtitle">
+      The only white-label platform merging <strong>Commerce</strong>, <strong>Embedded Trade Finance</strong>, 
+      and <strong>Intelligent Logistics</strong> — processing billions in transactions while building 
+      the world's most accurate credit model for wholesale buyers.
+    </p>
+
+    <div class="hero-stats">
+      <div class="stat-pill">
+        <span class="stat-num" data-target="47">0</span><span class="stat-sfx">B</span>
+        <span class="stat-lbl">TAM (B2B Wholesale)</span>
+      </div>
+      <div class="stat-pill">
+        <span class="stat-num" data-target="3">0</span><span class="stat-sfx">x</span>
+        <span class="stat-lbl">Revenue Streams</span>
+      </div>
+      <div class="stat-pill">
+        <span class="stat-num" data-target="85">0</span><span class="stat-sfx">%</span>
+        <span class="stat-lbl">Gross Margin (Finance)</span>
+      </div>
+      <div class="stat-pill">
+        <span class="stat-num" data-target="240">0</span><span class="stat-sfx">K</span>
+        <span class="stat-lbl">Mo. Revenue @ Scale</span>
+      </div>
+    </div>
+
+    <div class="hero-ctas">
+      <a href="#commerce" class="btn-primary">
+        <i class="fas fa-play-circle"></i> Explore the Platform
+      </a>
+      <a href="#financials" class="btn-ghost">
+        <i class="fas fa-chart-line"></i> View Financials
+      </a>
+    </div>
+  </div>
+
+  <!-- Architecture Diagram -->
+  <div class="arch-diagram">
+    <div class="arch-header">BRND DIRECT OS — The Wholesale Cloud</div>
+    <div class="arch-pillars">
+      <div class="arch-pillar pillar-commerce" onclick="scrollToSection('commerce')">
+        <div class="pillar-icon"><i class="fas fa-store"></i></div>
+        <h3>COMMERCE</h3>
+        <ul>
+          <li><i class="fas fa-check"></i> Buyer Portal</li>
+          <li><i class="fas fa-check"></i> Seller Portal</li>
+          <li><i class="fas fa-check"></i> Admin Layer</li>
+          <li><i class="fas fa-check"></i> Catalog Sync</li>
+          <li><i class="fas fa-check"></i> RFQ Engine</li>
+          <li><i class="fas fa-check"></i> White-Label</li>
+        </ul>
+        <div class="pillar-badge">Live</div>
+      </div>
+      <div class="arch-pillar pillar-finance" onclick="scrollToSection('finance')">
+        <div class="pillar-icon"><i class="fas fa-landmark"></i></div>
+        <h3>EMBEDDED FINANCE</h3>
+        <ul>
+          <li><i class="fas fa-check"></i> Net-30/60/90</li>
+          <li><i class="fas fa-check"></i> Invoice Factoring</li>
+          <li><i class="fas fa-check"></i> Dynamic Credit Score</li>
+          <li><i class="fas fa-check"></i> Revenue-Based Financing</li>
+          <li><i class="fas fa-check"></i> Virtual Card Issuance</li>
+          <li><i class="fas fa-check"></i> Cross-Border FX</li>
+        </ul>
+        <div class="pillar-badge pillar-badge--finance">Revenue Engine</div>
+      </div>
+      <div class="arch-pillar pillar-logistics" onclick="scrollToSection('logistics')">
+        <div class="pillar-icon"><i class="fas fa-shipping-fast"></i></div>
+        <h3>LOGISTICS</h3>
+        <ul>
+          <li><i class="fas fa-check"></i> Carrier Booking</li>
+          <li><i class="fas fa-check"></i> Warehouse Network</li>
+          <li><i class="fas fa-check"></i> Last-Mile Routing</li>
+          <li><i class="fas fa-check"></i> Freight Intelligence</li>
+          <li><i class="fas fa-check"></i> Returns Management</li>
+          <li><i class="fas fa-check"></i> 3PL Integrations</li>
+        </ul>
+        <div class="pillar-badge pillar-badge--logistics">High Margin</div>
+      </div>
+    </div>
+    <div class="arch-moat" onclick="scrollToSection('data')">
+      <div class="moat-label"><i class="fas fa-database"></i> DATA MOAT</div>
+      <div class="moat-items">
+        <span>Buyer Behavior</span>
+        <span>Payment History</span>
+        <span>Shipping Patterns</span>
+        <span>Credit Performance</span>
+        <span>Industry Benchmarks</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════
+     PROBLEM / SOLUTION
+════════════════════════════════════════════════ -->
+<section class="problem-solution">
+  <div class="container">
+    <div class="section-label">THE OPPORTUNITY</div>
+    <h2 class="section-title">The B2B Wholesale Market is Broken</h2>
+
+    <div class="ps-grid">
+      <div class="problem-side">
+        <div class="side-header problem-header">
+          <i class="fas fa-times-circle"></i> The Problem
+        </div>
+        <div class="problem-items">
+          <div class="problem-item">
+            <div class="problem-icon"><i class="fas fa-dollar-sign"></i></div>
+            <div>
+              <strong>Faire charges 15% commission</strong>
+              <p>Wholesalers pay $75,000/year on $500k revenue just to access buyers</p>
+            </div>
+          </div>
+          <div class="problem-item">
+            <div class="problem-icon"><i class="fas fa-clock"></i></div>
+            <div>
+              <strong>Net-30 is manual & risky</strong>
+              <p>No real-time credit scoring; sellers wait 30-90 days for payment with zero guarantee</p>
+            </div>
+          </div>
+          <div class="problem-item">
+            <div class="problem-icon"><i class="fas fa-puzzle-piece"></i></div>
+            <div>
+              <strong>Fragmented tools everywhere</strong>
+              <p>ERP + marketplace + 3PL + payment processor + credit check = 5+ vendors, zero unified data</p>
+            </div>
+          </div>
+          <div class="problem-item">
+            <div class="problem-icon"><i class="fas fa-ban"></i></div>
+            <div>
+              <strong>No white-label B2B solution exists</strong>
+              <p>Brands can't offer a private, branded buyer experience with embedded financing</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="solution-side">
+        <div class="side-header solution-header">
+          <i class="fas fa-check-circle"></i> BRND DIRECT OS
+        </div>
+        <div class="solution-items">
+          <div class="solution-item">
+            <div class="solution-icon"><i class="fas fa-tag"></i></div>
+            <div>
+              <strong>$4.8k–$7.2k/year vs. $75k</strong>
+              <p>SaaS subscription replaces marketplace commission. Brands own their buyer relationships forever</p>
+            </div>
+          </div>
+          <div class="solution-item">
+            <div class="solution-icon"><i class="fas fa-bolt"></i></div>
+            <div>
+              <strong>30-second Net-30 approval</strong>
+              <p>AI-powered Wholesale Health Score™ underwrites buyers instantly. Sellers get paid D+1</p>
+            </div>
+          </div>
+          <div class="solution-item">
+            <div class="solution-icon"><i class="fas fa-layer-group"></i></div>
+            <div>
+              <strong>One platform, everything unified</strong>
+              <p>Commerce + Finance + Logistics in a single OS. One login, one dashboard, one data model</p>
+            </div>
+          </div>
+          <div class="solution-item">
+            <div class="solution-icon"><i class="fas fa-paint-brush"></i></div>
+            <div>
+              <strong>One-click white-label portal</strong>
+              <p>Any wholesaler deploys a fully branded B2B portal in minutes, not months</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════
+     COMMERCE MODULE
+════════════════════════════════════════════════ -->
+<section class="module-section" id="commerce">
+  <div class="container">
+    <div class="section-label">MODULE 01 · COMMERCE</div>
+    <h2 class="section-title">The Complete B2B Commerce Stack</h2>
+    <p class="section-sub">White-label wholesale portals deployed in minutes. Buyers order, sellers fulfill, admins oversee — all in one unified platform.</p>
+
+    <div class="demo-tabs">
+      <button class="demo-tab active" data-tab="buyer-tab">Buyer Portal</button>
+      <button class="demo-tab" data-tab="seller-tab">Seller Portal</button>
+      <button class="demo-tab" data-tab="admin-tab">Admin Console</button>
+    </div>
+
+    <!-- Buyer Portal Demo -->
+    <div class="tab-content active" id="buyer-tab">
+      <div class="portal-mockup">
+        <div class="mockup-browser">
+          <div class="browser-bar">
+            <div class="browser-dots"><span></span><span></span><span></span></div>
+            <div class="browser-url">buyers.yourbrand.com · Secured</div>
+          </div>
+          <div class="browser-body">
+            <!-- Buyer Portal Sidebar -->
+            <div class="mock-sidebar">
+              <div class="mock-logo">YourBrand<span>™</span></div>
+              <nav class="mock-nav">
+                <a class="mock-nav-item active"><i class="fas fa-th-large"></i> Dashboard</a>
+                <a class="mock-nav-item"><i class="fas fa-box"></i> Catalog</a>
+                <a class="mock-nav-item"><i class="fas fa-shopping-cart"></i> Orders <span class="mock-badge">3</span></a>
+                <a class="mock-nav-item"><i class="fas fa-file-invoice-dollar"></i> Invoices</a>
+                <a class="mock-nav-item"><i class="fas fa-handshake"></i> RFQ</a>
+                <a class="mock-nav-item"><i class="fas fa-university"></i> Trade Finance</a>
+                <a class="mock-nav-item"><i class="fas fa-shipping-fast"></i> Shipping</a>
+                <a class="mock-nav-item"><i class="fas fa-comments"></i> Messages</a>
+              </nav>
+              <div class="mock-user-card">
+                <div class="mock-avatar">AJ</div>
+                <div>
+                  <div class="mock-user-name">Alex Johnson</div>
+                  <div class="mock-user-role">Wholesale Buyer</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Buyer Dashboard Content -->
+            <div class="mock-main">
+              <div class="mock-topbar">
+                <h4>Dashboard</h4>
+                <div class="mock-search"><i class="fas fa-search"></i> Search catalog…</div>
+              </div>
+              <div class="mock-kpis">
+                <div class="mock-kpi">
+                  <div class="kpi-label">Credit Available</div>
+                  <div class="kpi-value">$32,660</div>
+                  <div class="kpi-sub kpi-green"><i class="fas fa-arrow-up"></i> Net-30 Active</div>
+                </div>
+                <div class="mock-kpi">
+                  <div class="kpi-label">Open Orders</div>
+                  <div class="kpi-value">7</div>
+                  <div class="kpi-sub kpi-orange">3 in transit</div>
+                </div>
+                <div class="mock-kpi">
+                  <div class="kpi-label">MTD Spend</div>
+                  <div class="kpi-value">$48,200</div>
+                  <div class="kpi-sub kpi-blue">↑ 12% vs last mo.</div>
+                </div>
+                <div class="mock-kpi">
+                  <div class="kpi-label">Invoices Due</div>
+                  <div class="kpi-value">$12,340</div>
+                  <div class="kpi-sub kpi-red">Due in 8 days</div>
+                </div>
+              </div>
+              <div class="mock-orders-list">
+                <div class="mock-list-header">Recent Orders</div>
+                <div class="mock-order-row">
+                  <span class="ord-num">ORD-2891</span>
+                  <span class="ord-items">12 items · Beauty</span>
+                  <span class="ord-amount">$4,200</span>
+                  <span class="status-chip status-transit">In Transit</span>
+                </div>
+                <div class="mock-order-row">
+                  <span class="ord-num">ORD-2887</span>
+                  <span class="ord-items">8 items · Apparel</span>
+                  <span class="ord-amount">$8,750</span>
+                  <span class="status-chip status-paid">Paid</span>
+                </div>
+                <div class="mock-order-row">
+                  <span class="ord-num">ORD-2881</span>
+                  <span class="ord-items">24 items · Home</span>
+                  <span class="ord-amount">$14,100</span>
+                  <span class="status-chip status-processing">Processing</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="mockup-features">
+          <h3>Buyer Portal Features</h3>
+          <div class="feature-list">
+            <div class="feature-item"><i class="fas fa-check-circle"></i><div><strong>Personalized Catalog</strong><p>Brand-specific pricing, MOQ, seasonal collections</p></div></div>
+            <div class="feature-item"><i class="fas fa-check-circle"></i><div><strong>One-Click Reorder</strong><p>Repeat previous orders instantly with saved preferences</p></div></div>
+            <div class="feature-item"><i class="fas fa-check-circle"></i><div><strong>Embedded Net-30/60/90</strong><p>Apply for credit in 30 seconds, approved instantly</p></div></div>
+            <div class="feature-item"><i class="fas fa-check-circle"></i><div><strong>RFQ Engine</strong><p>Request quotes for bulk orders, negotiate terms</p></div></div>
+            <div class="feature-item"><i class="fas fa-check-circle"></i><div><strong>Team Access (10 seats)</strong><p>Add team members with role-based permissions</p></div></div>
+            <div class="feature-item"><i class="fas fa-check-circle"></i><div><strong>Dropship Integration</strong><p>Sync catalog to Shopify, auto-fulfill end customers</p></div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Seller Portal Demo -->
+    <div class="tab-content" id="seller-tab">
+      <div class="portal-mockup">
+        <div class="mockup-browser">
+          <div class="browser-bar">
+            <div class="browser-dots"><span></span><span></span><span></span></div>
+            <div class="browser-url">brands.brnddirect.com · Secured</div>
+          </div>
+          <div class="browser-body">
+            <div class="mock-sidebar mock-sidebar--seller">
+              <div class="mock-logo mock-logo--seller">Brand<span>Hub</span></div>
+              <nav class="mock-nav">
+                <a class="mock-nav-item active"><i class="fas fa-chart-bar"></i> Analytics</a>
+                <a class="mock-nav-item"><i class="fas fa-box-open"></i> Products</a>
+                <a class="mock-nav-item"><i class="fas fa-list-alt"></i> Orders <span class="mock-badge mock-badge--seller">12</span></a>
+                <a class="mock-nav-item"><i class="fas fa-dollar-sign"></i> Payouts</a>
+                <a class="mock-nav-item"><i class="fas fa-tags"></i> Wholesale Pricing</a>
+                <a class="mock-nav-item"><i class="fas fa-store"></i> Brand Hub</a>
+                <a class="mock-nav-item"><i class="fas fa-truck"></i> Shipping</a>
+              </nav>
+              <div class="mock-user-card">
+                <div class="mock-avatar mock-avatar--seller">GC</div>
+                <div>
+                  <div class="mock-user-name">GlowCo Beauty</div>
+                  <div class="mock-user-role">Brand Partner</div>
+                </div>
+              </div>
+            </div>
+            <div class="mock-main">
+              <div class="mock-topbar">
+                <h4>Brand Analytics</h4>
+                <span class="mock-period-badge">April 2026</span>
+              </div>
+              <div class="mock-kpis">
+                <div class="mock-kpi mock-kpi--seller">
+                  <div class="kpi-label">Revenue MTD</div>
+                  <div class="kpi-value">$94,200</div>
+                  <div class="kpi-sub kpi-green"><i class="fas fa-arrow-up"></i> +23% MoM</div>
+                </div>
+                <div class="mock-kpi mock-kpi--seller">
+                  <div class="kpi-label">Active Buyers</div>
+                  <div class="kpi-value">148</div>
+                  <div class="kpi-sub kpi-green">+12 this month</div>
+                </div>
+                <div class="mock-kpi mock-kpi--seller">
+                  <div class="kpi-label">Avg Order Value</div>
+                  <div class="kpi-value">$2,840</div>
+                  <div class="kpi-sub kpi-blue">↑ vs $2,200</div>
+                </div>
+                <div class="mock-kpi mock-kpi--seller">
+                  <div class="kpi-label">Pending Payout</div>
+                  <div class="kpi-value">$18,440</div>
+                  <div class="kpi-sub kpi-orange">Processing D+1</div>
+                </div>
+              </div>
+              <div class="mock-seller-chart">
+                <canvas id="sellerRevenueChart" height="90"></canvas>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="mockup-features">
+          <h3>Seller Portal Features</h3>
+          <div class="feature-list">
+            <div class="feature-item"><i class="fas fa-check-circle"></i><div><strong>Brand Hub</strong><p>Custom storefront, lookbook, brand story, media kit</p></div></div>
+            <div class="feature-item"><i class="fas fa-check-circle"></i><div><strong>Wholesale Pricing Engine</strong><p>Tiered pricing by volume, buyer segment, geography</p></div></div>
+            <div class="feature-item"><i class="fas fa-check-circle"></i><div><strong>D+1 Instant Payouts</strong><p>Get paid next day even on Net-30 orders via factoring</p></div></div>
+            <div class="feature-item"><i class="fas fa-check-circle"></i><div><strong>Inventory Intelligence</strong><p>Live stock sync, low-stock alerts, demand forecasting</p></div></div>
+            <div class="feature-item"><i class="fas fa-check-circle"></i><div><strong>Dropship Automation</strong><p>Auto-fulfill buyer's Shopify stores with your catalog</p></div></div>
+            <div class="feature-item"><i class="fas fa-check-circle"></i><div><strong>Analytics & Reporting</strong><p>Revenue, buyer retention, best sellers, cohort analysis</p></div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Admin Console Demo -->
+    <div class="tab-content" id="admin-tab">
+      <div class="portal-mockup">
+        <div class="mockup-browser">
+          <div class="browser-bar">
+            <div class="browser-dots"><span></span><span></span><span></span></div>
+            <div class="browser-url">admin.brnddirect.com · Admin Console</div>
+          </div>
+          <div class="browser-body">
+            <div class="mock-sidebar mock-sidebar--admin">
+              <div class="mock-logo mock-logo--admin">BRND<span>ADMIN</span></div>
+              <nav class="mock-nav">
+                <a class="mock-nav-item active"><i class="fas fa-tachometer-alt"></i> Dashboard</a>
+                <a class="mock-nav-item"><i class="fas fa-users"></i> Buyers <span class="mock-badge mock-badge--admin">5</span></a>
+                <a class="mock-nav-item"><i class="fas fa-store"></i> Brand Partners</a>
+                <a class="mock-nav-item"><i class="fas fa-shopping-bag"></i> Orders <span class="mock-badge mock-badge--admin">12</span></a>
+                <a class="mock-nav-item"><i class="fas fa-box"></i> Products</a>
+                <a class="mock-nav-item"><i class="fas fa-money-check-alt"></i> Payouts</a>
+                <a class="mock-nav-item"><i class="fas fa-file-alt"></i> RFQs <span class="mock-badge mock-badge--admin">3</span></a>
+                <a class="mock-nav-item"><i class="fas fa-cog"></i> Settings</a>
+              </nav>
+            </div>
+            <div class="mock-main">
+              <div class="mock-topbar">
+                <h4>Admin Dashboard</h4>
+                <span class="mock-period-badge mock-period-badge--admin">Live</span>
+              </div>
+              <div class="mock-kpis">
+                <div class="mock-kpi mock-kpi--admin">
+                  <div class="kpi-label">Platform Revenue</div>
+                  <div class="kpi-value">$142,800</div>
+                  <div class="kpi-sub kpi-green">↑ +34% MoM</div>
+                </div>
+                <div class="mock-kpi mock-kpi--admin">
+                  <div class="kpi-label">GMV (Month)</div>
+                  <div class="kpi-value">$4.2M</div>
+                  <div class="kpi-sub kpi-green">Processing</div>
+                </div>
+                <div class="mock-kpi mock-kpi--admin">
+                  <div class="kpi-label">Active Buyers</div>
+                  <div class="kpi-value">1,842</div>
+                  <div class="kpi-sub kpi-blue">+127 this month</div>
+                </div>
+                <div class="mock-kpi mock-kpi--admin">
+                  <div class="kpi-label">Finance Deployed</div>
+                  <div class="kpi-value">$8.7M</div>
+                  <div class="kpi-sub kpi-orange">3.2% avg rate</div>
+                </div>
+              </div>
+              <div class="mock-orders-list">
+                <div class="mock-list-header">Pending Approvals</div>
+                <div class="mock-order-row">
+                  <span class="ord-num">Apex Apparel</span>
+                  <span class="ord-items">Net-60 Request</span>
+                  <span class="ord-amount">$25,000</span>
+                  <span class="status-chip status-processing">Review</span>
+                </div>
+                <div class="mock-order-row">
+                  <span class="ord-num">GlowCo Beauty</span>
+                  <span class="ord-items">New Registration</span>
+                  <span class="ord-amount">Partner</span>
+                  <span class="status-chip status-transit">Verify</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="mockup-features">
+          <h3>Admin Console Features</h3>
+          <div class="feature-list">
+            <div class="feature-item"><i class="fas fa-check-circle"></i><div><strong>Unified Command Center</strong><p>All buyers, sellers, orders, and finance in one view</p></div></div>
+            <div class="feature-item"><i class="fas fa-check-circle"></i><div><strong>Credit Approval Workflow</strong><p>Review, approve, or decline Net-30/60/90 applications</p></div></div>
+            <div class="feature-item"><i class="fas fa-check-circle"></i><div><strong>Platform Fee Configuration</strong><p>Set commission rates, credit limits, SaaS tiers per client</p></div></div>
+            <div class="feature-item"><i class="fas fa-check-circle"></i><div><strong>White-Label Deployment</strong><p>One-click deploy new brand portals with custom domains</p></div></div>
+            <div class="feature-item"><i class="fas fa-check-circle"></i><div><strong>Finance Portfolio View</strong><p>Track all deployed capital, repayments, default risk</p></div></div>
+            <div class="feature-item"><i class="fas fa-check-circle"></i><div><strong>Multi-Industry Support</strong><p>Beauty, Apparel, Food, Industrial — one platform</p></div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════
+     EMBEDDED FINANCE MODULE
+════════════════════════════════════════════════ -->
+<section class="module-section module-section--dark" id="finance">
+  <div class="container">
+    <div class="section-label section-label--light">MODULE 02 · EMBEDDED FINANCE</div>
+    <h2 class="section-title section-title--light">The Profit Engine™</h2>
+    <p class="section-sub section-sub--light">85% gross margin revenue through embedded lending, factoring, and virtual card interchange — no banking license required.</p>
+
+    <div class="finance-grid">
+
+      <!-- Credit Score Card -->
+      <div class="finance-card">
+        <div class="fc-header">
+          <div class="fc-icon fc-icon--credit"><i class="fas fa-star"></i></div>
+          <div>
+            <h3>Wholesale Health Score™</h3>
+            <p>Real-time AI underwriting</p>
+          </div>
+        </div>
+        <div class="credit-score-display">
+          <div class="score-ring">
+            <svg viewBox="0 0 120 120">
+              <circle class="score-bg" cx="60" cy="60" r="50" />
+              <circle class="score-fill" cx="60" cy="60" r="50" id="scoreFill" />
+            </svg>
+            <div class="score-center">
+              <span class="score-number">742</span>
+              <span class="score-label">EXCELLENT</span>
+            </div>
+          </div>
+          <div class="score-factors">
+            <div class="factor-row">
+              <span>Order Frequency</span>
+              <div class="factor-bar"><div class="factor-fill" style="width:88%"></div></div>
+              <span class="factor-val">88</span>
+            </div>
+            <div class="factor-row">
+              <span>Payment History</span>
+              <div class="factor-bar"><div class="factor-fill" style="width:95%"></div></div>
+              <span class="factor-val">95</span>
+            </div>
+            <div class="factor-row">
+              <span>Revenue Growth</span>
+              <div class="factor-bar"><div class="factor-fill" style="width:72%"></div></div>
+              <span class="factor-val">72</span>
+            </div>
+            <div class="factor-row">
+              <span>Product Diversity</span>
+              <div class="factor-bar"><div class="factor-fill" style="width:65%"></div></div>
+              <span class="factor-val">65</span>
+            </div>
+          </div>
+        </div>
+        <div class="fc-footer">
+          <span class="fc-approved">✓ Net-60 Approved · $45,000 limit</span>
+          <span class="fc-rate">Rate: 2.8%/30 days</span>
+        </div>
+      </div>
+
+      <!-- Net Terms Flow -->
+      <div class="finance-card">
+        <div class="fc-header">
+          <div class="fc-icon fc-icon--terms"><i class="fas fa-handshake"></i></div>
+          <div>
+            <h3>Instant Net-30/60/90</h3>
+            <p>30-second approval, D+1 payout</p>
+          </div>
+        </div>
+        <div class="terms-flow">
+          <div class="flow-step flow-step--done">
+            <div class="step-dot step-dot--done"><i class="fas fa-check"></i></div>
+            <div class="step-info">
+              <strong>Buyer places $12,000 order</strong>
+              <span>Selects Net-30 at checkout</span>
+            </div>
+          </div>
+          <div class="flow-arrow"></div>
+          <div class="flow-step flow-step--done">
+            <div class="step-dot step-dot--done"><i class="fas fa-check"></i></div>
+            <div class="step-info">
+              <strong>AI scores buyer in &lt;30 seconds</strong>
+              <span>Score 742 → Approved instantly</span>
+            </div>
+          </div>
+          <div class="flow-arrow"></div>
+          <div class="flow-step flow-step--active">
+            <div class="step-dot step-dot--active"><i class="fas fa-spinner fa-spin"></i></div>
+            <div class="step-info">
+              <strong>Seller receives $11,640 D+1</strong>
+              <span>We advance payment minus 3% fee</span>
+            </div>
+          </div>
+          <div class="flow-arrow"></div>
+          <div class="flow-step">
+            <div class="step-dot"><span>30</span></div>
+            <div class="step-info">
+              <strong>Buyer repays $12,000 on Day 30</strong>
+              <span>Platform earns $360 factoring revenue</span>
+            </div>
+          </div>
+        </div>
+        <div class="fc-revenue-box">
+          <div class="rev-row"><span>Factoring Fee (3%)</span><strong>+$360</strong></div>
+          <div class="rev-row"><span>Origination Fee (0.5%)</span><strong>+$60</strong></div>
+          <div class="rev-row rev-row--total"><span>Platform Revenue</span><strong>$420 per order</strong></div>
+        </div>
+      </div>
+
+      <!-- Virtual Card -->
+      <div class="finance-card">
+        <div class="fc-header">
+          <div class="fc-icon fc-icon--card"><i class="fas fa-credit-card"></i></div>
+          <div>
+            <h3>BRND Virtual Card</h3>
+            <p>1.8% interchange on every swipe</p>
+          </div>
+        </div>
+        <div class="virtual-card">
+          <div class="vc-chip"></div>
+          <div class="vc-logo">BRND<br/><small>DIRECT</small></div>
+          <div class="vc-number">•••• •••• •••• 4892</div>
+          <div class="vc-footer">
+            <div>
+              <div class="vc-label">CARD HOLDER</div>
+              <div class="vc-val">ALEX JOHNSON</div>
+            </div>
+            <div>
+              <div class="vc-label">LIMIT</div>
+              <div class="vc-val">$45,000</div>
+            </div>
+            <div class="vc-network"><i class="fab fa-cc-visa"></i></div>
+          </div>
+        </div>
+        <div class="vc-stats">
+          <div class="vc-stat">
+            <div class="vc-stat-val">1.8%</div>
+            <div class="vc-stat-lbl">Interchange Revenue</div>
+          </div>
+          <div class="vc-stat">
+            <div class="vc-stat-val">$12M</div>
+            <div class="vc-stat-lbl">Monthly Card Volume</div>
+          </div>
+          <div class="vc-stat">
+            <div class="vc-stat-val">$216K</div>
+            <div class="vc-stat-lbl">Monthly Interchange</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Revenue Projections -->
+      <div class="finance-card finance-card--wide">
+        <div class="fc-header">
+          <div class="fc-icon fc-icon--chart"><i class="fas fa-chart-area"></i></div>
+          <div>
+            <h3>Finance Revenue Model</h3>
+            <p>Monthly revenue by stream at 100 wholesaler clients</p>
+          </div>
+        </div>
+        <div class="finance-chart-wrap" style="height:200px">
+          <canvas id="financeRevenueChart"></canvas>
+        </div>
+        <div class="finance-revenue-breakdown">
+          <div class="rev-stream">
+            <div class="rev-dot" style="background:#6366f1"></div>
+            <span>Factoring Fees</span>
+            <strong>$125K/mo</strong>
+          </div>
+          <div class="rev-stream">
+            <div class="rev-dot" style="background:#22d3ee"></div>
+            <span>Late Payment Fees</span>
+            <strong>$28K/mo</strong>
+          </div>
+          <div class="rev-stream">
+            <div class="rev-dot" style="background:#f59e0b"></div>
+            <span>Card Interchange</span>
+            <strong>$54K/mo</strong>
+          </div>
+          <div class="rev-stream">
+            <div class="rev-dot" style="background:#10b981"></div>
+            <span>Origination Fees</span>
+            <strong>$33K/mo</strong>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════
+     LOGISTICS MODULE
+════════════════════════════════════════════════ -->
+<section class="module-section" id="logistics">
+  <div class="container">
+    <div class="section-label">MODULE 03 · LOGISTICS</div>
+    <h2 class="section-title">Freight Intelligence at Scale</h2>
+    <p class="section-sub">15–40% margin on every shipment. Our Smart Rate Engine finds the cheapest carrier per route using platform-wide volume discounts.</p>
+
+    <div class="logistics-grid">
+
+      <!-- Carrier Booking -->
+      <div class="logistics-card">
+        <div class="lc-header">
+          <i class="fas fa-search-location"></i>
+          <h3>Smart Rate Engine™</h3>
+        </div>
+        <div class="rate-comparison">
+          <div class="rate-origin">
+            <div class="rate-location"><i class="fas fa-warehouse"></i> Los Angeles, CA</div>
+            <div class="rate-arrow-line">
+              <div class="rate-arrow-dot"></div>
+              <div class="rate-arrow-track"></div>
+              <div class="rate-arrow-dot"></div>
+            </div>
+            <div class="rate-location"><i class="fas fa-store"></i> New York, NY</div>
+          </div>
+          <div class="rate-options">
+            <div class="rate-option rate-option--best">
+              <div class="rate-carrier"><i class="fas fa-truck"></i> UPS Freight</div>
+              <div class="rate-price">$342 <span class="rate-retail">$580</span></div>
+              <div class="rate-eta">3-4 days</div>
+              <span class="rate-badge">Best Value · 41% off</span>
+            </div>
+            <div class="rate-option">
+              <div class="rate-carrier"><i class="fas fa-truck"></i> FedEx Freight</div>
+              <div class="rate-price">$398</div>
+              <div class="rate-eta">2-3 days</div>
+            </div>
+            <div class="rate-option">
+              <div class="rate-carrier"><i class="fas fa-ship"></i> XPO Logistics</div>
+              <div class="rate-price">$412</div>
+              <div class="rate-eta">4-5 days</div>
+            </div>
+          </div>
+          <div class="rate-margin-box">
+            <span>Your cost: $342</span>
+            <span>Billed to buyer: $480</span>
+            <span class="rate-profit">Platform margin: <strong>$138 (29%)</strong></span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Warehouse Network -->
+      <div class="logistics-card">
+        <div class="lc-header">
+          <i class="fas fa-warehouse"></i>
+          <h3>Warehouse Network</h3>
+        </div>
+        <div class="warehouse-map">
+          <div class="wh-map-bg">
+            <div class="wh-node wh-node--la" title="Los Angeles">
+              <div class="wh-dot wh-dot--active"></div>
+              <div class="wh-label">LA · 42,000 sq ft</div>
+            </div>
+            <div class="wh-node wh-node--ny" title="New York">
+              <div class="wh-dot wh-dot--active"></div>
+              <div class="wh-label">NYC · 38,000 sq ft</div>
+            </div>
+            <div class="wh-node wh-node--chi" title="Chicago">
+              <div class="wh-dot"></div>
+              <div class="wh-label">CHI · Coming Q3</div>
+            </div>
+            <div class="wh-node wh-node--mia" title="Miami">
+              <div class="wh-dot"></div>
+              <div class="wh-label">MIA · Coming Q4</div>
+            </div>
+          </div>
+          <div class="wh-stats">
+            <div class="wh-stat"><strong>2</strong><span>Active Hubs</span></div>
+            <div class="wh-stat"><strong>80K</strong><span>Sq Ft Managed</span></div>
+            <div class="wh-stat"><strong>$1.20</strong><span>Rev/unit/mo</span></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 3PL Integrations -->
+      <div class="logistics-card">
+        <div class="lc-header">
+          <i class="fas fa-plug"></i>
+          <h3>3PL & Carrier Integrations</h3>
+        </div>
+        <div class="integration-logos">
+          <div class="int-logo"><i class="fas fa-shipping-fast"></i><span>Shippo</span></div>
+          <div class="int-logo"><i class="fas fa-globe"></i><span>Freightos</span></div>
+          <div class="int-logo"><i class="fas fa-box"></i><span>ShipBob</span></div>
+          <div class="int-logo"><i class="fas fa-truck-loading"></i><span>ShipStation</span></div>
+          <div class="int-logo"><i class="fab fa-shopify"></i><span>Shopify</span></div>
+          <div class="int-logo"><i class="fas fa-store"></i><span>NetSuite</span></div>
+        </div>
+        <div class="crossborder-box">
+          <div class="cb-header"><i class="fas fa-globe-americas"></i> Cross-Border Intelligence</div>
+          <div class="cb-items">
+            <div class="cb-item"><i class="fas fa-check"></i> Auto customs documentation</div>
+            <div class="cb-item"><i class="fas fa-check"></i> Real-time FX conversion</div>
+            <div class="cb-item"><i class="fas fa-check"></i> Digital Letters of Credit</div>
+            <div class="cb-item"><i class="fas fa-check"></i> 180+ country coverage</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Logistics Revenue -->
+      <div class="logistics-card logistics-card--wide">
+        <div class="lc-header">
+          <i class="fas fa-chart-bar"></i>
+          <h3>Logistics Revenue by Industry</h3>
+        </div>
+        <div style="height:180px">
+          <canvas id="logisticsChart"></canvas>
+        </div>
+        <div class="logistics-margin-table">
+          <div class="lmt-header">
+            <span>Industry</span><span>Avg Shipment</span><span>Platform Margin</span><span>Monthly Rev</span>
+          </div>
+          <div class="lmt-row"><span>Beauty & Cosmetics</span><span>$280</span><span class="margin-high">35–50%</span><span>$42K</span></div>
+          <div class="lmt-row"><span>Fashion & Apparel</span><span>$340</span><span class="margin-high">30–50%</span><span>$38K</span></div>
+          <div class="lmt-row"><span>Home Goods & Décor</span><span>$520</span><span class="margin-med">20–35%</span><span>$31K</span></div>
+          <div class="lmt-row"><span>Specialty Food & Bev</span><span>$480</span><span class="margin-med">25–40%</span><span>$28K</span></div>
+          <div class="lmt-row"><span>Industrial / MRO</span><span>$890</span><span class="margin-low">15–25%</span><span>$24K</span></div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════
+     DATA MOAT
+════════════════════════════════════════════════ -->
+<section class="module-section module-section--dark" id="data">
+  <div class="container">
+    <div class="section-label section-label--light">MODULE 04 · DATA MOAT</div>
+    <h2 class="section-title section-title--light">The Unfair Advantage</h2>
+    <p class="section-sub section-sub--light">Every transaction, payment, and shipment builds our proprietary dataset — powering better credit decisions, lower default rates, and smarter logistics.</p>
+
+    <div class="data-grid">
+
+      <!-- Live Metrics -->
+      <div class="data-card data-card--metrics">
+        <h3><i class="fas fa-satellite-dish"></i> Live Platform Intelligence</h3>
+        <div class="live-metrics">
+          <div class="live-metric">
+            <div class="lm-value live-counter" data-target="1842">0</div>
+            <div class="lm-label">Active Buyers</div>
+            <div class="lm-trend trend-up">↑ +127 this month</div>
+          </div>
+          <div class="live-metric">
+            <div class="lm-value live-counter" data-target="284">0</div>
+            <div class="lm-label">Brand Partners</div>
+            <div class="lm-trend trend-up">↑ +34 this month</div>
+          </div>
+          <div class="live-metric">
+            <div class="lm-value">$4.2M</div>
+            <div class="lm-label">Monthly GMV</div>
+            <div class="lm-trend trend-up">↑ +31% MoM</div>
+          </div>
+          <div class="live-metric">
+            <div class="lm-value">0.8%</div>
+            <div class="lm-label">Default Rate</div>
+            <div class="lm-trend trend-down">↓ vs 3.2% industry</div>
+          </div>
+        </div>
+        <div class="data-moat-chart" style="height:150px">
+          <canvas id="dataGrowthChart"></canvas>
+        </div>
+      </div>
+
+      <!-- Credit Model -->
+      <div class="data-card">
+        <h3><i class="fas fa-brain"></i> AI Credit Model</h3>
+        <p class="data-card-sub">800,000+ data points per buyer decision</p>
+        <div class="model-inputs">
+          <div class="mi-category">
+            <div class="mi-cat-title">Behavioral Signals (40%)</div>
+            <div class="mi-items">
+              <span>Order frequency</span><span>AOV trend</span><span>Category loyalty</span><span>Seasonal patterns</span>
+            </div>
+          </div>
+          <div class="mi-category">
+            <div class="mi-cat-title">Payment Signals (35%)</div>
+            <div class="mi-items">
+              <span>On-time rate</span><span>Early payment</span><span>Dispute history</span><span>Credit utilization</span>
+            </div>
+          </div>
+          <div class="mi-category">
+            <div class="mi-cat-title">Business Signals (25%)</div>
+            <div class="mi-items">
+              <span>Revenue growth</span><span>Industry segment</span><span>Shipping volume</span><span>Team size</span>
+            </div>
+          </div>
+        </div>
+        <div class="model-output">
+          <div class="mo-arrow"><i class="fas fa-arrow-down"></i></div>
+          <div class="mo-result">
+            <span class="mo-label">Wholesale Health Score™</span>
+            <span class="mo-value">742 / 850</span>
+            <span class="mo-action">→ Auto-approve $45K Net-60 @ 2.8%</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Industry Benchmarks -->
+      <div class="data-card">
+        <h3><i class="fas fa-industry"></i> Industry Benchmarks</h3>
+        <p class="data-card-sub">Anonymized insights across all verticals</p>
+        <div class="benchmark-list">
+          <div class="benchmark-item">
+            <div class="bi-industry"><i class="fas fa-star"></i> Beauty</div>
+            <div class="bi-bar-wrap">
+              <div class="bi-bar" style="width:82%"></div>
+            </div>
+            <div class="bi-score">AOV: $2,840</div>
+          </div>
+          <div class="benchmark-item">
+            <div class="bi-industry"><i class="fas fa-tshirt"></i> Apparel</div>
+            <div class="bi-bar-wrap">
+              <div class="bi-bar bi-bar--2" style="width:74%"></div>
+            </div>
+            <div class="bi-score">AOV: $4,200</div>
+          </div>
+          <div class="benchmark-item">
+            <div class="bi-industry"><i class="fas fa-couch"></i> Home Goods</div>
+            <div class="bi-bar-wrap">
+              <div class="bi-bar bi-bar--3" style="width:68%"></div>
+            </div>
+            <div class="bi-score">AOV: $6,800</div>
+          </div>
+          <div class="benchmark-item">
+            <div class="bi-industry"><i class="fas fa-utensils"></i> Food & Bev</div>
+            <div class="bi-bar-wrap">
+              <div class="bi-bar bi-bar--4" style="width:61%"></div>
+            </div>
+            <div class="bi-score">AOV: $3,100</div>
+          </div>
+          <div class="benchmark-item">
+            <div class="bi-industry"><i class="fas fa-cogs"></i> Industrial</div>
+            <div class="bi-bar-wrap">
+              <div class="bi-bar bi-bar--5" style="width:55%"></div>
+            </div>
+            <div class="bi-score">AOV: $12,400</div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════
+     FINANCIALS
+════════════════════════════════════════════════ -->
+<section class="module-section" id="financials">
+  <div class="container">
+    <div class="section-label">MODULE 05 · FINANCIALS</div>
+    <h2 class="section-title">Revenue Model & Projections</h2>
+    <p class="section-sub">Three high-margin revenue streams compound as the network grows — each transaction builds data that improves the next credit decision.</p>
+
+    <div class="financials-grid">
+
+      <!-- Revenue Streams -->
+      <div class="fin-card">
+        <h3>Revenue Streams</h3>
+        <div class="stream-table">
+          <div class="st-header">
+            <span>Stream</span><span>Rate</span><span>Margin</span>
+          </div>
+          <div class="st-row">
+            <div class="st-stream"><div class="st-dot st-dot--1"></div>SaaS Subscriptions</div>
+            <div>$199–$2,999/mo</div>
+            <div class="margin-pct">92%</div>
+          </div>
+          <div class="st-row">
+            <div class="st-stream"><div class="st-dot st-dot--2"></div>Invoice Factoring</div>
+            <div>2–5% per 30 days</div>
+            <div class="margin-pct">88%</div>
+          </div>
+          <div class="st-row">
+            <div class="st-stream"><div class="st-dot st-dot--3"></div>Shipping Margin</div>
+            <div>15–50% spread</div>
+            <div class="margin-pct">78%</div>
+          </div>
+          <div class="st-row">
+            <div class="st-stream"><div class="st-dot st-dot--4"></div>Card Interchange</div>
+            <div>1.5–2.8%</div>
+            <div class="margin-pct">95%</div>
+          </div>
+          <div class="st-row">
+            <div class="st-stream"><div class="st-dot st-dot--5"></div>Late Fees</div>
+            <div>1.5–2%/30 days</div>
+            <div class="margin-pct">99%</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Growth Chart -->
+      <div class="fin-card fin-card--wide">
+        <h3>24-Month Revenue Projection</h3>
+        <div style="height:220px">
+          <canvas id="growthProjectionChart"></canvas>
+        </div>
+      </div>
+
+      <!-- Tiers -->
+      <div class="fin-card">
+        <h3>SaaS Pricing Tiers</h3>
+        <div class="tier-list">
+          <div class="tier-item">
+            <div class="tier-name">Starter</div>
+            <div class="tier-price">$199<span>/mo</span></div>
+            <div class="tier-limit">Up to 50 buyers</div>
+          </div>
+          <div class="tier-item tier-item--popular">
+            <div class="tier-badge">Most Popular</div>
+            <div class="tier-name">Growth</div>
+            <div class="tier-price">$599<span>/mo</span></div>
+            <div class="tier-limit">50–500 buyers</div>
+          </div>
+          <div class="tier-item">
+            <div class="tier-name">Enterprise</div>
+            <div class="tier-price">$1,499<span>/mo</span></div>
+            <div class="tier-limit">500+ buyers</div>
+          </div>
+          <div class="tier-item tier-item--wl">
+            <div class="tier-name">White-Label</div>
+            <div class="tier-price">$2,999<span>/mo</span></div>
+            <div class="tier-limit">Full custom deploy</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Scale Models -->
+      <div class="fin-card">
+        <h3>Scale Revenue Model</h3>
+        <div class="scale-table">
+          <div class="sct-header">
+            <span>Clients</span><span>Buyers</span><span>GMV/mo</span><span>Revenue/mo</span>
+          </div>
+          <div class="sct-row">
+            <span>20</span><span>1,000</span><span>$5M</span><span class="sct-rev">$48K</span>
+          </div>
+          <div class="sct-row sct-row--highlight">
+            <span>100</span><span>5,000</span><span>$25M</span><span class="sct-rev">$240K</span>
+          </div>
+          <div class="sct-row">
+            <span>500</span><span>25,000</span><span>$125M</span><span class="sct-rev">$1.2M</span>
+          </div>
+          <div class="sct-row sct-row--unicorn">
+            <span>2,000</span><span>100,000</span><span>$500M</span><span class="sct-rev">$4.8M</span>
+          </div>
+        </div>
+        <div class="unicorn-note">
+          <i class="fas fa-unicorn"></i> $4.8M/mo = $57.6M ARR → Unicorn valuation at 15–20× ARR
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Milestone Roadmap -->
+    <div class="roadmap">
+      <h3 class="roadmap-title">Growth Roadmap</h3>
+      <div class="roadmap-track">
+        <div class="rm-stage rm-stage--done">
+          <div class="rm-dot rm-dot--done"><i class="fas fa-check"></i></div>
+          <div class="rm-content">
+            <div class="rm-period">Stage 0 · NOW</div>
+            <div class="rm-title">Platform Built</div>
+            <ul>
+              <li>Buyer, Seller & Admin portals live</li>
+              <li>Tables API & data persistence</li>
+              <li>RFQ, Trade Finance, Logistics UI</li>
+              <li>Team member access (10 seats)</li>
+            </ul>
+          </div>
+        </div>
+        <div class="rm-stage">
+          <div class="rm-dot"><span>1</span></div>
+          <div class="rm-content">
+            <div class="rm-period">Stage 1 · 0-6 Months</div>
+            <div class="rm-title">Launch & Validate</div>
+            <ul>
+              <li>20 wholesalers, $5M GMV</li>
+              <li>Resolve/Balance Net-30 integration</li>
+              <li>$100K finance revenue</li>
+              <li>3 case studies (Beauty, Apparel, Food)</li>
+            </ul>
+          </div>
+        </div>
+        <div class="rm-stage">
+          <div class="rm-dot"><span>2</span></div>
+          <div class="rm-content">
+            <div class="rm-period">Stage 2 · 6-18 Months</div>
+            <div class="rm-title">Scale & Series A</div>
+            <ul>
+              <li>$50M GMV, $2M ARR</li>
+              <li>Proprietary credit score live</li>
+              <li>Virtual card issuance</li>
+              <li>Raise Series A for loan book</li>
+            </ul>
+          </div>
+        </div>
+        <div class="rm-stage">
+          <div class="rm-dot"><span>3</span></div>
+          <div class="rm-content">
+            <div class="rm-period">Stage 3 · 18-36 Months</div>
+            <div class="rm-title">Dominate & Series B</div>
+            <ul>
+              <li>$500M GMV, $20M ARR</li>
+              <li>Cross-border finance live</li>
+              <li>API-first for ERP integrations</li>
+              <li>10 industries, 500+ clients</li>
+            </ul>
+          </div>
+        </div>
+        <div class="rm-stage">
+          <div class="rm-dot rm-dot--unicorn"><i class="fas fa-star"></i></div>
+          <div class="rm-content">
+            <div class="rm-period">Stage 4 · 3-5 Years</div>
+            <div class="rm-title">Unicorn / Exit</div>
+            <ul>
+              <li>$5B+ GMV, $150M+ ARR</li>
+              <li>M&A target: Shopify, Stripe, JP Morgan</li>
+              <li>IPO or strategic acquisition</li>
+              <li>$1B+ valuation</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════
+     COMPETITIVE MOAT
+════════════════════════════════════════════════ -->
+<section class="module-section module-section--dark" id="competitive">
+  <div class="container">
+    <div class="section-label section-label--light">COMPETITIVE ADVANTAGE</div>
+    <h2 class="section-title section-title--light">Why Nobody Can Catch Us</h2>
+
+    <div class="competitor-grid">
+      <div class="comp-table-wrap">
+        <table class="comp-table">
+          <thead>
+            <tr>
+              <th>Feature</th>
+              <th class="th-us">BRND DIRECT OS</th>
+              <th>Faire</th>
+              <th>Balance</th>
+              <th>Shopify B2B</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>White-Label Portal</td>
+              <td class="td-us"><i class="fas fa-check-circle"></i> Full</td>
+              <td><i class="fas fa-times-circle td-no"></i></td>
+              <td><i class="fas fa-times-circle td-no"></i></td>
+              <td><i class="fas fa-times-circle td-no"></i></td>
+            </tr>
+            <tr>
+              <td>Embedded Net-30/60/90</td>
+              <td class="td-us"><i class="fas fa-check-circle"></i> AI-powered</td>
+              <td><i class="fas fa-check-circle td-partial"></i> Basic</td>
+              <td><i class="fas fa-check-circle"></i> Yes</td>
+              <td><i class="fas fa-times-circle td-no"></i></td>
+            </tr>
+            <tr>
+              <td>Logistics / Freight</td>
+              <td class="td-us"><i class="fas fa-check-circle"></i> Full</td>
+              <td><i class="fas fa-times-circle td-no"></i></td>
+              <td><i class="fas fa-times-circle td-no"></i></td>
+              <td><i class="fas fa-times-circle td-no"></i></td>
+            </tr>
+            <tr>
+              <td>Dynamic Credit Scoring</td>
+              <td class="td-us"><i class="fas fa-check-circle"></i> Proprietary</td>
+              <td><i class="fas fa-times-circle td-no"></i></td>
+              <td><i class="fas fa-check-circle td-partial"></i> Basic</td>
+              <td><i class="fas fa-times-circle td-no"></i></td>
+            </tr>
+            <tr>
+              <td>Virtual Card Issuance</td>
+              <td class="td-us"><i class="fas fa-check-circle"></i> Yes</td>
+              <td><i class="fas fa-times-circle td-no"></i></td>
+              <td><i class="fas fa-check-circle td-partial"></i> Limited</td>
+              <td><i class="fas fa-times-circle td-no"></i></td>
+            </tr>
+            <tr>
+              <td>RFQ Engine</td>
+              <td class="td-us"><i class="fas fa-check-circle"></i> Full</td>
+              <td><i class="fas fa-times-circle td-no"></i></td>
+              <td><i class="fas fa-times-circle td-no"></i></td>
+              <td><i class="fas fa-times-circle td-no"></i></td>
+            </tr>
+            <tr>
+              <td>Multi-Industry</td>
+              <td class="td-us"><i class="fas fa-check-circle"></i> All verticals</td>
+              <td><i class="fas fa-check-circle td-partial"></i> Retail focused</td>
+              <td><i class="fas fa-check-circle td-partial"></i> Limited</td>
+              <td><i class="fas fa-check-circle td-partial"></i> E-commerce</td>
+            </tr>
+            <tr>
+              <td>Dropship Automation</td>
+              <td class="td-us"><i class="fas fa-check-circle"></i> Full</td>
+              <td><i class="fas fa-times-circle td-no"></i></td>
+              <td><i class="fas fa-times-circle td-no"></i></td>
+              <td><i class="fas fa-check-circle td-partial"></i> Limited</td>
+            </tr>
+            <tr>
+              <td>Pricing (wholesale)</td>
+              <td class="td-us"><i class="fas fa-check-circle"></i> $199–$2,999/mo</td>
+              <td class="td-bad">15% commission</td>
+              <td class="td-bad">2–3% per order</td>
+              <td class="td-bad">$2,000/mo + addons</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════
+     CONTACT / CTA
+════════════════════════════════════════════════ -->
+<section class="cta-section" id="contact">
+  <div class="cta-bg">
+    <div class="orb orb-cta-1"></div>
+    <div class="orb orb-cta-2"></div>
+  </div>
+  <div class="container cta-inner">
+    <div class="cta-badge"><i class="fas fa-rocket"></i> Series A Ready</div>
+    <h2 class="cta-title">Ready to back the future of<br/>B2B Wholesale?</h2>
+    <p class="cta-sub">$47B market. 3 revenue streams. 85% gross margins. Platform already built and live.</p>
+    <div class="cta-highlights">
+      <div class="cta-hl"><i class="fas fa-check-circle"></i> Full platform demo available</div>
+      <div class="cta-hl"><i class="fas fa-check-circle"></i> Beta customers ready to launch</div>
+      <div class="cta-hl"><i class="fas fa-check-circle"></i> Technical team in place</div>
+    </div>
+    <div class="cta-buttons">
+      <a href="mailto:invest@brnddirect.com" class="btn-primary btn-xl">
+        <i class="fas fa-envelope"></i> Request Investment Deck
+      </a>
+      <a href="#overview" class="btn-ghost btn-xl">
+        <i class="fas fa-play"></i> Watch Platform Demo
+      </a>
+    </div>
+    <div class="cta-contact-info">
+      <span><i class="fas fa-envelope"></i> invest@brnddirect.com</span>
+      <span><i class="fas fa-globe"></i> brnddirect.com</span>
+    </div>
+  </div>
+</section>
+
+<!-- Footer -->
+<footer class="demo-footer">
+  <div class="container footer-inner">
+    <div class="footer-logo">
+      <div class="logo-mark logo-mark--sm">BD</div>
+      <span>BRND DIRECT OS · Investor Demo</span>
+    </div>
+    <p class="footer-disclaimer">This is a confidential investor demonstration. All financial projections are estimates based on industry benchmarks and platform capabilities.</p>
+    <p class="footer-copy">© 2026 BRND Direct. All rights reserved.</p>
+  </div>
+</footer>
+
+<script src="js/demo.js"></script>
+</body>
+</html>

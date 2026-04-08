@@ -1,0 +1,24 @@
+# OS / editor
+.DS_Store
+.cursor/
+_temp_*.png
+
+# Next.js (web/)
+web/node_modules/
+web/.next/
+web/out/
+web/.vercel/
+web/.env
+web/.env.*
+!web/.env.example
+
+# Logs / debug
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+*.pem
+
+web/*.tsbuildinfo
+
+# Optional: local Supabase
+.supabase/

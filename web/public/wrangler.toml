@@ -1,0 +1,88 @@
+# ============================================================
+#  BRND DIRECT — Wrangler Configuration
+#  Used by Cloudflare Workers (API) and Pages (static site)
+#
+#  Prerequisites:
+#   1. npm install -g wrangler
+#   2. wrangler login
+#   3. Set secrets:
+#      Stripe:
+#        wrangler secret put STRIPE_SECRET_KEY
+#        wrangler secret put STRIPE_WEBHOOK_SECRET
+#      Supabase:
+#        wrangler secret put SUPABASE_URL
+#        wrangler secret put SUPABASE_SERVICE_ROLE_KEY
+#      Freightos (LTL/FTL freight):
+#        wrangler secret put FREIGHTOS_CLIENT_ID
+#        wrangler secret put FREIGHTOS_CLIENT_SECRET
+#        wrangler secret put FREIGHTOS_BASE_URL      ← e.g. https://api.freightos.com
+#      Shippo (Parcel):
+#        wrangler secret put SHIPPO_API_TOKEN        ← shippo_live_xxx or shippo_test_xxx
+#      Ship-From Address (your warehouse):
+#        wrangler secret put SHIP_FROM_NAME          ← e.g. BRND Direct Warehouse
+#        wrangler secret put SHIP_FROM_STREET1       ← e.g. 1234 Commerce Blvd
+#        wrangler secret put SHIP_FROM_CITY          ← e.g. Chicago
+#        wrangler secret put SHIP_FROM_STATE         ← e.g. IL
+#        wrangler secret put SHIP_FROM_ZIP           ← e.g. 60607
+#        wrangler secret put SHIP_FROM_COUNTRY       ← US
+#        wrangler secret put SHIP_FROM_PHONE         ← e.g. 3125550100
+# ============================================================
+
+name = "brnd-direct-api"
+main = "workers/api.js"
+compatibility_date = "2024-04-01"
+compatibility_flags = ["nodejs_compat"]
+
+# ── Workers Route ─────────────────────────────────────────────
+# Attach this Worker to your Pages project to handle /api/* routes
+# Routes are set in Cloudflare Dashboard → Workers & Pages → your-project
+# → Settings → Functions → Routes  (pattern: brnddirect.com/api/*)
+
+# ── Production environment ────────────────────────────────────
+[env.production]
+name = "brnd-direct-api-prod"
+# Secrets (never commit values — set via `wrangler secret put`)
+# ── Stripe ───────────────────────────────────────
+# STRIPE_SECRET_KEY          = "sk_live_..."   ← set via CLI
+# STRIPE_WEBHOOK_SECRET      = "whsec_..."     ← set via CLI
+# ── Supabase ─────────────────────────────────────
+# SUPABASE_URL               = "https://..."   ← set via CLI
+# SUPABASE_SERVICE_ROLE_KEY  = "eyJ..."        ← set via CLI
+# ── Freightos ────────────────────────────────────
+# FREIGHTOS_CLIENT_ID        = "..."           ← set via CLI
+# FREIGHTOS_CLIENT_SECRET    = "..."           ← set via CLI
+# FREIGHTOS_BASE_URL         = "https://api.freightos.com"
+# ── Shippo ───────────────────────────────────────
+# SHIPPO_API_TOKEN           = "shippo_live_..."  ← set via CLI
+# ── Ship-From ────────────────────────────────────
+# SHIP_FROM_NAME             = "BRND Direct Warehouse"
+# SHIP_FROM_STREET1          = "1234 Commerce Blvd"
+# SHIP_FROM_CITY             = "Chicago"
+# SHIP_FROM_STATE            = "IL"
+# SHIP_FROM_ZIP              = "60607"
+# SHIP_FROM_COUNTRY          = "US"
+# SHIP_FROM_PHONE            = "3125550100"
+
+# ── Staging / Preview ─────────────────────────────────────────
+[env.staging]
+name = "brnd-direct-api-staging"
+
+# ── KV Namespace  (optional — for rate limiting / caching) ────
+# [[kv_namespaces]]
+# binding = "CACHE"
+# id      = "YOUR_KV_NAMESPACE_ID"
+
+# ── D1 Database  (optional fallback) ─────────────────────────
+# [[d1_databases]]
+# binding  = "DB"
+# database_name = "brnd-direct"
+# database_id   = "YOUR_D1_DB_ID"
+
+# ── R2 Storage  (optional — product images CDN) ──────────────
+# [[r2_buckets]]
+# binding        = "MEDIA"
+# bucket_name    = "brnd-direct-media"
+
+# ── Observability ─────────────────────────────────────────────
+[observability]
+enabled = true

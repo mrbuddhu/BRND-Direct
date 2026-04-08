@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Analytics – BRND Direct Brand Portal</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&family=Inter:wght@300;400;500;600;700&family=Outfit:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.5.0/css/all.min.css" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <link rel="stylesheet" href="css/portal.css" />
+  <style>
+    :root { --seller-accent:#10b981; }
+    .sidebar { background:linear-gradient(180deg,#0d1a14 0%,#0f1f18 40%,#111a15 100%); }
+    .sidebar .nav-item.active { background:rgba(16,185,129,.15);color:#34d399;border-left-color:#10b981; }
+    .sidebar .nav-item:hover { background:rgba(16,185,129,.08); }
+    .sidebar .nav-badge { background:var(--seller-accent); }
+    .sidebar .nav-badge.new { background:#f59e0b; }
+
+    .period-btn { display:inline-flex;align-items:center;padding:6px 14px;border-radius:100px;font-size:.75rem;font-weight:700;cursor:pointer;border:1.5px solid var(--color-border);background:white;color:var(--color-muted);transition:all .18s; }
+    .period-btn.active, .period-btn:hover { background:var(--seller-accent);color:white;border-color:var(--seller-accent); }
+
+    .analytics-grid { display:grid;grid-template-columns:1fr 1fr;gap:20px; }
+    .analytics-grid.three { grid-template-columns:1fr 1fr 1fr; }
+    .chart-card { background:white;border:1.5px solid var(--color-border);border-radius:var(--radius-md);overflow:hidden; }
+    .chart-card__header { padding:20px 24px 0;display:flex;align-items:center;justify-content:space-between; }
+    .chart-card__title { font-family:var(--font-display);font-size:.92rem;font-weight:800; }
+    .chart-card__body { padding:16px 24px 20px; }
+    .chart-card__body canvas { max-width:100%; }
+
+    .top-prod-row { display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--color-border); }
+    .top-prod-row:last-child { border-bottom:none; }
+    .top-prod-rank { width:24px;height:24px;border-radius:6px;background:var(--color-off-white);display:flex;align-items:center;justify-content:center;font-size:.72rem;font-weight:800;color:var(--color-muted);flex-shrink:0; }
+    .top-prod-rank.gold { background:rgba(245,158,11,.15);color:var(--color-amber); }
+    .top-prod-rank.silver { background:rgba(107,114,128,.1);color:var(--color-muted); }
+    .top-prod-rank.bronze { background:rgba(180,83,9,.1);color:#b45309; }
+    .top-prod-info { flex:1;min-width:0; }
+    .top-prod-name { font-size:.82rem;font-weight:600;color:var(--color-near-black);white-space:nowrap;overflow:hidden;text-overflow:ellipsis; }
+    .top-prod-sku { font-size:.7rem;color:var(--color-muted); }
+    .top-prod-bar-wrap { width:80px;height:5px;background:var(--color-border);border-radius:3px;overflow:hidden; }
+    .top-prod-bar { height:100%;border-radius:3px;background:var(--seller-accent); }
+    .top-prod-rev { font-size:.82rem;font-weight:700;font-family:var(--font-outfit);width:60px;text-align:right;color:var(--color-near-black); }
+
+    .buyer-row { display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--color-border); }
+    .buyer-row:last-child { border-bottom:none; }
+    .buyer-avatar { width:32px;height:32px;border-radius:8px;background:rgba(16,185,129,.12);color:var(--color-emerald);display:flex;align-items:center;justify-content:center;font-size:.72rem;font-weight:800;flex-shrink:0; }
+    .buyer-name { font-size:.82rem;font-weight:600;flex:1; }
+    .buyer-orders { font-size:.72rem;color:var(--color-muted); }
+    .buyer-rev { font-size:.82rem;font-weight:700;font-family:var(--font-outfit); }
+
+    @media (max-width:1024px) { .analytics-grid,.analytics-grid.three { grid-template-columns:1fr; } }
+  </style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<aside class="sidebar" id="sidebar">
+  <div class="sidebar__logo">
+    <a href="seller-dashboard.html" class="logo-mark">
+      <span class="logo-icon" style="background:linear-gradient(135deg,#10b981,#059669);"><i class="fas fa-chevron-right"></i></span>
+      <span class="logo-word">BRND <span class="logo-accent">DIRECT</span></span>
+    </a>
+  </div>
+  <nav class="sidebar__nav">
+    <div class="nav-section">
+      <span class="nav-section-label">Brand HQ</span>
+      <a href="seller-dashboard.html" class="nav-item"><i class="fas fa-table-columns"></i><span>Dashboard</span></a>
+      <a href="seller-products.html" class="nav-item"><i class="fas fa-boxes-stacked"></i><span>Products</span></a>
+      <a href="seller-orders.html" class="nav-item"><i class="fas fa-file-invoice"></i><span>Orders</span><span class="nav-badge">7</span></a>
+      <a href="seller-analytics.html" class="nav-item active"><i class="fas fa-chart-line"></i><span>Analytics</span></a>
+    </div>
+    <div class="nav-section">
+      <span class="nav-section-label">Brand Tools</span>
+      <a href="seller-brand-hub.html" class="nav-item"><i class="fas fa-gem"></i><span>Brand Hub</span></a>
+      <a href="seller-wholesale-pricing.html" class="nav-item"><i class="fas fa-tags"></i><span>Wholesale Pricing</span></a>
+      <a href="seller-payouts.html" class="nav-item"><i class="fas fa-wallet"></i><span>Payouts</span><span class="nav-badge new">!</span></a>
+    </div>
+    <div class="nav-section">
+      <span class="nav-section-label">Account</span>
+      <a href="seller-messages.html" class="nav-item"><i class="fas fa-message"></i><span>Messages</span><span class="nav-badge">3</span></a>
+      <a href="seller-account.html" class="nav-item"><i class="fas fa-gear"></i><span>Settings</span></a>
+      <a href="help.html" class="nav-item"><i class="fas fa-circle-question"></i><span>Help & Support</span></a>
+    </div>
+  </nav>
+  <div class="sidebar__bottom">
+    <div class="divider"></div>
+    <div class="sidebar__user">
+      <div class="sidebar__avatar" style="background:linear-gradient(135deg,#10b981,#059669);">AP</div>
+      <div class="sidebar__user-info"><div class="sidebar__user-name">Apex Apparel Co.</div><div class="sidebar__user-role">Brand Partner</div></div>
+      <a href="seller-login.html" class="sidebar__user-logout" title="Sign out"><i class="fas fa-arrow-right-from-bracket"></i></a>
+    </div>
+  </div>
+</aside>
+<div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+<!-- TOPBAR -->
+<header class="topbar" id="topbar">
+  <div class="topbar__left">
+    <button class="topbar__mobile-toggle" id="sidebarToggle"><i class="fas fa-bars"></i></button>
+    <div><div class="topbar__title">Analytics</div><div class="topbar__breadcrumb">Brand performance & insights</div></div>
+  </div>
+  <div class="topbar__right">
+    <div class="search-bar">
+      <i class="fas fa-magnifying-glass search-bar__icon"></i>
+      <input class="search-bar__input" type="text" placeholder="Search analytics…" />
+    </div>
+    <button class="topbar__btn" style="position:relative;"><i class="fas fa-bell"></i><span class="notif-dot"></span></button>
+    <a href="seller-messages.html" class="topbar__btn"><i class="fas fa-message"></i></a>
+    <div class="topbar__avatar" style="background:linear-gradient(135deg,#10b981,#059669);">AP</div>
+  </div>
+</header>
+
+<!-- MAIN -->
+<main class="app-main">
+
+  <div class="page-header-bar fade-in">
+    <div>
+      <h1>Brand Analytics</h1>
+      <p class="page-header-sub">Performance overview · March 2026</p>
+    </div>
+    <div style="display:flex;gap:8px;">
+      <button class="period-btn active" onclick="setPeriod(this,'7d')">7 Days</button>
+      <button class="period-btn" onclick="setPeriod(this,'30d')">30 Days</button>
+      <button class="period-btn" onclick="setPeriod(this,'qtd')">QTD</button>
+      <button class="period-btn" onclick="setPeriod(this,'ytd')">YTD</button>
+      <button class="btn btn-outline" onclick="showToast('Report exporting…','success')"><i class="fas fa-download"></i> Export</button>
+    </div>
+  </div>
+
+  <!-- KPI Cards -->
+  <div class="grid-4 mb-6 fade-in">
+    <div class="stat-card">
+      <div class="stat-card__icon" style="background:rgba(16,185,129,.12);color:var(--color-emerald);"><i class="fas fa-dollar-sign"></i></div>
+      <div class="stat-card__label">Total Revenue</div>
+      <div class="stat-card__value" style="font-family:var(--font-outfit);">$84,320</div>
+      <div class="stat-card__change up"><i class="fas fa-arrow-trend-up"></i> +22.4% vs prior period</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-card__icon" style="background:rgba(79,70,229,.12);color:var(--color-accent);"><i class="fas fa-file-invoice"></i></div>
+      <div class="stat-card__label">Units Sold</div>
+      <div class="stat-card__value" style="font-family:var(--font-outfit);">4,820</div>
+      <div class="stat-card__change up"><i class="fas fa-arrow-trend-up"></i> +18.6% vs prior</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-card__icon" style="background:rgba(245,158,11,.12);color:var(--color-amber);"><i class="fas fa-users"></i></div>
+      <div class="stat-card__label">Active Buyers</div>
+      <div class="stat-card__value" style="font-family:var(--font-outfit);">34</div>
+      <div class="stat-card__change up"><i class="fas fa-arrow-trend-up"></i> +8 new buyers</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-card__icon" style="background:rgba(14,165,233,.1);color:var(--color-sky);"><i class="fas fa-repeat"></i></div>
+      <div class="stat-card__label">Repeat Order Rate</div>
+      <div class="stat-card__value" style="font-family:var(--font-outfit);">68%</div>
+      <div class="stat-card__change up"><i class="fas fa-arrow-trend-up"></i> +4% vs prior</div>
+    </div>
+  </div>
+
+  <!-- Revenue Chart -->
+  <div class="card mb-6 fade-in">
+    <div class="card__header">
+      <span class="card__title">Revenue Over Time</span>
+      <div style="display:flex;gap:8px;">
+        <select class="form-input" style="width:auto;font-size:.75rem;padding:5px 10px;" onchange="showToast('Chart updated.','success')">
+          <option>All Channels</option>
+          <option>BRND Direct B2B</option>
+          <option>TikTok Shop</option>
+          <option>Amazon</option>
+        </select>
+      </div>
+    </div>
+    <div class="card__body" style="height:280px;">
+      <canvas id="revenueChart"></canvas>
+    </div>
+  </div>
+
+  <!-- Mid charts grid -->
+  <div class="analytics-grid mb-6 fade-in">
+
+    <!-- Channel Breakdown -->
+    <div class="chart-card">
+      <div class="chart-card__header">
+        <span class="chart-card__title">Revenue by Channel</span>
+      </div>
+      <div class="chart-card__body" style="height:220px;display:flex;align-items:center;justify-content:center;">
+        <canvas id="channelChart"></canvas>
+      </div>
+    </div>
+
+    <!-- Orders by Status -->
+    <div class="chart-card">
+      <div class="chart-card__header">
+        <span class="chart-card__title">Order Status Breakdown</span>
+      </div>
+      <div class="chart-card__body" style="height:220px;display:flex;align-items:center;justify-content:center;">
+        <canvas id="statusChart"></canvas>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Bottom section -->
+  <div class="analytics-grid fade-in">
+
+    <!-- Top Products -->
+    <div class="card">
+      <div class="card__header">
+        <span class="card__title">Top Performing Products</span>
+        <a href="seller-products.html" class="btn btn-outline" style="font-size:.72rem;padding:5px 10px;">All Products</a>
+      </div>
+      <div class="card__body">
+        <div class="top-prod-row">
+          <div class="top-prod-rank gold">1</div>
+          <div class="top-prod-info"><div class="top-prod-name">Apex Classic Hoodie</div><div class="top-prod-sku">APX-CHD-001 · 1,240 units</div></div>
+          <div class="top-prod-bar-wrap"><div class="top-prod-bar" style="width:100%;"></div></div>
+          <span class="top-prod-rev">$22.9K</span>
+        </div>
+        <div class="top-prod-row">
+          <div class="top-prod-rank silver">2</div>
+          <div class="top-prod-info"><div class="top-prod-name">Premium Graphic Tee</div><div class="top-prod-sku">APX-PGT-002 · 2,100 units</div></div>
+          <div class="top-prod-bar-wrap"><div class="top-prod-bar" style="width:78%;background:#6366f1;"></div></div>
+          <span class="top-prod-rev">$18.1K</span>
+        </div>
+        <div class="top-prod-row">
+          <div class="top-prod-rank bronze">3</div>
+          <div class="top-prod-info"><div class="top-prod-name">Performance Jogger Set</div><div class="top-prod-sku">APX-PJS-004 · 780 units</div></div>
+          <div class="top-prod-bar-wrap"><div class="top-prod-bar" style="width:62%;background:#f59e0b;"></div></div>
+          <span class="top-prod-rev">$14.3K</span>
+        </div>
+        <div class="top-prod-row">
+          <div class="top-prod-rank">4</div>
+          <div class="top-prod-info"><div class="top-prod-name">Summer Linen Shirt</div><div class="top-prod-sku">APX-SLS-005 · 560 units</div></div>
+          <div class="top-prod-bar-wrap"><div class="top-prod-bar" style="width:45%;background:#0ea5e9;"></div></div>
+          <span class="top-prod-rev">$8.4K</span>
+        </div>
+        <div class="top-prod-row">
+          <div class="top-prod-rank">5</div>
+          <div class="top-prod-info"><div class="top-prod-name">Varsity Bomber Jacket</div><div class="top-prod-sku">APX-VBJ-003 · 180 units</div></div>
+          <div class="top-prod-bar-wrap"><div class="top-prod-bar" style="width:30%;background:#f43f5e;"></div></div>
+          <span class="top-prod-rev">$7.6K</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Top Buyers -->
+    <div class="card">
+      <div class="card__header">
+        <span class="card__title">Top Buyers</span>
+        <a href="seller-orders.html" class="btn btn-outline" style="font-size:.72rem;padding:5px 10px;">All Orders</a>
+      </div>
+      <div class="card__body">
+        <div class="buyer-row">
+          <div class="buyer-avatar">SR</div>
+          <div style="flex:1;min-width:0;"><div class="buyer-name">SportZone Retail</div><div class="buyer-orders" style="font-size:.7rem;color:var(--color-muted);">14 orders · Los Angeles, CA</div></div>
+          <span class="buyer-rev" style="font-family:var(--font-outfit);">$18.2K</span>
+        </div>
+        <div class="buyer-row">
+          <div class="buyer-avatar" style="background:rgba(79,70,229,.12);color:var(--color-accent);">UT</div>
+          <div style="flex:1;min-width:0;"><div class="buyer-name">Urban Threads Co.</div><div class="buyer-orders">9 orders · New York, NY</div></div>
+          <span class="buyer-rev" style="font-family:var(--font-outfit);">$14.7K</span>
+        </div>
+        <div class="buyer-row">
+          <div class="buyer-avatar" style="background:rgba(245,158,11,.12);color:var(--color-amber);">FF</div>
+          <div style="flex:1;min-width:0;"><div class="buyer-name">FashionForward LLC</div><div class="buyer-orders">7 orders · Miami, FL</div></div>
+          <span class="buyer-rev" style="font-family:var(--font-outfit);">$12.1K</span>
+        </div>
+        <div class="buyer-row">
+          <div class="buyer-avatar" style="background:rgba(244,63,94,.1);color:var(--color-rose);">BD</div>
+          <div style="flex:1;min-width:0;"><div class="buyer-name">Boutique District</div><div class="buyer-orders">5 orders · Chicago, IL</div></div>
+          <span class="buyer-rev" style="font-family:var(--font-outfit);">$8.4K</span>
+        </div>
+        <div class="buyer-row">
+          <div class="buyer-avatar" style="background:rgba(14,165,233,.1);color:var(--color-sky);">TS</div>
+          <div style="flex:1;min-width:0;"><div class="buyer-name">TrendSetters Inc.</div><div class="buyer-orders">4 orders · Dallas, TX</div></div>
+          <span class="buyer-rev" style="font-family:var(--font-outfit);">$7.6K</span>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Brand Health Metrics -->
+  <div class="card mt-6 fade-in" style="margin-top:20px;">
+    <div class="card__header"><span class="card__title">Brand Health Scorecard</span></div>
+    <div class="card__body">
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:20px;">
+        <div style="text-align:center;padding:16px;border:1.5px solid var(--color-border);border-radius:var(--radius-md);">
+          <div style="font-size:1.6rem;font-weight:900;font-family:var(--font-outfit);color:var(--color-emerald);">4.8</div>
+          <div style="font-size:.72rem;color:var(--color-muted);margin-top:4px;">Buyer Rating</div>
+          <div style="font-size:.68rem;color:var(--color-emerald);margin-top:2px;">★★★★★ 312 reviews</div>
+        </div>
+        <div style="text-align:center;padding:16px;border:1.5px solid var(--color-border);border-radius:var(--radius-md);">
+          <div style="font-size:1.6rem;font-weight:900;font-family:var(--font-outfit);color:var(--color-near-black);">98.2%</div>
+          <div style="font-size:.72rem;color:var(--color-muted);margin-top:4px;">Order Fill Rate</div>
+          <div style="font-size:.68rem;color:var(--color-emerald);margin-top:2px;">↑ above 97% target</div>
+        </div>
+        <div style="text-align:center;padding:16px;border:1.5px solid var(--color-border);border-radius:var(--radius-md);">
+          <div style="font-size:1.6rem;font-weight:900;font-family:var(--font-outfit);color:var(--color-near-black);">96.5%</div>
+          <div style="font-size:.72rem;color:var(--color-muted);margin-top:4px;">On-Time Ship Rate</div>
+          <div style="font-size:.68rem;color:var(--color-emerald);margin-top:2px;">↑ above 95% target</div>
+        </div>
+        <div style="text-align:center;padding:16px;border:1.5px solid var(--color-border);border-radius:var(--radius-md);">
+          <div style="font-size:1.6rem;font-weight:900;font-family:var(--font-outfit);color:var(--color-emerald);">1.8%</div>
+          <div style="font-size:.72rem;color:var(--color-muted);margin-top:4px;">Return Rate</div>
+          <div style="font-size:.68rem;color:var(--color-emerald);margin-top:2px;">↓ below 3% target</div>
+        </div>
+        <div style="text-align:center;padding:16px;border:1.5px solid var(--color-border);border-radius:var(--radius-md);">
+          <div style="font-size:1.6rem;font-weight:900;font-family:var(--font-outfit);color:var(--color-near-black);">68%</div>
+          <div style="font-size:.72rem;color:var(--color-muted);margin-top:4px;">Repeat Buyer Rate</div>
+          <div style="font-size:.68rem;color:var(--color-emerald);margin-top:2px;">↑ strong retention</div>
+        </div>
+        <div style="text-align:center;padding:16px;border:1.5px solid var(--color-border);border-radius:var(--radius-md);">
+          <div style="font-size:1.6rem;font-weight:900;font-family:var(--font-outfit);color:var(--color-near-black);">34</div>
+          <div style="font-size:.72rem;color:var(--color-muted);margin-top:4px;">Active Buyers</div>
+          <div style="font-size:.68rem;color:var(--color-emerald);margin-top:2px;">↑ +8 new this month</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</main>
+
+<div class="toast-container" id="toastContainer"></div>
+<script src="js/portal.js"></script>
+<script>
+  // Revenue Line Chart
+  const revCtx = document.getElementById('revenueChart').getContext('2d');
+  new Chart(revCtx, {
+    type: 'line',
+    data: {
+      labels: ['Mar 1','Mar 3','Mar 5','Mar 7','Mar 9','Mar 11','Mar 13','Mar 15','Mar 17','Mar 19','Mar 21','Mar 23'],
+      datasets: [
+        { label: 'Revenue', data: [4200,5100,3800,6200,5800,7400,6100,8200,7600,9100,8400,9800], borderColor:'#10b981', backgroundColor:'rgba(16,185,129,.08)', tension:.4, fill:true, pointBackgroundColor:'#10b981', pointRadius:4 },
+        { label: 'Units', data: [240,310,190,380,350,460,380,510,470,560,520,610], borderColor:'#6366f1', backgroundColor:'transparent', tension:.4, borderDash:[5,5], pointRadius:3, yAxisID:'y1' }
+      ]
+    },
+    options: {
+      responsive:true, maintainAspectRatio:false,
+      plugins:{ legend:{ labels:{ font:{ family:'Inter',size:12 } } } },
+      scales:{
+        y:{ grid:{ color:'rgba(0,0,0,.04)' }, ticks:{ callback: v => '$'+v.toLocaleString() } },
+        y1:{ position:'right', grid:{ display:false }, ticks:{ color:'#6366f1' } }
+      }
+    }
+  });
+
+  // Channel Pie Chart
+  const chanCtx = document.getElementById('channelChart').getContext('2d');
+  new Chart(chanCtx, {
+    type: 'doughnut',
+    data: {
+      labels: ['BRND Direct B2B','TikTok Shop','Amazon','Target'],
+      datasets: [{ data:[60700,12400,7200,4100], backgroundColor:['#10b981','#f43f5e','#f59e0b','#0ea5e9'], borderWidth:0, hoverOffset:6 }]
+    },
+    options: { responsive:true, maintainAspectRatio:false, cutout:'70%', plugins:{ legend:{ position:'right', labels:{ font:{ family:'Inter',size:11 } } } } }
+  });
+
+  // Status Bar Chart
+  const statCtx = document.getElementById('statusChart').getContext('2d');
+  new Chart(statCtx, {
+    type: 'bar',
+    data: {
+      labels: ['New','Processing','Shipped','Delivered','Cancelled'],
+      datasets: [{ data:[7,14,9,112,3], backgroundColor:['#6366f1','#f59e0b','#0ea5e9','#10b981','#f43f5e'], borderRadius:6 }]
+    },
+    options: { responsive:true, maintainAspectRatio:false, plugins:{ legend:{ display:false } }, scales:{ y:{ grid:{ color:'rgba(0,0,0,.04)' } }, x:{ grid:{ display:false } } } }
+  });
+
+  function setPeriod(btn, period) {
+    document.querySelectorAll('.period-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    showToast('Analytics updated for ' + period, 'success');
+  }
+
+  function showToast(msg, type = 'success') {
+    const c = document.getElementById('toastContainer');
+    const icon = type === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle';
+    const t = document.createElement('div'); t.className = `toast ${type}`;
+    t.innerHTML = `<i class="fas ${icon}"></i><span>${msg}</span>`;
+    c.appendChild(t);
+    setTimeout(() => { t.style.opacity='0'; t.style.transform='translateX(60px)'; t.style.transition='all .3s'; setTimeout(() => t.remove(), 350); }, 3500);
+  }
+</script>
+</body>
+</html>

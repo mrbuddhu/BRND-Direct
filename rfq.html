@@ -1,0 +1,508 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Request for Quote – BRND Direct Portal</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&family=Inter:wght@300;400;500;600;700&family=Outfit:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.5.0/css/all.min.css" />
+  <link rel="stylesheet" href="css/portal.css" />
+  <style>
+    /* RFQ Status chips */
+    .rfq-open    { background:var(--color-sky-glow);     color:var(--color-sky);     padding:3px 10px; border-radius:100px; font-size:.72rem; font-weight:700; }
+    .rfq-quoted  { background:var(--color-accent-glow);  color:var(--color-accent);  padding:3px 10px; border-radius:100px; font-size:.72rem; font-weight:700; }
+    .rfq-accepted{ background:var(--color-emerald-glow); color:var(--color-emerald); padding:3px 10px; border-radius:100px; font-size:.72rem; font-weight:700; }
+    .rfq-expired { background:rgba(107,114,128,.1);      color:var(--color-muted);   padding:3px 10px; border-radius:100px; font-size:.72rem; font-weight:700; }
+    .rfq-declined{ background:var(--color-rose-glow);    color:var(--color-rose);    padding:3px 10px; border-radius:100px; font-size:.72rem; font-weight:700; }
+
+    /* Quote cards grid */
+    .quote-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px; margin-top: 16px; }
+    .quote-card {
+      background: white; border: 1.5px solid var(--color-border); border-radius: var(--radius-md);
+      padding: 20px; transition: all .2s; position: relative;
+    }
+    .quote-card:hover { box-shadow: var(--shadow-md); border-color: var(--color-accent-light); }
+    .quote-card.best { border-color: var(--color-emerald); }
+    .best-badge { position: absolute; top: -10px; left: 16px; background: var(--color-emerald); color: white; font-size: .65rem; font-weight: 800; padding: 3px 10px; border-radius: 100px; letter-spacing: .5px; }
+    .quote-supplier { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; }
+    .quote-supplier-logo { width: 36px; height: 36px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: .82rem; color: white; }
+    .quote-price { font-size: 1.6rem; font-weight: 800; font-family: var(--font-display); color: var(--color-near-black); }
+    .quote-per { font-size: .75rem; color: var(--color-muted); }
+    .quote-details { display: flex; flex-direction: column; gap: 6px; margin: 12px 0; font-size: .8rem; }
+    .quote-detail-row { display: flex; justify-content: space-between; align-items: center; }
+    .quote-detail-label { color: var(--color-muted); }
+    .quote-detail-val { font-weight: 600; }
+    .quote-actions { display: flex; gap: 8px; margin-top: 14px; }
+    .quote-actions .btn { flex: 1; justify-content: center; font-size: .8rem; }
+
+    /* Timeline for RFQ flow */
+    .rfq-timeline { display: flex; align-items: center; gap: 0; margin-bottom: 24px; }
+    .rfq-step { display: flex; flex-direction: column; align-items: center; gap: 6px; flex: 1; position: relative; }
+    .rfq-step-circle { width: 32px; height: 32px; border-radius: 50%; border: 2px solid var(--color-border); background: white; display: flex; align-items: center; justify-content: center; font-size: .75rem; font-weight: 800; z-index: 1; }
+    .rfq-step.done .rfq-step-circle { background: var(--color-accent); border-color: var(--color-accent); color: white; }
+    .rfq-step.active .rfq-step-circle { border-color: var(--color-accent); color: var(--color-accent); box-shadow: 0 0 0 4px var(--color-accent-glow); }
+    .rfq-step-label { font-size: .68rem; font-weight: 600; color: var(--color-muted); text-align: center; }
+    .rfq-step.done .rfq-step-label, .rfq-step.active .rfq-step-label { color: var(--color-accent); }
+    .rfq-step-line { flex: 1; height: 2px; background: var(--color-border); margin-top: -22px; }
+    .rfq-step-line.done { background: var(--color-accent); }
+
+    /* RFQ detail panel */
+    .rfq-detail-card { background: white; border: 1px solid var(--color-border); border-radius: var(--radius-md); overflow: hidden; }
+    .rfq-detail-header { background: var(--color-near-black); color: white; padding: 20px 24px; }
+    .rfq-detail-header h3 { font-size: 1rem; font-weight: 700; margin-bottom: 4px; }
+    .rfq-detail-body { padding: 24px; }
+
+    /* Comparison table */
+    .compare-table th { background: var(--color-off-white); font-size: .72rem; }
+    .compare-table .highlight { background: rgba(16,185,129,.05); }
+
+    @media (max-width: 768px) { .quote-grid { grid-template-columns: 1fr; } .rfq-timeline { flex-wrap: wrap; gap: 8px; } }
+  </style>
+</head>
+<body>
+<!-- SIDEBAR -->
+<aside class="sidebar" id="sidebar">
+  <div class="sidebar__logo">
+    <a href="dashboard.html" class="logo-mark">
+      <span class="logo-icon"><i class="fas fa-chevron-right"></i></span>
+      <span class="logo-word">BRND <span class="logo-accent">DIRECT</span></span>
+    </a>
+  </div>
+  <nav class="sidebar__nav">
+    <div class="nav-section">
+      <span class="nav-section-label">Main Menu</span>
+      <a href="dashboard.html" class="nav-item"><i class="fas fa-table-columns"></i><span>Dashboard</span></a>
+      <a href="products.html" class="nav-item"><i class="fas fa-boxes-stacked"></i><span>Products</span></a>
+      <a href="orders.html" class="nav-item"><i class="fas fa-file-invoice"></i><span>Orders</span><span class="nav-badge">18</span></a>
+      <a href="rfq.html" class="nav-item active"><i class="fas fa-comment-dollar"></i><span>RFQ</span><span class="nav-badge new">5</span></a>
+      <a href="dropship.html" class="nav-item"><i class="fas fa-rotate"></i><span>Dropship</span></a>
+      <a href="analytics.html" class="nav-item"><i class="fas fa-chart-line"></i><span>Analytics</span></a>
+    </div>
+    <div class="nav-section">
+      <span class="nav-section-label">Finance</span>
+      <a href="invoices.html" class="nav-item"><i class="fas fa-file-invoice-dollar"></i><span>Invoices &amp; Payments</span></a>
+      <a href="trade-finance.html" class="nav-item"><i class="fas fa-credit-card"></i><span>Trade Finance</span></a>
+      <a href="reports.html" class="nav-item"><i class="fas fa-chart-bar"></i><span>Reports</span></a>
+    </div>
+    <div class="nav-section">
+      <span class="nav-section-label">Operations</span>
+      <a href="warehousing.html" class="nav-item"><i class="fas fa-warehouse"></i><span>Warehousing</span></a>
+      <a href="shipping-logistics.html" class="nav-item"><i class="fas fa-truck-fast"></i><span>Shipping &amp; Logistics</span></a>
+    </div>
+    <div class="sidebar__divider"></div>
+    <a href="messages.html" class="nav-item"><i class="fas fa-message"></i><span>Messages</span><span class="nav-badge">3</span></a>
+    <a href="account.html" class="nav-item"><i class="fas fa-gear"></i><span>Settings</span></a>
+    <a href="help.html" class="nav-item"><i class="fas fa-circle-question"></i><span>Help &amp; Support</span></a>
+  </nav>
+  <div class="sidebar__bottom">
+    <div class="sidebar__user">
+      <div class="sidebar__user-avatar">AJ</div>
+      <div class="sidebar__user-info">
+        <div class="sidebar__user-name">Alex Johnson</div>
+        <div class="sidebar__user-role">Wholesale Buyer</div>
+      </div>
+      <button class="sidebar__user-logout" title="Sign out" onclick="window.location.href='index.html'">
+        <i class="fas fa-arrow-right-from-bracket"></i>
+      </button>
+    </div>
+  </div>
+</aside>
+<!-- ===== TOPBAR ===== -->
+<header class="topbar">
+  <div class="topbar__left" style="display:flex;align-items:center;gap:12px;">
+    <button class="topbar__mobile-toggle" id="sidebarToggle" aria-label="Toggle sidebar">
+      <i class="fas fa-bars"></i>
+    </button>
+    <div>
+      <div class="topbar__title">Request for Quote</div>
+      <div class="topbar__breadcrumb">Submit, compare &amp; accept supplier quotes</div>
+    </div>
+  </div>
+  <div class="topbar__right">
+    <div class="search-bar">
+      <i class="fas fa-magnifying-glass"></i>
+      <input type="text" placeholder="Search RFQs…" />
+    </div>
+    <div class="topbar__btn" title="Notifications">
+      <i class="fas fa-bell"></i>
+      <span class="notif-dot"></span>
+    </div>
+    <div class="topbar__btn" title="Messages" onclick="window.location.href='messages.html'">
+      <i class="fas fa-message"></i>
+    </div>
+    <div class="topbar__avatar" title="Profile">AJ</div>
+  </div>
+</header>
+
+<!-- ===== SIDEBAR OVERLAY ===== -->
+<div id="sidebarOverlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:99;" onclick="document.getElementById('sidebar').classList.remove('open');this.style.display='none';"></div>
+
+<!-- ===== MAIN CONTENT ===== -->
+<main class="app-main">
+  <div class="page-header-bar">
+    <div>
+      <h1>Request for Quote</h1>
+      <div class="page-header-sub">Submit RFQs, compare supplier quotes and negotiate the best deals</div>
+    </div>
+    <div class="page-header-bar__actions">
+      <button class="btn btn-outline btn-sm" onclick="openRFQModal()"><i class="fas fa-eye"></i> View Quotes</button>
+      <button class="btn btn-primary btn-sm" onclick="openNewRFQModal()"><i class="fas fa-plus"></i> New RFQ</button>
+    </div>
+  </div>
+
+  <!-- Stats -->
+  <div class="grid-4 mb-6 fade-in">
+    <div class="stat-card">
+      <div class="stat-card__icon" style="background:var(--color-sky-glow);color:var(--color-sky);"><i class="fas fa-paper-plane"></i></div>
+      <div class="stat-card__label">Open RFQs</div><div class="stat-card__value">5</div><div class="stat-card__change neutral mt-2"><i class="fas fa-clock"></i> Awaiting responses</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-card__icon" style="background:var(--color-accent-glow);color:var(--color-accent);"><i class="fas fa-file-invoice-dollar"></i></div>
+      <div class="stat-card__label">Quotes Received</div><div class="stat-card__value">23</div><div class="stat-card__change up mt-2"><i class="fas fa-arrow-trend-up"></i> 8 this week</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-card__icon" style="background:var(--color-emerald-glow);color:var(--color-emerald);"><i class="fas fa-handshake"></i></div>
+      <div class="stat-card__label">Accepted Quotes</div><div class="stat-card__value">17</div><div class="stat-card__change up mt-2"><i class="fas fa-arrow-trend-up"></i> Converted to orders</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-card__icon" style="background:var(--color-amber-glow);color:var(--color-amber);"><i class="fas fa-piggy-bank"></i></div>
+      <div class="stat-card__label">Savings Achieved</div><div class="stat-card__value">$14.2K</div><div class="stat-card__change up mt-2"><i class="fas fa-arrow-trend-up"></i> vs market price</div>
+    </div>
+  </div>
+
+  <!-- Active RFQs table -->
+  <div class="card mb-6">
+    <div class="card-header">
+      <h3>Active RFQs</h3>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;">
+        <input type="text" class="form-input" style="width:200px;" placeholder="Search…" />
+        <select class="form-input" style="width:auto;">
+          <option>All Statuses</option>
+          <option>Open</option>
+          <option>Quoted</option>
+          <option>Accepted</option>
+          <option>Expired</option>
+        </select>
+      </div>
+    </div>
+    <div class="card-body" style="padding-top:16px;">
+    <div class="table-wrap">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>RFQ ID</th>
+            <th>Product / Description</th>
+            <th>Qty Needed</th>
+            <th>Target Price</th>
+            <th>Deadline</th>
+            <th>Suppliers Invited</th>
+            <th>Quotes In</th>
+            <th>Status</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="font-mono" style="color:var(--color-accent);">RFQ-0089</td>
+            <td><strong>Premium Hoodie – 5 colorways</strong><br><span style="font-size:.72rem;color:var(--color-muted);">Apex, EcoWear, Nordic</span></td>
+            <td>500 units</td>
+            <td>$18.00 / unit</td>
+            <td>Mar 25, 2026</td>
+            <td>3</td>
+            <td><span style="color:var(--color-emerald);font-weight:700;">3 / 3</span></td>
+            <td><span class="rfq-quoted">Quoted</span></td>
+            <td><button class="btn btn-primary btn-sm" onclick="openCompareModal()"><i class="fas fa-scale-balanced"></i> Compare</button></td>
+          </tr>
+          <tr>
+            <td class="font-mono" style="color:var(--color-accent);">RFQ-0088</td>
+            <td><strong>Bluetooth Earbuds OEM</strong><br><span style="font-size:.72rem;color:var(--color-muted);">TechSource, ByteBuild</span></td>
+            <td>200 units</td>
+            <td>$24.00 / unit</td>
+            <td>Mar 28, 2026</td>
+            <td>2</td>
+            <td><span style="color:var(--color-amber);font-weight:700;">1 / 2</span></td>
+            <td><span class="rfq-open">Open</span></td>
+            <td><button class="btn btn-outline btn-sm"><i class="fas fa-eye"></i> View</button></td>
+          </tr>
+          <tr>
+            <td class="font-mono" style="color:var(--color-accent);">RFQ-0087</td>
+            <td><strong>Organic Face Serum (White Label)</strong><br><span style="font-size:.72rem;color:var(--color-muted);">GlowCo Beauty</span></td>
+            <td>1,000 units</td>
+            <td>$8.50 / unit</td>
+            <td>Mar 30, 2026</td>
+            <td>1</td>
+            <td><span style="color:var(--color-emerald);font-weight:700;">1 / 1</span></td>
+            <td><span class="rfq-quoted">Quoted</span></td>
+            <td><button class="btn btn-outline btn-sm"><i class="fas fa-eye"></i> View</button></td>
+          </tr>
+          <tr>
+            <td class="font-mono" style="color:var(--color-accent);">RFQ-0086</td>
+            <td><strong>Bamboo Cutting Board Set</strong><br><span style="font-size:.72rem;color:var(--color-muted);">Nordic, FreshFarm</span></td>
+            <td>300 sets</td>
+            <td>$12.00 / set</td>
+            <td>Apr 2, 2026</td>
+            <td>2</td>
+            <td><span style="color:var(--color-muted);font-weight:700;">0 / 2</span></td>
+            <td><span class="rfq-open">Open</span></td>
+            <td><button class="btn btn-outline btn-sm"><i class="fas fa-eye"></i> View</button></td>
+          </tr>
+          <tr>
+            <td class="font-mono" style="color:var(--color-accent);">RFQ-0085</td>
+            <td><strong>Sport Water Bottles – Logo Print</strong><br><span style="font-size:.72rem;color:var(--color-muted);">SportPeak Gear</span></td>
+            <td>600 units</td>
+            <td>$7.00 / unit</td>
+            <td>Apr 5, 2026</td>
+            <td>1</td>
+            <td><span style="color:var(--color-muted);font-weight:700;">0 / 1</span></td>
+            <td><span class="rfq-open">Open</span></td>
+            <td><button class="btn btn-outline btn-sm"><i class="fas fa-eye"></i> View</button></td>
+          </tr>
+          <tr style="opacity:.6;">
+            <td class="font-mono">RFQ-0084</td>
+            <td><strong>Eco Tote Bags</strong></td>
+            <td>2,000 units</td>
+            <td>$3.50 / unit</td>
+            <td>Mar 10, 2026</td>
+            <td>4</td>
+            <td>4 / 4</td>
+            <td><span class="rfq-accepted">Accepted</span></td>
+            <td><button class="btn btn-ghost btn-sm"><i class="fas fa-arrow-up-right-from-square"></i></button></td>
+          </tr>
+          <tr style="opacity:.6;">
+            <td class="font-mono">RFQ-0083</td>
+            <td><strong>Protein Powder OEM</strong></td>
+            <td>500 kg</td>
+            <td>$14.00 / kg</td>
+            <td>Mar 5, 2026</td>
+            <td>2</td>
+            <td>1 / 2</td>
+            <td><span class="rfq-expired">Expired</span></td>
+            <td><button class="btn btn-ghost btn-sm"><i class="fas fa-rotate-right"></i> Re-open</button></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    </div><!-- /card-body -->
+  </div>
+
+  <!-- Quote comparison -->
+  <div class="rfq-detail-card mb-6" id="compareSection">
+    <div class="rfq-detail-header">
+      <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;">
+        <div>
+          <div style="font-size:.75rem;opacity:.6;margin-bottom:4px;">RFQ-0089 · Premium Hoodie – 5 colorways</div>
+          <h3>Quote Comparison</h3>
+          <div style="font-size:.78rem;opacity:.7;margin-top:2px;">500 units · Deadline: Mar 25, 2026</div>
+        </div>
+        <div style="display:flex;gap:8px;">
+          <button class="btn btn-white btn-sm"><i class="fas fa-file-export"></i> Export</button>
+          <button class="btn btn-ghost btn-sm" style="color:white;border-color:rgba(255,255,255,.3);" onclick="document.getElementById('compareSection').style.display='none'"><i class="fas fa-xmark"></i></button>
+        </div>
+      </div>
+    </div>
+    <div class="rfq-detail-body">
+      <!-- Process timeline -->
+      <div class="rfq-timeline">
+        <div class="rfq-step done"><div class="rfq-step-circle"><i class="fas fa-check"></i></div><div class="rfq-step-label">RFQ Sent</div></div>
+        <div class="rfq-step-line done"></div>
+        <div class="rfq-step done"><div class="rfq-step-circle"><i class="fas fa-check"></i></div><div class="rfq-step-label">Quotes Received</div></div>
+        <div class="rfq-step-line"></div>
+        <div class="rfq-step active"><div class="rfq-step-circle">3</div><div class="rfq-step-label">Compare &amp; Negotiate</div></div>
+        <div class="rfq-step-line"></div>
+        <div class="rfq-step"><div class="rfq-step-circle">4</div><div class="rfq-step-label">Accept Quote</div></div>
+        <div class="rfq-step-line"></div>
+        <div class="rfq-step"><div class="rfq-step-circle">5</div><div class="rfq-step-label">Place Order</div></div>
+      </div>
+
+      <!-- Quote cards -->
+      <div class="quote-grid">
+        <!-- Best quote -->
+        <div class="quote-card best">
+          <div class="best-badge"><i class="fas fa-crown"></i> BEST PRICE</div>
+          <div class="quote-supplier">
+            <div class="quote-supplier-logo" style="background:var(--color-accent);">AA</div>
+            <div>
+              <div style="font-weight:700;font-size:.88rem;">Apex Apparel Group</div>
+              <div class="stars" style="font-size:.68rem;color:var(--color-amber);">★★★★★</div>
+            </div>
+          </div>
+          <div class="quote-price">$16.50 <span class="quote-per">/ unit</span></div>
+          <div style="font-size:.75rem;color:var(--color-emerald);font-weight:600;margin-top:2px;"><i class="fas fa-arrow-down"></i> $1.50 below your target</div>
+          <div class="quote-details">
+            <div class="quote-detail-row"><span class="quote-detail-label">Total for 500 units</span><span class="quote-detail-val">$8,250</span></div>
+            <div class="quote-detail-row"><span class="quote-detail-label">MOQ</span><span class="quote-detail-val">200 units</span></div>
+            <div class="quote-detail-row"><span class="quote-detail-label">Lead Time</span><span class="quote-detail-val">12 days</span></div>
+            <div class="quote-detail-row"><span class="quote-detail-label">Payment Terms</span><span class="quote-detail-val">Net 30</span></div>
+            <div class="quote-detail-row"><span class="quote-detail-label">Shipping</span><span class="quote-detail-val">Included</span></div>
+            <div class="quote-detail-row"><span class="quote-detail-label">Sample Available</span><span class="quote-detail-val" style="color:var(--color-emerald);">Yes (Free)</span></div>
+          </div>
+          <div class="quote-actions">
+            <button class="btn btn-primary" onclick="acceptQuote('Apex Apparel Group')"><i class="fas fa-check"></i> Accept</button>
+            <button class="btn btn-outline" onclick="window.location.href='messages.html'"><i class="fas fa-envelope"></i> Negotiate</button>
+          </div>
+        </div>
+
+        <!-- Quote 2 -->
+        <div class="quote-card">
+          <div class="quote-supplier">
+            <div class="quote-supplier-logo" style="background:var(--color-emerald);">EW</div>
+            <div>
+              <div style="font-weight:700;font-size:.88rem;">EcoWear Collective</div>
+              <div class="stars" style="font-size:.68rem;color:var(--color-amber);">★★★★★</div>
+            </div>
+          </div>
+          <div class="quote-price">$17.80 <span class="quote-per">/ unit</span></div>
+          <div style="font-size:.75rem;color:var(--color-muted);font-weight:600;margin-top:2px;"><i class="fas fa-arrow-up"></i> $0.20 below target</div>
+          <div class="quote-details">
+            <div class="quote-detail-row"><span class="quote-detail-label">Total for 500 units</span><span class="quote-detail-val">$8,900</span></div>
+            <div class="quote-detail-row"><span class="quote-detail-label">MOQ</span><span class="quote-detail-val">250 units</span></div>
+            <div class="quote-detail-row"><span class="quote-detail-label">Lead Time</span><span class="quote-detail-val">18 days</span></div>
+            <div class="quote-detail-row"><span class="quote-detail-label">Payment Terms</span><span class="quote-detail-val">Net 45</span></div>
+            <div class="quote-detail-row"><span class="quote-detail-label">Shipping</span><span class="quote-detail-val">+$180</span></div>
+            <div class="quote-detail-row"><span class="quote-detail-label">Certifications</span><span class="quote-detail-val" style="color:var(--color-emerald);">GOTS Organic</span></div>
+          </div>
+          <div class="quote-actions">
+            <button class="btn btn-outline" onclick="acceptQuote('EcoWear Collective')"><i class="fas fa-check"></i> Accept</button>
+            <button class="btn btn-ghost" onclick="window.location.href='messages.html'"><i class="fas fa-envelope"></i> Negotiate</button>
+          </div>
+        </div>
+
+        <!-- Quote 3 -->
+        <div class="quote-card">
+          <div class="quote-supplier">
+            <div class="quote-supplier-logo" style="background:#64748b;">NH</div>
+            <div>
+              <div style="font-weight:700;font-size:.88rem;">Nordic Home Goods</div>
+              <div class="stars" style="font-size:.68rem;color:var(--color-amber);">★★★★☆</div>
+            </div>
+          </div>
+          <div class="quote-price">$19.20 <span class="quote-per">/ unit</span></div>
+          <div style="font-size:.75rem;color:var(--color-rose);font-weight:600;margin-top:2px;"><i class="fas fa-arrow-up"></i> $1.20 above target</div>
+          <div class="quote-details">
+            <div class="quote-detail-row"><span class="quote-detail-label">Total for 500 units</span><span class="quote-detail-val">$9,600</span></div>
+            <div class="quote-detail-row"><span class="quote-detail-label">MOQ</span><span class="quote-detail-val">300 units</span></div>
+            <div class="quote-detail-row"><span class="quote-detail-label">Lead Time</span><span class="quote-detail-val">10 days</span></div>
+            <div class="quote-detail-row"><span class="quote-detail-label">Payment Terms</span><span class="quote-detail-val">50% Upfront</span></div>
+            <div class="quote-detail-row"><span class="quote-detail-label">Shipping</span><span class="quote-detail-val">Included</span></div>
+            <div class="quote-detail-row"><span class="quote-detail-label">Customisation</span><span class="quote-detail-val" style="color:var(--color-sky);">Full custom</span></div>
+          </div>
+          <div class="quote-actions">
+            <button class="btn btn-outline" onclick="acceptQuote('Nordic Home Goods')"><i class="fas fa-check"></i> Accept</button>
+            <button class="btn btn-ghost" onclick="window.location.href='messages.html'"><i class="fas fa-envelope"></i> Negotiate</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Side-by-side comparison table -->
+      <div style="margin-top:24px;">
+        <h3 style="font-size:.95rem;font-weight:700;letter-spacing:-.01em;margin-bottom:12px;">Detailed Comparison</h3>
+        <div class="table-wrap">
+          <table class="data-table compare-table">
+            <thead>
+              <tr>
+                <th style="width:160px;">Criterion</th>
+                <th class="highlight">Apex Apparel <span class="badge badge-emerald" style="font-size:.6rem;">Best</span></th>
+                <th>EcoWear</th>
+                <th>Nordic</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr><td>Unit Price</td><td class="highlight"><strong style="color:var(--color-emerald);">$16.50</strong></td><td>$17.80</td><td>$19.20</td></tr>
+              <tr><td>Total Cost (500u)</td><td class="highlight"><strong style="color:var(--color-emerald);">$8,250</strong></td><td>$9,080</td><td>$9,600</td></tr>
+              <tr><td>Lead Time</td><td class="highlight">12 days</td><td>18 days</td><td><strong style="color:var(--color-emerald);">10 days</strong></td></tr>
+              <tr><td>MOQ</td><td class="highlight"><strong style="color:var(--color-emerald);">200</strong></td><td>250</td><td>300</td></tr>
+              <tr><td>Payment Terms</td><td class="highlight"><strong style="color:var(--color-emerald);">Net 30</strong></td><td>Net 45</td><td>50% Upfront</td></tr>
+              <tr><td>Shipping</td><td class="highlight"><strong style="color:var(--color-emerald);">Included</strong></td><td>+$180</td><td>Included</td></tr>
+              <tr><td>Rating</td><td class="highlight">⭐⭐⭐⭐⭐</td><td>⭐⭐⭐⭐⭐</td><td>⭐⭐⭐⭐</td></tr>
+              <tr><td>Certifications</td><td class="highlight">ISO, OEKO-TEX</td><td style="color:var(--color-emerald);font-weight:600;">GOTS Organic</td><td>ISO 9001</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</main>
+
+<!-- NEW RFQ MODAL -->
+<div class="modal-overlay" id="newRFQModal" style="display:none;" onclick="if(event.target===this)closeNewRFQModal()">
+  <div class="modal" style="max-width:580px;" onclick="event.stopPropagation()">
+    <div class="modal-header">
+      <div class="modal-title">Create New RFQ</div>
+      <button class="btn btn-ghost btn-sm" onclick="closeNewRFQModal()"><i class="fas fa-xmark"></i></button>
+    </div>
+    <div class="modal-body">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+        <div class="form-group" style="grid-column:1/-1;">
+          <label class="form-label">Product / Service Description*</label>
+          <input type="text" class="form-input" placeholder="e.g. Premium Hoodie – 5 colorways, custom label" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">Quantity Required*</label>
+          <input type="number" class="form-input" placeholder="e.g. 500" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">Target Price (per unit)</label>
+          <input type="number" class="form-input" placeholder="e.g. 18.00" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">Category</label>
+          <select class="form-input">
+            <option>Apparel</option>
+            <option>Electronics</option>
+            <option>Beauty &amp; Wellness</option>
+            <option>Home &amp; Living</option>
+            <option>Food &amp; Beverage</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">RFQ Deadline</label>
+          <input type="date" class="form-input" />
+        </div>
+        <div class="form-group" style="grid-column:1/-1;">
+          <label class="form-label">Invite Suppliers (select from your network)</label>
+          <div style="display:flex;flex-wrap:wrap;gap:8px;padding:10px;border:1.5px solid var(--color-border);border-radius:var(--radius-sm);">
+            <label style="display:flex;align-items:center;gap:6px;font-size:.82rem;cursor:pointer;"><input type="checkbox" checked /> Apex Apparel Group</label>
+            <label style="display:flex;align-items:center;gap:6px;font-size:.82rem;cursor:pointer;"><input type="checkbox" /> EcoWear Collective</label>
+            <label style="display:flex;align-items:center;gap:6px;font-size:.82rem;cursor:pointer;"><input type="checkbox" /> Nordic Home Goods</label>
+            <label style="display:flex;align-items:center;gap:6px;font-size:.82rem;cursor:pointer;"><input type="checkbox" /> GlowCo Beauty</label>
+          </div>
+        </div>
+        <div class="form-group" style="grid-column:1/-1;">
+          <label class="form-label">Additional Requirements / Notes</label>
+          <textarea class="form-input" rows="3" placeholder="e.g. Needs custom logo embroidery, must be GOTS certified…"></textarea>
+        </div>
+        <div class="form-group" style="grid-column:1/-1;">
+          <label class="form-label">Attach Product Spec Sheet (optional)</label>
+          <div style="border:2px dashed var(--color-border);border-radius:var(--radius-sm);padding:24px;text-align:center;color:var(--color-muted);font-size:.82rem;cursor:pointer;">
+            <i class="fas fa-cloud-upload-alt" style="font-size:1.5rem;margin-bottom:8px;display:block;"></i>
+            Click to upload or drag &amp; drop · PDF, DOCX, XLSX up to 10MB
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeNewRFQModal()">Cancel</button>
+      <button class="btn btn-outline">Save as Draft</button>
+      <button class="btn btn-primary"><i class="fas fa-paper-plane"></i> Send RFQ</button>
+    </div>
+  </div>
+</div>
+
+<script src="js/portal.js"></script>
+<script>
+  function openNewRFQModal() { document.getElementById('newRFQModal').style.display = 'flex'; }
+  function closeNewRFQModal() { document.getElementById('newRFQModal').style.display = 'none'; }
+  function openRFQModal() { document.getElementById('compareSection').scrollIntoView({behavior:'smooth'}); }
+  function openCompareModal() { document.getElementById('compareSection').scrollIntoView({behavior:'smooth'}); }
+  function acceptQuote(supplier) {
+    if (confirm(`Accept quote from ${supplier} and convert to order?`)) {
+      alert(`✅ Quote accepted! An order draft has been created. Redirecting to Orders...`);
+      setTimeout(() => window.location.href = 'orders.html', 1200);
+    }
+  }
+</script>
+</body>
+</html>

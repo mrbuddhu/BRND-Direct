@@ -1,0 +1,28 @@
+# ============================================================
+#  BRND DIRECT — Cloudflare Pages Redirects
+#  Security hardened — all traffic gated through lock.html
+# ============================================================
+
+# ── Root → Lock page (password gate) ─────────────────────────
+/                   /lock.html           302
+
+# ── Block direct access to portal pages → redirect to lock ───
+/buyer              /lock.html           302
+/seller             /lock.html           302
+/admin              /lock.html           302
+
+# ── Legacy short URLs → lock gate ────────────────────────────
+/login              /lock.html           302
+/signin             /lock.html           302
+/register           /lock.html           302
+/signup             /lock.html           302
+/brand              /lock.html           302
+/dashboard          /lock.html           302
+/products           /lock.html           302
+/orders             /lock.html           302
+
+# ── API routes → Worker (handled by CF Pages Functions) ──────
+# No redirect needed — Cloudflare routes /api/* automatically
+
+# ── 404 fallback → lock page ─────────────────────────────────
+/*                  /lock.html           302

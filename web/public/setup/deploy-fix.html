@@ -1,0 +1,746 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BRND Direct — Fix Cloudflare Deploy Error</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css" />
+  <style>
+    :root {
+      --bg: #0a0a0f;
+      --surface: #13131a;
+      --surface2: #1c1c26;
+      --border: #2a2a3a;
+      --accent: #7c5cfc;
+      --accent2: #a78bfa;
+      --green: #22c55e;
+      --yellow: #f59e0b;
+      --red: #ef4444;
+      --blue: #3b82f6;
+      --text: #e2e8f0;
+      --muted: #94a3b8;
+      --radius: 12px;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Inter', sans-serif;
+      font-size: 15px;
+      line-height: 1.7;
+    }
+
+    /* NAV */
+    .topnav {
+      position: sticky; top: 0; z-index: 100;
+      background: rgba(10,10,15,0.94);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+      padding: 0 2rem;
+      display: flex; align-items: center; justify-content: space-between;
+      height: 60px;
+    }
+    .nav-logo { display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 1rem; }
+    .nav-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--accent); }
+    .nav-badge { background: rgba(239,68,68,.15); border: 1px solid rgba(239,68,68,.3); color: #fca5a5; padding: 3px 12px; border-radius: 20px; font-size: 12px; font-weight: 600; }
+
+    /* HERO */
+    .hero {
+      text-align: center;
+      padding: 3.5rem 2rem 2.5rem;
+      background: radial-gradient(ellipse 70% 50% at 50% -5%, rgba(239,68,68,.12), transparent);
+    }
+    .error-badge {
+      display: inline-flex; align-items: center; gap: 8px;
+      background: rgba(239,68,68,.1); border: 1px solid rgba(239,68,68,.25);
+      color: #fca5a5; padding: 6px 16px; border-radius: 20px;
+      font-size: 12px; font-weight: 700; letter-spacing:.04em; text-transform:uppercase;
+      margin-bottom: 1.2rem;
+    }
+    .hero h1 { font-size: clamp(1.6rem,3.5vw,2.4rem); font-weight: 800; line-height: 1.2; margin-bottom: .7rem; }
+    .hero h1 span { color: #fca5a5; }
+    .hero p { color: var(--muted); max-width: 520px; margin: 0 auto 1.5rem; font-size: .9rem; }
+
+    /* ERROR DISPLAY */
+    .error-box {
+      display: inline-block;
+      background: rgba(239,68,68,.07);
+      border: 1px solid rgba(239,68,68,.25);
+      border-radius: 10px;
+      padding: 10px 20px;
+      font-family: monospace;
+      font-size: .85rem;
+      color: #fca5a5;
+      margin-bottom: 1.5rem;
+    }
+
+    /* WRAPPER */
+    .wrapper { max-width: 820px; margin: 0 auto; padding: 0 1.5rem 5rem; }
+
+    /* CAUSE CARD */
+    .cause-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px,1fr)); gap: 12px; margin-bottom: 2rem; }
+    .cause-card {
+      background: var(--surface); border: 1px solid var(--border); border-radius: 12px;
+      padding: 1.2rem; display: flex; gap: 12px; align-items: flex-start;
+    }
+    .cause-icon { font-size: 1.3rem; flex-shrink: 0; margin-top: 2px; }
+    .cause-title { font-size: .85rem; font-weight: 700; margin-bottom: 4px; }
+    .cause-desc { font-size: .78rem; color: var(--muted); }
+
+    /* FIX SECTION */
+    .fix-section {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 16px; margin-bottom: 1.5rem; overflow: hidden;
+    }
+    .fix-header {
+      display: flex; align-items: center; gap: 14px;
+      padding: 1.2rem 1.6rem; border-bottom: 1px solid var(--border);
+      background: rgba(255,255,255,.02);
+    }
+    .fix-num {
+      width: 36px; height: 36px; border-radius: 10px; flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center;
+      font-weight: 800; font-size: .9rem;
+    }
+    .fix-num.red { background: rgba(239,68,68,.12); color: #fca5a5; border: 1px solid rgba(239,68,68,.2); }
+    .fix-num.green { background: rgba(34,197,94,.12); color: var(--green); border: 1px solid rgba(34,197,94,.2); }
+    .fix-num.blue { background: rgba(59,130,246,.12); color: #93c5fd; border: 1px solid rgba(59,130,246,.2); }
+    .fix-title { font-weight: 700; font-size: .95rem; }
+    .fix-sub { font-size: .78rem; color: var(--muted); margin-top: 2px; }
+    .fix-body { padding: 1.6rem; }
+
+    /* VISUAL STEPS */
+    .vstep { display: flex; gap: 14px; margin-bottom: 1.4rem; align-items: flex-start; }
+    .vstep-num {
+      width: 28px; height: 28px; border-radius: 7px; flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center;
+      font-size: .75rem; font-weight: 800;
+      background: rgba(124,92,252,.12); color: var(--accent2);
+      border: 1px solid rgba(124,92,252,.2);
+    }
+    .vstep-content { flex: 1; padding-top: 3px; }
+    .vstep-content strong { font-weight: 700; }
+    .vstep-content p { color: var(--muted); font-size: .83rem; margin-top: 3px; }
+
+    /* MOCKUP */
+    .mockup {
+      background: var(--surface2); border: 1px solid var(--border);
+      border-radius: 12px; margin: 1rem 0; overflow: hidden;
+    }
+    .mockup-bar {
+      background: #1e1e28; padding: 8px 14px;
+      display: flex; align-items: center; gap: 6px;
+      border-bottom: 1px solid var(--border);
+    }
+    .mock-dot { width: 10px; height: 10px; border-radius: 50%; }
+    .mock-dot.r { background: #ff5f57; }
+    .mock-dot.y { background: #febc2e; }
+    .mock-dot.g { background: #28c840; }
+    .mockup-url {
+      flex: 1; background: var(--surface); border-radius: 6px; padding: 4px 12px;
+      font-size: 11px; color: var(--muted); font-family: monospace;
+      border: 1px solid var(--border); max-width: 400px; margin: 0 auto; text-align: center;
+    }
+    .mockup-body { padding: 1.2rem 1.4rem; }
+
+    /* UI ELEMENTS */
+    .ui-nav {
+      background: #1a1a24; border-bottom: 1px solid var(--border);
+      padding: .5rem 1rem; display: flex; gap: 6px; flex-wrap: wrap; align-items: center;
+    }
+    .ui-tab {
+      padding: 4px 12px; border-radius: 6px; font-size: 11px; font-weight: 600;
+      background: var(--surface); color: var(--muted); border: 1px solid var(--border);
+    }
+    .ui-tab.highlight {
+      background: rgba(34,197,94,.1); color: var(--green);
+      border-color: rgba(34,197,94,.3);
+      animation: pulse 1.6s ease-in-out infinite;
+    }
+    .ui-tab.warn {
+      background: rgba(239,68,68,.1); color: #fca5a5;
+      border-color: rgba(239,68,68,.25);
+    }
+    @keyframes pulse { 0%,100%{box-shadow:none} 50%{box-shadow:0 0 10px rgba(34,197,94,.35)} }
+    .ui-btn {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 6px 14px; border-radius: 7px; font-size: 11px; font-weight: 700;
+      border: none; cursor: default;
+    }
+    .ui-btn.green { background: rgba(34,197,94,.12); color: var(--green); border: 1px solid rgba(34,197,94,.25); }
+    .ui-btn.red { background: rgba(239,68,68,.12); color: #fca5a5; border: 1px solid rgba(239,68,68,.25); }
+    .ui-btn.blue { background: rgba(59,130,246,.12); color: #93c5fd; border: 1px solid rgba(59,130,246,.25); }
+    .ui-btn.purple { background: rgba(124,92,252,.15); color: var(--accent2); border: 1px solid rgba(124,92,252,.25); }
+
+    .ui-content { padding: 1rem 1.2rem; }
+    .ui-row { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; flex-wrap: wrap; }
+    .ui-label { font-size: 11px; color: var(--muted); font-weight: 600; min-width: 100px; }
+    .ui-value { font-size: 11px; background: var(--surface); border: 1px solid var(--border); border-radius: 6px; padding: 4px 10px; color: var(--text); font-family: monospace; }
+    .ui-value.highlight { border-color: var(--accent2); color: var(--accent2); }
+
+    /* STATUS BADGE */
+    .status-row {
+      display: flex; align-items: center; gap: 10px; padding: 10px 14px;
+      border-radius: 8px; font-size: .82rem;
+    }
+    .status-row.error { background: rgba(239,68,68,.07); border: 1px solid rgba(239,68,68,.2); color: #fca5a5; }
+    .status-row.success { background: rgba(34,197,94,.07); border: 1px solid rgba(34,197,94,.2); color: #86efac; }
+    .status-row.pending { background: rgba(245,158,11,.06); border: 1px solid rgba(245,158,11,.2); color: #fcd34d; }
+
+    /* CALLOUT */
+    .callout {
+      display: flex; gap: 12px; padding: .9rem 1.1rem; border-radius: 10px; margin: .8rem 0; font-size: .83rem;
+    }
+    .callout.info { background: rgba(59,130,246,.07); border: 1px solid rgba(59,130,246,.18); color: #93c5fd; }
+    .callout.tip  { background: rgba(245,158,11,.07); border: 1px solid rgba(245,158,11,.2); color: #fcd34d; }
+    .callout.warn { background: rgba(239,68,68,.07); border: 1px solid rgba(239,68,68,.2); color: #fca5a5; }
+    .callout.success { background: rgba(34,197,94,.07); border: 1px solid rgba(34,197,94,.2); color: #86efac; }
+    .callout-icon { font-size: .95rem; flex-shrink: 0; margin-top: 2px; }
+    .callout strong { font-weight: 700; display: block; margin-bottom: 2px; }
+
+    /* CODE */
+    .code-block {
+      position: relative; background: #0d0d14; border: 1px solid var(--border);
+      border-radius: 10px; padding: 1rem 1rem 1rem 1.2rem; margin: .8rem 0;
+      font-family: 'Courier New', monospace; font-size: .8rem; line-height: 1.7;
+      color: #a5b4fc; overflow-x: auto;
+    }
+    .copy-btn {
+      position: absolute; top: 8px; right: 8px;
+      background: rgba(124,92,252,.18); border: 1px solid rgba(124,92,252,.3);
+      color: var(--accent2); padding: 4px 10px; border-radius: 6px;
+      font-size: 11px; font-weight: 600; cursor: pointer;
+      display: flex; align-items: center; gap: 4px; transition: all .2s;
+    }
+    .copy-btn:hover { background: rgba(124,92,252,.3); }
+    .copy-btn.copied { background: rgba(34,197,94,.15); border-color: rgba(34,197,94,.3); color: var(--green); }
+    .c-comment { color: #4b5563; }
+    .c-key { color: #f472b6; }
+    .c-str { color: #6ee7b7; }
+
+    /* DIVIDER */
+    hr { border: none; border-top: 1px solid var(--border); margin: 1.4rem 0; }
+
+    /* OPTION TABS */
+    .tab-group { margin: 1rem 0; }
+    .tab-buttons { display: flex; gap: 4px; border-bottom: 1px solid var(--border); margin-bottom: 1rem; }
+    .tab-btn { padding: 6px 16px; border: none; background: none; color: var(--muted); font-size: .82rem; font-weight: 600; cursor: pointer; border-bottom: 2px solid transparent; margin-bottom: -1px; transition: all .2s; }
+    .tab-btn.active { color: var(--accent2); border-bottom-color: var(--accent); }
+    .tab-pane { display: none; }
+    .tab-pane.active { display: block; }
+
+    /* RECOMMENDED BADGE */
+    .recommended {
+      display: inline-block; background: rgba(34,197,94,.1); border: 1px solid rgba(34,197,94,.25);
+      color: var(--green); padding: 2px 8px; border-radius: 4px; font-size: 10px; font-weight: 700;
+      margin-left: 6px; vertical-align: middle;
+    }
+
+    /* PROGRESS STEPS */
+    .progress-strip {
+      display: flex; gap: 0; margin-bottom: 2rem;
+      background: var(--surface); border: 1px solid var(--border); border-radius: 12px; overflow: hidden;
+    }
+    .ps-item {
+      flex: 1; padding: .7rem .5rem; text-align: center; font-size: .72rem;
+      font-weight: 600; color: var(--muted); border-right: 1px solid var(--border);
+      position: relative;
+    }
+    .ps-item:last-child { border-right: none; }
+    .ps-item.done { color: var(--green); background: rgba(34,197,94,.05); }
+    .ps-item.current { color: var(--accent2); background: rgba(124,92,252,.08); }
+    .ps-item .ps-icon { font-size: .85rem; display: block; margin-bottom: 2px; }
+
+    /* SCROLL */
+    .anchor { scroll-margin-top: 75px; }
+
+    @media (max-width: 600px) {
+      .topnav { padding: 0 1rem; }
+      .wrapper { padding: 0 1rem 4rem; }
+      .fix-body { padding: 1.1rem; }
+      .cause-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav class="topnav">
+  <div class="nav-logo"><div class="nav-dot"></div>BRND Direct</div>
+  <span class="nav-badge"><i class="fas fa-exclamation-circle" style="margin-right:5px;"></i>Deploy Error Fix</span>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="error-badge"><i class="fas fa-times-circle"></i> Error Detected</div>
+  <h1>Fix: <span>"Failed: error occurred<br>while fetching repository"</span></h1>
+  <p>This is one of the most common Cloudflare Pages errors. It almost always means the GitHub authorization wasn't completed properly. Here's exactly how to fix it.</p>
+  <div class="error-box"><i class="fas fa-terminal" style="margin-right:8px;opacity:.6;"></i>Failed: error occurred while fetching repository</div>
+</section>
+
+<div class="wrapper">
+
+  <!-- PROGRESS -->
+  <div class="progress-strip">
+    <div class="ps-item done"><span class="ps-icon">✅</span>Supabase<br>Creds</div>
+    <div class="ps-item done"><span class="ps-icon">✅</span>Schema<br>SQL</div>
+    <div class="ps-item done"><span class="ps-icon">✅</span>Stripe<br>(skipped)</div>
+    <div class="ps-item done"><span class="ps-icon">✅</span>Worker<br>(skipped)</div>
+    <div class="ps-item current"><span class="ps-icon">🔧</span>Go Live<br>(fixing)</div>
+  </div>
+
+  <!-- WHY THIS HAPPENS -->
+  <p style="font-size:.82rem;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);font-weight:700;margin-bottom:.8rem;">Why does this happen?</p>
+  <div class="cause-grid">
+    <div class="cause-card">
+      <div class="cause-icon">🔑</div>
+      <div>
+        <div class="cause-title">GitHub not authorized</div>
+        <div class="cause-desc">Cloudflare doesn't have permission to access your GitHub account or the specific repo.</div>
+      </div>
+    </div>
+    <div class="cause-card">
+      <div class="cause-icon">📁</div>
+      <div>
+        <div class="cause-title">Repo is empty or private</div>
+        <div class="cause-desc">The GitHub repo was created but no files were pushed to it yet, or it's set to private with no access granted.</div>
+      </div>
+    </div>
+    <div class="cause-card">
+      <div class="cause-icon">🔗</div>
+      <div>
+        <div class="cause-title">Wrong repo selected</div>
+        <div class="cause-desc">The Cloudflare Pages connection was pointed at a different or non-existent repository.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════ FIX 1 — RE-AUTHORIZE ══════ -->
+  <div class="fix-section anchor" id="fix1">
+    <div class="fix-header">
+      <div class="fix-num red">1</div>
+      <div>
+        <div class="fix-title">Re-authorize GitHub in Cloudflare</div>
+        <div class="fix-sub">Do this first — fixes 90% of cases</div>
+      </div>
+    </div>
+    <div class="fix-body">
+
+      <div class="vstep">
+        <div class="vstep-num">1</div>
+        <div class="vstep-content">
+          <strong>Go to Cloudflare Dashboard → Workers &amp; Pages</strong>
+          <p>Open <a href="https://dash.cloudflare.com" target="_blank" style="color:var(--accent2)">dash.cloudflare.com</a> and click <strong>Workers &amp; Pages</strong> in the left sidebar.</p>
+        </div>
+      </div>
+
+      <div class="vstep">
+        <div class="vstep-num">2</div>
+        <div class="vstep-content">
+          <strong>Find your Pages project and click into it</strong>
+          <p>Click the project that showed the error (e.g. <code style="color:var(--accent2)">brnd-direct</code>).</p>
+        </div>
+      </div>
+
+      <div class="vstep">
+        <div class="vstep-num">3</div>
+        <div class="vstep-content">
+          <strong>Go to Settings → Builds &amp; Deployments</strong>
+          <p>Inside the project, click the <strong>Settings</strong> tab, then click <strong>Builds &amp; deployments</strong> in the left sub-menu.</p>
+        </div>
+      </div>
+
+      <!-- MOCKUP: Settings screen -->
+      <div class="mockup">
+        <div class="mockup-bar">
+          <div class="mock-dot r"></div><div class="mock-dot y"></div><div class="mock-dot g"></div>
+          <div class="mockup-url">dash.cloudflare.com → Pages → brnd-direct → Settings</div>
+        </div>
+        <div style="display:flex;min-height:130px;">
+          <div style="width:170px;background:#111118;border-right:1px solid var(--border);padding:10px;font-size:11px;">
+            <div style="font-weight:700;color:var(--muted);margin-bottom:8px;font-size:10px;text-transform:uppercase;letter-spacing:.06em;">Settings</div>
+            <div class="ui-tab" style="display:block;margin-bottom:4px;padding:5px 8px;">General</div>
+            <div class="ui-tab highlight" style="display:block;margin-bottom:4px;padding:5px 8px;">Builds &amp; deployments ←</div>
+            <div class="ui-tab" style="display:block;margin-bottom:4px;padding:5px 8px;">Environment vars</div>
+            <div class="ui-tab" style="display:block;padding:5px 8px;">Custom domains</div>
+          </div>
+          <div class="ui-content" style="flex:1;">
+            <div style="font-size:.82rem;font-weight:700;margin-bottom:10px;">Git repository</div>
+            <div class="ui-row">
+              <div class="ui-label">Connected repo:</div>
+              <div class="ui-value warn" style="color:#fca5a5;border-color:rgba(239,68,68,.3);">⚠ yourname/brnd-direct</div>
+            </div>
+            <div style="margin-top:10px;">
+              <button class="ui-btn blue">🔁 Manage Git connection ← Click this</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="vstep">
+        <div class="vstep-num">4</div>
+        <div class="vstep-content">
+          <strong>Click "Manage Git connection" or "Change source"</strong>
+          <p>This will open a GitHub authorization popup. Click <strong>Authorize Cloudflare Pages</strong> when prompted.</p>
+        </div>
+      </div>
+
+      <!-- MOCKUP: GitHub Auth popup -->
+      <div class="mockup">
+        <div class="mockup-bar">
+          <div class="mock-dot r"></div><div class="mock-dot y"></div><div class="mock-dot g"></div>
+          <div class="mockup-url">github.com — Authorize Cloudflare Pages</div>
+        </div>
+        <div class="ui-content" style="text-align:center;padding:1.5rem;">
+          <div style="font-size:1.5rem;margin-bottom:.5rem;">🐙 → ☁️</div>
+          <div style="font-weight:700;font-size:.9rem;margin-bottom:.5rem;">Cloudflare Pages wants access to your GitHub</div>
+          <div style="font-size:.78rem;color:var(--muted);margin-bottom:1rem;">It needs to read your repositories to deploy your site.</div>
+          <div style="display:flex;gap:8px;justify-content:center;">
+            <button class="ui-btn green">✅ Authorize Cloudflare Pages ← Click</button>
+            <button class="ui-btn red">Cancel</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="vstep">
+        <div class="vstep-num">5</div>
+        <div class="vstep-content">
+          <strong>Make sure "All repositories" OR your specific repo is checked</strong>
+          <p>On the GitHub authorization page, scroll down to <strong>Repository access</strong>. Either select <strong>All repositories</strong> or click <strong>Select repositories</strong> and choose <strong>brnd-direct</strong>.</p>
+        </div>
+      </div>
+
+      <!-- MOCKUP: Repo access -->
+      <div class="mockup">
+        <div class="mockup-bar">
+          <div class="mock-dot r"></div><div class="mock-dot y"></div><div class="mock-dot g"></div>
+          <div class="mockup-url">github.com — Repository access settings</div>
+        </div>
+        <div class="ui-content">
+          <div style="font-size:.8rem;font-weight:700;margin-bottom:8px;">Repository access</div>
+          <div style="display:flex;flex-direction:column;gap:8px;font-size:.8rem;">
+            <label style="display:flex;align-items:center;gap:8px;cursor:pointer;">
+              <div style="width:16px;height:16px;border-radius:50%;background:var(--surface2);border:2px solid var(--border);"></div>
+              <span>All repositories</span>
+            </label>
+            <label style="display:flex;align-items:center;gap:8px;cursor:pointer;">
+              <div style="width:16px;height:16px;border-radius:50%;background:var(--accent);border:2px solid var(--accent);display:flex;align-items:center;justify-content:center;">
+                <div style="width:6px;height:6px;border-radius:50%;background:#fff;"></div>
+              </div>
+              <span style="color:var(--text);">Only select repositories</span>
+            </label>
+            <div style="margin-left:24px;background:rgba(34,197,94,.08);border:1px solid rgba(34,197,94,.2);border-radius:8px;padding:8px 12px;display:flex;align-items:center;gap:8px;">
+              <i class="fab fa-github" style="color:var(--green);"></i>
+              <span style="color:var(--green);font-weight:600;">yourname/brnd-direct ✓</span>
+            </div>
+          </div>
+          <button class="ui-btn green" style="margin-top:12px;">Save ← Click to confirm</button>
+        </div>
+      </div>
+
+      <div class="vstep">
+        <div class="vstep-num">6</div>
+        <div class="vstep-content">
+          <strong>Go back to Cloudflare Pages and retry the deployment</strong>
+          <p>In your Pages project, click <strong>Retry deployment</strong> on the failed build, or create a new deployment from the <strong>Deployments</strong> tab.</p>
+        </div>
+      </div>
+
+      <div class="mockup">
+        <div class="mockup-bar">
+          <div class="mock-dot r"></div><div class="mock-dot y"></div><div class="mock-dot g"></div>
+          <div class="mockup-url">dash.cloudflare.com → Pages → brnd-direct → Deployments</div>
+        </div>
+        <div class="ui-content">
+          <div style="font-size:.8rem;font-weight:700;margin-bottom:10px;">Deployments</div>
+          <div style="background:var(--surface2);border-radius:8px;padding:10px 12px;display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+            <div>
+              <div style="font-size:.8rem;font-weight:600;">main branch</div>
+              <div class="status-row error" style="margin-top:4px;padding:4px 8px;font-size:.75rem;">
+                <i class="fas fa-times-circle"></i> Failed: error occurred while fetching repository
+              </div>
+            </div>
+            <button class="ui-btn blue">🔁 Retry deployment ← Click</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="callout success">
+        <span class="callout-icon"><i class="fas fa-check-circle"></i></span>
+        <div>
+          <strong>If it works:</strong>
+          You'll see the status change to "Building…" then "Success" with a live URL like <code>brnd-direct.pages.dev</code>. Skip to the bottom of this page.
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+
+  <!-- ══════ FIX 2 — PUSH CODE ══════ -->
+  <div class="fix-section anchor" id="fix2">
+    <div class="fix-header">
+      <div class="fix-num green">2</div>
+      <div>
+        <div class="fix-title">Make sure your code is actually on GitHub</div>
+        <div class="fix-sub">If the repo is empty, Cloudflare has nothing to fetch</div>
+      </div>
+    </div>
+    <div class="fix-body">
+
+      <div class="callout warn">
+        <span class="callout-icon"><i class="fas fa-exclamation-triangle"></i></span>
+        <div>
+          <strong>Check this first:</strong>
+          Go to <code style="color:#fca5a5">github.com/YOUR_USERNAME/brnd-direct</code> in your browser. Do you see your project files listed? If the page says <em>"This repository is empty"</em> — that's the problem.
+        </div>
+      </div>
+
+      <div class="tab-group">
+        <div class="tab-buttons">
+          <button class="tab-btn active" onclick="switchTab(this,'t-desktop')">GitHub Desktop <span class="recommended">Easiest</span></button>
+          <button class="tab-btn" onclick="switchTab(this,'t-terminal')">Terminal / Git</button>
+          <button class="tab-btn" onclick="switchTab(this,'t-upload')">Direct Upload (No Git)</button>
+        </div>
+
+        <!-- GITHUB DESKTOP -->
+        <div class="tab-pane active" id="t-desktop">
+          <div class="callout info">
+            <span class="callout-icon"><i class="fas fa-info-circle"></i></span>
+            <div>GitHub Desktop is a free app that handles all Git steps visually — no command line needed. Download it at <a href="https://desktop.github.com" target="_blank" style="color:#93c5fd">desktop.github.com</a></div>
+          </div>
+
+          <div class="vstep">
+            <div class="vstep-num">1</div>
+            <div class="vstep-content">
+              <strong>Open GitHub Desktop → File → Add Local Repository</strong>
+              <p>Point it to your project folder (wherever the project files are saved on your computer).</p>
+            </div>
+          </div>
+
+          <div class="vstep">
+            <div class="vstep-num">2</div>
+            <div class="vstep-content">
+              <strong>Click "Publish repository" in the top toolbar</strong>
+              <p>Name it <code style="color:var(--accent2)">brnd-direct</code>. Make sure <strong>"Keep this code private"</strong> is unchecked (or checked — either works, just note it for Cloudflare).</p>
+            </div>
+          </div>
+
+          <div class="mockup">
+            <div class="mockup-bar">
+              <div class="mock-dot r"></div><div class="mock-dot y"></div><div class="mock-dot g"></div>
+              <div class="mockup-url">GitHub Desktop — Publish repository</div>
+            </div>
+            <div class="ui-content">
+              <div style="font-size:.82rem;font-weight:700;margin-bottom:10px;">Publish repository to GitHub</div>
+              <div class="ui-row"><div class="ui-label">Name:</div><div class="ui-value highlight">brnd-direct</div></div>
+              <div class="ui-row"><div class="ui-label">Description:</div><div class="ui-value">BRND Direct Wholesale Portal</div></div>
+              <div style="display:flex;align-items:center;gap:8px;margin:8px 0;font-size:.8rem;">
+                <div style="width:14px;height:14px;border-radius:3px;background:var(--surface2);border:1px solid var(--border);"></div>
+                <span style="color:var(--muted);">Keep this code private</span>
+              </div>
+              <button class="ui-btn green" style="margin-top:8px;">Publish repository →</button>
+            </div>
+          </div>
+
+          <div class="vstep">
+            <div class="vstep-num">3</div>
+            <div class="vstep-content">
+              <strong>Done! Go back to Cloudflare and retry</strong>
+              <p>Your files are now on GitHub. Go back to Cloudflare Pages → your project → Retry deployment.</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- TERMINAL -->
+        <div class="tab-pane" id="t-terminal">
+          <div class="code-block">
+            <button class="copy-btn" onclick="copyCode(this,'terminalCmds')"><i class="fas fa-copy"></i> Copy</button>
+            <span id="terminalCmds"><span class="c-comment"># 1. Open Terminal and go to your project folder</span>
+cd /path/to/your/brnd-direct-project
+
+<span class="c-comment"># 2. Initialize git (if not already done)</span>
+git init
+
+<span class="c-comment"># 3. Add all files</span>
+git add .
+
+<span class="c-comment"># 4. Create first commit</span>
+git commit -m "Initial commit — BRND Direct portal"
+
+<span class="c-comment"># 5. Connect to your GitHub repo</span>
+<span class="c-comment"># Replace YOUR_USERNAME with your GitHub username</span>
+git remote add origin https://github.com/YOUR_USERNAME/brnd-direct.git
+
+<span class="c-comment"># 6. Push the code</span>
+git branch -M main
+git push -u origin main</span>
+          </div>
+        </div>
+
+        <!-- DIRECT UPLOAD -->
+        <div class="tab-pane" id="t-upload">
+          <div class="callout tip">
+            <span class="callout-icon"><i class="fas fa-lightbulb"></i></span>
+            <div>
+              <strong>Skip GitHub entirely</strong> — Cloudflare Pages also supports direct file uploads. This is the simplest option if you don't want to use Git at all.
+            </div>
+          </div>
+
+          <div class="vstep">
+            <div class="vstep-num">1</div>
+            <div class="vstep-content">
+              <strong>Go to Cloudflare → Workers &amp; Pages → Create → Pages → Upload assets</strong>
+              <p>Instead of "Connect to Git", choose <strong>"Upload assets"</strong>.</p>
+            </div>
+          </div>
+
+          <div class="mockup">
+            <div class="mockup-bar">
+              <div class="mock-dot r"></div><div class="mock-dot y"></div><div class="mock-dot g"></div>
+              <div class="mockup-url">dash.cloudflare.com → Pages → Create</div>
+            </div>
+            <div class="ui-content">
+              <div style="font-size:.82rem;font-weight:700;margin-bottom:12px;">How do you want to deploy?</div>
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+                <div style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:12px;text-align:center;font-size:.8rem;opacity:.5;">
+                  <div style="font-size:1.2rem;margin-bottom:4px;">🐙</div>
+                  Connect to Git<br><span style="font-size:.7rem;color:var(--muted);">(had the error)</span>
+                </div>
+                <div style="background:rgba(34,197,94,.06);border:1px solid rgba(34,197,94,.25);border-radius:8px;padding:12px;text-align:center;font-size:.8rem;">
+                  <div style="font-size:1.2rem;margin-bottom:4px;">📁</div>
+                  <strong style="color:var(--green);">Upload assets</strong><br>
+                  <span style="font-size:.7rem;color:var(--green);">← Use this instead</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="vstep">
+            <div class="vstep-num">2</div>
+            <div class="vstep-content">
+              <strong>Name your project <code style="color:var(--accent2)">brnd-direct</code> and click Create</strong>
+            </div>
+          </div>
+
+          <div class="vstep">
+            <div class="vstep-num">3</div>
+            <div class="vstep-content">
+              <strong>Zip your entire project folder and drag it in</strong>
+              <p>Select all your project files, compress them into a <code>.zip</code> file, then drag and drop the zip onto the upload area Cloudflare shows.</p>
+            </div>
+          </div>
+
+          <div class="mockup">
+            <div class="mockup-bar">
+              <div class="mock-dot r"></div><div class="mock-dot y"></div><div class="mock-dot g"></div>
+              <div class="mockup-url">Cloudflare Pages — Upload assets</div>
+            </div>
+            <div class="ui-content" style="text-align:center;padding:1.5rem;">
+              <div style="border:2px dashed var(--border);border-radius:10px;padding:1.5rem;color:var(--muted);font-size:.82rem;">
+                <div style="font-size:1.8rem;margin-bottom:.5rem;">📁</div>
+                <div style="font-weight:700;margin-bottom:.3rem;color:var(--text);">Drop your zip file here</div>
+                or click to browse
+              </div>
+              <div style="font-size:.75rem;color:var(--muted);margin-top:.6rem;">Your entire project folder compressed as a .zip</div>
+            </div>
+          </div>
+
+          <div class="vstep">
+            <div class="vstep-num">4</div>
+            <div class="vstep-content">
+              <strong>Click "Deploy site"</strong>
+              <p>Cloudflare will process the zip and give you a live URL at <code style="color:var(--accent2)">brnd-direct.pages.dev</code> within about 30 seconds.</p>
+            </div>
+          </div>
+
+          <div class="callout success">
+            <span class="callout-icon"><i class="fas fa-rocket"></i></span>
+            <div>
+              <strong>This is the fastest way to go live</strong> — no GitHub account, no Git commands, no errors. Just zip and upload.
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+
+  <!-- ══════ FIX 3 — DELETE & RESTART ══════ -->
+  <div class="fix-section anchor" id="fix3">
+    <div class="fix-header">
+      <div class="fix-num blue">3</div>
+      <div>
+        <div class="fix-title">Still broken? Delete the project and start fresh</div>
+        <div class="fix-sub">Takes 2 minutes — sometimes the cleanest fix</div>
+      </div>
+    </div>
+    <div class="fix-body">
+
+      <div class="vstep">
+        <div class="vstep-num">1</div>
+        <div class="vstep-content">
+          <strong>Delete the broken Pages project in Cloudflare</strong>
+          <p>Go to your Pages project → Settings → General → scroll to the very bottom → click <strong style="color:#fca5a5">Delete project</strong>.</p>
+        </div>
+      </div>
+
+      <div class="vstep">
+        <div class="vstep-num">2</div>
+        <div class="vstep-content">
+          <strong>Create a brand new Pages project</strong>
+          <p>Click <strong>Create</strong> again → choose either <strong>Connect to Git</strong> (after fixing GitHub auth above) or <strong>Upload assets</strong> (simplest).</p>
+        </div>
+      </div>
+
+      <div class="callout info">
+        <span class="callout-icon"><i class="fas fa-info-circle"></i></span>
+        <div>
+          Deleting a Pages project does NOT delete your GitHub repo or any of your code. It only removes the Cloudflare deployment.
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- SUCCESS STATE -->
+  <div style="background:rgba(34,197,94,.06);border:1px solid rgba(34,197,94,.2);border-radius:14px;padding:1.6rem;text-align:center;margin-top:2rem;">
+    <div style="font-size:1.8rem;margin-bottom:.5rem;">🚀</div>
+    <div style="font-weight:700;font-size:1rem;margin-bottom:.4rem;color:var(--green);">Once it deploys successfully…</div>
+    <p style="color:#86efac;font-size:.85rem;max-width:480px;margin:0 auto .8rem;">
+      You'll see a green <strong>"Success"</strong> status and a live URL like <code>brnd-direct.pages.dev</code>. Click it to see your portal live!
+    </p>
+    <div style="display:inline-block;background:var(--surface2);border:1px solid rgba(34,197,94,.25);border-radius:8px;padding:8px 20px;font-family:monospace;font-size:.85rem;color:var(--green);">
+      https://brnd-direct.pages.dev
+    </div>
+    <p style="color:var(--muted);font-size:.78rem;margin-top:.8rem;">
+      Then come back to the chat and say <strong style="color:var(--accent2)">"it's live"</strong> — we'll do the final admin setup (1 SQL line).
+    </p>
+  </div>
+
+</div>
+
+<script>
+  function switchTab(btn, paneId) {
+    const group = btn.closest('.tab-group');
+    group.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    group.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById(paneId).classList.add('active');
+  }
+
+  function copyCode(btn, spanId) {
+    const txt = document.getElementById(spanId).innerText;
+    navigator.clipboard.writeText(txt).then(() => {
+      const orig = btn.innerHTML;
+      btn.innerHTML = '<i class="fas fa-check"></i> Copied!';
+      btn.classList.add('copied');
+      setTimeout(() => { btn.innerHTML = orig; btn.classList.remove('copied'); }, 2500);
+    });
+  }
+</script>
+</body>
+</html>

@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Create Buyer Account – BRND Direct Wholesale Portal</title>
+  <meta name="description" content="Join BRND Direct as a wholesale buyer. Access 500+ verified brands at wholesale-direct pricing." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&family=Inter:wght@300;400;500;600;700&family=Outfit:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.5.0/css/all.min.css" />
+  <link rel="stylesheet" href="css/portal.css" />
+  <style>
+    /* Buyer left panel — matches brnddirect.com/signup?type=buyer */
+    .auth-left.buyer-reg { background: var(--color-near-black); }
+    .auth-left.buyer-reg .auth-left__bg {
+      background:
+        radial-gradient(ellipse 70% 60% at 30% 20%, rgba(79,70,229,.3) 0%, transparent 60%),
+        radial-gradient(ellipse 50% 50% at 80% 80%, rgba(16,185,129,.12) 0%, transparent 60%);
+    }
+    .auth-card--wide { max-width: 540px; }
+    /* Badge */
+    .reg-badge {
+      display: inline-flex; align-items: center; gap: 6px;
+      background: rgba(255,255,255,.08); color: rgba(255,255,255,.7);
+      font-size: .72rem; font-weight: 700; letter-spacing: .06em;
+      text-transform: uppercase; padding: 5px 14px;
+      border-radius: 100px; margin-bottom: 14px;
+      border: 1px solid rgba(255,255,255,.1);
+    }
+    /* Benefit cards */
+    .reg-benefit {
+      display: flex; align-items: flex-start; gap: 10px;
+      padding: 10px 12px;
+      background: rgba(255,255,255,.05);
+      border: 1px solid rgba(255,255,255,.07);
+      border-radius: 10px;
+      margin-bottom: 7px;
+    }
+    .reg-benefit:first-child { background: rgba(79,70,229,.15); border-color: rgba(79,70,229,.3); }
+    .reg-benefit-icon {
+      width: 30px; height: 30px; border-radius: 8px; flex-shrink: 0;
+      background: rgba(79,70,229,.2); color: #a5b4fc;
+      display: flex; align-items: center; justify-content: center; font-size: .76rem;
+    }
+    .reg-benefit-icon.green { background: rgba(16,185,129,.15); color: #34d399; }
+    .reg-benefit-title { font-size: .78rem; font-weight: 700; color: rgba(255,255,255,.9); margin-bottom: 2px; }
+    .reg-benefit-desc  { font-size: .7rem;  color: rgba(255,255,255,.4); line-height: 1.45; }
+    /* Trust bar */
+    .reg-trust {
+      display: flex; align-items: center; gap: 10px;
+      margin-top: 16px; padding-top: 16px;
+      border-top: 1px solid rgba(255,255,255,.08);
+    }
+    .reg-avatars { display: flex; }
+    .reg-avatar {
+      width: 28px; height: 28px; border-radius: 50%;
+      border: 2px solid var(--color-near-black);
+      display: flex; align-items: center; justify-content: center;
+      font-size: .6rem; font-weight: 700; color: white;
+      margin-right: -8px; background: var(--color-accent);
+    }
+    .reg-trust-text { font-size: .78rem; color: rgba(255,255,255,.4); padding-left: 10px; }
+    .reg-trust-text strong { color: rgba(255,255,255,.75); }
+    .auth-right--register { padding: 40px 32px; }
+    .pw-strength { margin-top: 6px; display: flex; gap: 4px; }
+    .pw-strength-bar { flex: 1; height: 4px; border-radius: 2px; background: var(--color-border); transition: background .3s; }
+    .pw-strength-bar.weak   { background: var(--color-rose); }
+    .pw-strength-bar.medium { background: var(--color-amber); }
+    .pw-strength-bar.strong { background: var(--color-emerald); }
+    .pw-strength-label { font-size: .72rem; color: var(--color-muted); margin-top: 4px; }
+    .success-card { text-align: center; padding: 48px 24px; display: none; }
+    .success-card.show { display: block; }
+    .success-icon { width: 72px; height: 72px; border-radius: 50%; background: var(--color-emerald-glow); display: flex; align-items: center; justify-content: center; margin: 0 auto 20px; font-size: 1.8rem; color: var(--color-emerald); }
+    .success-card h3 { font-family: var(--font-display); font-size: 1.4rem; font-weight: 800; letter-spacing: -.03em; margin-bottom: 8px; }
+    .success-card p { color: var(--color-muted); font-size: .9rem; line-height: 1.7; max-width: 320px; margin: 0 auto 24px; }
+  </style>
+</head>
+<body>
+
+<div class="auth-wrapper">
+
+  <!-- LEFT BRAND PANEL — content matches brnddirect.com/signup?type=buyer -->
+  <div class="auth-left buyer-reg">
+    <div class="auth-left__bg"></div>
+    <div class="auth-left__grid"></div>
+    <div class="auth-left__content">
+
+      <div class="auth-left__logo">
+        <a href="index.html" class="logo-mark">
+          <span class="logo-icon"><i class="fas fa-chevron-right"></i></span>
+          <span class="logo-word">BRND <span class="logo-accent">DIRECT</span></span>
+        </a>
+      </div>
+
+      <!-- Badge -->
+      <div class="reg-badge">
+        <i class="fas fa-bolt"></i> Zero setup fees
+      </div>
+
+      <h1>Join BRND Direct<br/>as a Buyer</h1>
+      <p>Access thousands of verified wholesale brands, unlock flexible net terms at checkout, and manage all your orders in one intelligent dashboard.</p>
+
+      <!-- Benefit cards -->
+      <div class="reg-benefit">
+        <div class="reg-benefit-icon"><i class="fas fa-store"></i></div>
+        <div>
+          <div class="reg-benefit-title">Curated Brand Catalog</div>
+          <div class="reg-benefit-desc">Thousands of verified wholesale-ready brands in one place.</div>
+        </div>
+      </div>
+
+      <div class="reg-benefit">
+        <div class="reg-benefit-icon green"><i class="fas fa-credit-card"></i></div>
+        <div>
+          <div class="reg-benefit-title">Flexible Net Terms Built-In</div>
+          <div class="reg-benefit-desc">Net-30/60/90 &amp; BNPL at checkout — instant approval, no banks.</div>
+        </div>
+      </div>
+
+      <div class="reg-benefit">
+        <div class="reg-benefit-icon green"><i class="fas fa-box-open"></i></div>
+        <div>
+          <div class="reg-benefit-title">Automated Dropshipping</div>
+          <div class="reg-benefit-desc">Connect your Shopify or WooCommerce store — we ship premium brands directly to your customers. Zero inventory, zero manual steps.</div>
+        </div>
+      </div>
+
+      <div class="reg-benefit">
+        <div class="reg-benefit-icon"><i class="fas fa-chart-bar"></i></div>
+        <div>
+          <div class="reg-benefit-title">Analytics &amp; Reorder Alerts</div>
+          <div class="reg-benefit-desc">Know what's selling and when to restock, automatically.</div>
+        </div>
+      </div>
+
+      <!-- Trust bar -->
+      <div class="reg-trust">
+        <div class="reg-avatars">
+          <div class="reg-avatar">SL</div>
+          <div class="reg-avatar" style="background:#10b981;">MR</div>
+          <div class="reg-avatar" style="background:#f59e0b;">TP</div>
+        </div>
+        <div class="reg-trust-text">
+          <strong>500+ brands &amp; buyers</strong> already on the platform
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- RIGHT FORM PANEL -->
+  <div class="auth-right auth-right--register">
+    <div class="auth-card auth-card--wide fade-in">
+
+      <div class="auth-card__logo">
+        <a href="index.html" class="logo-mark">
+          <span class="logo-icon"><i class="fas fa-chevron-right"></i></span>
+          <span class="logo-word logo-word--dark">BRND <span class="logo-accent logo-accent--dark">DIRECT</span></span>
+        </a>
+      </div>
+
+      <h2 style="font-size:1.45rem;">Create Buyer Account</h2>
+      <p class="auth-card__sub">
+        Access thousands of verified brands at wholesale-direct pricing. Already have an account?
+        <a href="index.html">Sign in →</a>
+      </p>
+
+      <form class="signup-form" id="buyerForm" novalidate>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label" for="b-first">First Name</label>
+            <input type="text" id="b-first" class="form-input" placeholder="Alex" required />
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="b-last">Last Name</label>
+            <input type="text" id="b-last" class="form-input" placeholder="Johnson" required />
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="b-business">Business Name</label>
+          <input type="text" id="b-business" class="form-input" placeholder="Johnson Retail Group" required />
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="b-email">Email Address</label>
+          <div class="input-group">
+            <i class="fas fa-envelope input-icon"></i>
+            <input type="email" id="b-email" class="form-input" placeholder="alex@company.com" required />
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label" for="b-pass">Password</label>
+            <div class="input-group">
+              <i class="fas fa-lock input-icon"></i>
+              <input type="password" id="b-pass" class="form-input has-suffix" placeholder="Create password" required />
+              <button type="button" class="input-suffix toggle-pw" aria-label="Toggle"><i class="fas fa-eye"></i></button>
+            </div>
+            <div class="pw-strength" id="pwStrength">
+              <div class="pw-strength-bar" id="bar1"></div>
+              <div class="pw-strength-bar" id="bar2"></div>
+              <div class="pw-strength-bar" id="bar3"></div>
+              <div class="pw-strength-bar" id="bar4"></div>
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="b-confirm">Confirm Password</label>
+            <div class="input-group">
+              <i class="fas fa-lock input-icon"></i>
+              <input type="password" id="b-confirm" class="form-input has-suffix" placeholder="Repeat password" required />
+              <button type="button" class="input-suffix toggle-pw" aria-label="Toggle"><i class="fas fa-eye"></i></button>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="b-phone">Phone Number</label>
+          <div class="input-group">
+            <i class="fas fa-phone input-icon"></i>
+            <input type="tel" id="b-phone" class="form-input" placeholder="+1 (555) 000-0000" />
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="b-type">Business Type</label>
+          <select id="b-type" class="form-select" required>
+            <option value="">Select your business type</option>
+            <option value="retailer">Retailer / Physical Store</option>
+            <option value="ecommerce">E-commerce / Online Store</option>
+            <option value="distributor">Distributor / Wholesaler</option>
+            <option value="boutique">Boutique / Specialty Shop</option>
+            <option value="dropship">Dropshipper / Reseller</option>
+            <option value="other">Other</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="b-ein">EIN / Tax ID (optional)</label>
+          <input type="text" id="b-ein" class="form-input" placeholder="XX-XXXXXXX" />
+        </div>
+
+        <div class="form-group">
+          <label class="form-check">
+            <input type="checkbox" id="b-terms" required />
+            <span class="form-check-label">
+              I agree to BRND Direct's <a href="#">Terms of Service</a> and <a href="#">Privacy Policy</a>
+            </span>
+          </label>
+        </div>
+
+        <button type="submit" class="btn btn-primary btn-lg btn-full" id="buyerSubmit">
+          Create Buyer Account <i class="fas fa-arrow-right"></i>
+        </button>
+
+      </form>
+
+      <!-- Success state -->
+      <div class="success-card" id="buyerSuccess">
+        <div class="success-icon"><i class="fas fa-check"></i></div>
+        <h3>Application Received!</h3>
+        <p>Thank you for applying to BRND Direct. Our team will review your application and reach out within 24 hours.</p>
+        <a href="index.html" class="btn btn-primary">Sign In to Your Account</a>
+      </div>
+
+      <p class="auth-footer">© 2026 BRND Direct Inc. &nbsp;·&nbsp; <a href="#">Terms</a> &nbsp;·&nbsp; <a href="#">Privacy</a></p>
+
+    </div>
+  </div>
+</div>
+
+<div class="toast-container" id="toastContainer"></div>
+
+<!-- Supabase + Auth must load before page script -->
+<script src="../js/supabase.js"></script>
+<script src="../js/auth.js"></script>
+
+<script>
+/* ── Password visibility toggle ────────────────────────── */
+document.querySelectorAll('.toggle-pw').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const input = btn.closest('.input-group').querySelector('input');
+    const icon  = btn.querySelector('i');
+    const isPass = input.type === 'password';
+    input.type   = isPass ? 'text' : 'password';
+    icon.className = isPass ? 'fas fa-eye-slash' : 'fas fa-eye';
+  });
+});
+
+/* ── Password strength meter ───────────────────────────── */
+const bPass = document.getElementById('b-pass');
+if (bPass) {
+  bPass.addEventListener('input', () => {
+    const val = bPass.value;
+    let strength = 0;
+    if (val.length >= 8)          strength++;
+    if (/[A-Z]/.test(val))        strength++;
+    if (/[0-9]/.test(val))        strength++;
+    if (/[^A-Za-z0-9]/.test(val)) strength++;
+    const bars = document.querySelectorAll('.pw-strength-bar');
+    const clss = ['', 'weak', 'medium', 'strong', 'strong'];
+    bars.forEach((bar, i) => {
+      bar.className = 'pw-strength-bar';
+      if (i < strength) bar.classList.add(clss[strength]);
+    });
+  });
+}
+
+/* ── Toast helper ──────────────────────────────────────── */
+function showToast(msg, type = 'success') {
+  const c    = document.getElementById('toastContainer');
+  const icon = type === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle';
+  const t    = document.createElement('div');
+  t.className = `toast ${type}`;
+  t.innerHTML = `<i class="fas ${icon}"></i><span>${msg}</span>`;
+  c.appendChild(t);
+  setTimeout(() => {
+    t.style.opacity   = '0';
+    t.style.transform = 'translateX(60px)';
+    t.style.transition = 'all .3s';
+    setTimeout(() => t.remove(), 350);
+  }, 3500);
+}
+
+/* ── Registration form — wired to Supabase Auth ────────── */
+document.getElementById('buyerForm').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const btn  = document.getElementById('buyerSubmit');
+  const succ = document.getElementById('buyerSuccess');
+
+  // Gather fields
+  const firstName    = document.getElementById('b-first').value.trim();
+  const lastName     = document.getElementById('b-last').value.trim();
+  const businessName = document.getElementById('b-business').value.trim();
+  const email        = document.getElementById('b-email').value.trim();
+  const password     = document.getElementById('b-pass').value;
+  const confirm      = document.getElementById('b-confirm').value;
+  const phone        = document.getElementById('b-phone').value.trim();
+  const businessType = document.getElementById('b-type').value;
+  const einTaxId     = document.getElementById('b-ein').value.trim();
+  const termsChecked = document.getElementById('b-terms').checked;
+
+  // Basic validation
+  if (!firstName || !lastName)  { showToast('Please enter your first and last name.', 'error'); return; }
+  if (!businessName)             { showToast('Business name is required.', 'error'); return; }
+  if (!email)                    { showToast('Email address is required.', 'error'); return; }
+  if (password.length < 8)       { showToast('Password must be at least 8 characters.', 'error'); return; }
+  if (password !== confirm)      { showToast('Passwords do not match.', 'error'); return; }
+  if (!businessType)             { showToast('Please select your business type.', 'error'); return; }
+  if (!termsChecked)             { showToast('Please accept the Terms of Service.', 'error'); return; }
+
+  btn.disabled  = true;
+  btn.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> Creating account…';
+
+  try {
+    await buyerRegister({
+      firstName, lastName, businessName, email, password,
+      phone, businessType, einTaxId
+    });
+
+    // Show success
+    document.getElementById('buyerForm').style.display = 'none';
+    succ.classList.add('show');
+
+  } catch (err) {
+    showToast(err.message || 'Registration failed. Please try again.', 'error');
+    btn.disabled  = false;
+    btn.innerHTML = 'Create Buyer Account <i class="fas fa-arrow-right"></i>';
+  }
+});
+</script>
+
+</body>
+</html>

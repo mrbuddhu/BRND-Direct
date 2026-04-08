@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BRND Direct Portal — Preview</title>
+  <meta name="robots" content="noindex, nofollow" />
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800;900&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.5.0/css/all.min.css" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      background: #0a0f1e;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #fff;
+    }
+
+    .bg-glow {
+      position: fixed; inset: 0; z-index: 0; overflow: hidden; pointer-events: none;
+    }
+    .bg-glow::before {
+      content: '';
+      position: absolute;
+      width: 700px; height: 700px;
+      background: radial-gradient(circle, rgba(79,70,229,.22) 0%, transparent 70%);
+      top: -150px; left: -150px;
+      animation: drift1 10s ease-in-out infinite alternate;
+    }
+    .bg-glow::after {
+      content: '';
+      position: absolute;
+      width: 600px; height: 600px;
+      background: radial-gradient(circle, rgba(16,185,129,.14) 0%, transparent 70%);
+      bottom: -150px; right: -150px;
+      animation: drift2 12s ease-in-out infinite alternate;
+    }
+    @keyframes drift1 { from { transform: translate(0,0); } to { transform: translate(60px, 40px); } }
+    @keyframes drift2 { from { transform: translate(0,0); } to { transform: translate(-50px, -40px); } }
+
+    .launch-wrap {
+      position: relative; z-index: 1;
+      width: 100%; max-width: 640px;
+      padding: 24px;
+    }
+
+    .logo {
+      display: flex; align-items: center; gap: 10px;
+      justify-content: center; margin-bottom: 36px;
+    }
+    .logo-icon {
+      width: 40px; height: 40px;
+      background: linear-gradient(135deg, #4f46e5, #06b6d4);
+      border-radius: 10px; display: flex; align-items: center; justify-content: center;
+      font-size: 1rem; color: #fff;
+    }
+    .logo-text {
+      font-size: 1.4rem; font-weight: 900; letter-spacing: -.02em;
+    }
+    .logo-accent { color: #818cf8; }
+
+    .card {
+      background: rgba(255,255,255,.04);
+      border: 1px solid rgba(255,255,255,.1);
+      border-radius: 20px;
+      padding: 36px;
+      backdrop-filter: blur(12px);
+      margin-bottom: 16px;
+    }
+
+    h1 {
+      font-size: 1.5rem; font-weight: 900; letter-spacing: -.03em;
+      margin-bottom: 8px; text-align: center;
+    }
+    .subtitle {
+      font-size: .88rem; color: rgba(255,255,255,.5);
+      text-align: center; margin-bottom: 32px; line-height: 1.6;
+    }
+
+    .portal-grid {
+      display: grid; grid-template-columns: 1fr 1fr;
+      gap: 14px; margin-bottom: 28px;
+    }
+
+    .portal-btn {
+      display: flex; flex-direction: column; align-items: center; gap: 10px;
+      padding: 22px 16px;
+      border-radius: 14px;
+      border: 1.5px solid rgba(255,255,255,.12);
+      background: rgba(255,255,255,.05);
+      cursor: pointer;
+      text-decoration: none;
+      color: #fff;
+      transition: all .2s;
+      position: relative;
+      overflow: hidden;
+    }
+    .portal-btn:hover {
+      border-color: rgba(255,255,255,.3);
+      background: rgba(255,255,255,.1);
+      transform: translateY(-2px);
+      box-shadow: 0 12px 40px rgba(0,0,0,.4);
+    }
+    .portal-btn::before {
+      content: '';
+      position: absolute; top: 0; left: 0; right: 0; height: 3px;
+      border-radius: 14px 14px 0 0;
+    }
+    .portal-btn.buyer::before { background: linear-gradient(90deg, #4f46e5, #06b6d4); }
+    .portal-btn.admin::before { background: linear-gradient(90deg, #10b981, #059669); }
+
+    .portal-icon {
+      width: 52px; height: 52px; border-radius: 14px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.4rem;
+    }
+    .portal-btn.buyer .portal-icon { background: rgba(79,70,229,.2); color: #818cf8; }
+    .portal-btn.admin .portal-icon { background: rgba(16,185,129,.2); color: #34d399; }
+
+    .portal-label { font-size: .9rem; font-weight: 800; }
+    .portal-sub { font-size: .72rem; color: rgba(255,255,255,.45); text-align: center; line-height: 1.4; }
+
+    .page-links {
+      display: grid; grid-template-columns: 1fr 1fr 1fr;
+      gap: 8px;
+    }
+    .page-link {
+      display: flex; align-items: center; gap: 8px;
+      padding: 10px 12px;
+      border-radius: 10px;
+      border: 1px solid rgba(255,255,255,.08);
+      background: rgba(255,255,255,.03);
+      cursor: pointer; text-decoration: none; color: rgba(255,255,255,.75);
+      font-size: .78rem; font-weight: 600;
+      transition: all .15s;
+    }
+    .page-link:hover {
+      background: rgba(255,255,255,.08);
+      border-color: rgba(255,255,255,.18);
+      color: #fff;
+    }
+    .page-link i { font-size: .8rem; color: rgba(255,255,255,.4); flex-shrink: 0; }
+
+    .divider {
+      display: flex; align-items: center; gap: 12px; margin: 20px 0 16px;
+    }
+    .divider-line { flex: 1; height: 1px; background: rgba(255,255,255,.08); }
+    .divider-label { font-size: .68rem; font-weight: 700; color: rgba(255,255,255,.25); text-transform: uppercase; letter-spacing: .1em; white-space: nowrap; }
+
+    .notice {
+      background: rgba(245,158,11,.08);
+      border: 1px solid rgba(245,158,11,.2);
+      border-radius: 10px;
+      padding: 12px 16px;
+      font-size: .78rem; color: rgba(255,255,255,.55);
+      line-height: 1.6; text-align: center;
+    }
+    .notice strong { color: #fbbf24; }
+
+    @media (max-width: 500px) {
+      .portal-grid { grid-template-columns: 1fr; }
+      .page-links { grid-template-columns: 1fr 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="bg-glow"></div>
+
+<div class="launch-wrap">
+
+  <div class="logo">
+    <div class="logo-icon"><i class="fas fa-chevron-right"></i></div>
+    <div class="logo-text">BRND <span class="logo-accent">DIRECT</span></div>
+  </div>
+
+  <div class="card">
+    <h1>Portal Preview</h1>
+    <p class="subtitle">Choose a portal to preview, or jump directly to any page below.<br/>All pages are accessible without login in this preview environment.</p>
+
+    <div class="portal-grid">
+      <a href="buyer/dashboard.html" class="portal-btn buyer" onclick="setAuth()">
+        <div class="portal-icon"><i class="fas fa-store"></i></div>
+        <div class="portal-label">Buyer Portal</div>
+        <div class="portal-sub">Dashboard · Products · Orders · Cart · Invoices · Shipping</div>
+      </a>
+      <a href="buyer/dashboard.html" class="portal-btn admin" onclick="setAuth()">
+        <div class="portal-icon"><i class="fas fa-shield-halved"></i></div>
+        <div class="portal-label">Admin / Seller</div>
+        <div class="portal-sub">Order management · Brands · Analytics · Payouts</div>
+      </a>
+    </div>
+
+    <div class="divider">
+      <div class="divider-line"></div>
+      <div class="divider-label">Quick Page Access</div>
+      <div class="divider-line"></div>
+    </div>
+
+    <div class="page-links">
+      <a href="buyer/dashboard.html"           class="page-link" onclick="setAuth()"><i class="fas fa-table-columns"></i> Dashboard</a>
+      <a href="buyer/products.html"            class="page-link" onclick="setAuth()"><i class="fas fa-boxes-stacked"></i> Products</a>
+      <a href="buyer/cart.html"                class="page-link" onclick="setAuth()"><i class="fas fa-cart-shopping"></i> Order Cart</a>
+      <a href="buyer/orders.html"              class="page-link" onclick="setAuth()"><i class="fas fa-file-invoice"></i> Orders</a>
+      <a href="buyer/invoices.html"            class="page-link" onclick="setAuth()"><i class="fas fa-file-invoice-dollar"></i> Invoices</a>
+      <a href="buyer/shipping-logistics.html"  class="page-link" onclick="setAuth()"><i class="fas fa-truck-fast"></i> Shipping</a>
+      <a href="buyer/dropship.html"            class="page-link" onclick="setAuth()"><i class="fas fa-rotate"></i> Dropship</a>
+      <a href="buyer/analytics.html"           class="page-link" onclick="setAuth()"><i class="fas fa-chart-line"></i> Analytics</a>
+      <a href="buyer/rfq.html"                 class="page-link" onclick="setAuth()"><i class="fas fa-comment-dollar"></i> RFQ</a>
+      <a href="buyer/messages.html"            class="page-link" onclick="setAuth()"><i class="fas fa-message"></i> Messages</a>
+      <a href="buyer/reports.html"             class="page-link" onclick="setAuth()"><i class="fas fa-chart-bar"></i> Reports</a>
+      <a href="buyer/account.html"             class="page-link" onclick="setAuth()"><i class="fas fa-gear"></i> Settings</a>
+      <a href="buyer/warehousing.html"         class="page-link" onclick="setAuth()"><i class="fas fa-warehouse"></i> Warehousing</a>
+      <a href="buyer/trade-finance.html"       class="page-link" onclick="setAuth()"><i class="fas fa-credit-card"></i> Trade Finance</a>
+      <a href="buyer/help.html"                class="page-link" onclick="setAuth()"><i class="fas fa-circle-question"></i> Help</a>
+    </div>
+
+    <div class="divider">
+      <div class="divider-line"></div>
+      <div class="divider-label">Auth Pages</div>
+      <div class="divider-line"></div>
+    </div>
+
+    <div class="page-links" style="grid-template-columns:1fr 1fr;">
+      <a href="buyer/index.html"    class="page-link"><i class="fas fa-right-to-bracket"></i> Buyer Sign In</a>
+      <a href="lock.html"           class="page-link"><i class="fas fa-lock"></i> Password Gate</a>
+      <a href="buyer/register.html" class="page-link"><i class="fas fa-user-plus"></i> Register</a>
+      <a href="setup/connect-catalog.html" class="page-link"><i class="fas fa-plug"></i> Setup Guide</a>
+    </div>
+  </div>
+
+  <div class="notice">
+    <strong>🔒 Preview Mode</strong> — Authentication is bypassed in this preview environment.<br/>
+    On your live Cloudflare deployment, all pages require the portal password: <strong>BRNDdirect2025!</strong>
+  </div>
+
+</div>
+
+<script>
+  // Set auth session so all buyer pages load without redirect
+  function setAuth() {
+    const key = 'brnd_portal_auth';
+    const pwd = 'BRNDdirect2025!';
+    const session = {
+      token:   btoa(pwd + '_authenticated'),
+      expires: Date.now() + (24 * 60 * 60 * 1000)
+    };
+    sessionStorage.setItem(key, JSON.stringify(session));
+  }
+
+  // Auto-set auth on page load
+  setAuth();
+</script>
+</body>
+</html>

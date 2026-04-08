@@ -1,0 +1,920 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Deploy Guide – BRND Direct</title>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&family=Inter:wght@300;400;500;600;700&family=Outfit:wght@700;800;900&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.5.0/css/all.min.css" />
+  <style>
+    :root {
+      --accent: #635BFF;
+      --accent-dark: #4f49e6;
+      --green: #10b981;
+      --amber: #f59e0b;
+      --red: #ef4444;
+      --bg: #f6f7fb;
+      --white: #fff;
+      --border: #e5e7ef;
+      --muted: #6b7280;
+      --near-black: #111827;
+      --card-shadow: 0 2px 16px rgba(0,0,0,.07);
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--near-black); min-height: 100vh; }
+
+    /* ── Hero ── */
+    .hero {
+      background: linear-gradient(135deg, #1a1038 0%, #2d1f6e 50%, #3730a3 100%);
+      color: white; padding: 52px 24px 56px; text-align: center;
+    }
+    .hero-logo { font-family: 'Outfit', sans-serif; font-size: 1.5rem; font-weight: 900; letter-spacing: -.03em; margin-bottom: 18px; opacity: .9; }
+    .hero-logo span { color: #a78bfa; }
+    .hero h1 { font-family: 'Outfit', sans-serif; font-size: 2.4rem; font-weight: 900; letter-spacing: -.04em; line-height: 1.15; margin-bottom: 14px; }
+    .hero p  { font-size: 1.05rem; opacity: .8; max-width: 540px; margin: 0 auto 28px; line-height: 1.65; }
+    .hero-badges { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; }
+    .hero-badge { display: inline-flex; align-items: center; gap: 7px; background: rgba(255,255,255,.12); border: 1px solid rgba(255,255,255,.2); border-radius: 100px; padding: 7px 16px; font-size: .82rem; font-weight: 600; backdrop-filter: blur(8px); }
+    .hero-badge i { font-size: .9rem; }
+
+    /* ── Layout ── */
+    .container { max-width: 860px; margin: 0 auto; padding: 40px 20px 80px; }
+
+    /* ── Alert boxes ── */
+    .alert { display: flex; gap: 14px; padding: 16px 18px; border-radius: 12px; margin-bottom: 24px; align-items: flex-start; }
+    .alert-info  { background: #eff6ff; border: 1px solid #bfdbfe; }
+    .alert-warn  { background: #fffbeb; border: 1px solid #fde68a; }
+    .alert-success { background: #f0fdf4; border: 1px solid #86efac; }
+    .alert i { font-size: 1.1rem; flex-shrink: 0; margin-top: 1px; }
+    .alert-info  i { color: #3b82f6; }
+    .alert-warn  i { color: var(--amber); }
+    .alert-success i { color: var(--green); }
+    .alert strong { font-weight: 700; }
+    .alert p { font-size: .875rem; color: var(--near-black); line-height: 1.6; margin-top: 3px; }
+
+    /* ── Method card ── */
+    .method-card {
+      background: var(--white); border: 2px solid var(--border); border-radius: 16px;
+      overflow: hidden; margin-bottom: 32px; box-shadow: var(--card-shadow);
+    }
+    .method-card.recommended { border-color: var(--accent); }
+    .method-header {
+      display: flex; align-items: center; gap: 14px; padding: 20px 24px;
+      border-bottom: 1px solid var(--border); background: var(--bg);
+    }
+    .method-card.recommended .method-header { background: linear-gradient(90deg,rgba(99,91,255,.06),rgba(99,91,255,.02)); border-bottom-color: rgba(99,91,255,.15); }
+    .method-num { width: 36px; height: 36px; border-radius: 50%; background: var(--border); color: var(--muted); font-weight: 800; font-size: .9rem; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    .method-card.recommended .method-num { background: var(--accent); color: white; }
+    .method-header-text h2 { font-size: 1.1rem; font-weight: 800; }
+    .method-header-text p  { font-size: .82rem; color: var(--muted); margin-top: 2px; }
+    .rec-badge { margin-left: auto; background: var(--accent); color: white; font-size: .7rem; font-weight: 700; padding: 3px 10px; border-radius: 100px; white-space: nowrap; }
+
+    /* ── Steps ── */
+    .steps { padding: 24px; }
+    .step {
+      display: flex; gap: 20px; padding-bottom: 32px;
+      position: relative;
+    }
+    .step:not(:last-child)::after {
+      content: ''; position: absolute; left: 17px; top: 38px; bottom: 0;
+      width: 2px; background: var(--border);
+    }
+    .step-num {
+      width: 36px; height: 36px; border-radius: 50%; background: var(--accent); color: white;
+      font-weight: 800; font-size: .9rem; display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0; position: relative; z-index: 1;
+    }
+    .step-content { flex: 1; }
+    .step-content h3 { font-size: .98rem; font-weight: 800; margin-bottom: 8px; }
+    .step-content p  { font-size: .875rem; color: var(--muted); line-height: 1.65; margin-bottom: 10px; }
+
+    /* ── Visual mock boxes ── */
+    .visual-box {
+      border: 1.5px solid var(--border); border-radius: 12px; overflow: hidden;
+      margin: 12px 0; background: var(--white); box-shadow: 0 1px 8px rgba(0,0,0,.06);
+    }
+    .vb-titlebar {
+      background: #f1f3f9; padding: 8px 14px; display: flex; align-items: center; gap: 6px;
+      border-bottom: 1px solid var(--border);
+    }
+    .vb-dot { width: 10px; height: 10px; border-radius: 50%; }
+    .vb-dot.red   { background: #ff5f57; }
+    .vb-dot.yellow{ background: #febc2e; }
+    .vb-dot.green { background: #28c840; }
+    .vb-title { font-size: .72rem; color: var(--muted); font-weight: 600; margin-left: 6px; }
+    .vb-body { padding: 16px 18px; }
+
+    /* ── Cloudflare UI mockup ── */
+    .cf-nav {
+      background: #f97316; padding: 10px 16px; display: flex; align-items: center; gap: 12px;
+    }
+    .cf-nav .cf-logo { font-weight: 800; font-size: .95rem; color: white; letter-spacing: -.02em; }
+    .cf-nav .cf-menu { display: flex; gap: 14px; margin-left: 20px; }
+    .cf-nav .cf-menu span { font-size: .78rem; color: rgba(255,255,255,.85); cursor: pointer; padding: 4px 8px; border-radius: 5px; }
+    .cf-nav .cf-menu span.active { background: rgba(255,255,255,.2); color: white; font-weight: 700; }
+    .cf-sidebar {
+      width: 180px; background: #fafafa; border-right: 1px solid var(--border);
+      padding: 12px 0; font-size: .78rem; flex-shrink: 0;
+    }
+    .cf-sidebar .cf-si { padding: 8px 16px; color: var(--muted); cursor: pointer; }
+    .cf-sidebar .cf-si.active { background: rgba(99,91,255,.07); color: var(--accent); font-weight: 700; border-right: 2.5px solid var(--accent); }
+    .cf-layout { display: flex; min-height: 160px; }
+    .cf-main { flex: 1; padding: 16px 18px; font-size: .82rem; }
+
+    /* Create page button mockup */
+    .cf-create-btn {
+      display: inline-flex; align-items: center; gap: 8px;
+      background: var(--accent); color: white; font-size: .82rem; font-weight: 700;
+      padding: 9px 18px; border-radius: 8px; cursor: pointer; margin: 8px 0;
+    }
+    .cf-create-btn.orange { background: #f97316; }
+    .cf-create-btn.outline { background: white; color: var(--accent); border: 1.5px solid var(--accent); }
+
+    /* ── Upload zone mockup ── */
+    .upload-zone {
+      border: 2.5px dashed var(--accent); border-radius: 12px; padding: 32px 20px;
+      text-align: center; background: rgba(99,91,255,.03); margin: 12px 0;
+    }
+    .upload-zone i { font-size: 2.2rem; color: var(--accent); margin-bottom: 12px; display: block; }
+    .upload-zone h3 { font-size: 1rem; font-weight: 700; margin-bottom: 6px; }
+    .upload-zone p  { font-size: .82rem; color: var(--muted); }
+    .upload-zone .drop-btn {
+      display: inline-flex; align-items: center; gap: 8px; margin-top: 14px;
+      background: var(--accent); color: white; font-size: .82rem; font-weight: 700;
+      padding: 9px 20px; border-radius: 8px;
+    }
+
+    /* ── Code / path highlight ── */
+    .path-tag {
+      display: inline-flex; align-items: center; gap: 7px;
+      background: #1e1b4b; color: #a78bfa; font-family: monospace; font-size: .82rem;
+      padding: 7px 14px; border-radius: 8px; font-weight: 600;
+    }
+    .path-tag i { color: #818cf8; font-size: .8rem; }
+
+    code {
+      background: #f1f3f9; color: #4338ca; padding: 2px 7px; border-radius: 5px;
+      font-family: monospace; font-size: .85rem; font-weight: 600;
+    }
+
+    /* ── Arrow / annotation ── */
+    .annotation {
+      display: flex; align-items: flex-start; gap: 10px; margin: 6px 0 12px;
+      padding: 10px 14px; background: rgba(245,158,11,.06); border: 1px solid rgba(245,158,11,.25);
+      border-radius: 8px;
+    }
+    .annotation i { color: var(--amber); flex-shrink: 0; margin-top: 2px; }
+    .annotation span { font-size: .82rem; color: var(--near-black); line-height: 1.55; }
+
+    /* ── Success check ── */
+    .success-block {
+      display: flex; gap: 12px; padding: 16px 18px; background: #f0fdf4;
+      border: 1.5px solid #86efac; border-radius: 12px; align-items: flex-start; margin-top: 12px;
+    }
+    .success-block i { color: var(--green); font-size: 1.2rem; flex-shrink: 0; }
+    .success-block div h4 { font-size: .9rem; font-weight: 700; color: #15803d; margin-bottom: 4px; }
+    .success-block div p  { font-size: .82rem; color: #166534; line-height: 1.55; }
+
+    /* ── Checkbox list ── */
+    .check-list { list-style: none; padding: 0; margin: 0; }
+    .check-list li {
+      display: flex; align-items: center; gap: 10px; padding: 7px 0;
+      font-size: .875rem; border-bottom: 1px solid var(--border);
+    }
+    .check-list li:last-child { border-bottom: none; }
+    .check-list li i { color: var(--green); font-size: .9rem; flex-shrink: 0; }
+    .check-list li.skip i { color: var(--muted); }
+
+    /* ── FAQ ── */
+    .faq { margin-top: 32px; }
+    .faq h2 { font-family: 'Outfit', sans-serif; font-size: 1.3rem; font-weight: 800; margin-bottom: 20px; }
+    .faq-item {
+      background: var(--white); border: 1.5px solid var(--border); border-radius: 12px;
+      margin-bottom: 12px; overflow: hidden;
+    }
+    .faq-q {
+      display: flex; align-items: center; justify-content: space-between; padding: 14px 18px;
+      font-weight: 700; font-size: .9rem; cursor: pointer; transition: background .15s;
+    }
+    .faq-q:hover { background: var(--bg); }
+    .faq-a { display: none; padding: 0 18px 14px; font-size: .875rem; color: var(--muted); line-height: 1.65; }
+    .faq-item.open .faq-a { display: block; }
+    .faq-item.open .faq-q { background: var(--bg); }
+
+    /* ── Section title ── */
+    .section-title { font-family: 'Outfit', sans-serif; font-size: 1.4rem; font-weight: 900; margin-bottom: 18px; display: flex; align-items: center; gap: 10px; }
+    .section-title i { color: var(--accent); font-size: 1.2rem; }
+
+    /* ── Platform tabs ── */
+    .platform-tabs { display: flex; gap: 8px; margin-bottom: 20px; flex-wrap: wrap; }
+    .platform-tab {
+      display: flex; align-items: center; gap: 8px; padding: 10px 18px;
+      border: 2px solid var(--border); border-radius: 10px; font-size: .85rem;
+      font-weight: 700; cursor: pointer; transition: all .18s; background: var(--white);
+    }
+    .platform-tab.active { border-color: var(--accent); background: rgba(99,91,255,.06); color: var(--accent); }
+    .platform-tab i { font-size: 1rem; }
+
+    /* ── OS tabs ── */
+    .os-tabs { display: flex; gap: 0; margin-bottom: 14px; overflow: hidden; border: 1.5px solid var(--border); border-radius: 8px; }
+    .os-tab { flex: 1; padding: 9px 14px; font-size: .8rem; font-weight: 700; text-align: center; cursor: pointer; background: var(--bg); color: var(--muted); border: none; font-family: 'Inter', sans-serif; border-right: 1.5px solid var(--border); }
+    .os-tab:last-child { border-right: none; }
+    .os-tab.active { background: var(--accent); color: white; }
+    .os-content { display: none; }
+    .os-content.active { display: block; }
+
+    /* ── Step number badge ── */
+    .big-step-badge {
+      display: flex; align-items: center; gap: 12px; margin-bottom: 24px;
+    }
+    .big-step-badge .badge-num {
+      width: 44px; height: 44px; border-radius: 50%; background: var(--accent);
+      color: white; font-family: 'Outfit', sans-serif; font-size: 1.2rem; font-weight: 900;
+      display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+    }
+    .big-step-badge h2 { font-family: 'Outfit', sans-serif; font-size: 1.3rem; font-weight: 900; }
+    .big-step-badge p { font-size: .85rem; color: var(--muted); margin-top: 2px; }
+
+    .divider { border: none; border-top: 1.5px solid var(--border); margin: 32px 0; }
+
+    /* ── Highlight box ── */
+    .highlight-box {
+      background: linear-gradient(135deg, rgba(99,91,255,.06), rgba(99,91,255,.02));
+      border: 1.5px solid rgba(99,91,255,.2); border-radius: 12px; padding: 18px 20px; margin: 14px 0;
+    }
+    .highlight-box .hb-label { font-size: .65rem; font-weight: 800; text-transform: uppercase; letter-spacing: .08em; color: var(--accent); margin-bottom: 6px; }
+    .highlight-box .hb-url { font-family: monospace; font-size: 1.05rem; font-weight: 700; color: var(--near-black); word-break: break-all; }
+    .highlight-box .hb-url span { color: var(--accent); }
+
+    /* Footer */
+    .footer { background: var(--near-black); color: rgba(255,255,255,.5); text-align: center; padding: 24px; font-size: .82rem; margin-top: 0; }
+    .footer strong { color: white; }
+  </style>
+</head>
+<body>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="hero-logo">BRND <span>DIRECT</span></div>
+  <h1>Deploy Your Portal<br>Step by Step</h1>
+  <p>Full visual guide to get your BRND Direct portal live on Cloudflare Pages in under 10 minutes — no GitHub required.</p>
+  <div class="hero-badges">
+    <div class="hero-badge"><i class="fas fa-clock"></i> ~10 minutes</div>
+    <div class="hero-badge"><i class="fas fa-github"></i> No GitHub needed</div>
+    <div class="hero-badge"><i class="fas fa-dollar-sign"></i> Completely free</div>
+    <div class="hero-badge"><i class="fas fa-check-circle"></i> Drag &amp; drop upload</div>
+  </div>
+</div>
+
+<div class="container">
+
+  <!-- What you need -->
+  <div class="alert alert-info" style="margin-bottom:28px;">
+    <i class="fas fa-info-circle"></i>
+    <div>
+      <strong>What you need before starting:</strong>
+      <p>① A free <strong>Cloudflare account</strong> (cloudflare.com) &nbsp;&nbsp;② This project's files as a ZIP &nbsp;&nbsp;③ About 10 minutes</p>
+    </div>
+  </div>
+
+  <!-- ════════════ PHASE 1 ════════════ -->
+  <div class="big-step-badge">
+    <div class="badge-num">1</div>
+    <div>
+      <h2>Download Your Project Files as a ZIP</h2>
+      <p>Get all the portal files onto your computer</p>
+    </div>
+  </div>
+
+  <div class="method-card recommended">
+    <div class="method-header">
+      <div class="method-num">⬇</div>
+      <div class="method-header-text">
+        <h2>Export / Download from the Builder</h2>
+        <p>Download directly from this builder tool</p>
+      </div>
+      <span class="rec-badge">✓ Do This First</span>
+    </div>
+    <div class="steps">
+
+      <div class="step">
+        <div class="step-num">1</div>
+        <div class="step-content">
+          <h3>Look for the Download / Export button</h3>
+          <p>In the builder interface (this tool), look at the <strong>top-right corner</strong> of the page. You should see a button that says <strong>"Download"</strong>, <strong>"Export"</strong>, or has a download icon (⬇).</p>
+          <div class="visual-box">
+            <div class="vb-titlebar">
+              <div class="vb-dot red"></div>
+              <div class="vb-dot yellow"></div>
+              <div class="vb-dot green"></div>
+              <span class="vb-title">Builder Interface — Top Bar</span>
+            </div>
+            <div class="vb-body" style="background:#1a1a2e;padding:14px 18px;">
+              <div style="display:flex;align-items:center;justify-content:space-between;">
+                <div style="display:flex;align-items:center;gap:12px;">
+                  <div style="font-family:'Outfit',sans-serif;font-weight:900;font-size:.95rem;color:white;">BRND <span style="color:#a78bfa;">DIRECT</span></div>
+                  <div style="background:rgba(255,255,255,.1);color:rgba(255,255,255,.6);font-size:.72rem;padding:4px 10px;border-radius:5px;">buyer/products.html</div>
+                </div>
+                <div style="display:flex;gap:8px;align-items:center;">
+                  <div style="background:#635BFF;color:white;font-size:.78rem;font-weight:700;padding:7px 14px;border-radius:7px;display:flex;align-items:center;gap:6px;">
+                    <i class="fas fa-eye" style="font-size:.75rem;"></i> Preview
+                  </div>
+                  <!-- HIGHLIGHT THIS ONE -->
+                  <div style="background:#f97316;color:white;font-size:.78rem;font-weight:700;padding:7px 14px;border-radius:7px;display:flex;align-items:center;gap:6px;box-shadow:0 0 0 3px rgba(249,115,22,.4);">
+                    <i class="fas fa-download" style="font-size:.75rem;"></i> Download
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="annotation">
+            <i class="fas fa-arrow-up"></i>
+            <span>Click the orange <strong>Download</strong> button shown above. It will download a <code>.zip</code> file of the entire project to your computer's <strong>Downloads</strong> folder.</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-num">2</div>
+        <div class="step-content">
+          <h3>Find the ZIP in your Downloads folder</h3>
+          <p>Once downloaded, navigate to your Downloads folder. You should see a file called something like <code>brnd-direct.zip</code> or <code>project.zip</code>.</p>
+
+          <div class="os-tabs">
+            <button class="os-tab active" onclick="switchOS('win',this)"><i class="fab fa-windows" style="margin-right:5px;"></i>Windows</button>
+            <button class="os-tab" onclick="switchOS('mac',this)"><i class="fab fa-apple" style="margin-right:5px;"></i>Mac</button>
+          </div>
+
+          <div id="os-win" class="os-content active">
+            <div class="visual-box">
+              <div class="vb-titlebar">
+                <div class="vb-dot red"></div><div class="vb-dot yellow"></div><div class="vb-dot green"></div>
+                <span class="vb-title">Windows Explorer — Downloads</span>
+              </div>
+              <div class="vb-body" style="font-size:.82rem;">
+                <div style="display:flex;align-items:center;gap:8px;background:#f1f3f9;padding:6px 10px;border-radius:6px;margin-bottom:10px;font-size:.75rem;color:#555;">
+                  <i class="fas fa-folder" style="color:#f59e0b;"></i>
+                  This PC &gt; Downloads
+                </div>
+                <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;">
+                  <div style="text-align:center;padding:10px;border-radius:8px;">
+                    <i class="fas fa-file-pdf" style="font-size:1.8rem;color:#ef4444;display:block;margin-bottom:5px;"></i>
+                    <div style="font-size:.7rem;color:#555;">invoice.pdf</div>
+                  </div>
+                  <div style="text-align:center;padding:10px;border-radius:8px;">
+                    <i class="fas fa-image" style="font-size:1.8rem;color:#3b82f6;display:block;margin-bottom:5px;"></i>
+                    <div style="font-size:.7rem;color:#555;">screenshot.png</div>
+                  </div>
+                  <!-- HIGHLIGHTED ZIP -->
+                  <div style="text-align:center;padding:10px;border-radius:8px;background:rgba(99,91,255,.08);border:2px solid #635BFF;">
+                    <i class="fas fa-file-zipper" style="font-size:1.8rem;color:#635BFF;display:block;margin-bottom:5px;"></i>
+                    <div style="font-size:.72rem;font-weight:700;color:#635BFF;">brnd-direct.zip</div>
+                  </div>
+                  <div style="text-align:center;padding:10px;border-radius:8px;">
+                    <i class="fas fa-file-word" style="font-size:1.8rem;color:#1d4ed8;display:block;margin-bottom:5px;"></i>
+                    <div style="font-size:.7rem;color:#555;">document.docx</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="annotation">
+              <i class="fas fa-folder-open"></i>
+              <span><strong>Windows path:</strong> Open <strong>File Explorer</strong> (Win+E) → click <strong>Downloads</strong> in the left sidebar → look for <code>brnd-direct.zip</code> (highlighted in blue above). <strong>Do NOT extract/unzip it</strong> — upload the ZIP as-is.</span>
+            </div>
+          </div>
+
+          <div id="os-mac" class="os-content">
+            <div class="visual-box">
+              <div class="vb-titlebar">
+                <div class="vb-dot red"></div><div class="vb-dot yellow"></div><div class="vb-dot green"></div>
+                <span class="vb-title">Mac Finder — Downloads</span>
+              </div>
+              <div class="vb-body" style="font-size:.82rem;">
+                <div style="display:flex;gap:0;margin-bottom:10px;">
+                  <div style="background:#f1f3f9;padding:6px 14px;font-size:.72rem;color:#555;border-radius:6px;display:flex;align-items:center;gap:6px;">
+                    <i class="fas fa-arrow-left" style="opacity:.4;"></i>
+                    <i class="fas fa-arrow-right" style="opacity:.4;"></i>
+                    &nbsp; Downloads
+                  </div>
+                </div>
+                <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;">
+                  <div style="text-align:center;padding:10px;border-radius:8px;">
+                    <i class="fas fa-file-pdf" style="font-size:1.8rem;color:#ef4444;display:block;margin-bottom:5px;"></i>
+                    <div style="font-size:.7rem;color:#555;">invoice.pdf</div>
+                  </div>
+                  <div style="text-align:center;padding:10px;border-radius:8px;background:rgba(99,91,255,.08);border:2px solid #635BFF;">
+                    <i class="fas fa-file-zipper" style="font-size:1.8rem;color:#635BFF;display:block;margin-bottom:5px;"></i>
+                    <div style="font-size:.72rem;font-weight:700;color:#635BFF;">brnd-direct.zip</div>
+                  </div>
+                  <div style="text-align:center;padding:10px;border-radius:8px;">
+                    <i class="fas fa-image" style="font-size:1.8rem;color:#3b82f6;display:block;margin-bottom:5px;"></i>
+                    <div style="font-size:.7rem;color:#555;">screenshot.png</div>
+                  </div>
+                  <div style="text-align:center;padding:10px;border-radius:8px;">
+                    <i class="fas fa-file-word" style="font-size:1.8rem;color:#1d4ed8;display:block;margin-bottom:5px;"></i>
+                    <div style="font-size:.7rem;color:#555;">document.docx</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="annotation">
+              <i class="fas fa-folder-open"></i>
+              <span><strong>Mac path:</strong> Open <strong>Finder</strong> → click <strong>Downloads</strong> in the left sidebar → look for <code>brnd-direct.zip</code> (highlighted above). <strong>Do NOT double-click to unzip</strong> — upload the ZIP as-is.</span>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+    </div>
+  </div><!-- /method-card -->
+
+  <hr class="divider" />
+
+  <!-- ════════════ PHASE 2 ════════════ -->
+  <div class="big-step-badge">
+    <div class="badge-num">2</div>
+    <div>
+      <h2>Delete the Old Broken Cloudflare Project</h2>
+      <p>Remove the project that failed to connect to GitHub</p>
+    </div>
+  </div>
+
+  <div class="method-card">
+    <div class="method-header">
+      <div class="method-num" style="background:#ef4444;color:white;">🗑</div>
+      <div class="method-header-text">
+        <h2>Delete the old broken project in Cloudflare</h2>
+        <p>Skip if you haven't created one yet</p>
+      </div>
+    </div>
+    <div class="steps">
+
+      <div class="step">
+        <div class="step-num" style="background:#ef4444;">1</div>
+        <div class="step-content">
+          <h3>Go to Cloudflare Dashboard → Workers &amp; Pages</h3>
+          <p>Open <code>dash.cloudflare.com</code> in your browser. In the left sidebar, click <strong>Workers &amp; Pages</strong>.</p>
+          <div class="visual-box">
+            <div style="background:#f97316;padding:10px 16px;display:flex;align-items:center;gap:12px;">
+              <div style="font-weight:800;font-size:.95rem;color:white;">☁️ Cloudflare</div>
+              <div style="display:flex;gap:14px;margin-left:10px;">
+                <span style="font-size:.78rem;color:rgba(255,255,255,.85);">Home</span>
+                <span style="font-size:.78rem;color:rgba(255,255,255,.85);">Domains</span>
+              </div>
+            </div>
+            <div style="display:flex;min-height:120px;">
+              <div style="width:180px;background:#fafafa;border-right:1px solid var(--border);padding:10px 0;font-size:.78rem;">
+                <div style="padding:8px 16px;color:var(--muted);">💡 Overview</div>
+                <div style="padding:8px 16px;color:var(--muted);">🌐 Websites</div>
+                <!-- HIGHLIGHTED -->
+                <div style="padding:8px 16px;background:rgba(99,91,255,.07);color:var(--accent);font-weight:700;border-right:2.5px solid var(--accent);">
+                  ⚙️ Workers &amp; Pages
+                </div>
+                <div style="padding:8px 16px;color:var(--muted);">🔒 Zero Trust</div>
+              </div>
+              <div style="flex:1;padding:16px;font-size:.82rem;color:var(--muted);">
+                ← Click <strong style="color:var(--accent);">Workers &amp; Pages</strong> in the sidebar
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-num" style="background:#ef4444;">2</div>
+        <div class="step-content">
+          <h3>Click on your old broken project</h3>
+          <p>You'll see your project listed (e.g. <code>brnd-direct</code>). Click on it to open it.</p>
+          <div class="visual-box">
+            <div class="vb-titlebar">
+              <div class="vb-dot red"></div><div class="vb-dot yellow"></div><div class="vb-dot green"></div>
+              <span class="vb-title">Workers &amp; Pages — Your Projects</span>
+            </div>
+            <div class="vb-body">
+              <div style="display:flex;align-items:center;gap:12px;padding:12px 14px;border:2px solid var(--border);border-radius:10px;margin-bottom:8px;cursor:pointer;background:#fafafa;">
+                <div style="width:36px;height:36px;border-radius:8px;background:#635BFF;color:white;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:.85rem;flex-shrink:0;">B</div>
+                <div>
+                  <div style="font-weight:700;font-size:.9rem;">brnd-direct</div>
+                  <div style="font-size:.72rem;color:#ef4444;margin-top:2px;"><i class="fas fa-exclamation-triangle" style="margin-right:3px;"></i>Failed — repository error</div>
+                </div>
+                <div style="margin-left:auto;font-size:.75rem;color:var(--muted);">Pages</div>
+              </div>
+            </div>
+          </div>
+          <div class="annotation">
+            <i class="fas fa-mouse-pointer"></i>
+            <span>Click on the <strong>brnd-direct</strong> row to open the project details page.</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-num" style="background:#ef4444;">3</div>
+        <div class="step-content">
+          <h3>Go to Settings → Delete this project</h3>
+          <p>Inside the project, click the <strong>Settings</strong> tab at the top. Scroll down to the very bottom to find the <strong>Delete project</strong> danger zone.</p>
+          <div class="visual-box">
+            <div class="vb-titlebar">
+              <div class="vb-dot red"></div><div class="vb-dot yellow"></div><div class="vb-dot green"></div>
+              <span class="vb-title">brnd-direct — Project Page</span>
+            </div>
+            <div class="vb-body">
+              <div style="display:flex;gap:0;border-bottom:2px solid var(--border);margin-bottom:16px;">
+                <div style="padding:8px 16px;font-size:.82rem;color:var(--muted);font-weight:600;">Deployments</div>
+                <div style="padding:8px 16px;font-size:.82rem;color:var(--muted);font-weight:600;">Functions</div>
+                <div style="padding:8px 16px;font-size:.82rem;color:var(--muted);font-weight:600;">Metrics</div>
+                <div style="padding:8px 16px;font-size:.82rem;background:rgba(99,91,255,.07);color:var(--accent);font-weight:700;border-bottom:2px solid var(--accent);margin-bottom:-2px;">⚙️ Settings</div>
+              </div>
+              <div style="font-size:.8rem;color:var(--muted);margin-bottom:10px;">Scroll to the bottom of Settings…</div>
+              <div style="border:1.5px solid #fca5a5;border-radius:10px;padding:16px;background:#fff5f5;">
+                <div style="font-size:.8rem;font-weight:700;color:#ef4444;text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px;"><i class="fas fa-exclamation-triangle" style="margin-right:5px;"></i>Danger Zone</div>
+                <div style="font-size:.82rem;color:#374151;margin-bottom:12px;">Delete this Pages project. This action is permanent and cannot be undone.</div>
+                <button style="background:#ef4444;color:white;border:none;padding:8px 16px;border-radius:7px;font-size:.8rem;font-weight:700;cursor:pointer;">Delete project</button>
+              </div>
+            </div>
+          </div>
+          <div class="annotation">
+            <i class="fas fa-arrow-right"></i>
+            <span>Click <strong style="color:#ef4444;">Delete project</strong>, type the project name to confirm, then click the final delete button. This clears the broken connection so you can start fresh.</span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div><!-- /method-card -->
+
+  <hr class="divider" />
+
+  <!-- ════════════ PHASE 3 ════════════ -->
+  <div class="big-step-badge">
+    <div class="badge-num">3</div>
+    <div>
+      <h2>Create a New Project Using Upload Assets</h2>
+      <p>Deploy by dragging &amp; dropping your ZIP — no GitHub needed</p>
+    </div>
+  </div>
+
+  <div class="method-card recommended">
+    <div class="method-header">
+      <div class="method-num">🚀</div>
+      <div class="method-header-text">
+        <h2>Cloudflare Pages → Upload Assets</h2>
+        <p>The easiest deployment method — works 100% of the time</p>
+      </div>
+      <span class="rec-badge">✓ Recommended</span>
+    </div>
+    <div class="steps">
+
+      <div class="step">
+        <div class="step-num">1</div>
+        <div class="step-content">
+          <h3>Go to Workers &amp; Pages → Create</h3>
+          <p>In the Cloudflare Dashboard sidebar, click <strong>Workers &amp; Pages</strong>, then click the blue <strong>Create</strong> button.</p>
+          <div class="visual-box">
+            <div class="vb-titlebar">
+              <div class="vb-dot red"></div><div class="vb-dot yellow"></div><div class="vb-dot green"></div>
+              <span class="vb-title">Workers &amp; Pages</span>
+            </div>
+            <div class="vb-body">
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
+                <h3 style="font-size:.95rem;font-weight:700;">Workers &amp; Pages</h3>
+                <div style="background:#635BFF;color:white;font-size:.8rem;font-weight:700;padding:8px 18px;border-radius:8px;display:inline-flex;align-items:center;gap:6px;box-shadow:0 0 0 3px rgba(99,91,255,.3);">
+                  <i class="fas fa-plus"></i> Create
+                </div>
+              </div>
+              <div style="font-size:.82rem;color:var(--muted);">Click the <strong style="color:var(--accent);">Create</strong> button in the top right ↑</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-num">2</div>
+        <div class="step-content">
+          <h3>Choose "Pages" → then "Upload assets"</h3>
+          <p>You'll see two options: <strong>Workers</strong> and <strong>Pages</strong>. Click <strong>Pages</strong>. Then on the next screen you'll see two sub-options. Choose <strong>"Upload assets"</strong> — NOT "Connect to Git".</p>
+          <div class="visual-box">
+            <div class="vb-titlebar">
+              <div class="vb-dot red"></div><div class="vb-dot yellow"></div><div class="vb-dot green"></div>
+              <span class="vb-title">Create a new application</span>
+            </div>
+            <div class="vb-body">
+              <div style="display:flex;gap:12px;margin-bottom:16px;">
+                <div style="flex:1;padding:16px;border:2px solid var(--border);border-radius:10px;opacity:.6;">
+                  <div style="font-size:.85rem;font-weight:700;margin-bottom:4px;">⚙️ Workers</div>
+                  <div style="font-size:.75rem;color:var(--muted);">Serverless functions</div>
+                </div>
+                <div style="flex:1;padding:16px;border:2px solid var(--accent);border-radius:10px;background:rgba(99,91,255,.05);">
+                  <div style="font-size:.85rem;font-weight:700;margin-bottom:4px;color:var(--accent);">📄 Pages ✓</div>
+                  <div style="font-size:.75rem;color:var(--muted);">Static websites</div>
+                </div>
+              </div>
+              <div style="font-size:.78rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px;">Deploy method</div>
+              <div style="display:flex;gap:12px;">
+                <div style="flex:1;padding:16px;border:2px solid var(--border);border-radius:10px;opacity:.5;">
+                  <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
+                    <i class="fab fa-github" style="font-size:1.1rem;"></i>
+                    <div style="font-size:.85rem;font-weight:700;">Connect to Git</div>
+                  </div>
+                  <div style="font-size:.72rem;color:var(--muted);">Connect to GitHub / GitLab</div>
+                  <div style="font-size:.68rem;color:#ef4444;margin-top:4px;"><i class="fas fa-times-circle" style="margin-right:3px;"></i>This failed earlier</div>
+                </div>
+                <div style="flex:1;padding:16px;border:2px solid var(--accent);border-radius:10px;background:rgba(99,91,255,.05);">
+                  <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
+                    <i class="fas fa-cloud-upload-alt" style="font-size:1.1rem;color:var(--accent);"></i>
+                    <div style="font-size:.85rem;font-weight:700;color:var(--accent);">Upload assets ✓</div>
+                  </div>
+                  <div style="font-size:.72rem;color:var(--muted);">Upload ZIP or folder directly</div>
+                  <div style="font-size:.68rem;color:var(--green);margin-top:4px;"><i class="fas fa-check-circle" style="margin-right:3px;"></i>Choose this one!</div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="annotation">
+            <i class="fas fa-hand-point-right"></i>
+            <span>Select <strong style="color:var(--accent);">Upload assets</strong> (right option). This is the option that works without GitHub.</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-num">3</div>
+        <div class="step-content">
+          <h3>Name your project</h3>
+          <p>You'll be asked to name your project. Type <code>brnd-direct</code> (lowercase, dashes only — no spaces). Then click <strong>Create project</strong>.</p>
+          <div class="visual-box">
+            <div class="vb-titlebar">
+              <div class="vb-dot red"></div><div class="vb-dot yellow"></div><div class="vb-dot green"></div>
+              <span class="vb-title">Name your project</span>
+            </div>
+            <div class="vb-body">
+              <div style="margin-bottom:14px;">
+                <div style="font-size:.75rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-bottom:6px;">Project name</div>
+                <div style="border:2px solid var(--accent);border-radius:8px;padding:10px 14px;font-family:monospace;font-size:.95rem;font-weight:700;color:var(--near-black);background:rgba(99,91,255,.03);">brnd-direct</div>
+                <div style="font-size:.72rem;color:var(--muted);margin-top:5px;">Your site will be at: <strong>brnd-direct.pages.dev</strong></div>
+              </div>
+              <div style="background:#635BFF;color:white;font-size:.82rem;font-weight:700;padding:10px 20px;border-radius:8px;display:inline-flex;align-items:center;gap:7px;">
+                <i class="fas fa-rocket"></i> Create project
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-num">4</div>
+        <div class="step-content">
+          <h3>Upload your ZIP file</h3>
+          <p>After creating the project, you'll see an upload screen. You can either <strong>click to browse</strong> or <strong>drag and drop</strong> your ZIP file onto the box.</p>
+          <div class="upload-zone">
+            <i class="fas fa-cloud-upload-alt"></i>
+            <h3>Drop your ZIP here</h3>
+            <p>Drag <code>brnd-direct.zip</code> from your Downloads folder and drop it anywhere in this box</p>
+            <p style="margin-top:6px;font-size:.75rem;color:var(--muted);">— or —</p>
+            <div class="drop-btn">
+              <i class="fas fa-folder-open"></i> Browse for ZIP file
+            </div>
+          </div>
+          <div class="annotation">
+            <i class="fas fa-info-circle"></i>
+            <span><strong>How to drag and drop:</strong> Open your Downloads folder, then click and hold the <code>brnd-direct.zip</code> file, drag it over to the browser window, and release it on the upload box. You'll see it highlight blue when you hover over it.</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-num">5</div>
+        <div class="step-content">
+          <h3>Click "Deploy site"</h3>
+          <p>Once your ZIP is uploaded (you'll see a file count like "148 files uploaded"), click the <strong>Deploy site</strong> button. Wait about 15–30 seconds.</p>
+          <div class="visual-box">
+            <div class="vb-titlebar">
+              <div class="vb-dot red"></div><div class="vb-dot yellow"></div><div class="vb-dot green"></div>
+              <span class="vb-title">Upload complete — ready to deploy</span>
+            </div>
+            <div class="vb-body">
+              <div style="display:flex;align-items:center;gap:10px;padding:12px 14px;background:#f0fdf4;border:1.5px solid #86efac;border-radius:8px;margin-bottom:14px;">
+                <i class="fas fa-check-circle" style="color:var(--green);font-size:1.1rem;"></i>
+                <div>
+                  <div style="font-size:.85rem;font-weight:700;color:#15803d;">148 files uploaded successfully</div>
+                  <div style="font-size:.75rem;color:#166534;">brnd-direct.zip · 2.4 MB</div>
+                </div>
+              </div>
+              <div style="background:#635BFF;color:white;font-size:.9rem;font-weight:700;padding:12px 24px;border-radius:8px;display:inline-flex;align-items:center;gap:8px;box-shadow:0 4px 16px rgba(99,91,255,.4);">
+                <i class="fas fa-rocket"></i> Deploy site
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-num">✓</div>
+        <div class="step-content">
+          <h3>Your site is live! 🎉</h3>
+          <p>Cloudflare will show you a success screen with your live URL.</p>
+          <div class="success-block">
+            <i class="fas fa-check-circle"></i>
+            <div>
+              <h4>Deployment successful!</h4>
+              <p>Your portal is now live at:</p>
+            </div>
+          </div>
+          <div class="highlight-box" style="margin-top:12px;">
+            <div class="hb-label">Your live URLs</div>
+            <div class="hb-url">🌐 <span>brnd-direct.pages.dev</span>/buyer/ — Buyer login</div>
+            <div class="hb-url" style="margin-top:6px;">🔐 <span>brnd-direct.pages.dev</span>/admin/ — Admin dashboard</div>
+            <div class="hb-url" style="margin-top:6px;">📝 <span>brnd-direct.pages.dev</span>/buyer/register.html — Register</div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div><!-- /method-card -->
+
+  <hr class="divider" />
+
+  <!-- ════════════ PHASE 4 ════════════ -->
+  <div class="big-step-badge">
+    <div class="badge-num">4</div>
+    <div>
+      <h2>Make Yourself Admin (1 SQL line)</h2>
+      <p>After registering your buyer account, promote it to admin</p>
+    </div>
+  </div>
+
+  <div class="method-card">
+    <div class="method-header">
+      <div class="method-num" style="background:#10b981;color:white;">✓</div>
+      <div class="method-header-text">
+        <h2>Register → then run admin SQL in Supabase</h2>
+        <p>Takes about 2 minutes</p>
+      </div>
+    </div>
+    <div class="steps">
+
+      <div class="step">
+        <div class="step-num" style="background:#10b981;">1</div>
+        <div class="step-content">
+          <h3>Register your account</h3>
+          <p>Go to <code>brnd-direct.pages.dev/buyer/register.html</code> and fill in your name, email, and password. Click <strong>Create Account</strong>. Then check your email for a confirmation link and click it.</p>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-num" style="background:#10b981;">2</div>
+        <div class="step-content">
+          <h3>Open Supabase SQL Editor</h3>
+          <p>Go to <code>supabase.com/dashboard</code>, select your project, then click <strong>SQL Editor</strong> in the left sidebar. Click <strong>+ New query</strong>.</p>
+          <div class="visual-box">
+            <div class="vb-titlebar">
+              <div class="vb-dot red"></div><div class="vb-dot yellow"></div><div class="vb-dot green"></div>
+              <span class="vb-title">Supabase Dashboard — SQL Editor</span>
+            </div>
+            <div class="vb-body" style="background:#1a1a2e;padding:0;font-family:monospace;font-size:.82rem;">
+              <div style="background:#0f0f1a;padding:10px 16px;color:#8b92a9;font-size:.72rem;border-bottom:1px solid rgba(255,255,255,.1);display:flex;align-items:center;gap:8px;">
+                <span style="color:#a78bfa;">SQL Editor</span> &gt; New query
+                <div style="margin-left:auto;background:#635BFF;color:white;padding:4px 12px;border-radius:5px;font-size:.7rem;font-family:'Inter',sans-serif;cursor:pointer;">▶ Run</div>
+              </div>
+              <div style="padding:14px 18px;color:#e2e8f0;line-height:1.7;">
+                <span style="color:#7dd3fc;">UPDATE</span> profiles
+                <span style="color:#7dd3fc;">SET</span> role = <span style="color:#86efac;">'admin'</span>
+                <span style="color:#7dd3fc;">WHERE</span> id = auth.uid();
+              </div>
+            </div>
+          </div>
+          <div class="annotation">
+            <i class="fas fa-copy"></i>
+            <span>Copy and paste this exact line: <code>UPDATE profiles SET role = 'admin' WHERE id = auth.uid();</code> — then press the green <strong>Run</strong> button. You should see <strong>"1 row affected"</strong>.</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-num" style="background:#10b981;">3</div>
+        <div class="step-content">
+          <h3>Log in and access /admin/</h3>
+          <p>Go back to <code>brnd-direct.pages.dev/buyer/</code>, log in with your credentials, then navigate to <code>brnd-direct.pages.dev/admin/</code>. You should see the admin dashboard with KPI cards and revenue charts.</p>
+          <div class="success-block">
+            <i class="fas fa-check-circle"></i>
+            <div>
+              <h4>You're all set!</h4>
+              <p>Your BRND Direct portal is fully deployed and you have admin access. Buyers can register at <strong>/buyer/register.html</strong> and you can manage everything from <strong>/admin/</strong>.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div><!-- /method-card -->
+
+  <hr class="divider" />
+
+  <!-- Checklist -->
+  <div class="section-title"><i class="fas fa-list-check"></i> Complete Checklist</div>
+  <div class="method-card" style="margin-bottom:32px;">
+    <div class="vb-body" style="padding:20px 24px;">
+      <ul class="check-list">
+        <li><i class="fas fa-check-circle"></i> Supabase project created and URL/key added to <code>js/supabase.js</code></li>
+        <li><i class="fas fa-check-circle"></i> Database schema (14 tables) executed in SQL Editor</li>
+        <li><i class="fas fa-check-circle" style="color:var(--muted);"></i> <span style="color:var(--muted);">Stripe payments — <em>skipped for now, can add later</em></span></li>
+        <li><i class="fas fa-check-circle" style="color:var(--muted);"></i> <span style="color:var(--muted);">Cloudflare Worker — <em>skipped for now, can add later</em></span></li>
+        <li id="check-deploy" class="skip"><i class="fas fa-circle" style="color:var(--amber);"></i> Project ZIP downloaded from builder</li>
+        <li id="check-cf" class="skip"><i class="fas fa-circle" style="color:var(--amber);"></i> Old broken Cloudflare project deleted</li>
+        <li id="check-upload" class="skip"><i class="fas fa-circle" style="color:var(--amber);"></i> New Cloudflare Pages project created via Upload assets</li>
+        <li id="check-live" class="skip"><i class="fas fa-circle" style="color:var(--amber);"></i> Site live at brnd-direct.pages.dev</li>
+        <li id="check-admin" class="skip"><i class="fas fa-circle" style="color:var(--amber);"></i> Admin SQL run → /admin/ accessible</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- FAQ -->
+  <div class="faq">
+    <h2><i class="fas fa-question-circle" style="color:var(--accent);margin-right:8px;"></i>Common Questions</h2>
+
+    <div class="faq-item">
+      <div class="faq-q" onclick="toggleFaq(this)">
+        <span>Where exactly is the Download button in the builder?</span>
+        <i class="fas fa-chevron-down"></i>
+      </div>
+      <div class="faq-a">
+        Look at the <strong>top-right corner</strong> of the builder interface. It should say "Download", "Export", or show a ⬇ icon. If you don't see it, try looking in the menu or toolbar. The file downloaded will be a <code>.zip</code> file containing all the portal files.
+      </div>
+    </div>
+
+    <div class="faq-item">
+      <div class="faq-q" onclick="toggleFaq(this)">
+        <span>Do I need to unzip the file before uploading?</span>
+        <i class="fas fa-chevron-down"></i>
+      </div>
+      <div class="faq-a">
+        <strong>No! Keep it as a ZIP.</strong> Cloudflare Pages accepts ZIP files directly. Do not unzip/extract it before uploading — just drag the <code>.zip</code> file directly onto the Cloudflare upload box.
+      </div>
+    </div>
+
+    <div class="faq-item">
+      <div class="faq-q" onclick="toggleFaq(this)">
+        <span>What if I can't find "Upload assets" in Cloudflare?</span>
+        <i class="fas fa-chevron-down"></i>
+      </div>
+      <div class="faq-a">
+        Make sure you're clicking <strong>Pages</strong> first (not Workers), and then you should see two options: "Connect to Git" and "Upload assets". If you only see "Connect to Git", look for a direct URL option at the bottom of the page or try refreshing. You can also go directly to: <code>dash.cloudflare.com → Workers &amp; Pages → Create → Pages tab</code>.
+      </div>
+    </div>
+
+    <div class="faq-item">
+      <div class="faq-q" onclick="toggleFaq(this)">
+        <span>The upload says it succeeded but I get a blank page — what do I do?</span>
+        <i class="fas fa-chevron-down"></i>
+      </div>
+      <div class="faq-a">
+        Try visiting <code>brnd-direct.pages.dev/buyer/</code> instead of just the root URL. The root <code>index.html</code> redirects to the buyer portal. If the buyer page also shows blank, check that the ZIP included all files (buyer/, css/, js/ folders). In Cloudflare Pages, click on the deployment and check "Files" to confirm the folder structure is correct.
+      </div>
+    </div>
+
+    <div class="faq-item">
+      <div class="faq-q" onclick="toggleFaq(this)">
+        <span>The "UPDATE profiles SET role = 'admin'" returned 0 rows — why?</span>
+        <i class="fas fa-chevron-down"></i>
+      </div>
+      <div class="faq-a">
+        This means you're not logged in to Supabase, so <code>auth.uid()</code> returned null. You must be logged in to the portal first. Try: ① log in at <code>brnd-direct.pages.dev/buyer/</code> ② then run the SQL immediately. If it still returns 0, go to Supabase → Authentication → Users, find your email, copy the UUID, and run: <code>UPDATE profiles SET role = 'admin' WHERE id = 'PASTE-YOUR-UUID-HERE';</code>
+      </div>
+    </div>
+
+    <div class="faq-item">
+      <div class="faq-q" onclick="toggleFaq(this)">
+        <span>Can I update the site after deploying?</span>
+        <i class="fas fa-chevron-down"></i>
+      </div>
+      <div class="faq-a">
+        Yes! To update: ① Download the new version of the project as a ZIP ② In Cloudflare Pages → your project → Deployments → click "Create new deployment" ③ Upload the new ZIP. The site will update within seconds. Your domain stays the same.
+      </div>
+    </div>
+
+  </div>
+
+</div><!-- /container -->
+
+<div class="footer">
+  <strong>BRND DIRECT</strong> Portal Deployment Guide · Generated for your Cloudflare Pages deployment
+</div>
+
+<script>
+function switchOS(os, btn) {
+  document.querySelectorAll('.os-tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.os-content').forEach(c => c.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('os-' + os).classList.add('active');
+}
+
+function toggleFaq(btn) {
+  const item = btn.closest('.faq-item');
+  const isOpen = item.classList.contains('open');
+  document.querySelectorAll('.faq-item').forEach(f => f.classList.remove('open'));
+  if (!isOpen) item.classList.add('open');
+}
+</script>
+
+</body>
+</html>

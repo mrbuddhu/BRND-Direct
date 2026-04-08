@@ -1,0 +1,746 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>BRND Direct — Copy Schema SQL</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: #0f0f1a; color: #e2e8f0;
+      font-family: 'Inter', system-ui, sans-serif;
+      min-height: 100vh; display: flex; flex-direction: column;
+      align-items: center; padding: 40px 20px;
+    }
+    .card {
+      background: #1e1e35; border: 1px solid rgba(255,255,255,.1);
+      border-radius: 16px; padding: 32px; width: 100%; max-width: 900px;
+    }
+    h1 { font-size: 1.4rem; font-weight: 800; margin-bottom: 6px; }
+    .sub { color: #64748b; font-size: .9rem; margin-bottom: 24px; line-height: 1.6; }
+    .steps { display: flex; flex-direction: column; gap: 10px; margin-bottom: 24px; }
+    .step-item {
+      display: flex; align-items: flex-start; gap: 12px;
+      background: rgba(99,102,241,.08); border: 1px solid rgba(99,102,241,.2);
+      border-radius: 10px; padding: 12px 16px; font-size: .875rem;
+    }
+    .step-num {
+      background: #6366f1; color: #fff; width: 24px; height: 24px;
+      border-radius: 50%; display: flex; align-items: center; justify-content: center;
+      font-size: .75rem; font-weight: 700; flex-shrink: 0; margin-top: 1px;
+    }
+    .copy-btn {
+      background: linear-gradient(135deg, #6366f1, #818cf8);
+      color: #fff; border: none; border-radius: 10px;
+      padding: 12px 28px; font-size: 1rem; font-weight: 700;
+      cursor: pointer; margin-bottom: 20px; display: flex;
+      align-items: center; gap: 8px; transition: opacity .2s;
+    }
+    .copy-btn:hover { opacity: .9; }
+    .copy-btn.copied { background: linear-gradient(135deg, #059669, #34d399); }
+    pre {
+      background: #0a0a15; border: 1px solid rgba(255,255,255,.07);
+      border-radius: 10px; padding: 20px; font-size: .78rem;
+      line-height: 1.7; overflow-x: auto; color: #a5f3fc;
+      max-height: 400px; overflow-y: auto;
+      font-family: 'Fira Code', 'Cascadia Code', monospace;
+    }
+    .note {
+      margin-top: 20px; padding: 14px 16px;
+      background: rgba(52,211,153,.08); border: 1px solid rgba(52,211,153,.2);
+      border-radius: 10px; font-size: .85rem; color: #34d399;
+    }
+  </style>
+</head>
+<body>
+<div class="card">
+  <h1>📋 BRND Direct — Database Schema</h1>
+  <p class="sub">Follow the 3 steps below to set up your Supabase database. This takes about 2 minutes.</p>
+
+  <div class="steps">
+    <div class="step-item">
+      <div class="step-num">1</div>
+      <div>Go to <strong>supabase.com</strong> → open project <code style="background:#0f0f1a;padding:2px 6px;border-radius:4px;color:#818cf8">lthfgkwyrxryereazdnr</code> → click <strong>SQL Editor</strong> in the left sidebar</div>
+    </div>
+    <div class="step-item">
+      <div class="step-num">2</div>
+      <div>Click <strong>New query</strong> → click inside the editor → press <strong>Ctrl+A</strong> to select all → then <strong>Delete</strong> to clear it</div>
+    </div>
+    <div class="step-item">
+      <div class="step-num">3</div>
+      <div>Click the <strong>"Copy All SQL"</strong> button below → paste it into the Supabase editor → click <strong>Run</strong> (green button, top right)</div>
+    </div>
+  </div>
+
+  <button class="copy-btn" id="copyBtn" onclick="copySQL()">
+    <svg width="18" height="18" fill="none" viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2" stroke="white" stroke-width="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1" stroke="white" stroke-width="2"/></svg>
+    Copy All SQL
+  </button>
+
+  <pre id="sqlBlock">-- ============================================================
+--  BRND DIRECT — Complete PostgreSQL Database Schema
+--  Target: Supabase (PostgreSQL 15+)
+-- ============================================================
+
+-- Extensions
+CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+CREATE EXTENSION IF NOT EXISTS "pgcrypto";
+CREATE EXTENSION IF NOT EXISTS "pg_trgm";
+
+-- ============================================================
+--  ENUMS
+-- ============================================================
+DO $$ BEGIN
+  CREATE TYPE user_role AS ENUM ('buyer', 'seller', 'admin');
+EXCEPTION WHEN duplicate_object THEN NULL; END $$;
+
+DO $$ BEGIN
+  CREATE TYPE account_status AS ENUM ('pending', 'approved', 'suspended', 'rejected');
+EXCEPTION WHEN duplicate_object THEN NULL; END $$;
+
+DO $$ BEGIN
+  CREATE TYPE order_status AS ENUM ('draft','pending','confirmed','processing','shipped','delivered','cancelled','refunded');
+EXCEPTION WHEN duplicate_object THEN NULL; END $$;
+
+DO $$ BEGIN
+  CREATE TYPE payment_status AS ENUM ('unpaid','pending','paid','failed','refunded','partially_refunded');
+EXCEPTION WHEN duplicate_object THEN NULL; END $$;
+
+DO $$ BEGIN
+  CREATE TYPE fulfill_type AS ENUM ('wholesale','dropship','both');
+EXCEPTION WHEN duplicate_object THEN NULL; END $$;
+
+DO $$ BEGIN
+  CREATE TYPE payout_status AS ENUM ('pending','processing','paid','failed');
+EXCEPTION WHEN duplicate_object THEN NULL; END $$;
+
+DO $$ BEGIN
+  CREATE TYPE rfq_status AS ENUM ('open','quoted','accepted','rejected','expired');
+EXCEPTION WHEN duplicate_object THEN NULL; END $$;
+
+DO $$ BEGIN
+  CREATE TYPE message_status AS ENUM ('sent','delivered','read');
+EXCEPTION WHEN duplicate_object THEN NULL; END $$;
+
+DO $$ BEGIN
+  CREATE TYPE notification_type AS ENUM ('order','payment','message','system','rfq','shipment');
+EXCEPTION WHEN duplicate_object THEN NULL; END $$;
+
+-- ============================================================
+--  1. PROFILES
+-- ============================================================
+CREATE TABLE IF NOT EXISTS profiles (
+  id                UUID        PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
+  role              user_role   NOT NULL DEFAULT 'buyer',
+  status            account_status NOT NULL DEFAULT 'pending',
+  first_name        TEXT,
+  last_name         TEXT,
+  display_name      TEXT,
+  avatar_url        TEXT,
+  phone             TEXT,
+  country           TEXT        DEFAULT 'US',
+  timezone          TEXT        DEFAULT 'America/New_York',
+  email_verified    BOOLEAN     DEFAULT FALSE,
+  onboarding_done   BOOLEAN     DEFAULT FALSE,
+  last_seen_at      TIMESTAMPTZ,
+  created_at        TIMESTAMPTZ DEFAULT NOW(),
+  updated_at        TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE OR REPLACE FUNCTION handle_new_user()
+RETURNS TRIGGER LANGUAGE plpgsql SECURITY DEFINER AS $$
+BEGIN
+  INSERT INTO profiles (id, role, first_name, last_name)
+  VALUES (
+    NEW.id,
+    COALESCE((NEW.raw_user_meta_data->>'role')::user_role, 'buyer'),
+    NEW.raw_user_meta_data->>'first_name',
+    NEW.raw_user_meta_data->>'last_name'
+  )
+  ON CONFLICT (id) DO NOTHING;
+  RETURN NEW;
+END;
+$$;
+
+DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
+CREATE TRIGGER on_auth_user_created
+  AFTER INSERT ON auth.users
+  FOR EACH ROW EXECUTE FUNCTION handle_new_user();
+
+CREATE OR REPLACE FUNCTION set_updated_at()
+RETURNS TRIGGER LANGUAGE plpgsql AS $$
+BEGIN NEW.updated_at = NOW(); RETURN NEW; END;
+$$;
+
+DROP TRIGGER IF EXISTS profiles_updated_at ON profiles;
+CREATE TRIGGER profiles_updated_at
+  BEFORE UPDATE ON profiles
+  FOR EACH ROW EXECUTE FUNCTION set_updated_at();
+
+-- ============================================================
+--  2. BUYER PROFILES
+-- ============================================================
+CREATE TABLE IF NOT EXISTS buyer_profiles (
+  id                  UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  profile_id          UUID NOT NULL REFERENCES profiles(id) ON DELETE CASCADE,
+  business_name       TEXT NOT NULL,
+  business_type       TEXT,
+  ein_tax_id          TEXT,
+  website_url         TEXT,
+  annual_spend_range  TEXT,
+  credit_limit        NUMERIC(12,2) DEFAULT 0,
+  credit_used         NUMERIC(12,2) DEFAULT 0,
+  net_terms           INTEGER       DEFAULT 30,
+  stripe_customer_id  TEXT,
+  approved_at         TIMESTAMPTZ,
+  notes               TEXT,
+  created_at          TIMESTAMPTZ   DEFAULT NOW(),
+  updated_at          TIMESTAMPTZ   DEFAULT NOW(),
+  UNIQUE(profile_id)
+);
+
+DROP TRIGGER IF EXISTS buyer_updated_at ON buyer_profiles;
+CREATE TRIGGER buyer_updated_at BEFORE UPDATE ON buyer_profiles
+  FOR EACH ROW EXECUTE FUNCTION set_updated_at();
+
+-- ============================================================
+--  3. SELLER PROFILES
+-- ============================================================
+CREATE TABLE IF NOT EXISTS seller_profiles (
+  id                   UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  profile_id           UUID NOT NULL REFERENCES profiles(id) ON DELETE CASCADE,
+  brand_name           TEXT NOT NULL,
+  brand_slug           TEXT UNIQUE NOT NULL,
+  description          TEXT,
+  logo_url             TEXT,
+  website_url          TEXT,
+  annual_revenue_range TEXT,
+  primary_category     TEXT,
+  fulfillment_type     fulfill_type  DEFAULT 'both',
+  map_enforcement      BOOLEAN       DEFAULT TRUE,
+  commission_rate      NUMERIC(5,2)  DEFAULT 12.00,
+  stripe_account_id    TEXT,
+  approved_at          TIMESTAMPTZ,
+  notes                TEXT,
+  created_at           TIMESTAMPTZ   DEFAULT NOW(),
+  updated_at           TIMESTAMPTZ   DEFAULT NOW(),
+  UNIQUE(profile_id)
+);
+
+DROP TRIGGER IF EXISTS seller_updated_at ON seller_profiles;
+CREATE TRIGGER seller_updated_at BEFORE UPDATE ON seller_profiles
+  FOR EACH ROW EXECUTE FUNCTION set_updated_at();
+
+-- ============================================================
+--  4. BRANDS
+-- ============================================================
+CREATE TABLE IF NOT EXISTS brands (
+  id                UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  seller_profile_id UUID REFERENCES seller_profiles(id) ON DELETE SET NULL,
+  name              TEXT NOT NULL,
+  slug              TEXT UNIQUE NOT NULL,
+  logo_url          TEXT,
+  banner_url        TEXT,
+  description       TEXT,
+  category          TEXT,
+  country_of_origin TEXT,
+  is_verified       BOOLEAN   DEFAULT FALSE,
+  is_active         BOOLEAN   DEFAULT TRUE,
+  sort_order        INTEGER   DEFAULT 0,
+  created_at        TIMESTAMPTZ DEFAULT NOW(),
+  updated_at        TIMESTAMPTZ DEFAULT NOW()
+);
+
+DROP TRIGGER IF EXISTS brands_updated_at ON brands;
+CREATE TRIGGER brands_updated_at BEFORE UPDATE ON brands
+  FOR EACH ROW EXECUTE FUNCTION set_updated_at();
+
+CREATE INDEX IF NOT EXISTS idx_brands_category   ON brands(category);
+CREATE INDEX IF NOT EXISTS idx_brands_slug        ON brands(slug);
+CREATE INDEX IF NOT EXISTS idx_brands_name_trgm   ON brands USING GIN (name gin_trgm_ops);
+
+-- ============================================================
+--  5. PRODUCTS
+-- ============================================================
+CREATE TABLE IF NOT EXISTS products (
+  id                UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  brand_id          UUID NOT NULL REFERENCES brands(id) ON DELETE CASCADE,
+  seller_profile_id UUID REFERENCES seller_profiles(id) ON DELETE SET NULL,
+  sku               TEXT UNIQUE NOT NULL,
+  upc               TEXT UNIQUE,
+  name              TEXT NOT NULL,
+  description       TEXT,
+  category          TEXT NOT NULL,
+  subcategory       TEXT[],
+  tags              TEXT[],
+  fulfillment_type  fulfill_type   DEFAULT 'both',
+  wholesale_price   NUMERIC(10,2)  NOT NULL,
+  msrp              NUMERIC(10,2),
+  moq               INTEGER        DEFAULT 1,
+  stock_qty         INTEGER        DEFAULT 0,
+  is_active         BOOLEAN        DEFAULT TRUE,
+  is_top_seller     BOOLEAN        DEFAULT FALSE,
+  images            TEXT[],
+  meta              JSONB          DEFAULT '{}',
+  created_at        TIMESTAMPTZ    DEFAULT NOW(),
+  updated_at        TIMESTAMPTZ    DEFAULT NOW()
+);
+
+DROP TRIGGER IF EXISTS products_updated_at ON products;
+CREATE TRIGGER products_updated_at BEFORE UPDATE ON products
+  FOR EACH ROW EXECUTE FUNCTION set_updated_at();
+
+CREATE INDEX IF NOT EXISTS idx_products_brand      ON products(brand_id);
+CREATE INDEX IF NOT EXISTS idx_products_category   ON products(category);
+CREATE INDEX IF NOT EXISTS idx_products_sku        ON products(sku);
+CREATE INDEX IF NOT EXISTS idx_products_upc        ON products(upc);
+CREATE INDEX IF NOT EXISTS idx_products_tags       ON products USING GIN (tags);
+CREATE INDEX IF NOT EXISTS idx_products_subcat     ON products USING GIN (subcategory);
+CREATE INDEX IF NOT EXISTS idx_products_name_trgm  ON products USING GIN (name gin_trgm_ops);
+CREATE INDEX IF NOT EXISTS idx_products_active     ON products(is_active, is_top_seller);
+
+-- ============================================================
+--  6. ORDERS
+-- ============================================================
+CREATE TABLE IF NOT EXISTS orders (
+  id                UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  order_number      TEXT UNIQUE NOT NULL DEFAULT 'BD-' || LPAD(FLOOR(RANDOM()*999999)::TEXT, 6, '0'),
+  buyer_profile_id  UUID NOT NULL REFERENCES buyer_profiles(id) ON DELETE RESTRICT,
+  status            order_status   DEFAULT 'pending',
+  payment_status    payment_status DEFAULT 'unpaid',
+  subtotal          NUMERIC(12,2)  DEFAULT 0,
+  discount_amount   NUMERIC(12,2)  DEFAULT 0,
+  tax_amount        NUMERIC(12,2)  DEFAULT 0,
+  shipping_amount   NUMERIC(12,2)  DEFAULT 0,
+  total_amount      NUMERIC(12,2)  DEFAULT 0,
+  net_terms         INTEGER        DEFAULT 30,
+  due_date          DATE,
+  stripe_payment_intent TEXT,
+  notes             TEXT,
+  shipping_address  JSONB,
+  tracking_info     JSONB,
+  created_at        TIMESTAMPTZ    DEFAULT NOW(),
+  updated_at        TIMESTAMPTZ    DEFAULT NOW()
+);
+
+DROP TRIGGER IF EXISTS orders_updated_at ON orders;
+CREATE TRIGGER orders_updated_at BEFORE UPDATE ON orders
+  FOR EACH ROW EXECUTE FUNCTION set_updated_at();
+
+CREATE INDEX IF NOT EXISTS idx_orders_buyer   ON orders(buyer_profile_id);
+CREATE INDEX IF NOT EXISTS idx_orders_status  ON orders(status);
+CREATE INDEX IF NOT EXISTS idx_orders_created ON orders(created_at DESC);
+
+-- ============================================================
+--  7. ORDER ITEMS
+-- ============================================================
+CREATE TABLE IF NOT EXISTS order_items (
+  id                UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  order_id          UUID NOT NULL REFERENCES orders(id) ON DELETE CASCADE,
+  product_id        UUID NOT NULL REFERENCES products(id) ON DELETE RESTRICT,
+  seller_profile_id UUID REFERENCES seller_profiles(id) ON DELETE SET NULL,
+  sku               TEXT NOT NULL,
+  name              TEXT NOT NULL,
+  quantity          INTEGER       NOT NULL CHECK (quantity > 0),
+  unit_price        NUMERIC(10,2) NOT NULL,
+  line_total        NUMERIC(12,2) GENERATED ALWAYS AS (quantity * unit_price) STORED,
+  fulfillment_type  fulfill_type  DEFAULT 'wholesale',
+  created_at        TIMESTAMPTZ   DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_order_items_order   ON order_items(order_id);
+CREATE INDEX IF NOT EXISTS idx_order_items_product ON order_items(product_id);
+
+CREATE OR REPLACE FUNCTION recalc_order_total()
+RETURNS TRIGGER LANGUAGE plpgsql AS $$
+BEGIN
+  UPDATE orders
+  SET
+    subtotal     = (SELECT COALESCE(SUM(line_total),0) FROM order_items WHERE order_id = COALESCE(NEW.order_id, OLD.order_id)),
+    total_amount = subtotal + tax_amount + shipping_amount - discount_amount,
+    updated_at   = NOW()
+  WHERE id = COALESCE(NEW.order_id, OLD.order_id);
+  RETURN NULL;
+END;
+$$;
+
+DROP TRIGGER IF EXISTS order_items_recalc ON order_items;
+CREATE TRIGGER order_items_recalc
+  AFTER INSERT OR UPDATE OR DELETE ON order_items
+  FOR EACH ROW EXECUTE FUNCTION recalc_order_total();
+
+-- ============================================================
+--  8. INVOICES
+-- ============================================================
+CREATE TABLE IF NOT EXISTS invoices (
+  id                UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  invoice_number    TEXT UNIQUE NOT NULL DEFAULT 'INV-' || LPAD(FLOOR(RANDOM()*999999)::TEXT, 6, '0'),
+  order_id          UUID NOT NULL REFERENCES orders(id) ON DELETE RESTRICT,
+  buyer_profile_id  UUID NOT NULL REFERENCES buyer_profiles(id),
+  amount            NUMERIC(12,2) NOT NULL,
+  payment_status    payment_status DEFAULT 'unpaid',
+  stripe_invoice_id TEXT,
+  due_date          DATE,
+  paid_at           TIMESTAMPTZ,
+  pdf_url           TEXT,
+  created_at        TIMESTAMPTZ DEFAULT NOW(),
+  updated_at        TIMESTAMPTZ DEFAULT NOW()
+);
+
+DROP TRIGGER IF EXISTS invoices_updated_at ON invoices;
+CREATE TRIGGER invoices_updated_at BEFORE UPDATE ON invoices
+  FOR EACH ROW EXECUTE FUNCTION set_updated_at();
+
+CREATE INDEX IF NOT EXISTS idx_invoices_buyer  ON invoices(buyer_profile_id);
+CREATE INDEX IF NOT EXISTS idx_invoices_order  ON invoices(order_id);
+CREATE INDEX IF NOT EXISTS idx_invoices_status ON invoices(payment_status);
+
+-- ============================================================
+--  9. PAYOUTS
+-- ============================================================
+CREATE TABLE IF NOT EXISTS payouts (
+  id                  UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  seller_profile_id   UUID NOT NULL REFERENCES seller_profiles(id) ON DELETE RESTRICT,
+  amount              NUMERIC(12,2) NOT NULL,
+  commission_deducted NUMERIC(12,2) DEFAULT 0,
+  net_amount          NUMERIC(12,2) GENERATED ALWAYS AS (amount - commission_deducted) STORED,
+  status              payout_status DEFAULT 'pending',
+  stripe_transfer_id  TEXT,
+  period_start        DATE,
+  period_end          DATE,
+  paid_at             TIMESTAMPTZ,
+  notes               TEXT,
+  created_at          TIMESTAMPTZ DEFAULT NOW(),
+  updated_at          TIMESTAMPTZ DEFAULT NOW()
+);
+
+DROP TRIGGER IF EXISTS payouts_updated_at ON payouts;
+CREATE TRIGGER payouts_updated_at BEFORE UPDATE ON payouts
+  FOR EACH ROW EXECUTE FUNCTION set_updated_at();
+
+CREATE INDEX IF NOT EXISTS idx_payouts_seller ON payouts(seller_profile_id);
+CREATE INDEX IF NOT EXISTS idx_payouts_status ON payouts(status);
+
+-- ============================================================
+--  10. RFQS
+-- ============================================================
+CREATE TABLE IF NOT EXISTS rfqs (
+  id                 UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  rfq_number         TEXT UNIQUE DEFAULT 'RFQ-' || LPAD(FLOOR(RANDOM()*999999)::TEXT, 6, '0'),
+  buyer_profile_id   UUID NOT NULL REFERENCES buyer_profiles(id) ON DELETE CASCADE,
+  seller_profile_id  UUID REFERENCES seller_profiles(id) ON DELETE SET NULL,
+  product_id         UUID REFERENCES products(id) ON DELETE SET NULL,
+  quantity_requested INTEGER NOT NULL,
+  target_price       NUMERIC(10,2),
+  quoted_price       NUMERIC(10,2),
+  status             rfq_status  DEFAULT 'open',
+  notes              TEXT,
+  expires_at         TIMESTAMPTZ DEFAULT (NOW() + INTERVAL '14 days'),
+  responded_at       TIMESTAMPTZ,
+  created_at         TIMESTAMPTZ DEFAULT NOW(),
+  updated_at         TIMESTAMPTZ DEFAULT NOW()
+);
+
+DROP TRIGGER IF EXISTS rfqs_updated_at ON rfqs;
+CREATE TRIGGER rfqs_updated_at BEFORE UPDATE ON rfqs
+  FOR EACH ROW EXECUTE FUNCTION set_updated_at();
+
+-- ============================================================
+--  11. MESSAGES
+-- ============================================================
+CREATE TABLE IF NOT EXISTS conversations (
+  id                UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  buyer_profile_id  UUID NOT NULL REFERENCES buyer_profiles(id)  ON DELETE CASCADE,
+  seller_profile_id UUID NOT NULL REFERENCES seller_profiles(id) ON DELETE CASCADE,
+  subject           TEXT,
+  last_message_at   TIMESTAMPTZ DEFAULT NOW(),
+  created_at        TIMESTAMPTZ DEFAULT NOW(),
+  UNIQUE(buyer_profile_id, seller_profile_id)
+);
+
+CREATE TABLE IF NOT EXISTS messages (
+  id               UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  conversation_id  UUID NOT NULL REFERENCES conversations(id) ON DELETE CASCADE,
+  sender_id        UUID NOT NULL REFERENCES profiles(id) ON DELETE CASCADE,
+  body             TEXT NOT NULL,
+  attachment_url   TEXT,
+  status           message_status DEFAULT 'sent',
+  read_at          TIMESTAMPTZ,
+  created_at       TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_messages_convo  ON messages(conversation_id, created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_messages_sender ON messages(sender_id);
+
+CREATE OR REPLACE FUNCTION update_conversation_ts()
+RETURNS TRIGGER LANGUAGE plpgsql AS $$
+BEGIN
+  UPDATE conversations SET last_message_at = NOW() WHERE id = NEW.conversation_id;
+  RETURN NEW;
+END;
+$$;
+
+DROP TRIGGER IF EXISTS messages_update_convo ON messages;
+CREATE TRIGGER messages_update_convo
+  AFTER INSERT ON messages FOR EACH ROW EXECUTE FUNCTION update_conversation_ts();
+
+-- ============================================================
+--  12. NOTIFICATIONS
+-- ============================================================
+CREATE TABLE IF NOT EXISTS notifications (
+  id          UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  profile_id  UUID NOT NULL REFERENCES profiles(id) ON DELETE CASCADE,
+  type        notification_type DEFAULT 'system',
+  title       TEXT NOT NULL,
+  body        TEXT,
+  link        TEXT,
+  is_read     BOOLEAN     DEFAULT FALSE,
+  created_at  TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_notifs_profile ON notifications(profile_id, is_read, created_at DESC);
+
+-- ============================================================
+--  13. ANALYTICS EVENTS
+-- ============================================================
+CREATE TABLE IF NOT EXISTS analytics_events (
+  id          BIGSERIAL PRIMARY KEY,
+  profile_id  UUID REFERENCES profiles(id) ON DELETE SET NULL,
+  event_type  TEXT NOT NULL,
+  payload     JSONB DEFAULT '{}',
+  created_at  TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_analytics_profile ON analytics_events(profile_id, created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_analytics_type    ON analytics_events(event_type, created_at DESC);
+
+-- ============================================================
+--  14. APP SETTINGS
+-- ============================================================
+CREATE TABLE IF NOT EXISTS app_settings (
+  key         TEXT PRIMARY KEY,
+  value       JSONB,
+  description TEXT,
+  updated_at  TIMESTAMPTZ DEFAULT NOW()
+);
+
+INSERT INTO app_settings (key, value, description) VALUES
+  ('platform_name',     '"BRND Direct"',            'Platform display name'),
+  ('commission_rate',   '12.0',                     'Default seller commission %'),
+  ('default_net_terms', '30',                       'Default net payment terms (days)'),
+  ('stripe_mode',       '"test"',                   'live or test'),
+  ('max_credit_limit',  '100000',                   'Maximum buyer credit limit USD'),
+  ('support_email',     '"support@brnddirect.com"', 'Customer support email'),
+  ('maintenance_mode',  'false',                    'Set true to show maintenance page')
+ON CONFLICT (key) DO NOTHING;
+
+-- ============================================================
+--  ROW LEVEL SECURITY
+-- ============================================================
+ALTER TABLE profiles          ENABLE ROW LEVEL SECURITY;
+ALTER TABLE buyer_profiles    ENABLE ROW LEVEL SECURITY;
+ALTER TABLE seller_profiles   ENABLE ROW LEVEL SECURITY;
+ALTER TABLE brands            ENABLE ROW LEVEL SECURITY;
+ALTER TABLE products          ENABLE ROW LEVEL SECURITY;
+ALTER TABLE orders            ENABLE ROW LEVEL SECURITY;
+ALTER TABLE order_items       ENABLE ROW LEVEL SECURITY;
+ALTER TABLE invoices          ENABLE ROW LEVEL SECURITY;
+ALTER TABLE payouts           ENABLE ROW LEVEL SECURITY;
+ALTER TABLE rfqs              ENABLE ROW LEVEL SECURITY;
+ALTER TABLE conversations     ENABLE ROW LEVEL SECURITY;
+ALTER TABLE messages          ENABLE ROW LEVEL SECURITY;
+ALTER TABLE notifications     ENABLE ROW LEVEL SECURITY;
+ALTER TABLE analytics_events  ENABLE ROW LEVEL SECURITY;
+
+CREATE OR REPLACE FUNCTION is_admin()
+RETURNS BOOLEAN LANGUAGE sql STABLE SECURITY DEFINER AS $$
+  SELECT EXISTS (SELECT 1 FROM profiles WHERE id = auth.uid() AND role = 'admin');
+$$;
+
+-- profiles
+DROP POLICY IF EXISTS "Users can view own profile"    ON profiles;
+DROP POLICY IF EXISTS "Users can update own profile"  ON profiles;
+DROP POLICY IF EXISTS "Admins can do anything"        ON profiles;
+CREATE POLICY "Users can view own profile"   ON profiles FOR SELECT USING (id = auth.uid() OR is_admin());
+CREATE POLICY "Users can update own profile" ON profiles FOR UPDATE USING (id = auth.uid());
+CREATE POLICY "Admins can do anything"       ON profiles FOR ALL    USING (is_admin());
+
+-- buyer_profiles
+DROP POLICY IF EXISTS "Buyers see own record"          ON buyer_profiles;
+DROP POLICY IF EXISTS "Buyers update own record"       ON buyer_profiles;
+DROP POLICY IF EXISTS "Buyers insert own record"       ON buyer_profiles;
+DROP POLICY IF EXISTS "Admins full access buyers"      ON buyer_profiles;
+CREATE POLICY "Buyers see own record"     ON buyer_profiles FOR SELECT USING (profile_id = auth.uid() OR is_admin());
+CREATE POLICY "Buyers update own record"  ON buyer_profiles FOR UPDATE USING (profile_id = auth.uid());
+CREATE POLICY "Buyers insert own record"  ON buyer_profiles FOR INSERT WITH CHECK (profile_id = auth.uid());
+CREATE POLICY "Admins full access buyers" ON buyer_profiles FOR ALL    USING (is_admin());
+
+-- seller_profiles
+DROP POLICY IF EXISTS "Sellers see own record"         ON seller_profiles;
+DROP POLICY IF EXISTS "Sellers update own record"      ON seller_profiles;
+DROP POLICY IF EXISTS "Sellers insert own record"      ON seller_profiles;
+DROP POLICY IF EXISTS "Admins full access sellers"     ON seller_profiles;
+CREATE POLICY "Sellers see own record"      ON seller_profiles FOR SELECT USING (profile_id = auth.uid() OR is_admin());
+CREATE POLICY "Sellers update own record"   ON seller_profiles FOR UPDATE USING (profile_id = auth.uid());
+CREATE POLICY "Sellers insert own record"   ON seller_profiles FOR INSERT WITH CHECK (profile_id = auth.uid());
+CREATE POLICY "Admins full access sellers"  ON seller_profiles FOR ALL    USING (is_admin());
+
+-- brands & products — publicly readable
+DROP POLICY IF EXISTS "Anyone can read active brands"  ON brands;
+DROP POLICY IF EXISTS "Sellers manage own brands"      ON brands;
+DROP POLICY IF EXISTS "Anyone can read active products" ON products;
+DROP POLICY IF EXISTS "Sellers manage own products"    ON products;
+CREATE POLICY "Anyone can read active brands"   ON brands   FOR SELECT USING (is_active = TRUE OR is_admin());
+CREATE POLICY "Sellers manage own brands"       ON brands   FOR ALL    USING (seller_profile_id IN (SELECT id FROM seller_profiles WHERE profile_id = auth.uid()) OR is_admin());
+CREATE POLICY "Anyone can read active products" ON products FOR SELECT USING (is_active = TRUE OR is_admin());
+CREATE POLICY "Sellers manage own products"     ON products FOR ALL    USING (seller_profile_id IN (SELECT id FROM seller_profiles WHERE profile_id = auth.uid()) OR is_admin());
+
+-- orders
+DROP POLICY IF EXISTS "Buyers see own orders"    ON orders;
+DROP POLICY IF EXISTS "Buyers create orders"     ON orders;
+DROP POLICY IF EXISTS "Buyers update drafts"     ON orders;
+DROP POLICY IF EXISTS "Admins full access orders" ON orders;
+CREATE POLICY "Buyers see own orders"     ON orders FOR SELECT USING (buyer_profile_id IN (SELECT id FROM buyer_profiles WHERE profile_id = auth.uid()) OR is_admin());
+CREATE POLICY "Buyers create orders"      ON orders FOR INSERT WITH CHECK (buyer_profile_id IN (SELECT id FROM buyer_profiles WHERE profile_id = auth.uid()));
+CREATE POLICY "Buyers update drafts"      ON orders FOR UPDATE USING (buyer_profile_id IN (SELECT id FROM buyer_profiles WHERE profile_id = auth.uid()) AND status = 'draft');
+CREATE POLICY "Admins full access orders" ON orders FOR ALL    USING (is_admin());
+
+-- order_items
+DROP POLICY IF EXISTS "Order items visible to owner"   ON order_items;
+DROP POLICY IF EXISTS "Sellers see own order items"    ON order_items;
+CREATE POLICY "Order items visible to owner" ON order_items FOR SELECT USING (order_id IN (SELECT o.id FROM orders o JOIN buyer_profiles bp ON bp.id = o.buyer_profile_id WHERE bp.profile_id = auth.uid()) OR is_admin());
+CREATE POLICY "Sellers see own order items"  ON order_items FOR SELECT USING (seller_profile_id IN (SELECT id FROM seller_profiles WHERE profile_id = auth.uid()));
+
+-- invoices
+DROP POLICY IF EXISTS "Buyers see own invoices" ON invoices;
+CREATE POLICY "Buyers see own invoices" ON invoices FOR SELECT USING (buyer_profile_id IN (SELECT id FROM buyer_profiles WHERE profile_id = auth.uid()) OR is_admin());
+
+-- payouts
+DROP POLICY IF EXISTS "Sellers see own payouts" ON payouts;
+CREATE POLICY "Sellers see own payouts" ON payouts FOR SELECT USING (seller_profile_id IN (SELECT id FROM seller_profiles WHERE profile_id = auth.uid()) OR is_admin());
+
+-- rfqs
+DROP POLICY IF EXISTS "Buyers manage own RFQs"          ON rfqs;
+DROP POLICY IF EXISTS "Sellers see addressed RFQs"      ON rfqs;
+CREATE POLICY "Buyers manage own RFQs"     ON rfqs FOR ALL    USING (buyer_profile_id IN (SELECT id FROM buyer_profiles WHERE profile_id = auth.uid()) OR is_admin());
+CREATE POLICY "Sellers see addressed RFQs" ON rfqs FOR SELECT USING (seller_profile_id IN (SELECT id FROM seller_profiles WHERE profile_id = auth.uid()));
+
+-- conversations & messages
+DROP POLICY IF EXISTS "Convo participants read" ON conversations;
+DROP POLICY IF EXISTS "Message participants read" ON messages;
+DROP POLICY IF EXISTS "Users send messages"       ON messages;
+CREATE POLICY "Convo participants read"  ON conversations FOR SELECT USING (buyer_profile_id IN (SELECT id FROM buyer_profiles WHERE profile_id = auth.uid()) OR seller_profile_id IN (SELECT id FROM seller_profiles WHERE profile_id = auth.uid()) OR is_admin());
+CREATE POLICY "Message participants read" ON messages FOR SELECT USING (conversation_id IN (SELECT c.id FROM conversations c LEFT JOIN buyer_profiles bp ON bp.id = c.buyer_profile_id LEFT JOIN seller_profiles sp ON sp.id = c.seller_profile_id WHERE bp.profile_id = auth.uid() OR sp.profile_id = auth.uid()) OR is_admin());
+CREATE POLICY "Users send messages" ON messages FOR INSERT WITH CHECK (sender_id = auth.uid());
+
+-- notifications
+DROP POLICY IF EXISTS "Users see own notifications"    ON notifications;
+DROP POLICY IF EXISTS "Users update own notifications" ON notifications;
+CREATE POLICY "Users see own notifications"    ON notifications FOR SELECT USING (profile_id = auth.uid() OR is_admin());
+CREATE POLICY "Users update own notifications" ON notifications FOR UPDATE USING (profile_id = auth.uid());
+
+-- analytics
+DROP POLICY IF EXISTS "Users insert own events" ON analytics_events;
+DROP POLICY IF EXISTS "Admins read all events"  ON analytics_events;
+CREATE POLICY "Users insert own events" ON analytics_events FOR INSERT WITH CHECK (profile_id = auth.uid() OR profile_id IS NULL);
+CREATE POLICY "Admins read all events"  ON analytics_events FOR SELECT USING (is_admin());
+
+-- ============================================================
+--  ADMIN VIEWS
+-- ============================================================
+CREATE OR REPLACE VIEW admin_overview AS
+SELECT
+  (SELECT COUNT(*) FROM profiles WHERE role = 'buyer')                           AS total_buyers,
+  (SELECT COUNT(*) FROM profiles WHERE role = 'seller')                          AS total_sellers,
+  (SELECT COUNT(*) FROM profiles WHERE status = 'pending')                       AS pending_approvals,
+  (SELECT COUNT(*) FROM products WHERE is_active = TRUE)                         AS active_products,
+  (SELECT COUNT(*) FROM orders WHERE status NOT IN ('draft','cancelled'))         AS total_orders,
+  (SELECT COALESCE(SUM(total_amount),0) FROM orders WHERE payment_status='paid') AS total_revenue,
+  (SELECT COUNT(*) FROM orders WHERE status = 'pending')                         AS pending_orders,
+  (SELECT COUNT(*) FROM orders WHERE created_at > NOW() - INTERVAL '24h')        AS orders_today,
+  (SELECT COALESCE(SUM(total_amount),0) FROM orders WHERE created_at > NOW() - INTERVAL '30d' AND payment_status='paid') AS revenue_mtd,
+  (SELECT COUNT(*) FROM rfqs WHERE status = 'open')                              AS open_rfqs,
+  (SELECT COUNT(*) FROM payouts WHERE status = 'pending')                        AS pending_payouts,
+  (SELECT COALESCE(SUM(net_amount),0) FROM payouts WHERE status = 'pending')     AS payouts_owed;
+
+CREATE OR REPLACE VIEW revenue_by_month AS
+SELECT
+  DATE_TRUNC('month', created_at) AS month,
+  COUNT(*)                         AS order_count,
+  SUM(total_amount)                AS revenue
+FROM orders
+WHERE payment_status = 'paid'
+  AND created_at > NOW() - INTERVAL '12 months'
+GROUP BY 1 ORDER BY 1;
+
+CREATE OR REPLACE VIEW top_products AS
+SELECT
+  p.id, p.name, p.sku, p.category, b.name AS brand_name,
+  COUNT(oi.id)       AS total_orders,
+  SUM(oi.quantity)   AS total_units_sold,
+  SUM(oi.line_total) AS total_revenue
+FROM products p
+JOIN brands b ON b.id = p.brand_id
+JOIN order_items oi ON oi.product_id = p.id
+JOIN orders o ON o.id = oi.order_id AND o.payment_status = 'paid'
+GROUP BY p.id, p.name, p.sku, p.category, b.name
+ORDER BY total_revenue DESC;
+
+-- ============================================================
+--  REALTIME
+-- ============================================================
+ALTER PUBLICATION supabase_realtime ADD TABLE orders;
+ALTER PUBLICATION supabase_realtime ADD TABLE messages;
+ALTER PUBLICATION supabase_realtime ADD TABLE notifications;
+ALTER PUBLICATION supabase_realtime ADD TABLE order_items;
+
+-- ============================================================
+--  SEED DATA — Brands
+-- ============================================================
+INSERT INTO brands (name, slug, category, is_verified, is_active) VALUES
+  ('Maison Margiela',          'maison-margiela',          'fragrances', TRUE, TRUE),
+  ('Chanel',                   'chanel',                   'fragrances', TRUE, TRUE),
+  ('Dior',                     'dior',                     'fragrances', TRUE, TRUE),
+  ('Yves Saint Laurent',       'yves-saint-laurent',       'fragrances', TRUE, TRUE),
+  ('Jo Malone',                'jo-malone',                'fragrances', TRUE, TRUE),
+  ('Maison Francis Kurkdjian', 'maison-francis-kurkdjian', 'fragrances', TRUE, TRUE),
+  ('Charlotte Tilbury',        'charlotte-tilbury',        'beauty',     TRUE, TRUE),
+  ('NARS Cosmetics',           'nars-cosmetics',           'beauty',     TRUE, TRUE),
+  ('MAC Cosmetics',            'mac-cosmetics',            'beauty',     TRUE, TRUE),
+  ('La Mer',                   'la-mer',                   'skincare',   TRUE, TRUE),
+  ('Kiehls',                   'kiehls',                   'skincare',   TRUE, TRUE),
+  ('Elemis',                   'elemis',                   'skincare',   TRUE, TRUE),
+  ('Clinique',                 'clinique',                 'skincare',   TRUE, TRUE),
+  ('Gucci',                    'gucci',                    'bags',       TRUE, TRUE),
+  ('Prada',                    'prada',                    'bags',       TRUE, TRUE),
+  ('New Balance',              'new-balance',              'sneakers',   TRUE, TRUE),
+  ('Jordan Brand',             'jordan-brand',             'sneakers',   TRUE, TRUE),
+  ('Versace',                  'versace',                  'apparel',    TRUE, TRUE),
+  ('Polo Ralph Lauren',        'polo-ralph-lauren',        'apparel',    TRUE, TRUE),
+  ('Make Up For Ever',         'make-up-for-ever',         'cosmetics',  TRUE, TRUE),
+  ('Benefit Cosmetics',        'benefit-cosmetics',        'cosmetics',  TRUE, TRUE)
+ON CONFLICT (slug) DO NOTHING;
+
+-- Done!
+SELECT 'BRND Direct database ready!' AS status;</pre>
+
+  <div class="note">
+    ✅ After clicking <strong>Run</strong> in Supabase, you should see: <code style="color:#34d399">BRND Direct database ready!</code> at the bottom of the results panel.
+  </div>
+</div>
+
+<script>
+function copySQL() {
+  const text = document.getElementById('sqlBlock').textContent;
+  navigator.clipboard.writeText(text).then(() => {
+    const btn = document.getElementById('copyBtn');
+    btn.classList.add('copied');
+    btn.innerHTML = `<svg width="18" height="18" fill="none" viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg> Copied!`;
+    setTimeout(() => {
+      btn.classList.remove('copied');
+      btn.innerHTML = `<svg width="18" height="18" fill="none" viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2" stroke="white" stroke-width="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1" stroke="white" stroke-width="2"/></svg> Copy All SQL`;
+    }, 3000);
+  });
+}
+</script>
+</body>
+</html>

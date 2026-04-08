@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Warehousing – BRND Direct Portal</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&family=Inter:wght@300;400;500;600;700&family=Outfit:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.5.0/css/all.min.css" />
+  <link rel="stylesheet" href="css/portal.css" />
+  <style>
+    /* Warehouse map layout */
+    .warehouse-grid { display: grid; grid-template-columns: 1fr 300px; gap: 24px; align-items: start; }
+
+    /* Inventory table extras */
+    .stock-indicator { display: inline-flex; align-items: center; gap: 6px; font-size: .78rem; font-weight: 600; }
+    .stock-bar { width: 60px; height: 6px; background: var(--color-border); border-radius: 4px; overflow: hidden; display: inline-block; vertical-align: middle; }
+    .stock-fill { height: 100%; border-radius: 4px; }
+    .stock-critical .stock-fill { background: var(--color-rose); }
+    .stock-low .stock-fill { background: var(--color-amber); }
+    .stock-ok .stock-fill { background: var(--color-emerald); }
+
+    /* Warehouse zone map (CSS visual) */
+    .zone-map { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; padding: 16px 0; }
+    .zone-cell {
+      aspect-ratio: 1; border-radius: var(--radius-sm); display: flex; flex-direction: column;
+      align-items: center; justify-content: center; cursor: pointer; transition: all .18s;
+      font-size: .65rem; font-weight: 700; gap: 4px; border: 2px solid transparent;
+    }
+    .zone-cell:hover { transform: scale(1.05); }
+    .zone-cell.empty { background: var(--color-off-white); border-color: var(--color-border); color: var(--color-muted); }
+    .zone-cell.partial { background: rgba(245,158,11,.1); border-color: var(--color-amber); color: var(--color-amber); }
+    .zone-cell.full { background: rgba(244,63,94,.1); border-color: var(--color-rose); color: var(--color-rose); }
+    .zone-cell.occupied { background: rgba(16,185,129,.1); border-color: var(--color-emerald); color: var(--color-emerald); }
+
+    /* Movement history */
+    .movement-row { display: flex; align-items: center; gap: 12px; padding: 10px 0; border-bottom: 1px solid var(--color-border); }
+    .movement-row:last-child { border-bottom: none; }
+    .movement-type { width: 32px; height: 32px; border-radius: var(--radius-sm); display: flex; align-items: center; justify-content: center; font-size: .8rem; flex-shrink: 0; }
+    .movement-in  { background: var(--color-emerald-glow); color: var(--color-emerald); }
+    .movement-out { background: var(--color-rose-glow); color: var(--color-rose); }
+    .movement-adj { background: var(--color-amber-glow); color: var(--color-amber); }
+    .movement-info { flex: 1; min-width: 0; }
+    .movement-text { font-size: .83rem; font-weight: 600; }
+    .movement-meta { font-size: .72rem; color: var(--color-muted); }
+    .movement-qty { font-size: .88rem; font-weight: 800; font-family: var(--font-display); flex-shrink: 0; }
+
+    /* Capacity ring */
+    .capacity-wrap { display: flex; align-items: center; gap: 16px; padding: 12px 0; }
+    .capacity-ring { position: relative; width: 80px; height: 80px; flex-shrink: 0; }
+    .capacity-ring svg { transform: rotate(-90deg); }
+    .capacity-ring-center { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+    .capacity-pct { font-size: 1rem; font-weight: 800; font-family: var(--font-display); }
+    .capacity-lbl { font-size: .58rem; color: var(--color-muted); }
+
+    /* Tabs */
+    .wh-tabs { display: flex; gap: 2px; border-bottom: 2px solid var(--color-border); margin-bottom: 24px; overflow-x: auto; }
+    .wh-tab { padding: 10px 18px; font-size: .85rem; font-weight: 600; cursor: pointer; color: var(--color-muted); border-bottom: 2px solid transparent; margin-bottom: -2px; white-space: nowrap; transition: all .18s; }
+    .wh-tab:hover { color: var(--color-near-black); }
+    .wh-tab.active { color: var(--color-accent); border-bottom-color: var(--color-accent); }
+    .wh-panel { display: none; }
+    .wh-panel.active { display: block; }
+
+    @media (max-width: 1024px) { .warehouse-grid { grid-template-columns: 1fr; } }
+    @media (max-width: 540px) { .zone-map { grid-template-columns: repeat(3, 1fr); } }
+  </style>
+</head>
+<body>
+<!-- SIDEBAR -->
+<aside class="sidebar" id="sidebar">
+  <div class="sidebar__logo">
+    <a href="dashboard.html" class="logo-mark">
+      <span class="logo-icon"><i class="fas fa-chevron-right"></i></span>
+      <span class="logo-word">BRND <span class="logo-accent">DIRECT</span></span>
+    </a>
+  </div>
+  <nav class="sidebar__nav">
+    <div class="nav-section">
+      <span class="nav-section-label">Main Menu</span>
+      <a href="dashboard.html" class="nav-item"><i class="fas fa-table-columns"></i><span>Dashboard</span></a>
+      <a href="products.html" class="nav-item"><i class="fas fa-boxes-stacked"></i><span>Products</span></a>
+      <a href="orders.html" class="nav-item"><i class="fas fa-file-invoice"></i><span>Orders</span><span class="nav-badge">18</span></a>
+      <a href="cart.html" class="nav-item" id="navCartLink"><i class="fas fa-cart-shopping"></i><span>Order Cart</span><span class="nav-badge" id="sidebarCartBadge" style="display:none;">0</span></a>
+      <a href="rfq.html" class="nav-item"><i class="fas fa-comment-dollar"></i><span>RFQ</span><span class="nav-badge new">5</span></a>
+      <a href="dropship.html" class="nav-item"><i class="fas fa-rotate"></i><span>Dropship</span></a>
+      <a href="analytics.html" class="nav-item"><i class="fas fa-chart-line"></i><span>Analytics</span></a>
+    </div>
+    <div class="nav-section">
+      <span class="nav-section-label">Finance</span>
+      <a href="invoices.html" class="nav-item"><i class="fas fa-file-invoice-dollar"></i><span>Invoices &amp; Payments</span></a>
+      <a href="trade-finance.html" class="nav-item"><i class="fas fa-credit-card"></i><span>Trade Finance</span></a>
+      <a href="reports.html" class="nav-item"><i class="fas fa-chart-bar"></i><span>Reports</span></a>
+    </div>
+    <div class="nav-section">
+      <span class="nav-section-label">Operations</span>
+      <a href="warehousing.html" class="nav-item active"><i class="fas fa-warehouse"></i><span>Warehousing</span></a>
+      <a href="shipping-logistics.html" class="nav-item"><i class="fas fa-truck-fast"></i><span>Shipping &amp; Logistics</span></a>
+    </div>
+    <div class="sidebar__divider"></div>
+    <a href="messages.html" class="nav-item"><i class="fas fa-message"></i><span>Messages</span><span class="nav-badge">3</span></a>
+    <a href="account.html" class="nav-item"><i class="fas fa-gear"></i><span>Settings</span></a>
+    <a href="help.html" class="nav-item"><i class="fas fa-circle-question"></i><span>Help &amp; Support</span></a>
+  </nav>
+  <div class="sidebar__bottom">
+    <div class="sidebar__user">
+      <div class="sidebar__user-avatar">AJ</div>
+      <div class="sidebar__user-info">
+        <div class="sidebar__user-name">Alex Johnson</div>
+        <div class="sidebar__user-role">Wholesale Buyer</div>
+      </div>
+      <button class="sidebar__user-logout" title="Sign out" onclick="window.location.href='index.html'">
+        <i class="fas fa-arrow-right-from-bracket"></i>
+      </button>
+    </div>
+  </div>
+</aside>
+<!-- ===== TOPBAR ===== -->
+<header class="topbar">
+  <div class="topbar__left" style="display:flex;align-items:center;gap:12px;">
+    <button class="topbar__mobile-toggle" id="sidebarToggle" aria-label="Toggle sidebar">
+      <i class="fas fa-bars"></i>
+    </button>
+    <div>
+      <div class="topbar__title">Warehousing &amp; Inventory</div>
+      <div class="topbar__breadcrumb">Real-time stock levels, zones &amp; movements</div>
+    </div>
+  </div>
+  <div class="topbar__right">
+    <div class="search-bar">
+      <i class="fas fa-magnifying-glass"></i>
+      <input type="text" placeholder="Search inventory, SKUs, locations…" />
+    </div>
+    <div class="topbar__btn" title="Notifications">
+      <i class="fas fa-bell"></i>
+      <span class="notif-dot"></span>
+    </div>
+    <div class="topbar__btn" title="Messages" onclick="window.location.href='messages.html'">
+      <i class="fas fa-message"></i>
+    </div>
+    <div class="topbar__avatar" title="Profile">AJ</div>
+  </div>
+</header>
+
+<!-- ===== SIDEBAR OVERLAY ===== -->
+<div id="sidebarOverlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:99;" onclick="document.getElementById('sidebar').classList.remove('open');this.style.display='none';"></div>
+
+<!-- ===== MAIN CONTENT ===== -->
+<main class="app-main">
+  <div class="page-header-bar">
+    <div>
+      <h1>Warehousing &amp; Inventory</h1>
+      <div class="page-header-sub">Stock management, warehouse zones &amp; inventory movements</div>
+    </div>
+  </div>
+
+  <!-- Coming Soon -->
+  <div class="fade-in" style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:60vh;text-align:center;padding:40px 20px;">
+    <div style="width:90px;height:90px;border-radius:24px;background:rgba(79,70,229,.08);border:2px solid rgba(79,70,229,.15);display:flex;align-items:center;justify-content:center;margin-bottom:28px;">
+      <i class="fas fa-warehouse" style="font-size:2.4rem;color:var(--color-accent);opacity:.7;"></i>
+    </div>
+    <div style="display:inline-flex;align-items:center;gap:7px;background:rgba(245,158,11,.1);border:1px solid rgba(245,158,11,.3);color:#b45309;border-radius:100px;padding:5px 16px;font-size:.72rem;font-weight:800;text-transform:uppercase;letter-spacing:.08em;margin-bottom:18px;">
+      <i class="fas fa-clock"></i> Coming Soon
+    </div>
+    <h2 style="font-size:1.6rem;font-weight:900;font-family:var(--font-display);color:var(--color-near-black);margin-bottom:12px;">Warehousing &amp; Inventory</h2>
+    <p style="font-size:.92rem;color:var(--color-muted);max-width:480px;line-height:1.7;margin-bottom:32px;">
+      Full warehousing and inventory management is on our roadmap. This feature will give you real-time stock levels, warehouse zone mapping, and inventory movement tracking once available.
+    </p>
+    <div style="display:flex;flex-direction:column;gap:10px;max-width:360px;width:100%;background:var(--color-off-white);border:1px solid var(--color-border);border-radius:var(--radius-md);padding:20px 24px;text-align:left;">
+      <div style="font-size:.72rem;font-weight:800;text-transform:uppercase;letter-spacing:.07em;color:var(--color-muted);margin-bottom:4px;">What's coming</div>
+      <div style="display:flex;align-items:center;gap:10px;font-size:.83rem;color:var(--color-near-black);"><i class="fas fa-layer-group" style="color:var(--color-accent);width:16px;"></i> Real-time stock level tracking</div>
+      <div style="display:flex;align-items:center;gap:10px;font-size:.83rem;color:var(--color-near-black);"><i class="fas fa-map-location-dot" style="color:var(--color-accent);width:16px;"></i> Warehouse zone &amp; location map</div>
+      <div style="display:flex;align-items:center;gap:10px;font-size:.83rem;color:var(--color-near-black);"><i class="fas fa-arrow-right-arrow-left" style="color:var(--color-accent);width:16px;"></i> Inventory movement history</div>
+      <div style="display:flex;align-items:center;gap:10px;font-size:.83rem;color:var(--color-near-black);"><i class="fas fa-triangle-exclamation" style="color:var(--color-accent);width:16px;"></i> Low stock alerts &amp; reorder points</div>
+      <div style="display:flex;align-items:center;gap:10px;font-size:.83rem;color:var(--color-near-black);"><i class="fas fa-file-export" style="color:var(--color-accent);width:16px;"></i> Inventory export &amp; reporting</div>
+    </div>
+  </div>
+
+</main>
+
+<script src="js/portal.js"></script>
+<script>(function(){try{var c=JSON.parse(sessionStorage.getItem('brnd_cart')||'[]');var b=document.getElementById('sidebarCartBadge');if(b&&c.length>0){b.textContent=c.length;b.style.display='inline-flex';}}catch(e){}})();</script>
+
+</body>
+</html>

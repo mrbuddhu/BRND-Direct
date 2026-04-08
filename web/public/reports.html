@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Reports – BRND Direct Portal</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&family=Inter:wght@300;400;500;600;700&family=Outfit:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.5.0/css/all.min.css" />
+  <link rel="stylesheet" href="css/portal.css" />
+  <style>
+    /* Report layout */
+    .reports-layout { display: grid; grid-template-columns: 240px 1fr; gap: 24px; align-items: start; }
+    .report-nav { background: white; border: 1px solid var(--color-border); border-radius: var(--radius-md); padding: 16px; position: sticky; top: calc(var(--topbar-height) + 24px); }
+    .report-nav-title { font-size: .7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: var(--color-muted); margin-bottom: 8px; padding: 0 8px; }
+    .report-nav-item {
+      display: flex; align-items: center; gap: 10px; padding: 9px 10px; border-radius: var(--radius-sm);
+      cursor: pointer; font-size: .83rem; font-weight: 500; color: var(--color-muted); transition: all .18s;
+    }
+    .report-nav-item:hover, .report-nav-item.active { background: var(--color-accent-glow); color: var(--color-accent); }
+    .report-nav-item i { width: 16px; text-align: center; }
+
+    /* Chart containers */
+    .chart-box { background: white; border: 1px solid var(--color-border); border-radius: var(--radius-md); padding: 24px; }
+    .chart-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; }
+    .chart-title { font-size: .92rem; font-weight: 700; }
+    .chart-subtitle { font-size: .75rem; color: var(--color-muted); }
+
+    /* CSS bar chart */
+    .bar-chart { display: flex; align-items: flex-end; gap: 8px; height: 180px; padding: 8px 0; }
+    .bar-group { display: flex; flex-direction: column; align-items: center; flex: 1; gap: 4px; height: 100%; justify-content: flex-end; }
+    .bar-col { width: 100%; border-radius: 4px 4px 0 0; transition: opacity .2s; min-height: 4px; }
+    .bar-col:hover { opacity: .75; }
+    .bar-label { font-size: .65rem; color: var(--color-muted); font-weight: 500; white-space: nowrap; }
+    .bar-val { font-size: .68rem; font-weight: 700; color: var(--color-near-black); }
+
+    /* Horizontal bar chart */
+    .h-bar-chart { display: flex; flex-direction: column; gap: 12px; }
+    .h-bar-row { display: grid; grid-template-columns: 120px 1fr 60px; gap: 8px; align-items: center; font-size: .8rem; }
+    .h-bar-label { color: var(--color-muted); font-size: .78rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .h-bar-track { height: 8px; background: var(--color-border); border-radius: 4px; overflow: hidden; }
+    .h-bar-fill { height: 100%; border-radius: 4px; }
+    .h-bar-val { text-align: right; font-weight: 700; }
+
+    /* Donut chart (CSS only) */
+    .donut-wrap { display: flex; gap: 24px; align-items: center; }
+    .donut { position: relative; width: 120px; height: 120px; flex-shrink: 0; }
+    .donut svg { transform: rotate(-90deg); }
+    .donut-center { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+    .donut-pct { font-size: 1.3rem; font-weight: 800; font-family: var(--font-display); }
+    .donut-lbl { font-size: .65rem; color: var(--color-muted); }
+    .donut-legend { flex: 1; }
+    .donut-legend-item { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; font-size: .8rem; }
+    .donut-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+
+    /* KPI tile */
+    .kpi-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 12px; margin-bottom: 24px; }
+    .kpi-tile { background: white; border: 1px solid var(--color-border); border-radius: var(--radius-md); padding: 16px; text-align: center; }
+    .kpi-val { font-size: 1.5rem; font-weight: 800; font-family: var(--font-display); color: var(--color-near-black); }
+    .kpi-label { font-size: .72rem; color: var(--color-muted); margin-top: 2px; }
+    .kpi-change { font-size: .72rem; font-weight: 600; margin-top: 4px; }
+    .kpi-up { color: var(--color-emerald); }
+    .kpi-down { color: var(--color-rose); }
+
+    /* Saved reports */
+    .saved-report-item { display: flex; align-items: center; gap: 12px; padding: 12px 0; border-bottom: 1px solid var(--color-border); }
+    .saved-report-item:last-child { border-bottom: none; }
+    .saved-report-icon { width: 36px; height: 36px; border-radius: var(--radius-sm); display: flex; align-items: center; justify-content: center; font-size: .9rem; flex-shrink: 0; }
+    .saved-report-name { font-size: .85rem; font-weight: 600; }
+    .saved-report-meta { font-size: .73rem; color: var(--color-muted); }
+
+    @media (max-width: 1024px) { .reports-layout { grid-template-columns: 1fr; } .report-nav { position: static; display: flex; gap: 4px; flex-wrap: wrap; } .report-nav-title { display: none; } }
+    @media (max-width: 768px) { .kpi-grid { grid-template-columns: repeat(2, 1fr); } }
+  </style>
+</head>
+<body>
+<!-- SIDEBAR -->
+<aside class="sidebar" id="sidebar">
+  <div class="sidebar__logo">
+    <a href="dashboard.html" class="logo-mark">
+      <span class="logo-icon"><i class="fas fa-chevron-right"></i></span>
+      <span class="logo-word">BRND <span class="logo-accent">DIRECT</span></span>
+    </a>
+  </div>
+  <nav class="sidebar__nav">
+    <div class="nav-section">
+      <span class="nav-section-label">Main Menu</span>
+      <a href="dashboard.html" class="nav-item"><i class="fas fa-table-columns"></i><span>Dashboard</span></a>
+      <a href="products.html" class="nav-item"><i class="fas fa-boxes-stacked"></i><span>Products</span></a>
+      <a href="orders.html" class="nav-item"><i class="fas fa-file-invoice"></i><span>Orders</span><span class="nav-badge">18</span></a>
+      <a href="rfq.html" class="nav-item"><i class="fas fa-comment-dollar"></i><span>RFQ</span><span class="nav-badge new">5</span></a>
+      <a href="dropship.html" class="nav-item"><i class="fas fa-rotate"></i><span>Dropship</span></a>
+      <a href="analytics.html" class="nav-item"><i class="fas fa-chart-line"></i><span>Analytics</span></a>
+    </div>
+    <div class="nav-section">
+      <span class="nav-section-label">Finance</span>
+      <a href="invoices.html" class="nav-item"><i class="fas fa-file-invoice-dollar"></i><span>Invoices &amp; Payments</span></a>
+      <a href="trade-finance.html" class="nav-item"><i class="fas fa-credit-card"></i><span>Trade Finance</span></a>
+      <a href="reports.html" class="nav-item active"><i class="fas fa-chart-bar"></i><span>Reports</span></a>
+    </div>
+    <div class="nav-section">
+      <span class="nav-section-label">Operations</span>
+      <a href="warehousing.html" class="nav-item"><i class="fas fa-warehouse"></i><span>Warehousing</span></a>
+      <a href="shipping-logistics.html" class="nav-item"><i class="fas fa-truck-fast"></i><span>Shipping &amp; Logistics</span></a>
+    </div>
+    <div class="sidebar__divider"></div>
+    <a href="messages.html" class="nav-item"><i class="fas fa-message"></i><span>Messages</span><span class="nav-badge">3</span></a>
+    <a href="account.html" class="nav-item"><i class="fas fa-gear"></i><span>Settings</span></a>
+    <a href="help.html" class="nav-item"><i class="fas fa-circle-question"></i><span>Help &amp; Support</span></a>
+  </nav>
+  <div class="sidebar__bottom">
+    <div class="sidebar__user">
+      <div class="sidebar__user-avatar">AJ</div>
+      <div class="sidebar__user-info">
+        <div class="sidebar__user-name">Alex Johnson</div>
+        <div class="sidebar__user-role">Wholesale Buyer</div>
+      </div>
+      <button class="sidebar__user-logout" title="Sign out" onclick="window.location.href='index.html'">
+        <i class="fas fa-arrow-right-from-bracket"></i>
+      </button>
+    </div>
+  </div>
+</aside>
+<!-- TOPBAR -->
+<div class="topbar" id="topbar">
+  <button class="topbar__menu" id="menuBtn" onclick="toggleSidebar()"><i class="fas fa-bars"></i></button>
+  <div class="topbar__search">
+    <i class="fas fa-magnifying-glass topbar__search-icon"></i>
+    <input type="text" class="topbar__search-input" placeholder="Search reports…" />
+  </div>
+  <div class="topbar__actions">
+    <button class="topbar__action-btn"><i class="fas fa-bell"></i><span class="topbar__notif-dot"></span></button>
+    <button class="topbar__action-btn" onclick="window.location.href='messages.html'"><i class="fas fa-message"></i></button>
+    <div class="topbar__avatar">AJ</div>
+  </div>
+</div>
+<!-- MAIN -->
+<main class="main-content" id="mainContent">
+  <div class="page-header">
+    <div>
+      <h1 class="page-title">Reports &amp; Exports</h1>
+      <p class="page-subtitle">Comprehensive business intelligence and data exports</p>
+    </div>
+    <div style="display:flex;gap:10px;flex-wrap:wrap;">
+      <select class="form-input" style="width:auto;">
+        <option>Last 30 days</option>
+        <option>Last 90 days</option>
+        <option>This Year</option>
+        <option>Custom Range</option>
+      </select>
+      <button class="btn btn-outline btn-sm"><i class="fas fa-calendar"></i> Mar 1 – Mar 20, 2026</button>
+      <button class="btn btn-primary btn-sm"><i class="fas fa-download"></i> Export All</button>
+    </div>
+  </div>
+
+  <!-- KPI Row -->
+  <div class="kpi-grid">
+    <div class="kpi-tile"><div class="kpi-val">$847K</div><div class="kpi-label">Total Revenue</div><div class="kpi-change kpi-up"><i class="fas fa-arrow-up"></i> 18.4% vs last period</div></div>
+    <div class="kpi-tile"><div class="kpi-val">1,284</div><div class="kpi-label">Total Orders</div><div class="kpi-change kpi-up"><i class="fas fa-arrow-up"></i> 12.1%</div></div>
+    <div class="kpi-tile"><div class="kpi-val">$659</div><div class="kpi-label">Avg. Order Value</div><div class="kpi-change kpi-down"><i class="fas fa-arrow-down"></i> 3.2%</div></div>
+    <div class="kpi-tile"><div class="kpi-val">94.8%</div><div class="kpi-label">Fulfilment Rate</div><div class="kpi-change kpi-up"><i class="fas fa-arrow-up"></i> 2.1%</div></div>
+    <div class="kpi-tile"><div class="kpi-val">148</div><div class="kpi-label">Active Suppliers</div><div class="kpi-change kpi-up"><i class="fas fa-arrow-up"></i> 12 new</div></div>
+    <div class="kpi-tile"><div class="kpi-val">$23.4K</div><div class="kpi-label">Savings (Discounts)</div><div class="kpi-change kpi-up"><i class="fas fa-arrow-up"></i> 8.7%</div></div>
+  </div>
+
+  <div class="reports-layout">
+    <!-- Left nav -->
+    <div class="report-nav">
+      <div class="report-nav-title">Report Types</div>
+      <div class="report-nav-item active" onclick="setActive(this)"><i class="fas fa-chart-bar"></i> Sales Overview</div>
+      <div class="report-nav-item" onclick="setActive(this)"><i class="fas fa-file-invoice"></i> Order Analysis</div>
+      <div class="report-nav-item" onclick="setActive(this)"><i class="fas fa-boxes-stacked"></i> Product Performance</div>
+      <div class="report-nav-item" onclick="setActive(this)"><i class="fas fa-building"></i> Supplier Scorecard</div>
+      <div class="report-nav-item" onclick="setActive(this)"><i class="fas fa-file-invoice-dollar"></i> Financial Summary</div>
+      <div class="report-nav-item" onclick="setActive(this)"><i class="fas fa-truck-fast"></i> Logistics Report</div>
+      <div class="report-nav-item" onclick="setActive(this)"><i class="fas fa-rotate"></i> Dropship Report</div>
+      <div class="report-nav-item" onclick="setActive(this)"><i class="fas fa-earth-americas"></i> Geographic Report</div>
+      <div style="margin-top:16px;padding-top:16px;border-top:1px solid var(--color-border);">
+        <div class="report-nav-title">Saved Reports</div>
+        <div class="report-nav-item" onclick="setActive(this)"><i class="fas fa-bookmark"></i> Monthly Summary</div>
+        <div class="report-nav-item" onclick="setActive(this)"><i class="fas fa-bookmark"></i> Top Suppliers Q1</div>
+      </div>
+    </div>
+
+    <!-- Charts area -->
+    <div style="display:flex;flex-direction:column;gap:20px;">
+
+      <!-- Revenue bar chart -->
+      <div class="chart-box">
+        <div class="chart-header">
+          <div>
+            <div class="chart-title">Revenue by Month</div>
+            <div class="chart-subtitle">Year to date 2026</div>
+          </div>
+          <div style="display:flex;gap:8px;">
+            <button class="btn btn-ghost btn-sm"><i class="fas fa-download"></i> CSV</button>
+            <button class="btn btn-ghost btn-sm"><i class="fas fa-download"></i> PDF</button>
+          </div>
+        </div>
+        <div class="bar-chart">
+          <div class="bar-group"><span class="bar-val">$68K</span><div class="bar-col" style="height:55%;background:var(--color-accent-light);"></div><span class="bar-label">Jan</span></div>
+          <div class="bar-group"><span class="bar-val">$72K</span><div class="bar-col" style="height:58%;background:var(--color-accent-light);"></div><span class="bar-label">Feb</span></div>
+          <div class="bar-group"><span class="bar-val">$84K</span><div class="bar-col" style="height:68%;background:var(--color-accent);"></div><span class="bar-label">Mar</span></div>
+          <div class="bar-group"><span class="bar-val">$91K</span><div class="bar-col" style="height:73%;background:var(--color-accent-light);"></div><span class="bar-label">Apr</span></div>
+          <div class="bar-group"><span class="bar-val">$105K</span><div class="bar-col" style="height:85%;background:var(--color-accent-light);"></div><span class="bar-label">May</span></div>
+          <div class="bar-group"><span class="bar-val">$98K</span><div class="bar-col" style="height:79%;background:var(--color-accent-light);"></div><span class="bar-label">Jun</span></div>
+          <div class="bar-group"><span class="bar-val">$112K</span><div class="bar-col" style="height:90%;background:var(--color-accent-light);"></div><span class="bar-label">Jul</span></div>
+          <div class="bar-group"><span class="bar-val">$124K</span><div class="bar-col" style="height:100%;background:var(--color-emerald);"></div><span class="bar-label">Aug</span></div>
+          <div class="bar-group"><span class="bar-val">$117K</span><div class="bar-col" style="height:94%;background:var(--color-accent-light);"></div><span class="bar-label">Sep</span></div>
+          <div class="bar-group"><span class="bar-val">$—</span><div class="bar-col" style="height:0%;background:var(--color-border);"></div><span class="bar-label">Oct</span></div>
+          <div class="bar-group"><span class="bar-val">$—</span><div class="bar-col" style="height:0%;background:var(--color-border);"></div><span class="bar-label">Nov</span></div>
+          <div class="bar-group"><span class="bar-val">$—</span><div class="bar-col" style="height:0%;background:var(--color-border);"></div><span class="bar-label">Dec</span></div>
+        </div>
+      </div>
+
+      <!-- Two col charts -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;">
+        <!-- Category breakdown donut -->
+        <div class="chart-box">
+          <div class="chart-header"><div class="chart-title">Revenue by Category</div></div>
+          <div class="donut-wrap">
+            <div class="donut">
+              <svg width="120" height="120" viewBox="0 0 120 120">
+                <circle cx="60" cy="60" r="48" fill="none" stroke="#e5e5e5" stroke-width="14"/>
+                <!-- Apparel 38% -->
+                <circle cx="60" cy="60" r="48" fill="none" stroke="var(--color-accent)" stroke-width="14" stroke-dasharray="114.6 187.4" stroke-dashoffset="0"/>
+                <!-- Electronics 22% -->
+                <circle cx="60" cy="60" r="48" fill="none" stroke="var(--color-sky)" stroke-width="14" stroke-dasharray="66.3 235.7" stroke-dashoffset="-114.6"/>
+                <!-- Beauty 18% -->
+                <circle cx="60" cy="60" r="48" fill="none" stroke="var(--color-rose)" stroke-width="14" stroke-dasharray="54.3 247.7" stroke-dashoffset="-180.9"/>
+                <!-- Other 22% -->
+                <circle cx="60" cy="60" r="48" fill="none" stroke="var(--color-amber)" stroke-width="14" stroke-dasharray="66.8 235.2" stroke-dashoffset="-235.2"/>
+              </svg>
+              <div class="donut-center"><span class="donut-pct">$847K</span><span class="donut-lbl">Total</span></div>
+            </div>
+            <div class="donut-legend">
+              <div class="donut-legend-item"><div class="donut-dot" style="background:var(--color-accent);"></div><span>Apparel 38%</span></div>
+              <div class="donut-legend-item"><div class="donut-dot" style="background:var(--color-sky);"></div><span>Electronics 22%</span></div>
+              <div class="donut-legend-item"><div class="donut-dot" style="background:var(--color-rose);"></div><span>Beauty 18%</span></div>
+              <div class="donut-legend-item"><div class="donut-dot" style="background:var(--color-amber);"></div><span>Other 22%</span></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Top suppliers horizontal bars -->
+        <div class="chart-box">
+          <div class="chart-header"><div class="chart-title">Top Suppliers by Volume</div><button class="btn btn-ghost btn-sm"><i class="fas fa-download"></i></button></div>
+          <div class="h-bar-chart">
+            <div class="h-bar-row"><span class="h-bar-label">Apex Apparel</span><div class="h-bar-track"><div class="h-bar-fill" style="width:92%;background:var(--color-accent);"></div></div><span class="h-bar-val">$312K</span></div>
+            <div class="h-bar-row"><span class="h-bar-label">GlowCo Beauty</span><div class="h-bar-track"><div class="h-bar-fill" style="width:78%;background:var(--color-rose);"></div></div><span class="h-bar-val">$218K</span></div>
+            <div class="h-bar-row"><span class="h-bar-label">TechSource</span><div class="h-bar-track"><div class="h-bar-fill" style="width:64%;background:var(--color-sky);"></div></div><span class="h-bar-val">$172K</span></div>
+            <div class="h-bar-row"><span class="h-bar-label">FreshFarm</span><div class="h-bar-track"><div class="h-bar-fill" style="width:52%;background:var(--color-amber);"></div></div><span class="h-bar-val">$142K</span></div>
+            <div class="h-bar-row"><span class="h-bar-label">SportPeak</span><div class="h-bar-track"><div class="h-bar-fill" style="width:38%;background:var(--color-emerald);"></div></div><span class="h-bar-val">$99K</span></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Order status breakdown -->
+      <div class="chart-box">
+        <div class="chart-header">
+          <div><div class="chart-title">Order Status Breakdown</div><div class="chart-subtitle">Last 30 days</div></div>
+          <button class="btn btn-outline btn-sm"><i class="fas fa-download"></i> Export CSV</button>
+        </div>
+        <div class="table-container">
+          <table class="table">
+            <thead>
+              <tr>
+                <th>Status</th>
+                <th>Count</th>
+                <th>Value</th>
+                <th>% of Total</th>
+                <th>vs Last Period</th>
+                <th>Visual</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><span class="status-chip status-chip--delivered">Delivered</span></td>
+                <td><strong>842</strong></td>
+                <td>$554,280</td>
+                <td>65.6%</td>
+                <td><span style="color:var(--color-emerald);font-weight:600;"><i class="fas fa-arrow-up"></i> 8.2%</span></td>
+                <td><div style="width:100px;height:6px;background:var(--color-border);border-radius:4px;overflow:hidden;"><div style="width:65.6%;height:100%;background:var(--color-emerald);border-radius:4px;"></div></div></td>
+              </tr>
+              <tr>
+                <td><span class="status-chip status-chip--processing">Processing</span></td>
+                <td><strong>194</strong></td>
+                <td>$127,820</td>
+                <td>15.1%</td>
+                <td><span style="color:var(--color-muted);font-weight:600;">— 0.4%</span></td>
+                <td><div style="width:100px;height:6px;background:var(--color-border);border-radius:4px;overflow:hidden;"><div style="width:15.1%;height:100%;background:var(--color-accent);border-radius:4px;"></div></div></td>
+              </tr>
+              <tr>
+                <td><span class="status-chip status-chip--shipped">Shipped</span></td>
+                <td><strong>156</strong></td>
+                <td>$102,840</td>
+                <td>12.1%</td>
+                <td><span style="color:var(--color-emerald);font-weight:600;"><i class="fas fa-arrow-up"></i> 3.5%</span></td>
+                <td><div style="width:100px;height:6px;background:var(--color-border);border-radius:4px;overflow:hidden;"><div style="width:12.1%;height:100%;background:var(--color-sky);border-radius:4px;"></div></div></td>
+              </tr>
+              <tr>
+                <td><span class="status-chip status-chip--pending">Pending</span></td>
+                <td><strong>72</strong></td>
+                <td>$47,448</td>
+                <td>5.6%</td>
+                <td><span style="color:var(--color-rose);font-weight:600;"><i class="fas fa-arrow-down"></i> 1.8%</span></td>
+                <td><div style="width:100px;height:6px;background:var(--color-border);border-radius:4px;overflow:hidden;"><div style="width:5.6%;height:100%;background:var(--color-amber);border-radius:4px;"></div></div></td>
+              </tr>
+              <tr>
+                <td><span class="status-chip status-chip--cancelled">Cancelled</span></td>
+                <td><strong>20</strong></td>
+                <td>$13,180</td>
+                <td>1.6%</td>
+                <td><span style="color:var(--color-emerald);font-weight:600;"><i class="fas fa-arrow-down"></i> 0.9%</span></td>
+                <td><div style="width:100px;height:6px;background:var(--color-border);border-radius:4px;overflow:hidden;"><div style="width:1.6%;height:100%;background:var(--color-rose);border-radius:4px;"></div></div></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Saved / scheduled reports -->
+      <div class="chart-box">
+        <div class="chart-header">
+          <div class="chart-title">Saved &amp; Scheduled Reports</div>
+          <button class="btn btn-primary btn-sm"><i class="fas fa-plus"></i> New Report</button>
+        </div>
+        <div>
+          <div class="saved-report-item">
+            <div class="saved-report-icon" style="background:var(--color-accent-glow);color:var(--color-accent);"><i class="fas fa-chart-bar"></i></div>
+            <div style="flex:1;"><div class="saved-report-name">Monthly Sales Summary</div><div class="saved-report-meta">Runs on 1st of each month · Emails to alex@example.com</div></div>
+            <span class="badge badge-emerald">Active</span>
+            <button class="btn btn-ghost btn-sm"><i class="fas fa-download"></i></button>
+            <button class="btn btn-ghost btn-sm"><i class="fas fa-pen"></i></button>
+          </div>
+          <div class="saved-report-item">
+            <div class="saved-report-icon" style="background:var(--color-amber-glow);color:var(--color-amber);"><i class="fas fa-building"></i></div>
+            <div style="flex:1;"><div class="saved-report-name">Top Suppliers Q1 2026</div><div class="saved-report-meta">One-time · Created Mar 15, 2026</div></div>
+            <span class="badge">Saved</span>
+            <button class="btn btn-ghost btn-sm"><i class="fas fa-download"></i></button>
+            <button class="btn btn-ghost btn-sm"><i class="fas fa-pen"></i></button>
+          </div>
+          <div class="saved-report-item">
+            <div class="saved-report-icon" style="background:var(--color-sky-glow);color:var(--color-sky);"><i class="fas fa-file-invoice-dollar"></i></div>
+            <div style="flex:1;"><div class="saved-report-name">Weekly Finance Report</div><div class="saved-report-meta">Runs every Monday · Emails to finance@example.com</div></div>
+            <span class="badge badge-emerald">Active</span>
+            <button class="btn btn-ghost btn-sm"><i class="fas fa-download"></i></button>
+            <button class="btn btn-ghost btn-sm"><i class="fas fa-pen"></i></button>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</main>
+<script src="js/portal.js"></script>
+<script>
+  function setActive(el) {
+    document.querySelectorAll('.report-nav-item').forEach(i => i.classList.remove('active'));
+    el.classList.add('active');
+  }
+</script>
+</body>
+</html>

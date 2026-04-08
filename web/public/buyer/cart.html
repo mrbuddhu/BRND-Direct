@@ -1,0 +1,1155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Order Cart – BRND Direct Portal</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&family=Inter:wght@300;400;500;600;700&family=Outfit:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.5.0/css/all.min.css" />
+  <link rel="stylesheet" href="css/portal.css" />
+  <script src="js/auth-guard.js"></script>
+  <style>
+
+    /* ═══════════════════════════════════════
+       ORDER JOURNEY BANNER (6 Steps)
+    ═══════════════════════════════════════ */
+    .journey-bar {
+      background: #fff;
+      border: 1.5px solid var(--color-border);
+      border-radius: var(--radius-md);
+      padding: 0;
+      margin-bottom: 24px;
+      overflow: hidden;
+    }
+    .journey-bar__header {
+      padding: 10px 20px;
+      background: var(--color-off-white, #f5f5f8);
+      border-bottom: 1px solid var(--color-border);
+      font-size: .65rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: .1em;
+      color: var(--color-muted);
+      display: flex;
+      align-items: center;
+      gap: 7px;
+    }
+    .journey-steps {
+      display: flex;
+      align-items: stretch;
+      overflow-x: auto;
+      padding: 0;
+    }
+    .journey-step {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 14px 18px;
+      flex: 1;
+      min-width: 130px;
+      position: relative;
+      border-right: 1px solid var(--color-border);
+      transition: background .15s;
+    }
+    .journey-step:last-child { border-right: none; }
+    .journey-step.active {
+      background: rgba(79,70,229,.04);
+    }
+    .journey-step.done {
+      background: rgba(16,185,129,.03);
+    }
+    .journey-step__num {
+      width: 28px; height: 28px;
+      border-radius: 50%;
+      border: 2px solid var(--color-border);
+      display: flex; align-items: center; justify-content: center;
+      font-size: .72rem; font-weight: 800;
+      flex-shrink: 0;
+      color: var(--color-muted);
+      transition: all .2s;
+    }
+    .journey-step.active .journey-step__num {
+      background: var(--color-accent);
+      border-color: var(--color-accent);
+      color: #fff;
+      box-shadow: 0 0 0 4px rgba(79,70,229,.15);
+    }
+    .journey-step.done .journey-step__num {
+      background: #10b981;
+      border-color: #10b981;
+      color: #fff;
+    }
+    .journey-step__text { line-height: 1.25; }
+    .journey-step__label {
+      font-size: .72rem; font-weight: 700;
+      color: var(--color-muted);
+    }
+    .journey-step.active .journey-step__label { color: var(--color-near-black); }
+    .journey-step.done .journey-step__label { color: #10b981; }
+    .journey-step__sub {
+      font-size: .6rem; color: var(--color-muted);
+      margin-top: 1px;
+    }
+    @media(max-width:780px) {
+      .journey-step { min-width: 110px; padding: 12px 12px; }
+      .journey-step__label { font-size: .65rem; }
+    }
+
+    /* ═══════════════════════════════════════
+       STEP PROGRESS BAR (Cart Steps)
+    ═══════════════════════════════════════ */
+    .order-steps {
+      display: flex; align-items: center;
+      background: #fff;
+      border: 1.5px solid var(--color-border);
+      border-radius: var(--radius-md);
+      padding: 18px 28px;
+      margin-bottom: 24px;
+      gap: 0;
+    }
+    .step-item {
+      display: flex; align-items: center; gap: 10px;
+      flex: 1; font-size: .8rem; font-weight: 600;
+      color: var(--color-muted);
+    }
+    .step-dot {
+      width: 32px; height: 32px; border-radius: 50%;
+      border: 2px solid var(--color-border);
+      background: #fff;
+      display: flex; align-items: center; justify-content: center;
+      font-size: .75rem; font-weight: 800;
+      flex-shrink: 0; transition: all .2s;
+    }
+    .step-item.active .step-dot  { background: var(--color-accent); border-color: var(--color-accent); color: #fff; box-shadow: 0 0 0 4px rgba(79,70,229,.15); }
+    .step-item.done .step-dot    { background: #10b981; border-color: #10b981; color: #fff; }
+    .step-item.active            { color: var(--color-near-black); }
+    .step-item.done              { color: #10b981; }
+    .step-label small            { display: block; font-size: .62rem; color: var(--color-muted); font-weight: 400; margin-top: 1px; }
+    .step-line { flex: 1; height: 2px; background: var(--color-border); margin: 0 12px; min-width: 24px; }
+    .step-line.done { background: #10b981; }
+
+    /* ═══════════════════════════════════════
+       LAYOUT
+    ═══════════════════════════════════════ */
+    .cart-layout {
+      display: grid;
+      grid-template-columns: 1fr 340px;
+      gap: 20px;
+      align-items: start;
+    }
+    @media (max-width: 960px) { .cart-layout { grid-template-columns: 1fr; } }
+
+    /* ═══════════════════════════════════════
+       CART TABLE
+    ═══════════════════════════════════════ */
+    .cart-tbl { width: 100%; border-collapse: collapse; }
+    .cart-tbl thead th {
+      padding: 9px 14px;
+      text-align: left;
+      font-size: .66rem; font-weight: 800;
+      text-transform: uppercase; letter-spacing: .07em;
+      color: var(--color-muted);
+      background: var(--color-off-white, #f5f5f8);
+      border-bottom: 1.5px solid var(--color-border);
+    }
+    .cart-tbl tbody td {
+      padding: 14px;
+      border-bottom: 1px solid var(--color-border);
+      vertical-align: middle;
+      font-size: .875rem;
+    }
+    .cart-tbl tbody tr:last-child td { border-bottom: none; }
+    .cart-tbl tbody tr:hover td { background: rgba(79,70,229,.02); }
+    .cart-prod-emoji {
+      width: 42px; height: 42px; border-radius: 10px;
+      background: var(--color-off-white);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.3rem; flex-shrink: 0;
+      border: 1px solid var(--color-border);
+    }
+    .cart-prod-name  { font-size: .875rem; font-weight: 700; color: var(--color-near-black); }
+    .cart-prod-meta  { font-size: .72rem; color: var(--color-muted); margin-top: 2px; }
+
+    /* Qty stepper */
+    .qty-wrap {
+      display: inline-flex; align-items: center;
+      border: 1.5px solid var(--color-border);
+      border-radius: 8px; overflow: hidden;
+    }
+    .qty-btn {
+      width: 30px; height: 32px;
+      display: flex; align-items: center; justify-content: center;
+      background: var(--color-off-white); border: none;
+      cursor: pointer; font-size: .9rem; font-weight: 700;
+      color: var(--color-near-black); transition: background .13s;
+    }
+    .qty-btn:hover { background: var(--color-accent); color: #fff; }
+    .qty-inp {
+      width: 48px; text-align: center; border: none; outline: none;
+      font-size: .85rem; font-weight: 700; font-family: var(--font-sans);
+      background: #fff; color: var(--color-near-black); padding: 0 4px;
+      height: 32px;
+    }
+    .remove-btn {
+      background: none; border: none; cursor: pointer;
+      color: var(--color-muted); padding: 5px 8px;
+      border-radius: 6px; transition: all .14s;
+    }
+    .remove-btn:hover { background: rgba(244,63,94,.1); color: #f43f5e; }
+
+    /* ═══════════════════════════════════════
+       EMPTY CART
+    ═══════════════════════════════════════ */
+    .empty-cart { text-align: center; padding: 80px 20px; }
+    .empty-cart__icon { font-size: 3.5rem; margin-bottom: 16px; opacity: .3; }
+    .empty-cart__title { font-size: 1.15rem; font-weight: 800; font-family: var(--font-display); margin-bottom: 8px; }
+    .empty-cart__sub { font-size: .875rem; color: var(--color-muted); margin-bottom: 28px; }
+
+    /* ═══════════════════════════════════════
+       ORDER SUMMARY CARD (sticky right)
+    ═══════════════════════════════════════ */
+    .summary-sticky {
+      background: #fff;
+      border: 1.5px solid var(--color-border);
+      border-radius: var(--radius-md);
+      overflow: hidden;
+      position: sticky;
+      top: 76px;
+    }
+    .summary-sticky__head {
+      padding: 16px 20px;
+      border-bottom: 1.5px solid var(--color-border);
+      font-size: .9rem; font-weight: 800;
+      font-family: var(--font-display);
+      display: flex; align-items: center; gap: 8px;
+    }
+    .summary-sticky__body { padding: 16px 20px; }
+    .sum-line {
+      display: flex; justify-content: space-between;
+      align-items: baseline; padding: 6px 0;
+      font-size: .85rem;
+    }
+    .sum-line .lbl { color: var(--color-muted); }
+    .sum-line .val { font-weight: 700; color: var(--color-near-black); }
+    .sum-divider { border: none; border-top: 1px solid var(--color-border); margin: 10px 0; }
+    .sum-total {
+      display: flex; justify-content: space-between;
+      align-items: baseline; padding: 10px 0 4px;
+      font-size: 1.1rem; font-weight: 900;
+      font-family: var(--font-display);
+    }
+    .sum-total .val { color: var(--color-accent); }
+
+    /* Terms selector */
+    .terms-grid {
+      display: grid; grid-template-columns: 1fr 1fr;
+      gap: 8px; margin: 16px 0 0;
+    }
+    .terms-option {
+      border: 2px solid var(--color-border);
+      border-radius: 10px; padding: 10px 12px;
+      cursor: pointer; transition: all .16s;
+      text-align: center;
+    }
+    .terms-option:hover { border-color: var(--color-accent); }
+    .terms-option.selected { border-color: var(--color-accent); background: rgba(79,70,229,.05); }
+    .terms-option input { display: none; }
+    .terms-icon { font-size: 1.1rem; margin-bottom: 4px; }
+    .terms-name { font-size: .75rem; font-weight: 800; color: var(--color-near-black); }
+    .terms-desc { font-size: .62rem; color: var(--color-muted); margin-top: 2px; }
+
+    /* Confirm button */
+    .confirm-order-btn {
+      width: 100%; padding: 15px;
+      background: linear-gradient(135deg, var(--color-accent), #4338ca);
+      color: #fff; border: none; border-radius: var(--radius-md);
+      font-size: .95rem; font-weight: 800;
+      font-family: var(--font-display);
+      cursor: pointer; letter-spacing: -.01em;
+      display: flex; align-items: center; justify-content: center; gap: 10px;
+      transition: all .18s; margin-top: 16px;
+    }
+    .confirm-order-btn:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(79,70,229,.35); }
+    .confirm-order-btn:disabled { opacity: .45; cursor: not-allowed; transform: none; box-shadow: none; }
+
+    .secure-badges {
+      display: flex; align-items: center; justify-content: center;
+      gap: 14px; flex-wrap: wrap; padding: 12px 0 4px;
+      font-size: .68rem; color: var(--color-muted); font-weight: 600;
+    }
+    .secure-badges span { display: flex; align-items: center; gap: 4px; }
+
+    /* ═══════════════════════════════════════
+       SHIPPING + PO CARDS
+    ═══════════════════════════════════════ */
+    .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 16px; }
+    @media (max-width: 640px) { .info-grid { grid-template-columns: 1fr; } }
+    .ship-option {
+      display: flex; align-items: flex-start; gap: 10px;
+      padding: 12px; border: 1.5px solid var(--color-border);
+      border-radius: 10px; cursor: pointer; transition: all .15s;
+    }
+    .ship-option:hover { border-color: var(--color-accent); }
+    .ship-option.selected { border-color: var(--color-accent); background: rgba(79,70,229,.04); }
+    .ship-option input[type=radio] { accent-color: var(--color-accent); margin-top: 2px; flex-shrink: 0; }
+    .ship-name { font-size: .82rem; font-weight: 700; color: var(--color-near-black); }
+    .ship-meta { font-size: .7rem; color: var(--color-muted); margin-top: 2px; }
+    .ship-price { font-size: .78rem; font-weight: 800; margin-top: 4px; color: var(--color-emerald); }
+
+    /* ═══════════════════════════════════════
+       SUCCESS OVERLAY — Order Submitted
+    ═══════════════════════════════════════ */
+    .success-overlay {
+      position: fixed; inset: 0; z-index: 5000;
+      background: rgba(0,0,0,.6);
+      display: none; align-items: center; justify-content: center;
+    }
+    .success-overlay.open { display: flex; }
+    .success-card {
+      background: #fff; border-radius: 20px;
+      padding: 48px 40px 40px;
+      max-width: 520px; width: 92%;
+      box-shadow: 0 40px 100px rgba(0,0,0,.3);
+      text-align: center;
+      animation: popIn .3s cubic-bezier(.34,1.56,.64,1);
+    }
+    @keyframes popIn { from { opacity:0; transform:scale(.85) translateY(24px); } to { opacity:1; transform:scale(1) translateY(0); } }
+    .success-ring {
+      width: 80px; height: 80px; border-radius: 50%;
+      background: linear-gradient(135deg, rgba(16,185,129,.15), rgba(16,185,129,.3));
+      display: flex; align-items: center; justify-content: center;
+      margin: 0 auto 20px; font-size: 2.2rem; color: #10b981;
+      animation: ringPop .4s .1s cubic-bezier(.34,1.56,.64,1) both;
+    }
+    @keyframes ringPop { from { transform:scale(0); } to { transform:scale(1); } }
+    .success-title { font-size: 1.5rem; font-weight: 900; font-family: var(--font-display); margin-bottom: 6px; }
+    .success-sub { font-size: .875rem; color: var(--color-muted); line-height: 1.65; margin-bottom: 16px; }
+    .success-ref-grid {
+      display: grid; grid-template-columns: 1fr 1fr;
+      gap: 10px; background: var(--color-off-white, #f8f9fb);
+      border-radius: 12px; padding: 16px; margin: 0 0 20px;
+      text-align: left;
+    }
+    .success-ref-field .srl { font-size: .58rem; font-weight: 800; text-transform: uppercase; letter-spacing: .07em; color: var(--color-muted); margin-bottom: 3px; }
+    .success-ref-field .srv { font-weight: 900; font-size: .9rem; }
+    .srv.order { color: var(--color-accent); font-family: monospace; }
+    .srv.invoice { color: #10b981; font-family: monospace; }
+
+    /* Next Steps Banner in overlay */
+    .next-steps-banner {
+      background: linear-gradient(135deg, #1e1b4b, #312e81);
+      border-radius: 12px; padding: 16px 18px; margin-bottom: 18px;
+      text-align: left;
+    }
+    .next-steps-banner h4 {
+      color: #a5b4fc; font-size: .65rem; font-weight: 800;
+      text-transform: uppercase; letter-spacing: .1em; margin-bottom: 10px;
+    }
+    .nsb-step {
+      display: flex; align-items: center; gap: 10px;
+      padding: 6px 0; font-size: .78rem;
+    }
+    .nsb-step__dot {
+      width: 22px; height: 22px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: .6rem; font-weight: 800; flex-shrink: 0;
+    }
+    .nsb-step.done .nsb-step__dot { background: #10b981; color: #fff; }
+    .nsb-step.pending .nsb-step__dot { background: rgba(255,255,255,.15); color: #a5b4fc; }
+    .nsb-step.next .nsb-step__dot { background: var(--color-accent); color: #fff; box-shadow: 0 0 0 3px rgba(99,102,241,.3); }
+    .nsb-step.done .nsb-label { color: #6ee7b7; text-decoration: line-through; opacity: .7; }
+    .nsb-step.pending .nsb-label { color: rgba(255,255,255,.5); }
+    .nsb-step.next .nsb-label { color: #fff; font-weight: 700; }
+
+    .success-actions { display: flex; flex-direction: column; gap: 10px; }
+    .success-countdown { font-size: .72rem; color: var(--color-muted); margin-top: 12px; }
+
+    /* ═══════════════════════════════════════
+       AWAITING CONFIRMATION BANNER
+    ═══════════════════════════════════════ */
+    .awaiting-banner {
+      background: linear-gradient(135deg, #fffbeb, #fef3c7);
+      border: 2px solid #f59e0b;
+      border-radius: var(--radius-md);
+      padding: 20px 24px;
+      display: none;
+      align-items: center;
+      gap: 18px;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+    }
+    .awaiting-banner.visible { display: flex; }
+    .awaiting-banner__icon {
+      width: 48px; height: 48px; border-radius: 12px;
+      background: #f59e0b; color: #fff;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.3rem; flex-shrink: 0;
+    }
+    .awaiting-banner__text h4 { font-size: .95rem; font-weight: 800; color: #92400e; margin-bottom: 3px; }
+    .awaiting-banner__text p { font-size: .8rem; color: #78350f; line-height: 1.5; }
+    .awaiting-banner__actions { margin-left: auto; display: flex; gap: 8px; }
+  </style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<aside class="sidebar" id="sidebar">
+  <div class="sidebar__logo">
+    <a href="dashboard.html" class="logo-mark">
+      <span class="logo-icon"><i class="fas fa-chevron-right"></i></span>
+      <span class="logo-word">BRND <span class="logo-accent">DIRECT</span></span>
+    </a>
+  </div>
+  <nav class="sidebar__nav">
+    <div class="nav-section">
+      <span class="nav-section-label">Main Menu</span>
+      <a href="dashboard.html" class="nav-item"><i class="fas fa-table-columns"></i><span>Dashboard</span></a>
+      <a href="products.html" class="nav-item"><i class="fas fa-boxes-stacked"></i><span>Products</span></a>
+      <a href="orders.html" class="nav-item"><i class="fas fa-file-invoice"></i><span>Orders</span><span class="nav-badge">18</span></a>
+      <a href="cart.html" class="nav-item active" id="navCartLink"><i class="fas fa-cart-shopping"></i><span>Order Cart</span><span class="nav-badge" id="sidebarCartBadge" style="display:none;">0</span></a>
+      <a href="rfq.html" class="nav-item"><i class="fas fa-comment-dollar"></i><span>RFQ</span><span class="nav-badge new">5</span></a>
+      <a href="dropship.html" class="nav-item"><i class="fas fa-rotate"></i><span>Dropship</span></a>
+      <a href="analytics.html" class="nav-item"><i class="fas fa-chart-line"></i><span>Analytics</span></a>
+    </div>
+    <div class="nav-section">
+      <span class="nav-section-label">Finance</span>
+      <a href="invoices.html" class="nav-item"><i class="fas fa-file-invoice-dollar"></i><span>Invoices &amp; Payments</span></a>
+      <a href="trade-finance.html" class="nav-item"><i class="fas fa-credit-card"></i><span>Trade Finance</span></a>
+      <a href="reports.html" class="nav-item"><i class="fas fa-chart-bar"></i><span>Reports</span></a>
+    </div>
+    <div class="nav-section">
+      <span class="nav-section-label">Operations</span>
+      <a href="warehousing.html" class="nav-item"><i class="fas fa-warehouse"></i><span>Warehousing</span></a>
+      <a href="shipping-logistics.html" class="nav-item"><i class="fas fa-truck-fast"></i><span>Shipping &amp; Logistics</span></a>
+    </div>
+    <div class="sidebar__divider"></div>
+    <a href="messages.html" class="nav-item"><i class="fas fa-message"></i><span>Messages</span><span class="nav-badge">3</span></a>
+    <a href="account.html" class="nav-item"><i class="fas fa-gear"></i><span>Settings</span></a>
+    <a href="help.html" class="nav-item"><i class="fas fa-circle-question"></i><span>Help &amp; Support</span></a>
+  </nav>
+  <div class="sidebar__bottom">
+    <div class="sidebar__user">
+      <div class="sidebar__user-avatar">AJ</div>
+      <div class="sidebar__user-info">
+        <div class="sidebar__user-name">Alex Johnson</div>
+        <div class="sidebar__user-role">Wholesale Buyer</div>
+      </div>
+      <button class="sidebar__user-logout" title="Sign out" onclick="window.location.href='index.html'">
+        <i class="fas fa-arrow-right-from-bracket"></i>
+      </button>
+    </div>
+  </div>
+</aside>
+<div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+<!-- TOPBAR -->
+<header class="topbar">
+  <div class="topbar__left" style="display:flex;align-items:center;gap:12px;">
+    <button class="topbar__mobile-toggle" id="sidebarToggle" aria-label="Toggle sidebar"><i class="fas fa-bars"></i></button>
+    <div>
+      <div class="topbar__title">Order Cart</div>
+      <div class="topbar__breadcrumb">Review &amp; confirm your wholesale order</div>
+    </div>
+  </div>
+  <div class="topbar__right">
+    <a href="products.html" class="btn btn-outline btn-sm"><i class="fas fa-arrow-left"></i> Back to Catalog</a>
+    <div class="topbar__btn" title="Notifications"><i class="fas fa-bell"></i><span class="notif-dot"></span></div>
+    <div class="topbar__avatar">AJ</div>
+  </div>
+</header>
+
+<!-- MAIN -->
+<main class="app-main">
+
+  <!-- Page Header -->
+  <div class="page-header-bar fade-in">
+    <div>
+      <h1>Order Cart</h1>
+      <div class="page-header-sub" id="cartHeaderSub">Loading…</div>
+    </div>
+    <div class="page-header-bar__actions">
+      <button class="btn btn-outline btn-sm" id="clearCartBtn"><i class="fas fa-trash"></i> Clear Cart</button>
+      <a href="products.html" class="btn btn-secondary btn-sm"><i class="fas fa-plus"></i> Add More Items</a>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════
+       ORDER JOURNEY — 6 Steps
+  ═══════════════════════════════════════ -->
+  <div class="journey-bar fade-in">
+    <div class="journey-bar__header">
+      <i class="fas fa-route"></i> Your Order Journey — <strong style="color:var(--color-accent);">Step 2: Confirm Your Order</strong>
+    </div>
+    <div class="journey-steps">
+      <div class="journey-step done" id="js1">
+        <div class="journey-step__num"><i class="fas fa-check" style="font-size:.6rem;"></i></div>
+        <div class="journey-step__text">
+          <div class="journey-step__label">1. Browse &amp; Add to Cart</div>
+          <div class="journey-step__sub">Products selected ✓</div>
+        </div>
+      </div>
+      <div class="journey-step active" id="js2">
+        <div class="journey-step__num">2</div>
+        <div class="journey-step__text">
+          <div class="journey-step__label">2. Confirm Order ← You Are Here</div>
+          <div class="journey-step__sub">Review &amp; place order</div>
+        </div>
+      </div>
+      <div class="journey-step" id="js3">
+        <div class="journey-step__num">3</div>
+        <div class="journey-step__text">
+          <div class="journey-step__label">3. Seller Confirms</div>
+          <div class="journey-step__sub">Awaiting approval</div>
+        </div>
+      </div>
+      <div class="journey-step" id="js4">
+        <div class="journey-step__num">4</div>
+        <div class="journey-step__text">
+          <div class="journey-step__label">4. Pay Invoice</div>
+          <div class="journey-step__sub">Invoice issued</div>
+        </div>
+      </div>
+      <div class="journey-step" id="js5">
+        <div class="journey-step__num">5</div>
+        <div class="journey-step__text">
+          <div class="journey-step__label">5. Seller Packs</div>
+          <div class="journey-step__sub">Pick &amp; pack / ship-ready</div>
+        </div>
+      </div>
+      <div class="journey-step" id="js6">
+        <div class="journey-step__num">6</div>
+        <div class="journey-step__text">
+          <div class="journey-step__label">6. Schedule Shipping</div>
+          <div class="journey-step__sub">Book your carrier</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Cart step progress bar (within this page: Review → Confirm → Awaiting Seller) -->
+  <div class="order-steps fade-in">
+    <div class="step-item done" id="step1">
+      <div class="step-dot"><i class="fas fa-check" style="font-size:.65rem;"></i></div>
+      <div class="step-label">Review Cart <small>Items &amp; quantities</small></div>
+    </div>
+    <div class="step-line done" id="line1"></div>
+    <div class="step-item active" id="step2">
+      <div class="step-dot"><i class="fas fa-lock" style="font-size:.6rem;"></i></div>
+      <div class="step-label">Confirm Order <small>Choose terms &amp; place</small></div>
+    </div>
+    <div class="step-line" id="line2"></div>
+    <div class="step-item" id="step3">
+      <div class="step-dot"><i class="fas fa-hourglass-half" style="font-size:.6rem;"></i></div>
+      <div class="step-label">Awaiting Seller <small>Step 3 after you confirm</small></div>
+    </div>
+  </div>
+
+  <!-- Main Cart Layout -->
+  <div class="cart-layout fade-in d1">
+
+    <!-- LEFT COLUMN -->
+    <div id="leftColumn">
+
+      <!-- Cart Items Card -->
+      <div class="card" id="cartCard">
+        <div class="card-header">
+          <h3>Your Items</h3>
+          <span id="itemCountLabel" style="font-size:.78rem;color:var(--color-muted);"></span>
+        </div>
+        <div id="cartBody">
+          <!-- Rendered by JS -->
+        </div>
+      </div>
+
+      <!-- Shipping Method -->
+      <div class="card" style="margin-top:16px;" id="shippingCard">
+        <div class="card-header">
+          <h3><i class="fas fa-truck" style="color:var(--color-accent);margin-right:7px;"></i> Shipping Method</h3>
+          <span style="font-size:.72rem;color:var(--color-muted);">Ship to: Chicago, IL 60607</span>
+        </div>
+        <div class="card-body">
+          <div style="display:flex;flex-direction:column;gap:12px;">
+            <label class="ship-option selected" onclick="selectShipping(this, 0)">
+              <input type="radio" name="shipMethod" value="our-shipping" checked>
+              <div>
+                <div class="ship-name"><i class="fas fa-truck-fast" style="color:var(--color-accent);margin-right:5px;"></i> Use Our Shipping</div>
+                <div class="ship-meta">BRND Direct arranges shipment — est. 5–7 business days</div>
+                <div class="ship-price">FREE</div>
+              </div>
+            </label>
+            <label class="ship-option" onclick="selectShipping(this, 0)">
+              <input type="radio" name="shipMethod" value="pickup">
+              <div>
+                <div class="ship-name"><i class="fas fa-warehouse" style="color:#10b981;margin-right:5px;"></i> Warehouse Pick Up</div>
+                <div class="ship-meta">Collect from our Chicago warehouse at your convenience</div>
+                <div class="ship-price">FREE</div>
+              </div>
+            </label>
+          </div>
+        </div>
+      </div>
+
+      <!-- PO + Notes -->
+      <div class="card" style="margin-top:16px;" id="refsCard">
+        <div class="card-header"><h3><i class="fas fa-file-lines" style="color:var(--color-accent);margin-right:7px;"></i> Order References <span style="font-size:.72rem;font-weight:400;color:var(--color-muted);">(optional)</span></h3></div>
+        <div class="card-body">
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
+            <div>
+              <label style="font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--color-muted);display:block;margin-bottom:6px;">Your PO Number</label>
+              <input type="text" class="form-input" id="poInput" placeholder="e.g. PO-2026-0055" />
+            </div>
+            <div>
+              <label style="font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--color-muted);display:block;margin-bottom:6px;">Order Notes</label>
+              <input type="text" class="form-input" id="notesInput" placeholder="Special instructions…" />
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /LEFT -->
+
+    <!-- RIGHT: Summary + Terms + Confirm -->
+    <div>
+      <div class="summary-sticky">
+
+        <div class="summary-sticky__head">
+          <i class="fas fa-receipt" style="color:var(--color-accent);"></i>
+          Order Summary
+        </div>
+
+        <div class="summary-sticky__body">
+
+          <!-- Per-item lines -->
+          <div id="summaryLines"></div>
+
+          <hr class="sum-divider">
+          <div class="sum-line">
+            <span class="lbl">Subtotal</span>
+            <span class="val" id="sumSubtotal">$0.00</span>
+          </div>
+          <div class="sum-line" id="sumShippingLine">
+            <span class="lbl">Shipping</span>
+            <span class="val" style="color:#10b981;">FREE</span>
+          </div>
+          <div class="sum-line">
+            <span class="lbl">Tax</span>
+            <span class="val" style="color:var(--color-muted);">Exempt (B2B)</span>
+          </div>
+          <hr class="sum-divider">
+          <div class="sum-total">
+            <span>Total</span>
+            <span class="val" id="sumTotal">$0.00</span>
+          </div>
+          <div style="font-size:.7rem;color:var(--color-muted);text-align:right;margin-top:2px;" id="sumUnits"></div>
+
+        </div><!-- /body -->
+
+        <!-- Payment Terms -->
+        <div style="padding:0 20px 16px;border-top:1.5px solid var(--color-border);margin-top:4px;">
+          <div style="font-size:.66rem;font-weight:800;text-transform:uppercase;letter-spacing:.08em;color:var(--color-muted);padding:14px 0 10px;">Payment Terms</div>
+          <div class="terms-grid">
+            <label class="terms-option selected" onclick="selectTerms(this,'net30')">
+              <input type="radio" name="payTerms" value="net30" checked>
+              <div class="terms-icon">📋</div>
+              <div class="terms-name">Net-30</div>
+              <div class="terms-desc">Pay within 30 days</div>
+            </label>
+            <label class="terms-option" onclick="selectTerms(this,'net60')">
+              <input type="radio" name="payTerms" value="net60">
+              <div class="terms-icon">📅</div>
+              <div class="terms-name">Net-60</div>
+              <div class="terms-desc">Pay within 60 days</div>
+            </label>
+            <label class="terms-option" onclick="selectTerms(this,'prepay')">
+              <input type="radio" name="payTerms" value="prepay">
+              <div class="terms-icon">⚡</div>
+              <div class="terms-name">Prepay</div>
+              <div class="terms-desc">Pay before shipment</div>
+            </label>
+
+          </div>
+
+          <div id="creditNote" style="margin-top:10px;padding:10px 12px;background:rgba(79,70,229,.05);border:1px solid rgba(79,70,229,.15);border-radius:8px;font-size:.75rem;line-height:1.6;color:var(--color-near-black);">
+            <i class="fas fa-info-circle" style="color:var(--color-accent);margin-right:5px;"></i>
+            <strong>Net-30 pre-approved.</strong> Invoice issued on ship date. Available credit: <strong>$32,660</strong>.
+          </div>
+
+          <button class="confirm-order-btn" id="confirmBtn" onclick="confirmOrder()">
+            <i class="fas fa-lock"></i>
+            <span id="confirmBtnLabel">Confirm &amp; Place Order</span>
+          </button>
+
+          <div class="secure-badges">
+            <span><i class="fas fa-lock" style="color:#10b981;"></i> SSL Encrypted</span>
+            <span><i class="fas fa-shield-halved" style="color:var(--color-accent);"></i> PCI Compliant</span>
+            <span><i class="fas fa-rotate-left" style="color:#0ea5e9;"></i> 30-day Returns</span>
+          </div>
+
+        </div>
+
+      </div><!-- /summary-sticky -->
+    </div><!-- /RIGHT -->
+
+  </div><!-- /cart-layout -->
+
+</main>
+
+<!-- ═══════════════════════════════════
+     SUCCESS OVERLAY — Order Submitted (Awaiting Seller)
+═══════════════════════════════════ -->
+<div class="success-overlay" id="successOverlay">
+  <div class="success-card" style="position:relative;">
+    <button onclick="closeSuccessOverlay()" style="position:absolute;top:14px;right:14px;width:32px;height:32px;border-radius:50%;border:1.5px solid var(--color-border);background:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:1rem;color:var(--color-muted);line-height:1;transition:all .15s;" onmouseover="this.style.background='var(--color-off-white)';this.style.color='var(--color-near-black)'" onmouseout="this.style.background='#fff';this.style.color='var(--color-muted)'" title="Close">&times;</button>
+    <div class="success-ring"><i class="fas fa-check"></i></div>
+    <div class="success-title">Order Submitted! 🎉</div>
+    <div class="success-sub" id="successSub">
+      Your order has been placed and is now awaiting seller confirmation.
+    </div>
+
+    <!-- Reference Numbers -->
+    <div class="success-ref-grid">
+      <div class="success-ref-field">
+        <div class="srl">Order #</div>
+        <div class="srv order" id="successOrderNum">BD-48300</div>
+      </div>
+      <div class="success-ref-field">
+        <div class="srl">Invoice #</div>
+        <div class="srv invoice" id="successInvNum">INV-2900</div>
+      </div>
+      <div class="success-ref-field">
+        <div class="srl">PO Reference</div>
+        <div class="srv" id="successPO">—</div>
+      </div>
+      <div class="success-ref-field">
+        <div class="srl">Due Date</div>
+        <div class="srv" id="successDue">—</div>
+      </div>
+    </div>
+
+    <!-- Next Steps (numbered to match the 6-step journey bar) -->
+    <div class="next-steps-banner">
+      <h4><i class="fas fa-route"></i> &nbsp;What Happens Next — Your Journey</h4>
+      <div class="nsb-step done">
+        <div class="nsb-step__dot"><i class="fas fa-check" style="font-size:.55rem;"></i></div>
+        <div class="nsb-label"><strong>Steps 1 &amp; 2 Done</strong> — Order submitted &amp; invoice generated</div>
+      </div>
+      <div class="nsb-step next">
+        <div class="nsb-step__dot">3</div>
+        <div class="nsb-label"><strong>Step 3 — Seller Confirms</strong> your order (usually within 24h)</div>
+      </div>
+      <div class="nsb-step pending">
+        <div class="nsb-step__dot">4</div>
+        <div class="nsb-label"><strong>Step 4 — Pay Invoice</strong> from Invoices &amp; Payments section</div>
+      </div>
+      <div class="nsb-step pending">
+        <div class="nsb-step__dot">5</div>
+        <div class="nsb-label"><strong>Step 5 — Seller Packs</strong> picks &amp; packs, marks order ready to ship</div>
+      </div>
+      <div class="nsb-step pending">
+        <div class="nsb-step__dot">6</div>
+        <div class="nsb-label"><strong>Step 6 — You Schedule Shipping</strong> via Shipping &amp; Logistics portal</div>
+      </div>
+    </div>
+
+    <div class="success-actions">
+      <a href="invoices.html" class="btn btn-primary btn-sm" style="display:flex;align-items:center;justify-content:center;gap:8px;">
+        <i class="fas fa-file-invoice-dollar"></i> View Invoice &amp; Pay
+      </a>
+      <a href="orders.html" class="btn btn-secondary btn-sm" style="display:flex;align-items:center;justify-content:center;gap:8px;">
+        <i class="fas fa-file-invoice"></i> Track My Order
+      </a>
+      <a href="products.html" class="btn btn-outline btn-sm" style="display:flex;align-items:center;justify-content:center;gap:8px;">
+        <i class="fas fa-boxes-stacked"></i> Continue Shopping
+      </a>
+      <button onclick="closeSuccessOverlay()" class="btn btn-secondary btn-sm" style="display:flex;align-items:center;justify-content:center;gap:8px;">
+        <i class="fas fa-xmark"></i> Close
+      </button>
+    </div>
+    <div class="success-countdown" id="successCountdown"></div>
+  </div>
+</div>
+
+<div class="toast-container" id="toastContainer"></div>
+<script src="js/portal.js"></script>
+<script>
+/* ════════════════════════════════════════════
+   STATE
+════════════════════════════════════════════ */
+let cart = [];
+try { cart = JSON.parse(sessionStorage.getItem('brndCart') || '[]'); } catch(e) { cart = []; }
+// Also check legacy key
+if (cart.length === 0) {
+  try { cart = JSON.parse(sessionStorage.getItem('brnd_cart') || '[]'); } catch(e) { cart = []; }
+}
+
+let shippingCost = 0;
+let selectedTerms = 'net30';
+
+/* Update sidebar cart badge */
+(function(){
+  const b = document.getElementById('sidebarCartBadge');
+  if (b && cart.length > 0) { b.textContent = cart.length; b.style.display = 'inline-flex'; }
+})();
+
+/* ════════════════════════════════════════════
+   FORMAT HELPERS
+════════════════════════════════════════════ */
+function fmt(n) {
+  return '$' + Number(n).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
+function catLabel(cat) {
+  const MAP = { fragrances:'Fragrances', beauty:'Luxury Beauty', skincare:'Skincare', bags:'Designer Bags', sneakers:'Sneakers', apparel:'Apparel', cosmetics:'Cosmetics' };
+  return MAP[cat] || (cat || 'Other');
+}
+
+/* ════════════════════════════════════════════
+   RENDER CART TABLE
+════════════════════════════════════════════ */
+function renderCart() {
+  const totalQty   = cart.reduce((s, i) => s + i.qty, 0);
+  const totalLines = cart.length;
+
+  document.getElementById('cartHeaderSub').textContent =
+    totalLines === 0
+      ? 'Your cart is empty — browse the catalog to add products'
+      : `${totalLines} line item${totalLines !== 1 ? 's' : ''} · ${totalQty} units total`;
+
+  document.getElementById('itemCountLabel').textContent =
+    totalLines > 0 ? `${totalLines} item${totalLines !== 1 ? 's' : ''}` : '';
+
+  const body = document.getElementById('cartBody');
+
+  if (cart.length === 0) {
+    body.innerHTML = `
+      <div class="empty-cart">
+        <div class="empty-cart__icon">🛒</div>
+        <div class="empty-cart__title">Your cart is empty</div>
+        <div class="empty-cart__sub">Go back to the catalog and add some products to get started.</div>
+        <a href="products.html" class="btn btn-primary btn-sm"><i class="fas fa-boxes-stacked"></i> Browse Products</a>
+      </div>`;
+    document.getElementById('confirmBtn').disabled = true;
+    renderSummary();
+    return;
+  }
+
+  document.getElementById('confirmBtn').disabled = false;
+
+  body.innerHTML = `
+    <div style="overflow-x:auto;">
+      <table class="cart-tbl">
+        <thead>
+          <tr>
+            <th>Product</th>
+            <th>SKU</th>
+            <th>Unit Price</th>
+            <th>Qty (MOQ)</th>
+            <th style="text-align:right;">Subtotal</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          ${cart.map((item, idx) => `
+            <tr>
+              <td>
+                <div style="display:flex;align-items:center;gap:12px;">
+                  <div class="cart-prod-emoji">${item.emoji || '📦'}</div>
+                  <div>
+                    <div class="cart-prod-name">${item.name}</div>
+                    <div class="cart-prod-meta">${item.brand || 'Brand'} · ${catLabel(item.cat)}</div>
+                  </div>
+                </div>
+              </td>
+              <td style="font-family:monospace;font-size:.78rem;color:var(--color-muted);">${item.sku || '—'}</td>
+              <td style="font-weight:600;">${fmt(item.price)}</td>
+              <td>
+                <div class="qty-wrap">
+                  <button class="qty-btn" onclick="adjustQty(${idx},-1)">−</button>
+                  <input class="qty-inp" type="number" value="${item.qty}" min="${item.moq || 1}"
+                    onchange="setQty(${idx}, this.value)" />
+                  <button class="qty-btn" onclick="adjustQty(${idx},1)">+</button>
+                </div>
+                <div style="font-size:.62rem;color:var(--color-muted);margin-top:3px;text-align:center;">MOQ: ${item.moq || 1}</div>
+              </td>
+              <td style="text-align:right;font-weight:800;font-family:var(--font-display);">${fmt(item.qty * item.price)}</td>
+              <td>
+                <button class="remove-btn" onclick="removeItem(${idx})" title="Remove item">
+                  <i class="fas fa-trash-can"></i>
+                </button>
+              </td>
+            </tr>`).join('')}
+        </tbody>
+      </table>
+    </div>`;
+
+  renderSummary();
+}
+
+/* ════════════════════════════════════════════
+   RENDER SUMMARY PANEL
+════════════════════════════════════════════ */
+function renderSummary() {
+  const subtotal   = cart.reduce((s, i) => s + i.qty * i.price, 0);
+  const total      = subtotal + shippingCost;
+  const totalUnits = cart.reduce((s, i) => s + i.qty, 0);
+
+  document.getElementById('sumSubtotal').textContent = fmt(subtotal);
+  document.getElementById('sumTotal').textContent    = fmt(total);
+  document.getElementById('sumUnits').textContent    = totalUnits > 0 ? `${totalUnits} unit${totalUnits !== 1 ? 's' : ''} total` : '';
+
+  document.getElementById('summaryLines').innerHTML = cart.map(i => `
+    <div class="sum-line">
+      <span class="lbl" style="max-width:170px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${i.name}">${i.name}</span>
+      <span class="val" style="font-size:.82rem;">×${i.qty} · ${fmt(i.qty * i.price)}</span>
+    </div>`).join('');
+
+  if (cart.length > 0) {
+    document.getElementById('confirmBtnLabel').textContent = `Confirm & Place Order · ${fmt(total)}`;
+  } else {
+    document.getElementById('confirmBtnLabel').textContent = 'Confirm & Place Order';
+  }
+}
+
+/* ════════════════════════════════════════════
+   CART MUTATIONS
+════════════════════════════════════════════ */
+function adjustQty(idx, delta) {
+  const moq = cart[idx].moq || 1;
+  cart[idx].qty = Math.max(moq, cart[idx].qty + delta);
+  saveCart(); renderCart();
+}
+function setQty(idx, val) {
+  const moq = cart[idx].moq || 1;
+  cart[idx].qty = Math.max(moq, parseInt(val) || moq);
+  saveCart(); renderCart();
+}
+function removeItem(idx) {
+  const name = cart[idx].name;
+  cart.splice(idx, 1);
+  saveCart(); renderCart();
+  showToast(`"${name}" removed from cart.`);
+}
+function saveCart() {
+  sessionStorage.setItem('brndCart', JSON.stringify(cart));
+  sessionStorage.setItem('brnd_cart', JSON.stringify(cart));
+  const b = document.getElementById('sidebarCartBadge');
+  if (b) { if (cart.length > 0) { b.textContent = cart.length; b.style.display = 'inline-flex'; } else { b.style.display = 'none'; } }
+}
+
+/* ════════════════════════════════════════════
+   SHIPPING SELECTION
+════════════════════════════════════════════ */
+function selectShipping(label, cost) {
+  document.querySelectorAll('.ship-option').forEach(l => l.classList.remove('selected'));
+  label.classList.add('selected');
+  shippingCost = cost;
+  const el = document.getElementById('sumShippingLine');
+  el.querySelector('.val').textContent = cost === 0 ? 'FREE' : fmt(cost);
+  el.querySelector('.val').style.color = cost === 0 ? '#10b981' : 'var(--color-near-black)';
+  renderSummary();
+}
+
+/* ════════════════════════════════════════════
+   TERMS SELECTION
+════════════════════════════════════════════ */
+function selectTerms(label, terms) {
+  document.querySelectorAll('.terms-option').forEach(l => l.classList.remove('selected'));
+  label.classList.add('selected');
+  selectedTerms = terms;
+  const note = document.getElementById('creditNote');
+  note.style.display = (terms === 'net30' || terms === 'net60') ? 'block' : 'none';
+  if (terms === 'net60') {
+    note.innerHTML = '<i class="fas fa-info-circle" style="color:var(--color-accent);margin-right:5px;"></i><strong>Net-60 pre-approved.</strong> Invoice issued on ship date, due in 60 days.';
+  } else if (terms === 'net30') {
+    note.innerHTML = '<i class="fas fa-info-circle" style="color:var(--color-accent);margin-right:5px;"></i><strong>Net-30 pre-approved.</strong> Invoice issued on ship date. Available credit: <strong>$32,660</strong>.';
+  }
+}
+
+/* ════════════════════════════════════════════
+   CLEAR CART
+════════════════════════════════════════════ */
+document.getElementById('clearCartBtn').addEventListener('click', () => {
+  if (cart.length === 0) { showToast('Cart is already empty.'); return; }
+  if (confirm('Remove all items from cart?')) {
+    cart = [];
+    saveCart();
+    renderCart();
+    showToast('Cart cleared.');
+  }
+});
+
+/* ════════════════════════════════════════════
+   CONFIRM ORDER → SUBMIT & GENERATE INVOICE
+════════════════════════════════════════════ */
+function closeSuccessOverlay() {
+  document.getElementById('successOverlay').classList.remove('open');
+}
+
+function confirmOrder() {
+  if (cart.length === 0) { showToast('Add items to your cart first.'); return; }
+
+  const btn = document.getElementById('confirmBtn');
+  btn.disabled = true;
+  btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing…';
+
+  /* ── gather selected shipping method label ── */
+  const shipRadio = document.querySelector('input[name="shipMethod"]:checked');
+  const shippingMethodLabel = shipRadio?.value === 'pickup' ? 'Warehouse Pick Up' : 'Use Our Shipping';
+
+  setTimeout(async () => {
+    const randSuffix  = Math.floor(Math.random() * 900 + 100);
+    const orderNum    = 'BD-' + (48300 + Math.floor(Math.random() * 200));
+    const invNum      = 'INV-' + (2900  + Math.floor(Math.random() * 200));
+    const subtotal    = cart.reduce((s, i) => s + i.qty * i.price, 0);
+    const total       = subtotal + shippingCost;
+    const totalUnits  = cart.reduce((s, i) => s + i.qty, 0);
+    const po          = document.getElementById('poInput').value.trim() || ('PO-' + randSuffix);
+    const notes       = document.getElementById('notesInput').value.trim();
+    const termLabel   = { net30:'Net-30', net60:'Net-60', prepay:'Prepay' }[selectedTerms] || 'Net-30';
+    const dueDays     = { net30:30, net60:60, prepay:0 }[selectedTerms] || 30;
+    const dueDate     = new Date(Date.now() + dueDays * 86400000);
+    const dueDateStr  = dueDate.toLocaleDateString('en-US', { month:'short', day:'numeric', year:'numeric' });
+    const todayStr    = new Date().toLocaleDateString('en-US', { month:'short', day:'numeric', year:'numeric' });
+
+    /* ── POST order to Tables API so admin sees it ── */
+    const orderPayload = {
+      order_number:    orderNum,
+      invoice_number:  invNum,
+      buyer_name:      'Alex Johnson',
+      buyer_email:     'alex@johnsonretail.com',
+      business_name:   'Johnson Retail Group LLC',
+      po_number:       po,
+      notes:           notes,
+      shipping_method: shippingMethodLabel,
+      shipping_cost:   shippingCost,
+      payment_terms:   termLabel,
+      subtotal:        subtotal,
+      total_amount:    total,
+      total_units:     totalUnits,
+      status:          'pending',
+      payment_status:  'outstanding',
+      due_date:        dueDateStr,
+      order_date:      todayStr,
+      brands:          [...new Set(cart.map(i => i.brand || 'Brand'))].join(', '),
+      items:           JSON.stringify(cart.map(i => ({
+        name: i.name, brand: i.brand, sku: i.sku, qty: i.qty,
+        unit_price: i.price, line_total: i.qty * i.price, moq: i.moq
+      })))
+    };
+    try {
+      await fetch('tables/bd_orders', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(orderPayload)
+      });
+      /* ── Also POST the invoice record ── */
+      await fetch('tables/bd_invoices', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          invoice_number: invNum,
+          order_number:   orderNum,
+          buyer_name:     orderPayload.buyer_name,
+          buyer_email:    orderPayload.buyer_email,
+          business_name:  orderPayload.business_name,
+          po_number:      po,
+          payment_terms:  termLabel,
+          status:         'Outstanding',
+          subtotal:       subtotal,
+          shipping_cost:  shippingCost,
+          tax:            0,
+          total_amount:   total,
+          issue_date:     todayStr,
+          due_date:       dueDateStr,
+          brands:         orderPayload.brands,
+          notes:          notes,
+          items:          orderPayload.items
+        })
+      });
+    } catch(e) { console.warn('Order API save failed:', e); }
+
+    /* Build invoice & save to sessionStorage (local cache) */
+    const newInvoice = {
+      id: invNum, orderId: orderNum, po, notes, terms: termLabel,
+      status: 'Outstanding', amount: total, subtotal, shipping: shippingCost, tax: 0,
+      issueDate: todayStr, dueDate: dueDateStr,
+      items: cart.map(i => ({ ...i })),
+      brands: [...new Set(cart.map(i => i.brand || 'Brand'))].join(', '),
+      totalUnits, createdAt: Date.now()
+    };
+    let invoices = [];
+    try { invoices = JSON.parse(sessionStorage.getItem('brndNewInvoices') || '[]'); } catch(e) {}
+    invoices.unshift(newInvoice);
+    sessionStorage.setItem('brndNewInvoices', JSON.stringify(invoices));
+    sessionStorage.setItem('brndLatestInv', invNum);
+    sessionStorage.setItem('brndLatestOrder', orderNum);
+
+    /* Clear cart */
+    cart = [];
+    saveCart();
+
+    /* Update cart step indicators — both review and confirm steps are now done */
+    ['step1','step2'].forEach(id => {
+      const el = document.getElementById(id);
+      el.classList.remove('active','done'); el.classList.add('done');
+      el.querySelector('.step-dot').innerHTML = '<i class="fas fa-check" style="font-size:.65rem;"></i>';
+    });
+    document.getElementById('line1').classList.add('done');
+    document.getElementById('line2').classList.add('done');
+    const s3 = document.getElementById('step3');
+    s3.classList.add('active');
+    s3.querySelector('.step-dot').innerHTML = '<i class="fas fa-hourglass-half" style="font-size:.6rem;"></i>';
+
+    /* Update journey bar — js1 already done, js2 was active (now done), js3 becomes active */
+    document.getElementById('js2').classList.remove('active'); document.getElementById('js2').classList.add('done');
+    document.getElementById('js2').querySelector('.journey-step__num').innerHTML = '<i class="fas fa-check" style="font-size:.6rem;"></i>';
+    const js2LabelEl = document.getElementById('js2').querySelector('.journey-step__label');
+    if(js2LabelEl) js2LabelEl.textContent = '2. Confirm Order ✓';
+    document.getElementById('js3').classList.add('active');
+
+    /* Populate success overlay */
+    document.getElementById('successOrderNum').textContent = orderNum;
+    document.getElementById('successInvNum').textContent   = invNum;
+    document.getElementById('successPO').textContent       = po;
+    document.getElementById('successDue').textContent      = dueDays > 0 ? dueDateStr : 'Upon shipment';
+    document.getElementById('successSub').innerHTML =
+      `<strong>${totalUnits} units</strong> · ${fmt(total)} · ${termLabel} terms<br>
+       Your order is submitted and awaiting seller confirmation.`;
+
+    document.getElementById('successOverlay').classList.add('open');
+
+    /* Auto-redirect countdown */
+    let countdown = 12;
+    const cdEl = document.getElementById('successCountdown');
+    cdEl.textContent = `Auto-redirecting to invoices in ${countdown}s…`;
+    const cdTimer = setInterval(() => {
+      countdown--;
+      if (countdown <= 0) { clearInterval(cdTimer); window.location.href = 'invoices.html'; }
+      else { cdEl.textContent = `Auto-redirecting to invoices in ${countdown}s…`; }
+    }, 1000);
+
+  }, 1800);
+}
+
+/* ════════════════════════════════════════════
+   TOAST
+════════════════════════════════════════════ */
+function showToast(msg, type) {
+  if (window._portalShowToast) { window._portalShowToast(msg, type); return; }
+  const c = document.getElementById('toastContainer');
+  if (!c) return;
+  const t = document.createElement('div');
+  t.className = `toast ${type || ''}`;
+  t.innerHTML = `<i class="fas fa-info-circle"></i><span>${msg}</span>`;
+  c.appendChild(t);
+  setTimeout(() => { t.style.opacity='0'; t.style.transform='translateX(60px)'; t.style.transition='all .3s'; setTimeout(()=>t.remove(),350); }, 3200);
+}
+
+/* ════════════════════════════════════════════
+   INIT
+════════════════════════════════════════════ */
+renderCart();
+</script>
+</body>
+</html>

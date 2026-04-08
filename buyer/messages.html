@@ -1,0 +1,482 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Messages – BRND Direct Portal</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&family=Inter:wght@300;400;500;600;700&family=Outfit:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.5.0/css/all.min.css" />
+  <link rel="stylesheet" href="css/portal.css" />
+  <script src="js/auth-guard.js"></script>
+  <style>
+    /* Messaging layout */
+    .msg-layout {
+      display: grid;
+      grid-template-columns: 320px 1fr;
+      gap: 0;
+      flex: 1;
+      min-height: 0;
+      background: var(--color-white);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-md);
+      overflow: hidden;
+    }
+    /* Conversation list */
+    .conv-list { border-right: 1px solid var(--color-border); display: flex; flex-direction: column; overflow: hidden; }
+    .conv-list-header { padding: 16px; border-bottom: 1px solid var(--color-border); flex-shrink: 0; }
+    .conv-list-header h3 { font-size: .95rem; font-weight: 700; margin-bottom: 10px; }
+    .conv-search { position: relative; }
+    .conv-search input { padding-left: 32px; font-size: .82rem; }
+    .conv-search i { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); color: var(--color-muted); font-size: .8rem; }
+    .conv-tabs { display: flex; gap: 4px; padding: 8px 12px; border-bottom: 1px solid var(--color-border); flex-shrink: 0; }
+    .conv-tab { flex: 1; text-align: center; padding: 6px 4px; font-size: .75rem; font-weight: 600; border-radius: var(--radius-sm); cursor: pointer; color: var(--color-muted); transition: all .18s; }
+    .conv-tab.active { background: var(--color-accent-glow); color: var(--color-accent); }
+    .conv-items { flex: 1; overflow-y: auto; }
+    .conv-item {
+      display: flex; align-items: center; gap: 12px;
+      padding: 14px 16px; cursor: pointer; transition: background .15s;
+      border-bottom: 1px solid var(--color-border); position: relative;
+    }
+    .conv-item:hover { background: var(--color-off-white); }
+    .conv-item.active { background: var(--color-accent-glow); }
+    .conv-avatar {
+      width: 40px; height: 40px; border-radius: 50%; flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center;
+      font-weight: 800; font-size: .82rem; color: white;
+    }
+    .conv-info { flex: 1; min-width: 0; }
+    .conv-name { font-size: .85rem; font-weight: 600; margin-bottom: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .conv-preview { font-size: .75rem; color: var(--color-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .conv-meta { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; flex-shrink: 0; }
+    .conv-time { font-size: .7rem; color: var(--color-muted); }
+    .conv-unread { width: 18px; height: 18px; background: var(--color-accent); color: white; border-radius: 50%; font-size: .62rem; font-weight: 700; display: flex; align-items: center; justify-content: center; }
+    /* Chat area */
+    .chat-area { display: flex; flex-direction: column; overflow: hidden; }
+    .chat-header {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 14px 20px; border-bottom: 1px solid var(--color-border); flex-shrink: 0;
+    }
+    .chat-header-left { display: flex; align-items: center; gap: 12px; }
+    .chat-header-name { font-weight: 700; font-size: .95rem; }
+    .chat-header-status { font-size: .73rem; color: var(--color-emerald); display: flex; align-items: center; gap: 4px; }
+    .chat-header-status::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+    .chat-header-actions { display: flex; gap: 8px; }
+    .chat-messages { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 16px; }
+    .msg-group { display: flex; gap: 10px; }
+    .msg-group.outgoing { flex-direction: row-reverse; }
+    .msg-avatar { width: 32px; height: 32px; border-radius: 50%; flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: .72rem; color: white; }
+    .msg-bubbles { display: flex; flex-direction: column; gap: 4px; max-width: 70%; }
+    .msg-group.outgoing .msg-bubbles { align-items: flex-end; }
+    .msg-bubble {
+      padding: 10px 14px; border-radius: 18px; font-size: .85rem; line-height: 1.55;
+      background: var(--color-off-white); border: 1px solid var(--color-border);
+      border-bottom-left-radius: 4px;
+    }
+    .msg-group.outgoing .msg-bubble {
+      background: var(--color-accent); color: white; border-color: var(--color-accent);
+      border-bottom-right-radius: 4px; border-bottom-left-radius: 18px;
+    }
+    .msg-time { font-size: .68rem; color: var(--color-muted); padding: 0 4px; }
+    /* Attachment card */
+    .msg-attachment {
+      display: flex; align-items: center; gap: 10px;
+      padding: 10px 12px; border: 1px solid var(--color-border);
+      border-radius: var(--radius-sm); background: white; max-width: 240px; cursor: pointer;
+    }
+    .msg-attachment:hover { border-color: var(--color-accent); }
+    .msg-attachment-icon { width: 32px; height: 32px; border-radius: 6px; background: var(--color-accent-glow); color: var(--color-accent); display: flex; align-items: center; justify-content: center; font-size: .9rem; flex-shrink: 0; }
+    .msg-attachment-name { font-size: .78rem; font-weight: 600; }
+    .msg-attachment-size { font-size: .68rem; color: var(--color-muted); }
+    /* Date divider */
+    .msg-date-divider { display: flex; align-items: center; gap: 12px; font-size: .72rem; color: var(--color-muted); }
+    .msg-date-divider::before, .msg-date-divider::after { content: ''; flex: 1; height: 1px; background: var(--color-border); }
+    /* Typing indicator */
+    .typing-indicator { display: flex; align-items: center; gap: 4px; padding: 10px 14px; background: var(--color-off-white); border: 1px solid var(--color-border); border-radius: 18px; border-bottom-left-radius: 4px; width: fit-content; }
+    .typing-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--color-muted); animation: typing 1.2s infinite; }
+    .typing-dot:nth-child(2) { animation-delay: .2s; }
+    .typing-dot:nth-child(3) { animation-delay: .4s; }
+    @keyframes typing { 0%,60%,100% { transform: translateY(0); opacity: .4; } 30% { transform: translateY(-5px); opacity: 1; } }
+    /* Input area */
+    .chat-input-area {
+      padding: 14px 16px; border-top: 1px solid var(--color-border); flex-shrink: 0;
+    }
+    .chat-input-box {
+      display: flex; align-items: flex-end; gap: 10px;
+      border: 1.5px solid var(--color-border); border-radius: var(--radius-md);
+      padding: 10px 14px; transition: border-color .2s; background: white;
+    }
+    .chat-input-box:focus-within { border-color: var(--color-accent); }
+    .chat-textarea {
+      flex: 1; border: none; outline: none; resize: none; font-family: var(--font-sans);
+      font-size: .87rem; line-height: 1.5; max-height: 120px; background: transparent;
+      color: var(--color-near-black);
+    }
+    .chat-input-actions { display: flex; align-items: center; gap: 4px; }
+    .chat-action-btn { width: 32px; height: 32px; border-radius: var(--radius-sm); border: none; background: none; cursor: pointer; color: var(--color-muted); font-size: .9rem; display: flex; align-items: center; justify-content: center; transition: all .18s; }
+    .chat-action-btn:hover { background: var(--color-off-white); color: var(--color-near-black); }
+    .chat-send-btn { width: 36px; height: 36px; border-radius: var(--radius-sm); background: var(--color-accent); color: white; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: .9rem; transition: background .18s; }
+    .chat-send-btn:hover { background: var(--color-accent-dark); }
+    /* Right panel (order context) */
+    .chat-context { display: flex; flex-direction: column; overflow: hidden; }
+    .context-header { padding: 14px 16px; border-bottom: 1px solid var(--color-border); font-size: .82rem; font-weight: 700; flex-shrink: 0; }
+    .context-body { flex: 1; overflow-y: auto; padding: 16px; }
+    .context-order-card { border: 1px solid var(--color-border); border-radius: var(--radius-sm); padding: 14px; margin-bottom: 12px; }
+    .context-order-id { font-size: .75rem; font-weight: 700; color: var(--color-accent); margin-bottom: 4px; }
+    .context-order-name { font-size: .85rem; font-weight: 600; margin-bottom: 6px; }
+    .context-order-meta { font-size: .73rem; color: var(--color-muted); }
+    /* Responsive */
+    @media (max-width: 1024px) { .msg-layout { grid-template-columns: 260px 1fr; } }
+    @media (max-width: 768px) {
+      .msg-layout { grid-template-columns: 1fr; flex: none; height: auto; min-height: unset; }
+      .conv-list { max-height: 280px; border-right: none; border-bottom: 1px solid var(--color-border); }
+      .chat-area { min-height: 400px; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<aside class="sidebar" id="sidebar">
+  <div class="sidebar__logo">
+    <a href="dashboard.html" class="logo-mark">
+      <span class="logo-icon"><i class="fas fa-chevron-right"></i></span>
+      <span class="logo-word">BRND <span class="logo-accent">DIRECT</span></span>
+    </a>
+  </div>
+  <nav class="sidebar__nav">
+    <div class="nav-section">
+      <span class="nav-section-label">Main Menu</span>
+      <a href="dashboard.html" class="nav-item"><i class="fas fa-table-columns"></i><span>Dashboard</span></a>
+      <a href="products.html" class="nav-item"><i class="fas fa-boxes-stacked"></i><span>Products</span></a>
+      <a href="orders.html" class="nav-item"><i class="fas fa-file-invoice"></i><span>Orders</span><span class="nav-badge">18</span></a>
+      <a href="cart.html" class="nav-item" id="navCartLink"><i class="fas fa-cart-shopping"></i><span>Order Cart</span><span class="nav-badge" id="sidebarCartBadge" style="display:none;">0</span></a>
+      <a href="rfq.html" class="nav-item"><i class="fas fa-comment-dollar"></i><span>RFQ</span><span class="nav-badge new">5</span></a>
+      <a href="dropship.html" class="nav-item"><i class="fas fa-rotate"></i><span>Dropship</span></a>
+      <a href="analytics.html" class="nav-item"><i class="fas fa-chart-line"></i><span>Analytics</span></a>
+    </div>
+    <div class="nav-section">
+      <span class="nav-section-label">Finance</span>
+      <a href="invoices.html" class="nav-item"><i class="fas fa-file-invoice-dollar"></i><span>Invoices &amp; Payments</span></a>
+      <a href="trade-finance.html" class="nav-item"><i class="fas fa-credit-card"></i><span>Trade Finance</span></a>
+      <a href="reports.html" class="nav-item"><i class="fas fa-chart-bar"></i><span>Reports</span></a>
+    </div>
+    <div class="nav-section">
+      <span class="nav-section-label">Operations</span>
+      <a href="warehousing.html" class="nav-item"><i class="fas fa-warehouse"></i><span>Warehousing</span></a>
+      <a href="shipping-logistics.html" class="nav-item"><i class="fas fa-truck-fast"></i><span>Shipping &amp; Logistics</span></a>
+    </div>
+    <div class="sidebar__divider"></div>
+    <a href="messages.html" class="nav-item active"><i class="fas fa-message"></i><span>Messages</span><span class="nav-badge">3</span></a>
+    <a href="account.html" class="nav-item"><i class="fas fa-gear"></i><span>Settings</span></a>
+    <a href="help.html" class="nav-item"><i class="fas fa-circle-question"></i><span>Help &amp; Support</span></a>
+  </nav>
+  <div class="sidebar__bottom">
+    <div class="sidebar__user">
+      <div class="sidebar__user-avatar">AJ</div>
+      <div class="sidebar__user-info">
+        <div class="sidebar__user-name">Alex Johnson</div>
+        <div class="sidebar__user-role">Wholesale Buyer</div>
+      </div>
+      <button class="sidebar__user-logout" title="Sign out" onclick="window.location.href='index.html'">
+        <i class="fas fa-arrow-right-from-bracket"></i>
+      </button>
+    </div>
+  </div>
+</aside>
+
+<!-- SIDEBAR OVERLAY -->
+<div id="sidebarOverlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:99;" onclick="document.getElementById('sidebar').classList.remove('open');this.style.display='none';"></div>
+
+<!-- TOPBAR -->
+<header class="topbar">
+  <div class="topbar__left" style="display:flex;align-items:center;gap:12px;">
+    <button class="topbar__mobile-toggle" id="sidebarToggle" aria-label="Toggle sidebar"><i class="fas fa-bars"></i></button>
+    <div>
+      <div class="topbar__title">Messages</div>
+      <div class="topbar__breadcrumb">Communicate with suppliers, brands &amp; your team</div>
+    </div>
+  </div>
+  <div class="topbar__right">
+    <div class="search-bar">
+      <i class="fas fa-magnifying-glass"></i>
+      <input type="text" placeholder="Search messages…" />
+    </div>
+    <div class="topbar__btn" title="Notifications"><i class="fas fa-bell"></i><span class="notif-dot"></span></div>
+    <div class="topbar__btn active" title="Messages"><i class="fas fa-message"></i></div>
+    <div class="topbar__avatar">AJ</div>
+  </div>
+</header>
+
+<!-- MAIN -->
+<main class="app-main" style="padding:20px 24px;overflow:hidden;display:flex;flex-direction:column;height:calc(100vh - var(--topbar-height));box-sizing:border-box;">
+
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-shrink:0;">
+    <div>
+      <h1 style="font-size:1.25rem;font-weight:900;font-family:var(--font-display);color:var(--color-near-black);margin-bottom:2px;">Messages</h1>
+      <p style="font-size:.82rem;color:var(--color-muted);">Communicate with suppliers, brands and your team</p>
+    </div>
+    <button class="btn btn-primary btn-sm" onclick="newConversation()"><i class="fas fa-pen-to-square"></i> New Message</button>
+  </div>
+
+  <div class="msg-layout" style="flex:1;">
+    <!-- Conversation List -->
+    <div class="conv-list">
+      <div class="conv-list-header">
+        <h3>Conversations</h3>
+        <div class="conv-search">
+          <i class="fas fa-magnifying-glass"></i>
+          <input type="text" class="form-input" placeholder="Search messages…" />
+        </div>
+      </div>
+      <div class="conv-tabs">
+        <div class="conv-tab active" onclick="switchTab(this,'all')">All</div>
+        <div class="conv-tab" onclick="switchTab(this,'unread')">Unread</div>
+        <div class="conv-tab" onclick="switchTab(this,'orders')">Orders</div>
+        <div class="conv-tab" onclick="switchTab(this,'team')">Team</div>
+      </div>
+      <div class="conv-items">
+
+        <!-- Conversation items -->
+        <div class="conv-item active" onclick="selectConv(this,'apex')">
+          <div class="conv-avatar" style="background:var(--color-accent);">AA</div>
+          <div class="conv-info">
+            <div class="conv-name">Apex Apparel Group</div>
+            <div class="conv-preview">Re: ORD-2891 shipment tracking…</div>
+          </div>
+          <div class="conv-meta">
+            <span class="conv-time">2m ago</span>
+            <span class="conv-unread">2</span>
+          </div>
+        </div>
+
+        <div class="conv-item" onclick="selectConv(this,'glow')">
+          <div class="conv-avatar" style="background:var(--color-rose);">GC</div>
+          <div class="conv-info">
+            <div class="conv-name">GlowCo Beauty</div>
+            <div class="conv-preview">Thanks for the payment confirmation!</div>
+          </div>
+          <div class="conv-meta">
+            <span class="conv-time">1h ago</span>
+            <span class="conv-unread">1</span>
+          </div>
+        </div>
+
+        <div class="conv-item" onclick="selectConv(this,'tech')">
+          <div class="conv-avatar" style="background:var(--color-sky);">TS</div>
+          <div class="conv-info">
+            <div class="conv-name">TechSource Electronics</div>
+            <div class="conv-preview">The new catalogue is attached…</div>
+          </div>
+          <div class="conv-meta"><span class="conv-time">3h ago</span></div>
+        </div>
+
+        <div class="conv-item" onclick="selectConv(this,'fresh')">
+          <div class="conv-avatar" style="background:var(--color-amber);">FF</div>
+          <div class="conv-info">
+            <div class="conv-name">FreshFarm Foods</div>
+            <div class="conv-preview">Can we discuss MOQ for Q3?</div>
+          </div>
+          <div class="conv-meta"><span class="conv-time">Yesterday</span></div>
+        </div>
+
+        <div class="conv-item" onclick="selectConv(this,'team')">
+          <div class="conv-avatar" style="background:var(--color-emerald);">BD</div>
+          <div class="conv-info">
+            <div class="conv-name">Buying Team</div>
+            <div class="conv-preview">Sarah: Meeting notes from today…</div>
+          </div>
+          <div class="conv-meta"><span class="conv-time">Yesterday</span></div>
+        </div>
+
+        <div class="conv-item" onclick="selectConv(this,'nordic')">
+          <div class="conv-avatar" style="background:#64748b;">NH</div>
+          <div class="conv-info">
+            <div class="conv-name">Nordic Home Goods</div>
+            <div class="conv-preview">Your RFQ has been reviewed…</div>
+          </div>
+          <div class="conv-meta"><span class="conv-time">2d ago</span></div>
+        </div>
+
+        <div class="conv-item" onclick="selectConv(this,'sport')">
+          <div class="conv-avatar" style="background:var(--color-accent);">SP</div>
+          <div class="conv-info">
+            <div class="conv-name">SportPeak Gear</div>
+            <div class="conv-preview">We have a special offer for you!</div>
+          </div>
+          <div class="conv-meta"><span class="conv-time">3d ago</span></div>
+        </div>
+
+        <div class="conv-item" onclick="selectConv(this,'brnd')">
+          <div class="conv-avatar" style="background:var(--color-near-black);" style="font-size:.65rem;">BRND</div>
+          <div class="conv-info">
+            <div class="conv-name">BRND Direct Support</div>
+            <div class="conv-preview">Your account verification is complete!</div>
+          </div>
+          <div class="conv-meta"><span class="conv-time">1w ago</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Chat Area -->
+    <div class="chat-area">
+      <!-- Chat Header -->
+      <div class="chat-header">
+        <div class="chat-header-left">
+          <div class="conv-avatar" style="background:var(--color-accent);width:36px;height:36px;font-size:.75rem;">AA</div>
+          <div>
+            <div class="chat-header-name">Apex Apparel Group</div>
+            <div class="chat-header-status">Online now</div>
+          </div>
+        </div>
+        <div class="chat-header-actions">
+          <button class="btn btn-ghost btn-sm" title="Search in conversation"><i class="fas fa-magnifying-glass"></i></button>
+          <button class="btn btn-ghost btn-sm" title="Video call"><i class="fas fa-video"></i></button>
+          <button class="btn btn-ghost btn-sm" title="More options"><i class="fas fa-ellipsis-vertical"></i></button>
+        </div>
+      </div>
+
+      <!-- Messages -->
+      <div class="chat-messages" id="chatMessages">
+        <div class="msg-date-divider">Today, March 20 2026</div>
+
+        <!-- Incoming -->
+        <div class="msg-group">
+          <div class="msg-avatar" style="background:var(--color-accent);">AA</div>
+          <div class="msg-bubbles">
+            <div class="msg-bubble">Hi Alex! I wanted to follow up on order ORD-2891. We've completed packing and it should ship today.</div>
+            <div class="msg-bubble">Can you confirm the delivery address is still the same as last time?</div>
+            <span class="msg-time">10:32 AM</span>
+          </div>
+        </div>
+
+        <!-- Outgoing -->
+        <div class="msg-group outgoing">
+          <div class="msg-avatar" style="background:var(--color-emerald);">AJ</div>
+          <div class="msg-bubbles">
+            <div class="msg-bubble">Yes, delivery address is the same – 2450 Commerce St, Dallas TX 75201.</div>
+            <span class="msg-time">10:45 AM</span>
+          </div>
+        </div>
+
+        <!-- Attachment incoming -->
+        <div class="msg-group">
+          <div class="msg-avatar" style="background:var(--color-accent);">AA</div>
+          <div class="msg-bubbles">
+            <div class="msg-bubble">Great! I'm also sharing the updated price list for Q2 2026. Please review at your convenience.</div>
+            <div class="msg-attachment">
+              <div class="msg-attachment-icon"><i class="fas fa-file-pdf"></i></div>
+              <div>
+                <div class="msg-attachment-name">PriceList_Q2_2026.pdf</div>
+                <div class="msg-attachment-size">2.4 MB · PDF</div>
+              </div>
+              <i class="fas fa-download" style="margin-left:auto;color:var(--color-muted);font-size:.8rem;"></i>
+            </div>
+            <span class="msg-time">11:03 AM</span>
+          </div>
+        </div>
+
+        <!-- Outgoing -->
+        <div class="msg-group outgoing">
+          <div class="msg-avatar" style="background:var(--color-emerald);">AJ</div>
+          <div class="msg-bubbles">
+            <div class="msg-bubble">Thanks! I'll review the price list and get back to you by end of day. Also, can we get the tracking number once it ships?</div>
+            <span class="msg-time">11:15 AM</span>
+          </div>
+        </div>
+
+        <!-- Incoming -->
+        <div class="msg-group">
+          <div class="msg-avatar" style="background:var(--color-accent);">AA</div>
+          <div class="msg-bubbles">
+            <div class="msg-bubble">Of course! I'll send over the tracking number as soon as we have it from the carrier. It should be this afternoon.</div>
+            <span class="msg-time">11:22 AM</span>
+          </div>
+        </div>
+
+        <!-- Typing indicator -->
+        <div class="msg-group" id="typingIndicator">
+          <div class="msg-avatar" style="background:var(--color-accent);">AA</div>
+          <div class="typing-indicator">
+            <div class="typing-dot"></div>
+            <div class="typing-dot"></div>
+            <div class="typing-dot"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Input area -->
+      <div class="chat-input-area">
+        <div style="display:flex;gap:8px;margin-bottom:8px;flex-wrap:wrap;">
+          <button class="btn btn-ghost btn-sm" style="font-size:.75rem;" onclick="insertQuickReply('Thanks for the update!')"><i class="fas fa-bolt"></i> Thanks!</button>
+          <button class="btn btn-ghost btn-sm" style="font-size:.75rem;" onclick="insertQuickReply('Can you send me more details?')"><i class="fas fa-bolt"></i> More details?</button>
+          <button class="btn btn-ghost btn-sm" style="font-size:.75rem;" onclick="insertQuickReply('I\'ll review and respond soon.')"><i class="fas fa-bolt"></i> Will review</button>
+        </div>
+        <div class="chat-input-box">
+          <textarea class="chat-textarea" id="msgInput" rows="1" placeholder="Type a message…"
+            onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendMessage();}"
+            oninput="autoResize(this)"></textarea>
+          <div class="chat-input-actions">
+            <button class="chat-action-btn" title="Attach file"><i class="fas fa-paperclip"></i></button>
+            <button class="chat-action-btn" title="Emoji"><i class="fas fa-face-smile"></i></button>
+            <button class="chat-action-btn" title="Link order"><i class="fas fa-link"></i></button>
+          </div>
+          <button class="chat-send-btn" onclick="sendMessage()" title="Send"><i class="fas fa-paper-plane"></i></button>
+        </div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<script src="js/portal.js"></script>
+<script>(function(){try{var c=JSON.parse(sessionStorage.getItem('brnd_cart')||'[]');var b=document.getElementById('sidebarCartBadge');if(b&&c.length>0){b.textContent=c.length;b.style.display='inline-flex';}}catch(e){}})();</script>
+<script>
+  function selectConv(el, id) {
+    document.querySelectorAll('.conv-item').forEach(c => c.classList.remove('active'));
+    el.classList.add('active');
+    const badge = el.querySelector('.conv-unread');
+    if (badge) badge.remove();
+  }
+  function switchTab(el, type) {
+    document.querySelectorAll('.conv-tab').forEach(t => t.classList.remove('active'));
+    el.classList.add('active');
+  }
+  function sendMessage() {
+    const input = document.getElementById('msgInput');
+    const text = input.value.trim();
+    if (!text) return;
+    const msgs = document.getElementById('chatMessages');
+    const typing = document.getElementById('typingIndicator');
+    const group = document.createElement('div');
+    group.className = 'msg-group outgoing';
+    group.innerHTML = `
+      <div class="msg-avatar" style="background:var(--color-emerald);">AJ</div>
+      <div class="msg-bubbles">
+        <div class="msg-bubble">${text}</div>
+        <span class="msg-time">${new Date().toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'})}</span>
+      </div>`;
+    msgs.insertBefore(group, typing);
+    input.value = '';
+    input.style.height = '';
+    msgs.scrollTop = msgs.scrollHeight;
+  }
+  function insertQuickReply(text) {
+    document.getElementById('msgInput').value = text;
+    document.getElementById('msgInput').focus();
+  }
+  function autoResize(el) {
+    el.style.height = '';
+    el.style.height = Math.min(el.scrollHeight, 120) + 'px';
+  }
+  function newConversation() {
+    alert('New conversation modal coming soon!');
+  }
+  // Hide typing after 3s
+  setTimeout(() => {
+    const t = document.getElementById('typingIndicator');
+    if (t) t.remove();
+  }, 3000);
+</script>
+</body>
+</html>

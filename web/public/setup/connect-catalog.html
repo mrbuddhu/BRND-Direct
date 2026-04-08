@@ -1,0 +1,1004 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Connect Live Catalog — BRND Direct Setup Guide</title>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.5.0/css/all.min.css"/>
+  <style>
+    :root {
+      --bg:         #0d1117;
+      --bg2:        #161b22;
+      --bg3:        #21262d;
+      --border:     #30363d;
+      --accent:     #4f46e5;
+      --accent2:    #06b6d4;
+      --green:      #22c55e;
+      --yellow:     #f59e0b;
+      --red:        #ef4444;
+      --text:       #e6edf3;
+      --muted:      #8b949e;
+      --code-bg:    #0d1117;
+      --radius:     10px;
+      --radius-lg:  16px;
+    }
+    * { box-sizing:border-box; margin:0; padding:0; }
+    body { font-family:'Plus Jakarta Sans',sans-serif; background:var(--bg); color:var(--text); min-height:100vh; }
+    a { color:var(--accent2); text-decoration:none; }
+    a:hover { text-decoration:underline; }
+
+    /* ── HEADER ── */
+    .page-header {
+      background: linear-gradient(135deg, #1e1b4b 0%, #0f172a 50%, #0c1a2e 100%);
+      border-bottom: 1px solid var(--border);
+      padding: 40px 48px 36px;
+      position: relative; overflow: hidden;
+    }
+    .page-header::before {
+      content:''; position:absolute; top:-60px; right:-80px;
+      width:360px; height:360px;
+      background: radial-gradient(circle, rgba(79,70,229,.25) 0%, transparent 70%);
+      pointer-events:none;
+    }
+    .header-badge {
+      display:inline-flex; align-items:center; gap:8px;
+      background:rgba(79,70,229,.18); border:1px solid rgba(79,70,229,.4);
+      color:#a5b4fc; font-size:.75rem; font-weight:700;
+      letter-spacing:.08em; text-transform:uppercase;
+      padding:5px 14px; border-radius:100px; margin-bottom:18px;
+    }
+    .page-header h1 { font-size:2rem; font-weight:900; line-height:1.2; margin-bottom:10px; }
+    .page-header p  { color:var(--muted); font-size:1rem; max-width:680px; line-height:1.65; }
+    .header-meta { display:flex; gap:24px; margin-top:22px; flex-wrap:wrap; }
+    .hmeta-item { display:flex; align-items:center; gap:8px; font-size:.82rem; color:var(--muted); }
+    .hmeta-item i { color:var(--accent2); }
+
+    /* ── LAYOUT ── */
+    .layout { display:grid; grid-template-columns:260px 1fr; gap:0; max-width:1280px; margin:0 auto; }
+    .sidebar {
+      position:sticky; top:0; height:100vh; overflow-y:auto;
+      border-right:1px solid var(--border);
+      padding:28px 0; background:var(--bg2);
+    }
+    .sidebar-title { font-size:.65rem; font-weight:800; letter-spacing:.1em; text-transform:uppercase; color:var(--muted); padding:0 24px 10px; }
+    .sidebar-link {
+      display:flex; align-items:center; gap:10px;
+      padding:8px 24px; font-size:.82rem; font-weight:500; color:var(--muted);
+      cursor:pointer; border-left:2px solid transparent; transition:all .15s;
+    }
+    .sidebar-link:hover { color:var(--text); background:var(--bg3); }
+    .sidebar-link.active { color:#a5b4fc; border-left-color:var(--accent); background:rgba(79,70,229,.08); }
+    .sidebar-sep { height:1px; background:var(--border); margin:10px 24px; }
+    .step-num { width:20px; height:20px; border-radius:50%; background:var(--border); display:flex; align-items:center; justify-content:center; font-size:.65rem; font-weight:800; flex-shrink:0; }
+    .sidebar-link.active .step-num { background:var(--accent); color:#fff; }
+    .sidebar-link.done .step-num { background:var(--green); color:#fff; }
+    .sidebar-link.done { color:var(--green); }
+
+    .content { padding:40px 48px; max-width:900px; }
+
+    /* ── SECTION ── */
+    .section { margin-bottom:64px; scroll-margin-top:24px; }
+    .section-header { display:flex; align-items:center; gap:14px; margin-bottom:24px; }
+    .section-num {
+      width:42px; height:42px; border-radius:50%;
+      background:linear-gradient(135deg,var(--accent),var(--accent2));
+      display:flex; align-items:center; justify-content:center;
+      font-size:1rem; font-weight:900; flex-shrink:0;
+    }
+    .section-title { font-size:1.35rem; font-weight:800; }
+    .section-sub   { font-size:.85rem; color:var(--muted); margin-top:2px; }
+
+    /* ── CARDS ── */
+    .card { background:var(--bg2); border:1px solid var(--border); border-radius:var(--radius-lg); padding:24px; margin-bottom:16px; }
+    .card-title { font-size:.9rem; font-weight:700; margin-bottom:10px; display:flex; align-items:center; gap:8px; }
+    .card p { font-size:.875rem; color:var(--muted); line-height:1.7; }
+
+    /* ── STEPS INSIDE SECTION ── */
+    .steps-list { display:flex; flex-direction:column; gap:0; }
+    .step-item {
+      display:flex; gap:0; position:relative;
+    }
+    .step-item::before {
+      content:''; position:absolute; left:20px; top:44px; bottom:0;
+      width:2px; background:var(--border);
+    }
+    .step-item:last-child::before { display:none; }
+    .step-icon {
+      width:40px; height:40px; border-radius:50%; border:2px solid var(--border);
+      background:var(--bg); display:flex; align-items:center; justify-content:center;
+      font-size:.85rem; flex-shrink:0; z-index:1; margin-right:20px; margin-top:2px;
+    }
+    .step-body { flex:1; padding-bottom:28px; }
+    .step-label { font-size:.95rem; font-weight:700; margin-bottom:6px; }
+    .step-desc  { font-size:.83rem; color:var(--muted); line-height:1.65; margin-bottom:12px; }
+
+    /* ── CODE BLOCK ── */
+    pre {
+      background:var(--code-bg); border:1px solid var(--border); border-radius:var(--radius);
+      padding:18px 20px; overflow-x:auto; position:relative; margin-top:10px;
+    }
+    pre code { font-family:'JetBrains Mono',monospace; font-size:.78rem; line-height:1.7; color:#e6edf3; }
+    .code-lang {
+      position:absolute; top:10px; right:44px;
+      font-size:.62rem; font-weight:700; text-transform:uppercase; letter-spacing:.06em;
+      color:var(--muted); background:var(--bg3); padding:2px 8px; border-radius:4px;
+    }
+    .copy-btn {
+      position:absolute; top:8px; right:8px;
+      background:var(--bg3); border:1px solid var(--border);
+      color:var(--muted); cursor:pointer; border-radius:6px;
+      width:30px; height:30px; display:flex; align-items:center; justify-content:center;
+      font-size:.75rem; transition:all .15s;
+    }
+    .copy-btn:hover { color:var(--text); border-color:var(--accent); }
+    .copy-btn.copied { color:var(--green); border-color:var(--green); }
+
+    /* ── ALERTS / CALLOUTS ── */
+    .callout {
+      display:flex; gap:14px; border-radius:var(--radius);
+      padding:16px 18px; margin-top:14px; margin-bottom:4px; font-size:.84rem; line-height:1.65;
+    }
+    .callout i { font-size:1rem; margin-top:1px; flex-shrink:0; }
+    .callout-blue  { background:rgba(6,182,212,.1);  border:1px solid rgba(6,182,212,.3);  color:#67e8f9; }
+    .callout-blue i { color:var(--accent2); }
+    .callout-yellow { background:rgba(245,158,11,.1); border:1px solid rgba(245,158,11,.3); color:#fcd34d; }
+    .callout-yellow i { color:var(--yellow); }
+    .callout-green  { background:rgba(34,197,94,.1);  border:1px solid rgba(34,197,94,.3);  color:#86efac; }
+    .callout-green i { color:var(--green); }
+    .callout-red    { background:rgba(239,68,68,.1);  border:1px solid rgba(239,68,68,.3);  color:#fca5a5; }
+    .callout-red i  { color:var(--red); }
+
+    /* ── BADGE ── */
+    .badge { display:inline-flex; align-items:center; gap:5px; padding:3px 10px; border-radius:100px; font-size:.7rem; font-weight:700; }
+    .badge-blue   { background:rgba(79,70,229,.15); color:#a5b4fc; border:1px solid rgba(79,70,229,.3); }
+    .badge-green  { background:rgba(34,197,94,.12); color:#86efac; border:1px solid rgba(34,197,94,.3); }
+    .badge-yellow { background:rgba(245,158,11,.12); color:#fcd34d; border:1px solid rgba(245,158,11,.3); }
+    .badge-cyan   { background:rgba(6,182,212,.12); color:#67e8f9; border:1px solid rgba(6,182,212,.3); }
+
+    /* ── TABLE ── */
+    .data-table { width:100%; border-collapse:collapse; font-size:.82rem; margin-top:12px; }
+    .data-table th { text-align:left; padding:10px 14px; font-size:.68rem; font-weight:800; text-transform:uppercase; letter-spacing:.07em; color:var(--muted); border-bottom:1px solid var(--border); }
+    .data-table td { padding:10px 14px; border-bottom:1px solid rgba(48,54,61,.6); color:var(--text); vertical-align:top; }
+    .data-table tr:hover td { background:rgba(33,38,45,.8); }
+    .data-table code { font-family:'JetBrains Mono',monospace; font-size:.75rem; background:var(--bg3); padding:1px 6px; border-radius:4px; color:#79c0ff; }
+
+    /* ── ARCHITECTURE DIAGRAM ── */
+    .arch-diagram {
+      background:var(--bg2); border:1px solid var(--border); border-radius:var(--radius-lg);
+      padding:28px; text-align:center; margin-bottom:20px;
+    }
+    .arch-row { display:flex; align-items:center; justify-content:center; gap:0; flex-wrap:wrap; }
+    .arch-box {
+      background:var(--bg3); border:1px solid var(--border); border-radius:var(--radius);
+      padding:12px 18px; text-align:center; font-size:.78rem; min-width:120px;
+    }
+    .arch-box-label { font-weight:700; color:var(--text); }
+    .arch-box-sub   { font-size:.68rem; color:var(--muted); margin-top:3px; }
+    .arch-box.accent { border-color:var(--accent); background:rgba(79,70,229,.12); }
+    .arch-box.cyan   { border-color:var(--accent2); background:rgba(6,182,212,.08); }
+    .arch-box.green  { border-color:var(--green); background:rgba(34,197,94,.08); }
+    .arch-arrow { color:var(--muted); font-size:1rem; margin:0 10px; display:flex; align-items:center; }
+
+    /* ── ENV INPUT FORM ── */
+    .env-form { background:var(--bg2); border:1px solid var(--border); border-radius:var(--radius-lg); padding:24px; }
+    .env-row { display:flex; gap:12px; align-items:flex-start; margin-bottom:14px; flex-wrap:wrap; }
+    .env-label { font-size:.78rem; font-weight:700; color:var(--muted); width:260px; flex-shrink:0; padding-top:10px; font-family:'JetBrains Mono',monospace; }
+    .env-field { flex:1; min-width:200px; }
+    .env-field input {
+      width:100%; background:var(--bg3); border:1px solid var(--border); border-radius:8px;
+      padding:9px 14px; color:var(--text); font-size:.82rem; font-family:'JetBrains Mono',monospace;
+      outline:none; transition:border-color .15s;
+    }
+    .env-field input:focus { border-color:var(--accent); }
+    .env-field input::placeholder { color:var(--muted); }
+    .env-field small { font-size:.72rem; color:var(--muted); margin-top:4px; display:block; }
+    .gen-btn {
+      display:inline-flex; align-items:center; gap:8px;
+      background:linear-gradient(135deg,var(--accent),var(--accent2));
+      color:#fff; border:none; border-radius:8px;
+      padding:10px 22px; font-size:.85rem; font-weight:700;
+      cursor:pointer; font-family:inherit; transition:opacity .15s; margin-top:6px;
+    }
+    .gen-btn:hover { opacity:.9; }
+
+    /* ── CHECKLIST ── */
+    .checklist { list-style:none; display:flex; flex-direction:column; gap:8px; margin-top:12px; }
+    .checklist li { display:flex; align-items:flex-start; gap:10px; font-size:.85rem; color:var(--muted); line-height:1.55; }
+    .checklist li i { color:var(--green); margin-top:2px; flex-shrink:0; }
+    .checklist li.pending i { color:var(--border); }
+
+    /* ── STATUS INDICATOR ── */
+    .status-test {
+      background:var(--bg2); border:1px solid var(--border); border-radius:var(--radius);
+      padding:18px; display:flex; align-items:center; gap:16px; margin-top:16px;
+    }
+    .status-dot { width:12px; height:12px; border-radius:50%; flex-shrink:0; }
+    .status-dot.idle    { background:var(--border); }
+    .status-dot.testing { background:var(--yellow); animation:pulse 1s infinite; }
+    .status-dot.ok      { background:var(--green); }
+    .status-dot.err     { background:var(--red); }
+    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.4} }
+    .status-text { font-size:.83rem; flex:1; }
+    .test-btn {
+      background:var(--bg3); border:1px solid var(--border); color:var(--text);
+      border-radius:8px; padding:8px 16px; font-size:.8rem; font-weight:600;
+      cursor:pointer; font-family:inherit; transition:all .15s; display:flex; align-items:center; gap:7px;
+    }
+    .test-btn:hover { border-color:var(--accent); color:var(--accent2); }
+
+    /* ── FINAL CTA ── */
+    .final-cta {
+      background:linear-gradient(135deg,#1e1b4b 0%,#0f172a 100%);
+      border:1px solid rgba(79,70,229,.4); border-radius:var(--radius-lg);
+      padding:36px; text-align:center; margin-top:32px;
+    }
+    .final-cta h3 { font-size:1.4rem; font-weight:800; margin-bottom:10px; }
+    .final-cta p  { color:var(--muted); font-size:.9rem; margin-bottom:24px; }
+    .cta-buttons { display:flex; gap:12px; justify-content:center; flex-wrap:wrap; }
+    .cta-btn {
+      display:inline-flex; align-items:center; gap:8px;
+      padding:12px 24px; border-radius:9px; font-size:.88rem; font-weight:700;
+      cursor:pointer; font-family:inherit; border:none; transition:all .15s;
+    }
+    .cta-btn.primary { background:linear-gradient(135deg,var(--accent),var(--accent2)); color:#fff; }
+    .cta-btn.secondary { background:var(--bg3); color:var(--text); border:1px solid var(--border); }
+    .cta-btn:hover { transform:translateY(-1px); box-shadow:0 6px 20px rgba(0,0,0,.4); }
+
+    /* scrollbar */
+    ::-webkit-scrollbar { width:6px; height:6px; }
+    ::-webkit-scrollbar-track { background:var(--bg2); }
+    ::-webkit-scrollbar-thumb { background:var(--border); border-radius:3px; }
+    ::-webkit-scrollbar-thumb:hover { background:#484f58; }
+
+    @media(max-width:860px){
+      .layout { grid-template-columns:1fr; }
+      .sidebar { position:relative; height:auto; border-right:none; border-bottom:1px solid var(--border); }
+      .content { padding:28px 20px; }
+      .page-header { padding:28px 20px; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════════════════════════ PAGE HEADER -->
+<div class="page-header">
+  <div class="header-badge"><i class="fas fa-plug"></i> Live Catalog Integration</div>
+  <h1>Connect Your Live Cloudflare Catalog</h1>
+  <p>Step-by-step guide to wire your BRND Direct Portal to your live Supabase database hosted through Cloudflare Workers — so your product catalog, inventory, and pricing are always real-time.</p>
+  <div class="header-meta">
+    <span class="hmeta-item"><i class="fas fa-clock"></i> Estimated setup time: 20–30 min</span>
+    <span class="hmeta-item"><i class="fas fa-layer-group"></i> Tech: Supabase + Cloudflare Workers</span>
+    <span class="hmeta-item"><i class="fas fa-code-branch"></i> No backend server required</span>
+  </div>
+</div>
+
+<div class="layout">
+
+  <!-- ═══════ SIDEBAR NAV ═════ -->
+  <nav class="sidebar" id="sidebarNav">
+    <div class="sidebar-title">Setup Steps</div>
+
+    <a class="sidebar-link active" onclick="scrollTo('s0')">
+      <span class="step-num">0</span> Architecture Overview
+    </a>
+    <a class="sidebar-link" onclick="scrollTo('s1')">
+      <span class="step-num">1</span> Get Supabase Credentials
+    </a>
+    <a class="sidebar-link" onclick="scrollTo('s2')">
+      <span class="step-num">2</span> Enable Supabase Row Access
+    </a>
+    <a class="sidebar-link" onclick="scrollTo('s3')">
+      <span class="step-num">3</span> Add Worker Secrets (CF Dashboard)
+    </a>
+    <a class="sidebar-link" onclick="scrollTo('s4')">
+      <span class="step-num">4</span> Deploy Updated Worker API
+    </a>
+    <a class="sidebar-link" onclick="scrollTo('s5')">
+      <span class="step-num">5</span> Test the API Endpoint
+    </a>
+    <a class="sidebar-link" onclick="scrollTo('s6')">
+      <span class="step-num">6</span> Verify Live Catalog in Portal
+    </a>
+    <div class="sidebar-sep"></div>
+    <div class="sidebar-title">Reference</div>
+    <a class="sidebar-link" onclick="scrollTo('sref')">
+      <span class="step-num"><i class="fas fa-table"></i></span> DB Schema Map
+    </a>
+    <a class="sidebar-link" onclick="scrollTo('senv')">
+      <span class="step-num"><i class="fas fa-key"></i></span> Env Variables Builder
+    </a>
+    <a class="sidebar-link" onclick="scrollTo('stshoot')">
+      <span class="step-num"><i class="fas fa-bug"></i></span> Troubleshooting
+    </a>
+  </nav>
+
+  <!-- ═══════ MAIN CONTENT ═════ -->
+  <main class="content">
+
+    <!-- ══════════════════════════════════ STEP 0: ARCHITECTURE -->
+    <div class="section" id="s0">
+      <div class="section-header">
+        <div class="section-num"><i class="fas fa-sitemap"></i></div>
+        <div>
+          <div class="section-title">Architecture Overview</div>
+          <div class="section-sub">How the live catalog data flows end-to-end</div>
+        </div>
+      </div>
+
+      <div class="arch-diagram">
+        <div style="font-size:.78rem;color:var(--muted);margin-bottom:20px;text-transform:uppercase;letter-spacing:.08em;font-weight:700;">Data Flow</div>
+        <div class="arch-row">
+          <div class="arch-box green">
+            <div class="arch-box-label">🗄️ Supabase DB</div>
+            <div class="arch-box-sub">PostgreSQL<br/>products / brands</div>
+          </div>
+          <div class="arch-arrow"><i class="fas fa-arrow-right"></i></div>
+          <div class="arch-box accent">
+            <div class="arch-box-label">⚙️ CF Worker</div>
+            <div class="arch-box-sub">workers/api.js<br/>/api/products</div>
+          </div>
+          <div class="arch-arrow"><i class="fas fa-arrow-right"></i></div>
+          <div class="arch-box cyan">
+            <div class="arch-box-label">🌐 Portal Frontend</div>
+            <div class="arch-box-sub">buyer/products.html<br/>fetch() → live data</div>
+          </div>
+        </div>
+        <div style="margin-top:20px;font-size:.75rem;color:var(--muted);">
+          Supabase credentials stay <strong style="color:#fcd34d;">secret inside the Worker</strong> — never exposed to the browser
+        </div>
+      </div>
+
+      <div class="callout callout-blue">
+        <i class="fas fa-info-circle"></i>
+        <div><strong>Why Cloudflare Workers?</strong> Your portal is a static site (no server). The Cloudflare Worker acts as a secure API proxy — it holds your Supabase keys as encrypted secrets and makes the database calls server-side. Your buyer's browser only talks to <code>/api/products</code>, never directly to Supabase.</div>
+      </div>
+
+      <div class="callout callout-yellow">
+        <i class="fas fa-exclamation-triangle"></i>
+        <div><strong>Current State:</strong> Your <code>buyer/products.html</code> uses <strong>hardcoded static product data</strong> (22 sample products). After completing this guide, it will load your full live catalog from Supabase in real-time with search, pagination, and inventory counts.</div>
+      </div>
+    </div>
+
+    <!-- ══════════════════════════════════ STEP 1 -->
+    <div class="section" id="s1">
+      <div class="section-header">
+        <div class="section-num">1</div>
+        <div>
+          <div class="section-title">Get Your Supabase Credentials</div>
+          <div class="section-sub">You need 2 values from your Supabase project dashboard</div>
+        </div>
+      </div>
+
+      <div class="steps-list">
+        <div class="step-item">
+          <div class="step-icon" style="border-color:var(--accent);color:#a5b4fc;"><i class="fas fa-external-link-alt"></i></div>
+          <div class="step-body">
+            <div class="step-label">Open Supabase Dashboard</div>
+            <div class="step-desc">Go to <a href="https://app.supabase.com" target="_blank">app.supabase.com</a> and open your BRND Direct project.</div>
+          </div>
+        </div>
+        <div class="step-item">
+          <div class="step-icon" style="border-color:var(--accent2);color:#67e8f9;"><i class="fas fa-cog"></i></div>
+          <div class="step-body">
+            <div class="step-label">Go to Settings → API</div>
+            <div class="step-desc">In the left sidebar click <strong>Project Settings</strong> (gear icon) → then click <strong>API</strong> tab.</div>
+            <div style="background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:12px 16px;font-size:.8rem;color:var(--muted);margin-top:10px;">
+              <span style="color:var(--accent2);">📍 Path:</span>&nbsp; Settings → API → <strong>Project URL</strong> section
+            </div>
+          </div>
+        </div>
+        <div class="step-item">
+          <div class="step-icon" style="border-color:var(--green);color:#86efac;"><i class="fas fa-copy"></i></div>
+          <div class="step-body">
+            <div class="step-label">Copy the two values you need</div>
+            <div class="step-desc">You need exactly these two — no others:</div>
+            <table class="data-table">
+              <thead>
+                <tr><th>Value</th><th>Where to find it</th><th>Looks like</th></tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><code>SUPABASE_URL</code></td>
+                  <td>"Project URL" box at the top</td>
+                  <td><code>https://abcdef.supabase.co</code></td>
+                </tr>
+                <tr>
+                  <td><code>SUPABASE_SERVICE_ROLE_KEY</code></td>
+                  <td>"API Keys" → <strong>service_role</strong> row → click eye icon</td>
+                  <td><code>eyJhbGciOiJI…</code> (long JWT)</td>
+                </tr>
+              </tbody>
+            </table>
+            <div class="callout callout-red" style="margin-top:14px;">
+              <i class="fas fa-shield-alt"></i>
+              <div><strong>NEVER paste the service_role key into any HTML or JS file.</strong> It gives full database access. It must ONLY go into the Cloudflare Worker as an encrypted secret (Step 3).</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══════════════════════════════════ STEP 2 -->
+    <div class="section" id="s2">
+      <div class="section-header">
+        <div class="section-num">2</div>
+        <div>
+          <div class="section-title">Enable Supabase Row Level Security for Products</div>
+          <div class="section-sub">Allow the Worker to read products and brands tables</div>
+        </div>
+      </div>
+
+      <p style="font-size:.875rem;color:var(--muted);line-height:1.7;margin-bottom:16px;">
+        Since the Worker uses the <strong>service_role key</strong>, it bypasses Row Level Security (RLS) automatically. However you still need to make sure RLS is set correctly so that:
+        <br/>• The Worker (service_role) can read ALL products
+        <br/>• If you want buyers to query products directly (future), RLS policies are in place
+      </p>
+
+      <div class="card">
+        <div class="card-title"><i class="fas fa-database" style="color:var(--accent2);"></i> Run this SQL in Supabase SQL Editor</div>
+        <div class="step-desc" style="margin-bottom:0;font-size:.82rem;color:var(--muted);">
+          Open Supabase → <strong>SQL Editor</strong> → New Query → paste and run:
+        </div>
+      </div>
+
+      <div style="position:relative;">
+        <span class="code-lang">sql</span>
+        <button class="copy-btn" onclick="copyCode(this)"><i class="fas fa-copy"></i></button>
+        <pre><code>-- Enable RLS (already done if you ran schema.sql)
+ALTER TABLE products ENABLE ROW LEVEL SECURITY;
+ALTER TABLE brands   ENABLE ROW LEVEL SECURITY;
+
+-- Allow public read access to active products
+-- (The Worker also reads these via service_role, bypassing RLS)
+CREATE POLICY "Public can read active products"
+  ON products FOR SELECT
+  USING (is_active = true);
+
+CREATE POLICY "Public can read active brands"
+  ON brands FOR SELECT
+  USING (is_active = true);
+
+-- Verify tables have data
+SELECT COUNT(*) FROM products;
+SELECT COUNT(*) FROM brands;</code></pre>
+      </div>
+
+      <div class="callout callout-blue">
+        <i class="fas fa-lightbulb"></i>
+        <div>If the <code>COUNT</code> query returns 0, your catalog is empty. You need to add products to Supabase first — either through the Supabase Table Editor UI, or by running INSERT statements. See the <strong>DB Schema Map</strong> section below for the exact column names.</div>
+      </div>
+    </div>
+
+    <!-- ══════════════════════════════════ STEP 3 -->
+    <div class="section" id="s3">
+      <div class="section-header">
+        <div class="section-num">3</div>
+        <div>
+          <div class="section-title">Add Secrets to Cloudflare Worker</div>
+          <div class="section-sub">Store your Supabase credentials securely — two methods available</div>
+        </div>
+      </div>
+
+      <div class="card" style="border-color:rgba(79,70,229,.4);">
+        <div class="card-title" style="color:#a5b4fc;"><i class="fas fa-star"></i> Method A — Cloudflare Dashboard (Recommended — No Terminal)</div>
+        <div class="step-desc">This is the easiest method. No command-line needed.</div>
+      </div>
+
+      <div class="steps-list">
+        <div class="step-item">
+          <div class="step-icon" style="border-color:var(--accent);color:#a5b4fc;"><b>1</b></div>
+          <div class="step-body">
+            <div class="step-label">Open Cloudflare Dashboard</div>
+            <div class="step-desc">Go to <a href="https://dash.cloudflare.com" target="_blank">dash.cloudflare.com</a> → click <strong>Workers & Pages</strong> in the left sidebar.</div>
+          </div>
+        </div>
+        <div class="step-item">
+          <div class="step-icon" style="border-color:var(--accent);color:#a5b4fc;"><b>2</b></div>
+          <div class="step-body">
+            <div class="step-label">Open your Worker</div>
+            <div class="step-desc">Click your worker named <code>brnd-direct-api</code> (or the name shown in your Cloudflare dashboard).</div>
+          </div>
+        </div>
+        <div class="step-item">
+          <div class="step-icon" style="border-color:var(--accent);color:#a5b4fc;"><b>3</b></div>
+          <div class="step-body">
+            <div class="step-label">Go to Settings → Variables & Secrets</div>
+            <div class="step-desc">Click the <strong>Settings</strong> tab → then <strong>Variables and Secrets</strong> section → click <strong>"Add variable"</strong>.</div>
+          </div>
+        </div>
+        <div class="step-item">
+          <div class="step-icon" style="border-color:var(--accent);color:#a5b4fc;"><b>4</b></div>
+          <div class="step-body">
+            <div class="step-label">Add the two secrets</div>
+            <div class="step-desc">Add each one as a <strong>Secret</strong> (not plain variable) so they're encrypted:</div>
+            <table class="data-table" style="margin-top:8px;">
+              <thead><tr><th>Variable Name</th><th>Type</th><th>Value</th></tr></thead>
+              <tbody>
+                <tr><td><code>SUPABASE_URL</code></td><td><span class="badge badge-yellow">Secret</span></td><td>Your Project URL from Step 1</td></tr>
+                <tr><td><code>SUPABASE_SERVICE_ROLE_KEY</code></td><td><span class="badge badge-yellow">Secret</span></td><td>Your service_role JWT from Step 1</td></tr>
+              </tbody>
+            </table>
+            <div class="callout callout-green" style="margin-top:12px;">
+              <i class="fas fa-check-circle"></i>
+              <div>Click <strong>Deploy</strong> after saving each secret. The secrets are now encrypted and injected into your Worker at runtime.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card" style="margin-top:20px;">
+        <div class="card-title"><i class="fas fa-terminal" style="color:var(--muted);"></i> Method B — Wrangler CLI (Advanced)</div>
+        <div class="step-desc" style="margin-bottom:12px;">If you prefer the command line:</div>
+        <div style="position:relative;">
+          <span class="code-lang">bash</span>
+          <button class="copy-btn" onclick="copyCode(this)"><i class="fas fa-copy"></i></button>
+          <pre><code># 1. Install Wrangler globally (one-time)
+npm install -g wrangler
+
+# 2. Login to Cloudflare
+wrangler login
+
+# 3. Set Supabase URL (you'll be prompted to paste the value)
+wrangler secret put SUPABASE_URL
+
+# 4. Set Supabase service role key
+wrangler secret put SUPABASE_SERVICE_ROLE_KEY
+
+# 5. Verify secrets are set
+wrangler secret list</code></pre>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══════════════════════════════════ STEP 4 -->
+    <div class="section" id="s4">
+      <div class="section-header">
+        <div class="section-num">4</div>
+        <div>
+          <div class="section-title">Deploy the Updated Worker with Catalog API</div>
+          <div class="section-sub">The api.js now includes /api/products and /api/brands endpoints</div>
+        </div>
+      </div>
+
+      <div class="callout callout-green">
+        <i class="fas fa-check-circle"></i>
+        <div><strong>Already done for you!</strong> The <code>workers/api.js</code> in this project has been updated to include <code>GET /api/products</code> and <code>GET /api/brands</code> endpoints that query Supabase directly. You just need to deploy the updated file.</div>
+      </div>
+
+      <div class="card" style="margin-top:16px;">
+        <div class="card-title"><i class="fas fa-upload" style="color:var(--accent2);"></i> Deploy via Cloudflare Dashboard (No Terminal)</div>
+      </div>
+
+      <div class="steps-list">
+        <div class="step-item">
+          <div class="step-icon" style="border-color:var(--accent2);color:#67e8f9;"><b>1</b></div>
+          <div class="step-body">
+            <div class="step-label">Open your Worker in Cloudflare Dashboard</div>
+            <div class="step-desc">Go to <a href="https://dash.cloudflare.com" target="_blank">dash.cloudflare.com</a> → Workers & Pages → <strong>brnd-direct-api</strong></div>
+          </div>
+        </div>
+        <div class="step-item">
+          <div class="step-icon" style="border-color:var(--accent2);color:#67e8f9;"><b>2</b></div>
+          <div class="step-body">
+            <div class="step-label">Click Edit Code</div>
+            <div class="step-desc">Click the <strong>"Edit Code"</strong> button. This opens the online code editor.</div>
+          </div>
+        </div>
+        <div class="step-item">
+          <div class="step-icon" style="border-color:var(--accent2);color:#67e8f9;"><b>3</b></div>
+          <div class="step-body">
+            <div class="step-label">Replace worker code with updated api.js</div>
+            <div class="step-desc">Open the file <code>workers/api.js</code> from this project, copy <strong>ALL</strong> the content, paste it into the Cloudflare editor (replacing all existing code).</div>
+          </div>
+        </div>
+        <div class="step-item">
+          <div class="step-icon" style="border-color:var(--accent2);color:#67e8f9;"><b>4</b></div>
+          <div class="step-body">
+            <div class="step-label">Click "Deploy"</div>
+            <div class="step-desc">Hit the blue <strong>Deploy</strong> button in the top-right of the editor. Within seconds, the new endpoints are live.</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card" style="margin-top:16px;">
+        <div class="card-title"><i class="fas fa-terminal" style="color:var(--muted);"></i> Deploy via Wrangler CLI (Alternative)</div>
+        <div style="position:relative;">
+          <span class="code-lang">bash</span>
+          <button class="copy-btn" onclick="copyCode(this)"><i class="fas fa-copy"></i></button>
+          <pre><code># From your project root folder
+wrangler deploy --env production</code></pre>
+        </div>
+      </div>
+
+      <div style="margin-top:18px;">
+        <div class="card-title" style="margin-bottom:12px;font-size:.9rem;font-weight:700;">
+          <i class="fas fa-eye" style="color:var(--accent);"></i> What the new /api/products endpoint does:
+        </div>
+        <table class="data-table">
+          <thead><tr><th>Parameter</th><th>Default</th><th>Description</th></tr></thead>
+          <tbody>
+            <tr><td><code>?page=1</code></td><td>1</td><td>Page number for pagination</td></tr>
+            <tr><td><code>?limit=50</code></td><td>50</td><td>Products per page (max 200)</td></tr>
+            <tr><td><code>?search=chanel</code></td><td>—</td><td>Full-text search on name, brand, SKU</td></tr>
+            <tr><td><code>?category=fragrances</code></td><td>—</td><td>Filter by category</td></tr>
+            <tr><td><code>?brand_id=uuid</code></td><td>—</td><td>Filter by brand UUID</td></tr>
+            <tr><td><code>?sort=wholesale_price</code></td><td>name</td><td>Sort field</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ══════════════════════════════════ STEP 5 -->
+    <div class="section" id="s5">
+      <div class="section-header">
+        <div class="section-num">5</div>
+        <div>
+          <div class="section-title">Test the Live API Endpoint</div>
+          <div class="section-sub">Verify your Worker is returning real products from Supabase</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title"><i class="fas fa-vial" style="color:var(--green);"></i> Quick Browser Test</div>
+        <div class="step-desc" style="margin-bottom:12px;">
+          Once deployed, open a new browser tab and visit your worker URL:
+        </div>
+        <div style="position:relative;">
+          <span class="code-lang">url</span>
+          <button class="copy-btn" onclick="copyCode(this)"><i class="fas fa-copy"></i></button>
+          <pre><code>https://brnd-direct-api.YOUR-SUBDOMAIN.workers.dev/api/products?limit=5
+
+# Or if attached to your domain:
+https://brnddirect.com/api/products?limit=5</code></pre>
+        </div>
+        <div style="margin-top:12px;font-size:.82rem;color:var(--muted);">You should see a JSON response like:</div>
+        <div style="position:relative;margin-top:8px;">
+          <span class="code-lang">json</span>
+          <button class="copy-btn" onclick="copyCode(this)"><i class="fas fa-copy"></i></button>
+          <pre><code>{
+  "data": [
+    {
+      "id": "uuid-here",
+      "name": "Replica Fragrance Set",
+      "wholesale_price": 80.00,
+      "category": "fragrances",
+      "stock_qty": 240,
+      "brand": { "name": "Maison Margiela", "logo_url": "..." }
+    },
+    ...
+  ],
+  "total": 150,
+  "page": 1,
+  "limit": 5,
+  "pages": 30
+}</code></pre>
+        </div>
+      </div>
+
+      <div class="status-test" id="apiStatusTest">
+        <div class="status-dot idle" id="statusDot"></div>
+        <div class="status-text">
+          <div style="font-weight:600;font-size:.85rem;" id="statusTitle">API Connection Test</div>
+          <div style="font-size:.78rem;color:var(--muted);" id="statusMsg">Enter your Worker URL below and click Test</div>
+        </div>
+        <button class="test-btn" onclick="testApiConnection()"><i class="fas fa-play"></i> Test Connection</button>
+      </div>
+
+      <div style="display:flex;gap:10px;margin-top:10px;flex-wrap:wrap;">
+        <div style="flex:1;min-width:200px;">
+          <input id="workerUrlInput" type="text"
+            style="width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:9px 14px;color:var(--text);font-size:.82rem;font-family:'JetBrains Mono',monospace;outline:none;"
+            placeholder="https://brnd-direct-api.xxx.workers.dev" />
+        </div>
+      </div>
+
+      <div class="callout callout-yellow" style="margin-top:16px;">
+        <i class="fas fa-exclamation-triangle"></i>
+        <div><strong>CORS Note:</strong> If you get a CORS error, make sure your Worker URL is added to the allowed origins. The updated <code>api.js</code> already handles CORS for <code>*.pages.dev</code> and your custom domain. If testing from localhost, add it to the CORS config in api.js.</div>
+      </div>
+    </div>
+
+    <!-- ══════════════════════════════════ STEP 6 -->
+    <div class="section" id="s6">
+      <div class="section-header">
+        <div class="section-num">6</div>
+        <div>
+          <div class="section-title">Verify Live Catalog in the Portal</div>
+          <div class="section-sub">Your buyer/products.html now loads from the live database</div>
+        </div>
+      </div>
+
+      <div class="callout callout-green">
+        <i class="fas fa-check-circle"></i>
+        <div><strong>Already integrated!</strong> The <code>buyer/products.html</code> has been updated to use a <code>catalog-api.js</code> module that automatically tries to fetch from <code>/api/products</code>. If the API is unreachable, it gracefully falls back to the static sample data — so the page always works.</div>
+      </div>
+
+      <div class="steps-list" style="margin-top:20px;">
+        <div class="step-item">
+          <div class="step-icon" style="border-color:var(--green);color:#86efac;"><i class="fas fa-eye"></i></div>
+          <div class="step-body">
+            <div class="step-label">Open buyer/products.html in your browser</div>
+            <div class="step-desc">Navigate to the Products section of your portal. Watch the loading spinner — if it loads more than 22 products, the live database is connected!</div>
+          </div>
+        </div>
+        <div class="step-item">
+          <div class="step-icon" style="border-color:var(--green);color:#86efac;"><i class="fas fa-filter"></i></div>
+          <div class="step-body">
+            <div class="step-label">Test filtering and search</div>
+            <div class="step-desc">Try searching for a product name, filtering by category, or sorting — all queries will now hit the live Supabase database through the Worker.</div>
+          </div>
+        </div>
+        <div class="step-item">
+          <div class="step-icon" style="border-color:var(--green);color:#86efac;"><i class="fas fa-sync"></i></div>
+          <div class="step-body">
+            <div class="step-label">Add a test product in Supabase and refresh</div>
+            <div class="step-desc">Go to Supabase → Table Editor → <code>products</code> → Insert Row. Add a test product. Refresh your portal — the new product should appear immediately with no code changes.</div>
+          </div>
+        </div>
+      </div>
+
+      <ul class="checklist" style="margin-top:16px;">
+        <li><i class="fas fa-check-circle"></i> Products load from live Supabase database</li>
+        <li><i class="fas fa-check-circle"></i> Search queries Supabase full-text search</li>
+        <li><i class="fas fa-check-circle"></i> Category filter passes to Supabase query</li>
+        <li><i class="fas fa-check-circle"></i> Pagination works with live record count</li>
+        <li><i class="fas fa-check-circle"></i> Stock quantity shows real inventory</li>
+        <li><i class="fas fa-check-circle"></i> Brand logos loaded from Supabase brand records</li>
+        <li><i class="fas fa-check-circle"></i> Fallback to static data if API unavailable</li>
+      </ul>
+    </div>
+
+    <!-- ══════════════════════════════════ DB SCHEMA MAP -->
+    <div class="section" id="sref">
+      <div class="section-header">
+        <div class="section-num"><i class="fas fa-table"></i></div>
+        <div>
+          <div class="section-title">Database → Portal Field Mapping</div>
+          <div class="section-sub">How Supabase columns map to what the portal displays</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title"><i class="fas fa-box" style="color:var(--accent2);"></i> products table → portal product card</div>
+      </div>
+      <table class="data-table">
+        <thead><tr><th>Supabase Column</th><th>Portal Field</th><th>Type</th><th>Notes</th></tr></thead>
+        <tbody>
+          <tr><td><code>id</code></td><td>Product ID</td><td>UUID</td><td>Used for cart & ordering</td></tr>
+          <tr><td><code>name</code></td><td>Product name title</td><td>TEXT</td><td>Required</td></tr>
+          <tr><td><code>brand_id</code></td><td>Brand (joined)</td><td>UUID FK</td><td>Join to brands table</td></tr>
+          <tr><td><code>sku</code></td><td>SKU column</td><td>TEXT UNIQUE</td><td>Required, shown in text view</td></tr>
+          <tr><td><code>upc</code></td><td>UPC column</td><td>TEXT UNIQUE</td><td>Optional</td></tr>
+          <tr><td><code>category</code></td><td>Category filter chip</td><td>TEXT</td><td>fragrances / beauty / skincare / bags / sneakers / apparel / cosmetics</td></tr>
+          <tr><td><code>wholesale_price</code></td><td>Wholesale $ shown on card</td><td>NUMERIC</td><td>Required</td></tr>
+          <tr><td><code>msrp</code></td><td>Retail price (strikethrough)</td><td>NUMERIC</td><td>Optional — used for margin calc</td></tr>
+          <tr><td><code>moq</code></td><td>Min Order Qty shown on card</td><td>INTEGER</td><td>Default 1</td></tr>
+          <tr><td><code>stock_qty</code></td><td>Stock badge</td><td>INTEGER</td><td>Shows "Low Stock" if &lt;20</td></tr>
+          <tr><td><code>fulfillment_type</code></td><td>Fulfillment badge</td><td>ENUM</td><td>wholesale / dropship / both</td></tr>
+          <tr><td><code>images</code></td><td>Product image</td><td>TEXT[]</td><td>Array of URLs — first image shown</td></tr>
+          <tr><td><code>tags</code></td><td>Tag badges (weekly/today)</td><td>TEXT[]</td><td>Used for quick filter buttons</td></tr>
+          <tr><td><code>is_top_seller</code></td><td>"Top Seller" badge</td><td>BOOLEAN</td><td></td></tr>
+          <tr><td><code>is_active</code></td><td>Shows in catalog</td><td>BOOLEAN</td><td>Set FALSE to hide product</td></tr>
+          <tr><td><code>meta</code></td><td>Product details section</td><td>JSONB</td><td>concentration, gender, size, origin</td></tr>
+        </tbody>
+      </table>
+
+      <div class="card" style="margin-top:20px;">
+        <div class="card-title"><i class="fas fa-tag" style="color:var(--yellow);"></i> brands table → brand filter sidebar</div>
+      </div>
+      <table class="data-table">
+        <thead><tr><th>Supabase Column</th><th>Portal Field</th><th>Notes</th></tr></thead>
+        <tbody>
+          <tr><td><code>id</code></td><td>Brand filter ID</td><td></td></tr>
+          <tr><td><code>name</code></td><td>Brand name in filter list</td><td>Alphabetically sorted</td></tr>
+          <tr><td><code>logo_url</code></td><td>Brand logo in modal</td><td>Optional — URL to logo image</td></tr>
+          <tr><td><code>category</code></td><td>Category association</td><td></td></tr>
+          <tr><td><code>is_active</code></td><td>Appears in filter</td><td></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- ══════════════════════════════════ ENV BUILDER -->
+    <div class="section" id="senv">
+      <div class="section-header">
+        <div class="section-num"><i class="fas fa-key"></i></div>
+        <div>
+          <div class="section-title">Environment Variables Builder</div>
+          <div class="section-sub">Generate your wrangler secret commands to copy-paste</div>
+        </div>
+      </div>
+
+      <div class="env-form">
+        <div class="env-row">
+          <div class="env-label">SUPABASE_URL</div>
+          <div class="env-field">
+            <input type="text" id="inp_SUPABASE_URL" placeholder="https://xxxxxxxxxxxx.supabase.co" />
+            <small>Your project URL from Supabase Settings → API</small>
+          </div>
+        </div>
+        <div class="env-row">
+          <div class="env-label">SUPABASE_SERVICE_ROLE_KEY</div>
+          <div class="env-field">
+            <input type="password" id="inp_SRK" placeholder="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..." />
+            <small>Service role JWT — from Settings → API → service_role (hidden by default)</small>
+          </div>
+        </div>
+        <button class="gen-btn" onclick="generateCommands()"><i class="fas fa-terminal"></i> Generate CLI Commands</button>
+      </div>
+
+      <div id="generatedCmds" style="display:none;margin-top:14px;">
+        <div style="position:relative;">
+          <span class="code-lang">bash</span>
+          <button class="copy-btn" onclick="copyCode(this)"><i class="fas fa-copy"></i></button>
+          <pre><code id="generatedCmdsText"></code></pre>
+        </div>
+        <div class="callout callout-yellow" style="margin-top:10px;">
+          <i class="fas fa-exclamation-triangle"></i>
+          <div>These commands contain sensitive values. Run them in your terminal only — never share them or save them in a file.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══════════════════════════════════ TROUBLESHOOTING -->
+    <div class="section" id="stshoot">
+      <div class="section-header">
+        <div class="section-num"><i class="fas fa-bug"></i></div>
+        <div>
+          <div class="section-title">Troubleshooting</div>
+          <div class="section-sub">Common issues and how to fix them</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title" style="color:var(--red);"><i class="fas fa-times-circle"></i> Products page still shows static/demo data</div>
+        <ul class="checklist">
+          <li><i class="fas fa-check-circle"></i> Check browser console (F12) — is there an API error?</li>
+          <li><i class="fas fa-check-circle"></i> Visit <code>/api/products</code> directly — do you get JSON back?</li>
+          <li><i class="fas fa-check-circle"></i> Verify <code>SUPABASE_URL</code> and <code>SUPABASE_SERVICE_ROLE_KEY</code> are set in CF Dashboard</li>
+          <li><i class="fas fa-check-circle"></i> Redeploy the Worker after adding secrets</li>
+          <li><i class="fas fa-check-circle"></i> Make sure Supabase products table has rows (<code>SELECT COUNT(*) FROM products</code>)</li>
+        </ul>
+      </div>
+
+      <div class="card" style="margin-top:14px;">
+        <div class="card-title" style="color:var(--red);"><i class="fas fa-times-circle"></i> CORS Error in browser console</div>
+        <ul class="checklist">
+          <li><i class="fas fa-check-circle"></i> The Worker already sets <code>Access-Control-Allow-Origin: *</code> — this should not happen</li>
+          <li><i class="fas fa-check-circle"></i> If your portal is on a custom domain, check the _headers file in your project root</li>
+          <li><i class="fas fa-check-circle"></i> Try opening the Worker URL directly — if it returns JSON, CORS is fine and the issue is elsewhere</li>
+        </ul>
+      </div>
+
+      <div class="card" style="margin-top:14px;">
+        <div class="card-title" style="color:var(--red);"><i class="fas fa-times-circle"></i> 401 / 403 Unauthorized from Supabase</div>
+        <ul class="checklist">
+          <li><i class="fas fa-check-circle"></i> You are using the <strong>service_role</strong> key, not the anon key — double-check</li>
+          <li><i class="fas fa-check-circle"></i> The service_role key starts with <code>eyJ</code> and is longer than the anon key</li>
+          <li><i class="fas fa-check-circle"></i> In Supabase Settings → API, there are two keys: <strong>anon (public)</strong> and <strong>service_role (secret)</strong>. Use service_role.</li>
+        </ul>
+      </div>
+
+      <div class="card" style="margin-top:14px;">
+        <div class="card-title" style="color:var(--yellow);"><i class="fas fa-exclamation-triangle"></i> Products load but show wrong fields / empty names</div>
+        <ul class="checklist">
+          <li><i class="fas fa-check-circle"></i> Open Supabase → Table Editor → products — check your columns match the schema</li>
+          <li><i class="fas fa-check-circle"></i> Make sure <code>brand_id</code> in products table points to a valid row in <code>brands</code> table</li>
+          <li><i class="fas fa-check-circle"></i> The API joins brands — if brand is null, product card shows "Unknown Brand"</li>
+        </ul>
+      </div>
+
+      <div class="card" style="margin-top:14px;">
+        <div class="card-title" style="color:var(--yellow);"><i class="fas fa-exclamation-triangle"></i> Worker not found / 404 on /api/products</div>
+        <ul class="checklist">
+          <li><i class="fas fa-check-circle"></i> In Cloudflare Dashboard → Workers & Pages → your project → Settings → Functions → Routes — check that <code>/api/*</code> routes to your Worker</li>
+          <li><i class="fas fa-check-circle"></i> Or set it up as a Pages Function by placing the file in <code>functions/api/</code> directory</li>
+          <li><i class="fas fa-check-circle"></i> Make sure the Worker was actually deployed — click "Edit Code" and confirm the products routes are visible</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- ══════════════════════════════════ FINAL CTA -->
+    <div class="final-cta">
+      <div style="font-size:2rem;margin-bottom:12px;">🎉</div>
+      <h3>Live Catalog Connected!</h3>
+      <p>Once all steps are complete, your portal will serve real-time product data from Supabase.<br/>Every product you add, update, or deactivate in Supabase will instantly reflect in the buyer portal.</p>
+      <div class="cta-buttons">
+        <a href="../buyer/products.html" class="cta-btn primary"><i class="fas fa-store"></i> Open Product Catalog</a>
+        <a href="https://app.supabase.com" target="_blank" class="cta-btn secondary"><i class="fas fa-database"></i> Open Supabase Dashboard</a>
+        <a href="https://dash.cloudflare.com" target="_blank" class="cta-btn secondary"><i class="fas fa-cloud"></i> Open Cloudflare Dashboard</a>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<script>
+  // ── Copy code button ──
+  function copyCode(btn) {
+    const pre = btn.closest('div[style*="relative"], div.card').querySelector('pre') ||
+                btn.parentElement.querySelector('pre');
+    if (!pre) return;
+    navigator.clipboard.writeText(pre.textContent.trim()).then(() => {
+      btn.innerHTML = '<i class="fas fa-check"></i>';
+      btn.classList.add('copied');
+      setTimeout(() => { btn.innerHTML='<i class="fas fa-copy"></i>'; btn.classList.remove('copied'); }, 2000);
+    });
+  }
+
+  // ── Sidebar active link tracking ──
+  const sections = ['s0','s1','s2','s3','s4','s5','s6','sref','senv','stshoot'];
+  function scrollTo(id) {
+    document.getElementById(id).scrollIntoView({ behavior:'smooth', block:'start' });
+  }
+  window.addEventListener('scroll', () => {
+    for (const id of sections) {
+      const el = document.getElementById(id);
+      if (!el) continue;
+      const rect = el.getBoundingClientRect();
+      if (rect.top <= 80 && rect.bottom > 0) {
+        document.querySelectorAll('.sidebar-link').forEach(l => l.classList.remove('active'));
+        const idx = sections.indexOf(id);
+        const links = document.querySelectorAll('.sidebar-link');
+        if (links[idx]) links[idx].classList.add('active');
+        break;
+      }
+    }
+  }, { passive:true });
+
+  // ── API Connection test ──
+  async function testApiConnection() {
+    const url = (document.getElementById('workerUrlInput').value || '').trim();
+    if (!url) {
+      alert('Please enter your Worker URL first.');
+      return;
+    }
+    const dot   = document.getElementById('statusDot');
+    const title = document.getElementById('statusTitle');
+    const msg   = document.getElementById('statusMsg');
+    dot.className   = 'status-dot testing';
+    title.textContent = 'Testing connection…';
+    msg.textContent   = 'Sending request to ' + url + '/api/products?limit=1';
+    try {
+      const res  = await fetch(url.replace(/\/$/, '') + '/api/products?limit=1');
+      const data = await res.json();
+      if (res.ok && data.data) {
+        dot.className   = 'status-dot ok';
+        title.textContent = '✅ Connection Successful!';
+        msg.textContent   = `Received ${data.total || data.data.length} product(s) from Supabase. Your catalog is live!`;
+      } else {
+        throw new Error(data.error || 'Unexpected response');
+      }
+    } catch(e) {
+      dot.className   = 'status-dot err';
+      title.textContent = '❌ Connection Failed';
+      msg.textContent   = e.message + ' — Check your Worker URL and make sure secrets are set.';
+    }
+  }
+
+  // ── Env variable generator ──
+  function generateCommands() {
+    const url = document.getElementById('inp_SUPABASE_URL').value.trim();
+    const key = document.getElementById('inp_SRK').value.trim();
+    if (!url || !key) {
+      alert('Please fill in both fields first.');
+      return;
+    }
+    const cmd = `# ── Run these one at a time in your terminal ──
+# Step 1: Set Supabase URL
+echo "${url}" | wrangler secret put SUPABASE_URL
+
+# Step 2: Set Supabase service_role key
+echo "${key}" | wrangler secret put SUPABASE_SERVICE_ROLE_KEY
+
+# Step 3: Verify both secrets are registered
+wrangler secret list
+
+# Step 4: Deploy your worker
+wrangler deploy --env production`;
+    document.getElementById('generatedCmdsText').textContent = cmd;
+    document.getElementById('generatedCmds').style.display = 'block';
+  }
+</script>
+</body>
+</html>

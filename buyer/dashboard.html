@@ -1,0 +1,1218 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dashboard – BRND Direct Buyer Portal</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&family=Inter:wght@300;400;500;600;700&family=Outfit:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.5.0/css/all.min.css" />
+  <link rel="stylesheet" href="css/portal.css" />
+  <script src="js/auth-guard.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <style>
+    /* ═══════════════════════════════════════
+       LAYOUT
+    ═══════════════════════════════════════ */
+    .dash-main-grid {
+      display: grid;
+      grid-template-columns: 1fr 300px;
+      gap: 20px;
+      align-items: start;
+    }
+    @media (max-width: 1100px) { .dash-main-grid { grid-template-columns: 1fr; } }
+
+    /* ═══════════════════════════════════════
+       KPI STRIP — 6 cards
+    ═══════════════════════════════════════ */
+    .kpi-strip {
+      display: grid;
+      grid-template-columns: repeat(6, 1fr);
+      gap: 14px;
+      margin-bottom: 20px;
+    }
+    @media (max-width: 1200px) { .kpi-strip { grid-template-columns: repeat(3,1fr); } }
+    @media (max-width: 640px)  { .kpi-strip { grid-template-columns: repeat(2,1fr); } }
+
+    .kpi-card {
+      background: #fff;
+      border: 1.5px solid var(--color-border);
+      border-radius: var(--radius-md);
+      padding: 16px 14px 14px;
+      cursor: default;
+      transition: box-shadow .18s, border-color .18s;
+      position: relative;
+      overflow: hidden;
+    }
+    .kpi-card:hover { box-shadow: 0 4px 18px rgba(79,70,229,.08); border-color: rgba(79,70,229,.25); }
+    .kpi-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 3px;
+      border-radius: var(--radius-md) var(--radius-md) 0 0;
+    }
+    .kpi-card.accent::before  { background: var(--color-accent); }
+    .kpi-card.emerald::before { background: #10b981; }
+    .kpi-card.amber::before   { background: #f59e0b; }
+    .kpi-card.sky::before     { background: #0ea5e9; }
+    .kpi-card.rose::before    { background: #f43f5e; }
+    .kpi-card.violet::before  { background: #8b5cf6; }
+
+    .kpi-icon {
+      width: 32px; height: 32px;
+      border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: .78rem;
+      margin-bottom: 10px;
+    }
+    .kpi-val {
+      font-family: var(--font-display);
+      font-size: 1.45rem; font-weight: 900;
+      letter-spacing: -.04em;
+      color: var(--color-near-black);
+      line-height: 1;
+    }
+    .kpi-label {
+      font-size: .66rem; font-weight: 700;
+      text-transform: uppercase; letter-spacing: .07em;
+      color: var(--color-muted); margin-top: 4px;
+    }
+    .kpi-change {
+      display: inline-flex; align-items: center; gap: 4px;
+      font-size: .7rem; font-weight: 700;
+      margin-top: 6px; padding: 2px 7px; border-radius: 20px;
+    }
+    .kpi-change.up   { background: rgba(16,185,129,.1);  color: #059669; }
+    .kpi-change.down { background: rgba(244,63,94,.1);   color: #e11d48; }
+    .kpi-change.neu  { background: rgba(100,116,139,.1); color: #64748b; }
+
+    /* ═══════════════════════════════════════
+       ALERT BAR
+    ═══════════════════════════════════════ */
+    .alert-bar {
+      display: flex; align-items: center; gap: 10px;
+      background: rgba(245,158,11,.07);
+      border: 1px solid rgba(245,158,11,.3);
+      border-radius: var(--radius-sm);
+      padding: 10px 16px;
+      font-size: .82rem; font-weight: 600;
+      color: #92400e;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+    }
+    .alert-bar i { color: #f59e0b; font-size: .9rem; }
+    .alert-bar a { color: #d97706; font-weight: 700; text-decoration: underline; margin-left: 6px; }
+    .alert-pill {
+      background: #f59e0b; color: #fff;
+      font-size: .62rem; font-weight: 800;
+      padding: 2px 8px; border-radius: 20px;
+    }
+
+    /* ═══════════════════════════════════════
+       SECTION LABELS
+    ═══════════════════════════════════════ */
+    .dash-section-label {
+      font-size: .66rem; font-weight: 800;
+      text-transform: uppercase; letter-spacing: .1em;
+      color: var(--color-muted);
+      margin-bottom: 10px; padding-bottom: 6px;
+      border-bottom: 1px solid var(--color-border);
+    }
+
+    /* ═══════════════════════════════════════
+       CHARTS ROW
+    ═══════════════════════════════════════ */
+    .charts-row {
+      display: grid;
+      grid-template-columns: 2fr 1fr;
+      gap: 16px;
+      margin-bottom: 20px;
+    }
+    @media (max-width: 900px) { .charts-row { grid-template-columns: 1fr; } }
+
+    .chart-card {
+      background: #fff;
+      border: 1.5px solid var(--color-border);
+      border-radius: var(--radius-md);
+      overflow: hidden;
+    }
+    .chart-card__head {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 14px 18px 12px;
+      border-bottom: 1px solid var(--color-border);
+    }
+    .chart-card__title { font-size: .875rem; font-weight: 700; color: var(--color-near-black); }
+    .chart-card__sub   { font-size: .7rem; color: var(--color-muted); margin-top: 1px; }
+    .chart-card__body  { padding: 16px 18px; }
+
+    /* ═══════════════════════════════════════
+       ORDERS TABLE — compact
+    ═══════════════════════════════════════ */
+    .orders-compact { width: 100%; border-collapse: collapse; font-size: .8rem; }
+    .orders-compact thead th {
+      background: var(--color-off-white, #f5f5f8);
+      padding: 7px 10px;
+      text-align: left;
+      font-size: .66rem; font-weight: 800;
+      text-transform: uppercase; letter-spacing: .07em;
+      color: var(--color-muted);
+      white-space: nowrap;
+    }
+    .orders-compact tbody td {
+      padding: 9px 10px;
+      border-bottom: 1px solid var(--color-border);
+      color: var(--color-near-black);
+      vertical-align: middle;
+    }
+    .orders-compact tbody tr:last-child td { border-bottom: none; }
+    .orders-compact tbody tr:hover td { background: rgba(79,70,229,.025); }
+    .order-id-link {
+      font-family: monospace; font-weight: 700; font-size: .82rem;
+      color: var(--color-accent); text-decoration: none;
+      border-bottom: 1.5px dashed var(--color-accent);
+    }
+    .order-id-link:hover { border-bottom-style: solid; }
+
+    /* ═══════════════════════════════════════
+       INVOICES MINI TABLE
+    ═══════════════════════════════════════ */
+    .inv-row {
+      display: flex; align-items: center; gap: 10px;
+      padding: 9px 0; border-bottom: 1px solid var(--color-border);
+    }
+    .inv-row:last-child { border-bottom: none; }
+    .inv-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+    .inv-id   { font-family: monospace; font-size: .8rem; font-weight: 700; color: var(--color-accent); flex-shrink: 0; min-width: 72px; }
+    .inv-brand { font-size: .78rem; font-weight: 600; color: var(--color-near-black); flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .inv-amt   { font-size: .82rem; font-weight: 800; font-family: var(--font-display); flex-shrink: 0; }
+    .inv-due   { font-size: .7rem; color: var(--color-muted); flex-shrink: 0; text-align: right; min-width: 60px; }
+
+    /* ═══════════════════════════════════════
+       SHIPMENT TRACKER ROWS
+    ═══════════════════════════════════════ */
+    .ship-row {
+      display: flex; align-items: center; gap: 12px;
+      padding: 10px 0; border-bottom: 1px solid var(--color-border);
+    }
+    .ship-row:last-child { border-bottom: none; }
+    .carrier-pill {
+      display: inline-flex; align-items: center; justify-content: center;
+      width: 36px; height: 22px; border-radius: 5px;
+      font-size: .55rem; font-weight: 900; letter-spacing: .04em;
+      color: #fff; flex-shrink: 0;
+    }
+    .ship-info { flex: 1; min-width: 0; }
+    .ship-id   { font-family: monospace; font-size: .75rem; font-weight: 700; color: var(--color-near-black); }
+    .ship-dest { font-size: .7rem; color: var(--color-muted); margin-top: 1px; }
+    .ship-eta  { font-size: .72rem; font-weight: 700; flex-shrink: 0; text-align: right; }
+
+    /* ═══════════════════════════════════════
+       BRAND PERFORMANCE ROWS
+    ═══════════════════════════════════════ */
+    .brand-row {
+      display: flex; align-items: center; gap: 10px;
+      padding: 8px 0; border-bottom: 1px solid var(--color-border);
+    }
+    .brand-row:last-child { border-bottom: none; }
+    .brand-emo {
+      width: 32px; height: 32px; border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: .9rem; flex-shrink: 0;
+    }
+    .brand-row__info { flex: 1; min-width: 0; }
+    .brand-row__name { font-size: .8rem; font-weight: 700; color: var(--color-near-black); }
+    .brand-row__bar  { height: 4px; background: var(--color-border); border-radius: 3px; margin-top: 5px; overflow: hidden; }
+    .brand-row__fill { height: 100%; border-radius: 3px; background: var(--color-accent); }
+    .brand-row__val  { font-size: .82rem; font-weight: 800; font-family: var(--font-display); flex-shrink: 0; text-align: right; min-width: 56px; }
+
+    /* ═══════════════════════════════════════
+       ACTIVITY FEED
+    ═══════════════════════════════════════ */
+    .act-item {
+      display: flex; align-items: flex-start; gap: 10px;
+      padding: 9px 0; border-bottom: 1px solid var(--color-border);
+    }
+    .act-item:last-child { border-bottom: none; }
+    .act-dot {
+      width: 28px; height: 28px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: .7rem; flex-shrink: 0; margin-top: 1px;
+    }
+    .act-content { flex: 1; min-width: 0; }
+    .act-title { font-size: .8rem; font-weight: 600; color: var(--color-near-black); line-height: 1.3; }
+    .act-time  { font-size: .7rem; color: var(--color-muted); margin-top: 2px; }
+
+    /* ═══════════════════════════════════════
+       QUICK ACTIONS (right sidebar)
+    ═══════════════════════════════════════ */
+    .qa-btn {
+      display: flex; align-items: center; gap: 10px;
+      width: 100%; padding: 10px 14px;
+      background: #fff; border: 1.5px solid var(--color-border);
+      border-radius: var(--radius-sm); font-size: .82rem; font-weight: 700;
+      color: var(--color-near-black); text-decoration: none;
+      transition: all .16s; cursor: pointer;
+    }
+    .qa-btn:hover { border-color: var(--color-accent); color: var(--color-accent); background: rgba(79,70,229,.03); }
+    .qa-btn i { width: 16px; text-align: center; color: var(--color-accent); }
+    .qa-btn .qa-badge {
+      margin-left: auto; background: var(--color-accent); color: #fff;
+      font-size: .6rem; font-weight: 800; padding: 2px 7px; border-radius: 20px;
+    }
+    .qa-btn.primary { background: var(--color-accent); color: #fff; border-color: var(--color-accent); }
+    .qa-btn.primary i { color: #fff; }
+    .qa-btn.primary:hover { background: #4338ca; border-color: #4338ca; }
+
+    /* ═══════════════════════════════════════
+       CREDIT MINI CARD
+    ═══════════════════════════════════════ */
+    .credit-bar-wrap {
+      background: var(--color-off-white, #f5f5f8);
+      border-radius: 8px; padding: 12px 14px;
+    }
+    .credit-bar { height: 8px; background: var(--color-border); border-radius: 6px; overflow: hidden; margin: 8px 0; }
+    .credit-fill { height: 100%; border-radius: 6px; background: linear-gradient(to right, var(--color-accent), #818cf8); }
+
+    /* ═══════════════════════════════════════
+       FULFILLMENT DONUT LEGEND
+    ═══════════════════════════════════════ */
+    .donut-legend { display: flex; flex-direction: column; gap: 6px; margin-top: 12px; }
+    .dl-row { display: flex; align-items: center; justify-content: space-between; font-size: .78rem; }
+    .dl-dot { width: 9px; height: 9px; border-radius: 50%; display: inline-block; margin-right: 7px; }
+
+    /* ═══════════════════════════════════════
+       RESPONSIVE RIGHT COLUMN STACKING
+    ═══════════════════════════════════════ */
+    .right-col { display: flex; flex-direction: column; gap: 16px; }
+    .dash-card {
+      background: #fff;
+      border: 1.5px solid var(--color-border);
+      border-radius: var(--radius-md);
+      overflow: hidden;
+    }
+    .dash-card__head {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 12px 16px;
+      border-bottom: 1px solid var(--color-border);
+    }
+    .dash-card__head h3 { font-size: .875rem; font-weight: 700; color: var(--color-near-black); margin: 0; }
+    .dash-card__head .sub { font-size: .7rem; color: var(--color-muted); font-weight: 400; margin-left: 6px; }
+    .dash-card__body { padding: 12px 16px; }
+
+    /* ═══════════════════════════════════════
+       ORDER DETAIL OVERLAY
+    ═══════════════════════════════════════ */
+    .order-detail-page { display:none; position:fixed; inset:0; z-index:300; background:var(--color-bg,#f8f9fb); overflow-y:auto; }
+    .order-detail-page.open { display:block; }
+    .odp-topbar { position:sticky;top:0;z-index:10;background:white;border-bottom:1px solid var(--color-border);padding:14px 28px;display:flex;align-items:center;gap:16px;box-shadow:0 1px 8px rgba(0,0,0,.06); }
+    .odp-back { display:flex;align-items:center;gap:7px;font-size:.85rem;font-weight:700;color:var(--color-accent);background:none;border:none;cursor:pointer;padding:6px 12px;border-radius:7px;transition:background .15s; }
+    .odp-back:hover { background:rgba(99,91,255,.08); }
+    .odp-title { font-family:var(--font-display);font-size:1.1rem;font-weight:800; }
+    .odp-status { margin-left:8px; }
+    .odp-actions { margin-left:auto;display:flex;gap:8px; }
+    .odp-body { max-width:900px;margin:0 auto;padding:28px 24px 60px; }
+    .odp-grid { display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-bottom:20px; }
+    @media(max-width:640px){ .odp-grid { grid-template-columns:1fr; } }
+    .odp-card { background:white;border:1px solid var(--color-border);border-radius:var(--radius-md);padding:18px 20px; }
+    .odp-card h4 { font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--color-muted);margin-bottom:14px;display:flex;align-items:center;gap:7px; }
+    .odp-hero { background:white;border:1px solid var(--color-border);border-radius:var(--radius-md);padding:20px 24px;margin-bottom:20px;display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:16px; }
+    .odp-hero-left h2 { font-family:var(--font-display);font-size:1.5rem;font-weight:900;margin-bottom:4px; }
+    .odp-hero-left .placed { font-size:.82rem;color:var(--color-muted); }
+    .odp-hero-right { text-align:right; }
+    .odp-hero-total { font-family:var(--font-display);font-size:1.8rem;font-weight:900;color:var(--color-near-black); }
+    .odp-hero-total-label { font-size:.75rem;color:var(--color-muted);font-weight:600;text-transform:uppercase;letter-spacing:.06em;margin-top:2px; }
+    .ref-tag { display:inline-flex;align-items:center;gap:5px;background:rgba(99,91,255,.08);border:1px solid rgba(99,91,255,.2);color:var(--color-accent);padding:3px 10px;border-radius:5px;font-size:.78rem;font-weight:700;font-family:monospace; }
+    .ref-tag.invoice { background:rgba(16,185,129,.07);border-color:rgba(16,185,129,.25);color:#10b981; }
+    .items-table { width:100%;border-collapse:collapse;font-size:.8rem;margin-top:8px; }
+    .items-table thead th { background:var(--color-off-white,#f4f5f8);padding:7px 10px;text-align:left;font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--color-muted); }
+    .items-table tbody td { padding:8px 10px;border-bottom:1px solid var(--color-border);color:var(--color-near-black); }
+    .items-table tbody tr:last-child td { border-bottom:none; }
+    .detail-row { display:flex;justify-content:space-between;align-items:flex-start;padding:9px 0;border-bottom:1px solid var(--color-border);font-size:.875rem;gap:12px; }
+    .detail-row:last-child { border-bottom:none; }
+    .detail-row .label { color:var(--color-muted);flex-shrink:0; }
+    .detail-row .value { font-weight:600;color:var(--color-near-black);text-align:right;word-break:break-all; }
+    .detail-total { display:flex;justify-content:space-between;align-items:center;padding:16px 0 0;border-top:2px solid var(--color-near-black);font-size:1rem;font-weight:800;font-family:var(--font-display);margin-top:8px; }
+    .order-timeline { display:flex;gap:0;align-items:flex-start;margin-bottom:16px; }
+    .timeline-step { flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;position:relative; }
+    .timeline-step:not(:last-child)::after { content:'';position:absolute;left:50%;top:14px;width:100%;height:2px;background:var(--color-border);z-index:0; }
+    .timeline-step.done::after { background:var(--color-accent); }
+    .timeline-dot { width:28px;height:28px;border-radius:50%;background:var(--color-border);color:var(--color-muted);display:flex;align-items:center;justify-content:center;font-size:.65rem;position:relative;z-index:1; }
+    .timeline-step.done .timeline-dot { background:var(--color-accent);color:white; }
+    .timeline-step.current .timeline-dot { background:var(--color-accent);color:white;box-shadow:0 0 0 3px rgba(99,91,255,.2); }
+    .timeline-label { font-size:.65rem;font-weight:700;color:var(--color-muted);text-align:center; }
+    .timeline-date  { font-size:.62rem;color:var(--color-muted);text-align:center; }
+    .tracking-block { display:flex;align-items:center;gap:8px;background:var(--color-off-white,#f4f5f8);border:1px solid var(--color-border);border-radius:8px;padding:10px 14px;font-size:.82rem; }
+    .tracking-block .tk-icon { font-size:1rem;color:#0ea5e9; }
+    .tracking-block .tk-label { font-size:.7rem;text-transform:uppercase;letter-spacing:.06em;color:var(--color-muted);font-weight:700; }
+    .tracking-block .tk-value { font-weight:700;font-family:monospace;color:var(--color-near-black); }
+    .tracking-block .tk-copy { margin-left:auto;font-size:.72rem;font-weight:700;color:var(--color-accent);border:1px solid var(--color-accent);background:transparent;padding:3px 9px;border-radius:4px;cursor:pointer;transition:all .15s; }
+    .tracking-block .tk-copy:hover { background:var(--color-accent);color:white; }
+  </style>
+</head>
+<body>
+
+<!-- ===== SIDEBAR ===== -->
+<aside class="sidebar" id="sidebar">
+  <div class="sidebar__logo">
+    <a href="dashboard.html" class="logo-mark">
+      <span class="logo-icon"><i class="fas fa-chevron-right"></i></span>
+      <span class="logo-word">BRND <span class="logo-accent">DIRECT</span></span>
+    </a>
+  </div>
+  <nav class="sidebar__nav">
+    <div class="nav-section">
+      <span class="nav-section-label">Main Menu</span>
+      <a href="dashboard.html" class="nav-item active"><i class="fas fa-table-columns"></i><span>Dashboard</span></a>
+      <a href="products.html" class="nav-item"><i class="fas fa-boxes-stacked"></i><span>Products</span></a>
+      <a href="orders.html" class="nav-item"><i class="fas fa-file-invoice"></i><span>Orders</span><span class="nav-badge">18</span></a>
+      <a href="cart.html" class="nav-item" id="navCartLink"><i class="fas fa-cart-shopping"></i><span>Order Cart</span><span class="nav-badge" id="sidebarCartBadge" style="display:none;">0</span></a>
+      <a href="rfq.html" class="nav-item"><i class="fas fa-comment-dollar"></i><span>RFQ</span><span class="nav-badge new">5</span></a>
+      <a href="dropship.html" class="nav-item"><i class="fas fa-rotate"></i><span>Dropship</span></a>
+      <a href="analytics.html" class="nav-item"><i class="fas fa-chart-line"></i><span>Analytics</span></a>
+    </div>
+    <div class="nav-section">
+      <span class="nav-section-label">Finance</span>
+      <a href="invoices.html" class="nav-item"><i class="fas fa-file-invoice-dollar"></i><span>Invoices &amp; Payments</span></a>
+      <a href="trade-finance.html" class="nav-item"><i class="fas fa-credit-card"></i><span>Trade Finance</span></a>
+      <a href="reports.html" class="nav-item"><i class="fas fa-chart-bar"></i><span>Reports</span></a>
+    </div>
+    <div class="nav-section">
+      <span class="nav-section-label">Operations</span>
+      <a href="warehousing.html" class="nav-item"><i class="fas fa-warehouse"></i><span>Warehousing</span></a>
+      <a href="shipping-logistics.html" class="nav-item"><i class="fas fa-truck-fast"></i><span>Shipping &amp; Logistics</span></a>
+    </div>
+    <div class="sidebar__divider"></div>
+    <a href="messages.html" class="nav-item"><i class="fas fa-message"></i><span>Messages</span><span class="nav-badge">3</span></a>
+    <a href="account.html" class="nav-item"><i class="fas fa-gear"></i><span>Settings</span></a>
+    <a href="help.html" class="nav-item"><i class="fas fa-circle-question"></i><span>Help &amp; Support</span></a>
+  </nav>
+  <div class="sidebar__bottom">
+    <div class="sidebar__user">
+      <div class="sidebar__user-avatar">AJ</div>
+      <div class="sidebar__user-info">
+        <div class="sidebar__user-name">Alex Johnson</div>
+        <div class="sidebar__user-role">Wholesale Buyer</div>
+      </div>
+      <button class="sidebar__user-logout" title="Sign out" onclick="window.location.href='index.html'">
+        <i class="fas fa-arrow-right-from-bracket"></i>
+      </button>
+    </div>
+  </div>
+</aside>
+
+<div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+<!-- ===== TOPBAR ===== -->
+<header class="topbar">
+  <div class="topbar__left" style="display:flex;align-items:center;gap:12px;">
+    <button class="topbar__mobile-toggle" id="sidebarToggle" aria-label="Toggle sidebar">
+      <i class="fas fa-bars"></i>
+    </button>
+    <div>
+      <div class="topbar__title">Dashboard</div>
+      <div class="topbar__breadcrumb">Welcome back, Alex 👋 &nbsp;·&nbsp; <span id="liveDate"></span></div>
+    </div>
+  </div>
+  <div class="topbar__right">
+    <div class="search-bar">
+      <i class="fas fa-magnifying-glass"></i>
+      <input type="text" placeholder="Search orders, invoices, brands…" />
+    </div>
+    <div class="topbar__btn" title="Notifications" style="position:relative;">
+      <i class="fas fa-bell"></i>
+      <span class="notif-dot"></span>
+    </div>
+    <div class="topbar__btn" title="Messages" onclick="window.location.href='messages.html'">
+      <i class="fas fa-message"></i>
+    </div>
+    <div class="topbar__avatar" title="Profile">AJ</div>
+  </div>
+</header>
+
+<!-- ===== MAIN ===== -->
+<main class="app-main">
+
+  <!-- Welcome Banner -->
+  <div class="welcome-banner fade-in" style="margin-bottom:20px;">
+    <div class="welcome-banner__content">
+      <h2>Good morning, Alex! 🌟</h2>
+      <p>You have <strong style="color:#fff;">3 new orders</strong> to review, <strong style="color:#fff;">2 shipments</strong> in transit and <strong style="color:#fff;">1 invoice due</strong> in 3 days.</p>
+    </div>
+    <div class="welcome-banner__action">
+      <a href="products.html" class="btn btn-white btn-sm"><i class="fas fa-boxes-stacked"></i> Browse Catalog</a>
+    </div>
+  </div>
+
+  <!-- ── ALERT BAR ── -->
+  <div class="alert-bar fade-in">
+    <i class="fas fa-triangle-exclamation"></i>
+    <span class="alert-pill">Action needed</span>
+    <span>Invoice <strong>INV-2891</strong> for <strong>$3,840</strong> is due <strong>Apr 17, 2026</strong>.</span>
+    <a href="invoices.html">Pay Now →</a>
+    <span style="margin-left:auto;font-size:.7rem;cursor:pointer;opacity:.5;" onclick="this.closest('.alert-bar').remove()"><i class="fas fa-xmark"></i></span>
+  </div>
+
+  <!-- ── KPI STRIP ── -->
+  <div class="kpi-strip fade-in">
+
+    <div class="kpi-card accent">
+      <div class="kpi-icon" style="background:rgba(79,70,229,.1);color:var(--color-accent);"><i class="fas fa-dollar-sign"></i></div>
+      <div class="kpi-val" data-count="284520" data-prefix="$" data-format="comma">$0</div>
+      <div class="kpi-label">Spend MTD</div>
+      <div class="kpi-change up"><i class="fas fa-arrow-trend-up"></i> +18.4%</div>
+    </div>
+
+    <div class="kpi-card emerald">
+      <div class="kpi-icon" style="background:rgba(16,185,129,.1);color:#10b981;"><i class="fas fa-file-invoice"></i></div>
+      <div class="kpi-val" data-count="18">0</div>
+      <div class="kpi-label">Active Orders</div>
+      <div class="kpi-change up"><i class="fas fa-plus"></i> 3 new today</div>
+    </div>
+
+    <div class="kpi-card amber">
+      <div class="kpi-icon" style="background:rgba(245,158,11,.1);color:#f59e0b;"><i class="fas fa-file-invoice-dollar"></i></div>
+      <div class="kpi-val" data-count="4">0</div>
+      <div class="kpi-label">Outstanding Invoices</div>
+      <div class="kpi-change down"><i class="fas fa-circle-exclamation"></i> $22,440 due</div>
+    </div>
+
+    <div class="kpi-card sky">
+      <div class="kpi-icon" style="background:rgba(14,165,233,.1);color:#0ea5e9;"><i class="fas fa-truck-fast"></i></div>
+      <div class="kpi-val" data-count="6">0</div>
+      <div class="kpi-label">In-Transit Shipments</div>
+      <div class="kpi-change neu"><i class="fas fa-route"></i> 2 arrive this week</div>
+    </div>
+
+    <div class="kpi-card violet">
+      <div class="kpi-icon" style="background:rgba(139,92,246,.1);color:#8b5cf6;"><i class="fas fa-credit-card"></i></div>
+      <div class="kpi-val" data-count="32660" data-prefix="$" data-format="comma">$0</div>
+      <div class="kpi-label">Credit Available</div>
+      <div class="kpi-change neu"><i class="fas fa-clock"></i> Net-30 active</div>
+    </div>
+
+    <div class="kpi-card rose">
+      <div class="kpi-icon" style="background:rgba(244,63,94,.1);color:#f43f5e;"><i class="fas fa-boxes-stacked"></i></div>
+      <div class="kpi-val" data-count="1847">0</div>
+      <div class="kpi-label">SKUs in Stock</div>
+      <div class="kpi-change down"><i class="fas fa-triangle-exclamation"></i> 23 low stock</div>
+    </div>
+
+  </div>
+
+  <!-- ── CHARTS ROW ── -->
+  <div class="charts-row fade-in">
+
+    <!-- Monthly Spend + Margin -->
+    <div class="chart-card">
+      <div class="chart-card__head">
+        <div>
+          <div class="chart-card__title">Monthly Spend vs. Margin</div>
+          <div class="chart-card__sub">Last 6 months · Wholesale cost &amp; estimated margin %</div>
+        </div>
+        <div style="display:flex;gap:14px;align-items:center;">
+          <span style="display:flex;align-items:center;gap:5px;font-size:.72rem;color:var(--color-muted);"><span style="width:10px;height:10px;border-radius:2px;background:var(--color-accent);display:inline-block;"></span> Spend</span>
+          <span style="display:flex;align-items:center;gap:5px;font-size:.72rem;color:var(--color-muted);"><span style="width:10px;height:10px;border-radius:50%;background:#10b981;display:inline-block;"></span> Margin %</span>
+        </div>
+      </div>
+      <div class="chart-card__body" style="height:230px;">
+        <canvas id="spendChart"></canvas>
+      </div>
+    </div>
+
+    <!-- Fulfillment Donut -->
+    <div class="chart-card">
+      <div class="chart-card__head">
+        <div>
+          <div class="chart-card__title">Order Fulfillment</div>
+          <div class="chart-card__sub">Last 30 days · 138 orders</div>
+        </div>
+      </div>
+      <div class="chart-card__body" style="display:flex;flex-direction:column;align-items:center;">
+        <div style="height:160px;width:160px;position:relative;">
+          <canvas id="donutChart"></canvas>
+          <div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;pointer-events:none;">
+            <div style="font-family:var(--font-display);font-size:1.4rem;font-weight:900;color:var(--color-near-black);line-height:1;">93.5%</div>
+            <div style="font-size:.6rem;font-weight:700;color:var(--color-muted);text-transform:uppercase;letter-spacing:.06em;">On-Time</div>
+          </div>
+        </div>
+        <div class="donut-legend" style="width:100%;margin-top:4px;">
+          <div class="dl-row"><div><span class="dl-dot" style="background:#10b981;"></span><span style="font-size:.78rem;">Delivered</span></div><span style="font-weight:800;font-size:.82rem;color:#10b981;">76 &nbsp;<span style="color:var(--color-muted);font-weight:400;">55%</span></span></div>
+          <div class="dl-row"><div><span class="dl-dot" style="background:var(--color-accent);"></span><span style="font-size:.78rem;">In Transit</span></div><span style="font-weight:800;font-size:.82rem;color:var(--color-accent);">44 &nbsp;<span style="color:var(--color-muted);font-weight:400;">32%</span></span></div>
+          <div class="dl-row"><div><span class="dl-dot" style="background:#f59e0b;"></span><span style="font-size:.78rem;">Processing</span></div><span style="font-weight:800;font-size:.82rem;color:#f59e0b;">12 &nbsp;<span style="color:var(--color-muted);font-weight:400;">9%</span></span></div>
+          <div class="dl-row"><div><span class="dl-dot" style="background:#f43f5e;"></span><span style="font-size:.78rem;">Delayed</span></div><span style="font-weight:800;font-size:.82rem;color:#f43f5e;">6 &nbsp;&nbsp;<span style="color:var(--color-muted);font-weight:400;">4%</span></span></div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ── MAIN GRID ── -->
+  <div class="dash-main-grid fade-in">
+
+    <!-- LEFT COLUMN -->
+    <div style="display:flex;flex-direction:column;gap:16px;">
+
+      <!-- Recent Orders -->
+      <div class="dash-card">
+        <div class="dash-card__head">
+          <h3>Recent Orders <span class="sub">Last 7 days</span></h3>
+          <a href="orders.html" class="btn btn-secondary btn-xs">View All <i class="fas fa-arrow-right"></i></a>
+        </div>
+        <div style="overflow-x:auto;">
+          <table class="orders-compact">
+            <thead>
+              <tr>
+                <th>Order #</th>
+                <th>Brand</th>
+                <th>Product</th>
+                <th>Units</th>
+                <th>Total</th>
+                <th>Status</th>
+                <th>Est. Delivery</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><a class="order-id-link" href="#" onclick="openOrderDetail('BD-48295');return false;">BD-48295</a></td>
+                <td><span style="font-size:.78rem;font-weight:600;">Dior</span></td>
+                <td style="color:var(--color-muted);font-size:.78rem;">Sauvage EDP 100ml × 24</td>
+                <td style="font-weight:700;">24</td>
+                <td style="font-weight:800;font-family:var(--font-display);">$5,760</td>
+                <td><span class="badge badge-processing">Processing</span></td>
+                <td><span style="color:#f59e0b;font-weight:600;font-size:.75rem;">Apr 4, 2026</span></td>
+              </tr>
+              <tr>
+                <td><a class="order-id-link" href="#" onclick="openOrderDetail('BD-48293');return false;">BD-48293</a></td>
+                <td><span style="font-size:.78rem;font-weight:600;">Charlotte Tilbury</span></td>
+                <td style="color:var(--color-muted);font-size:.78rem;">Pillow Talk Lip × 36</td>
+                <td style="font-weight:700;">36</td>
+                <td style="font-weight:800;font-family:var(--font-display);">$3,240</td>
+                <td><span class="badge badge-shipped">Shipped</span></td>
+                <td><span style="color:#f59e0b;font-weight:600;font-size:.75rem;">Mar 29, 2026</span></td>
+              </tr>
+              <tr>
+                <td><a class="order-id-link" href="#" onclick="openOrderDetail('BD-48291');return false;">BD-48291</a></td>
+                <td><span style="font-size:.78rem;font-weight:600;">Maison Margiela</span></td>
+                <td style="color:var(--color-muted);font-size:.78rem;">Replica Lazy Sunday × 12</td>
+                <td style="font-weight:700;">12</td>
+                <td style="font-weight:800;font-family:var(--font-display);">$3,840</td>
+                <td><span class="badge badge-confirmed">Confirmed</span></td>
+                <td><span style="color:#f59e0b;font-weight:600;font-size:.75rem;">Apr 1, 2026</span></td>
+              </tr>
+              <tr>
+                <td><a class="order-id-link" href="#" onclick="openOrderDetail('BD-48289');return false;">BD-48289</a></td>
+                <td><span style="font-size:.78rem;font-weight:600;">Jordan Brand</span></td>
+                <td style="color:var(--color-muted);font-size:.78rem;">Air Jordan 1 Retro OG × 18</td>
+                <td style="font-weight:700;">18</td>
+                <td style="font-weight:800;font-family:var(--font-display);">$5,580</td>
+                <td><span class="badge badge-delivered">Delivered</span></td>
+                <td><span style="color:#10b981;font-weight:600;font-size:.75rem;"><i class="fas fa-check"></i> Mar 22</span></td>
+              </tr>
+              <tr>
+                <td><a class="order-id-link" href="#" onclick="openOrderDetail('BD-48285');return false;">BD-48285</a></td>
+                <td><span style="font-size:.78rem;font-weight:600;">Gucci</span></td>
+                <td style="color:var(--color-muted);font-size:.78rem;">Bloom EDP 50ml × 24</td>
+                <td style="font-weight:700;">24</td>
+                <td style="font-weight:800;font-family:var(--font-display);">$9,600</td>
+                <td><span class="badge badge-delivered">Delivered</span></td>
+                <td><span style="color:#10b981;font-weight:600;font-size:.75rem;"><i class="fas fa-check"></i> Mar 20</span></td>
+              </tr>
+              <tr>
+                <td><a class="order-id-link" href="#" onclick="openOrderDetail('BD-48282');return false;">BD-48282</a></td>
+                <td><span style="font-size:.78rem;font-weight:600;">New Balance</span></td>
+                <td style="color:var(--color-muted);font-size:.78rem;">990v6 Made in USA × 12</td>
+                <td style="font-weight:700;">12</td>
+                <td style="font-weight:800;font-family:var(--font-display);">$2,880</td>
+                <td><span class="badge badge-shipped">Shipped</span></td>
+                <td><span style="color:#f59e0b;font-weight:600;font-size:.75rem;">Mar 30, 2026</span></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Two sub-cards row: Invoices + Shipments -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+
+        <!-- Outstanding Invoices -->
+        <div class="dash-card">
+          <div class="dash-card__head">
+            <h3>Invoices Due <span style="background:#f59e0b;color:#fff;font-size:.6rem;font-weight:800;padding:2px 7px;border-radius:20px;margin-left:6px;">4</span></h3>
+            <a href="invoices.html" class="btn btn-secondary btn-xs">Pay <i class="fas fa-arrow-right"></i></a>
+          </div>
+          <div class="dash-card__body">
+            <div class="inv-row">
+              <div class="inv-dot" style="background:#f43f5e;"></div>
+              <div class="inv-id">INV-2891</div>
+              <div class="inv-brand">Maison Margiela</div>
+              <div class="inv-amt" style="color:#f43f5e;">$3,840</div>
+              <div class="inv-due">Apr 17</div>
+            </div>
+            <div class="inv-row">
+              <div class="inv-dot" style="background:#f59e0b;"></div>
+              <div class="inv-id">INV-2893</div>
+              <div class="inv-brand">Charlotte Tilbury</div>
+              <div class="inv-amt" style="color:#f59e0b;">$5,760</div>
+              <div class="inv-due">May 3</div>
+            </div>
+            <div class="inv-row">
+              <div class="inv-dot" style="background:#f59e0b;"></div>
+              <div class="inv-id">INV-2896</div>
+              <div class="inv-brand">Dior</div>
+              <div class="inv-amt" style="color:#f59e0b;">$7,200</div>
+              <div class="inv-due">May 10</div>
+            </div>
+            <div class="inv-row">
+              <div class="inv-dot" style="background:var(--color-accent);"></div>
+              <div class="inv-id">INV-2898</div>
+              <div class="inv-brand">Jordan Brand</div>
+              <div class="inv-amt" style="color:var(--color-accent);">$5,640</div>
+              <div class="inv-due">May 17</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Live Shipments -->
+        <div class="dash-card">
+          <div class="dash-card__head">
+            <h3>In-Transit <span style="background:var(--color-accent);color:#fff;font-size:.6rem;font-weight:800;padding:2px 7px;border-radius:20px;margin-left:6px;">6</span></h3>
+            <a href="shipping-logistics.html" class="btn btn-secondary btn-xs">Track <i class="fas fa-arrow-right"></i></a>
+          </div>
+          <div class="dash-card__body">
+            <div class="ship-row">
+              <div class="carrier-pill" style="background:#582c83;">USPS</div>
+              <div class="ship-info">
+                <div class="ship-id">1Z999AA1012345678</div>
+                <div class="ship-dest">Maison Margiela · Chicago IL</div>
+              </div>
+              <div class="ship-eta" style="color:#f59e0b;">Mar 29</div>
+            </div>
+            <div class="ship-row">
+              <div class="carrier-pill" style="background:#301506;">UPS</div>
+              <div class="ship-info">
+                <div class="ship-id">9400111899223397</div>
+                <div class="ship-dest">Charlotte Tilbury · Chicago IL</div>
+              </div>
+              <div class="ship-eta" style="color:#f59e0b;">Mar 30</div>
+            </div>
+            <div class="ship-row">
+              <div class="carrier-pill" style="background:#4d148c;">FedEx</div>
+              <div class="ship-info">
+                <div class="ship-id">7748 9821 0395 1</div>
+                <div class="ship-dest">New Balance · Chicago IL</div>
+              </div>
+              <div class="ship-eta" style="color:#f59e0b;">Mar 30</div>
+            </div>
+            <div class="ship-row">
+              <div class="carrier-pill" style="background:#0061a0;">DHL</div>
+              <div class="ship-info">
+                <div class="ship-id">1234567890</div>
+                <div class="ship-dest">Dior · Chicago IL</div>
+              </div>
+              <div class="ship-eta" style="color:#10b981;">Apr 4</div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Category Spend Bar Chart + Brand Breakdown -->
+      <div style="display:grid;grid-template-columns:1.4fr 1fr;gap:16px;">
+
+        <!-- Category spend chart -->
+        <div class="chart-card">
+          <div class="chart-card__head">
+            <div>
+              <div class="chart-card__title">Spend by Category</div>
+              <div class="chart-card__sub">MTD · $284,520 total</div>
+            </div>
+          </div>
+          <div class="chart-card__body" style="height:200px;">
+            <canvas id="categoryChart"></canvas>
+          </div>
+        </div>
+
+        <!-- Top Brands -->
+        <div class="dash-card">
+          <div class="dash-card__head">
+            <h3>Top Brands</h3>
+            <a href="products.html" class="btn btn-secondary btn-xs">Catalog</a>
+          </div>
+          <div class="dash-card__body">
+            <div class="brand-row">
+              <div class="brand-emo" style="background:rgba(30,10,60,.08);">🌸</div>
+              <div class="brand-row__info">
+                <div class="brand-row__name">Maison Margiela</div>
+                <div class="brand-row__bar"><div class="brand-row__fill" style="width:78%;"></div></div>
+              </div>
+              <div class="brand-row__val">$54,200</div>
+            </div>
+            <div class="brand-row">
+              <div class="brand-emo" style="background:rgba(244,63,94,.07);">💄</div>
+              <div class="brand-row__info">
+                <div class="brand-row__name">Charlotte Tilbury</div>
+                <div class="brand-row__bar"><div class="brand-row__fill" style="width:62%;background:#10b981;"></div></div>
+              </div>
+              <div class="brand-row__val">$43,100</div>
+            </div>
+            <div class="brand-row">
+              <div class="brand-emo" style="background:rgba(14,165,233,.07);">👟</div>
+              <div class="brand-row__info">
+                <div class="brand-row__name">Jordan Brand</div>
+                <div class="brand-row__bar"><div class="brand-row__fill" style="width:51%;background:#f59e0b;"></div></div>
+              </div>
+              <div class="brand-row__val">$35,580</div>
+            </div>
+            <div class="brand-row">
+              <div class="brand-emo" style="background:rgba(139,92,246,.07);">👜</div>
+              <div class="brand-row__info">
+                <div class="brand-row__name">Gucci</div>
+                <div class="brand-row__bar"><div class="brand-row__fill" style="width:40%;background:#8b5cf6;"></div></div>
+              </div>
+              <div class="brand-row__val">$28,400</div>
+            </div>
+            <div class="brand-row">
+              <div class="brand-emo" style="background:rgba(44,62,80,.06);">🌹</div>
+              <div class="brand-row__info">
+                <div class="brand-row__name">Dior</div>
+                <div class="brand-row__bar"><div class="brand-row__fill" style="width:33%;background:#f43f5e;"></div></div>
+              </div>
+              <div class="brand-row__val">$22,960</div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+    </div><!-- /LEFT COLUMN -->
+
+    <!-- RIGHT COLUMN -->
+    <div class="right-col">
+
+      <!-- Quick Actions -->
+      <div class="dash-card">
+        <div class="dash-card__head"><h3>Quick Actions</h3></div>
+        <div class="dash-card__body" style="display:flex;flex-direction:column;gap:8px;">
+          <a href="products.html" class="qa-btn primary"><i class="fas fa-plus"></i> New Order</a>
+          <a href="products.html" class="qa-btn"><i class="fas fa-boxes-stacked"></i> Browse Catalog</a>
+          <a href="invoices.html" class="qa-btn"><i class="fas fa-file-invoice-dollar"></i> Pay Invoices <span class="qa-badge">4</span></a>
+          <a href="rfq.html" class="qa-btn"><i class="fas fa-comment-dollar"></i> Submit RFQ <span class="qa-badge">5</span></a>
+          <a href="shipping-logistics.html" class="qa-btn"><i class="fas fa-truck-fast"></i> Track Shipments <span class="qa-badge">6</span></a>
+          <a href="reports.html" class="qa-btn"><i class="fas fa-chart-bar"></i> View Reports</a>
+          <a href="warehousing.html" class="qa-btn"><i class="fas fa-warehouse"></i> Inventory Check</a>
+        </div>
+      </div>
+
+      <!-- Credit Overview -->
+      <div class="dash-card">
+        <div class="dash-card__head">
+          <h3>Credit Line</h3>
+          <a href="invoices.html" class="btn btn-secondary btn-xs">Manage</a>
+        </div>
+        <div class="dash-card__body">
+          <div class="credit-bar-wrap">
+            <div style="display:flex;justify-content:space-between;align-items:baseline;">
+              <div style="font-size:.7rem;font-weight:700;color:var(--color-muted);text-transform:uppercase;letter-spacing:.06em;">Used</div>
+              <div style="font-family:var(--font-display);font-size:1.1rem;font-weight:900;color:var(--color-near-black);">$12,340 <span style="font-size:.7rem;color:var(--color-muted);font-weight:400;">/ $45,000</span></div>
+            </div>
+            <div class="credit-bar"><div class="credit-fill" style="width:27.4%;"></div></div>
+            <div style="display:flex;justify-content:space-between;font-size:.72rem;color:var(--color-muted);">
+              <span>27.4% used</span><span style="color:#10b981;font-weight:700;">$32,660 free</span>
+            </div>
+          </div>
+          <div style="margin-top:12px;display:flex;flex-direction:column;gap:6px;">
+            <div style="display:flex;justify-content:space-between;font-size:.8rem;">
+              <span style="color:var(--color-muted);">Terms</span><span style="font-weight:700;">Net-30</span>
+            </div>
+            <div style="display:flex;justify-content:space-between;font-size:.8rem;">
+              <span style="color:var(--color-muted);">Next Due</span><span style="font-weight:700;color:#f43f5e;">Apr 17, 2026</span>
+            </div>
+            <div style="display:flex;justify-content:space-between;font-size:.8rem;">
+              <span style="color:var(--color-muted);">Amount Due</span><span style="font-weight:800;color:#f43f5e;">$3,840</span>
+            </div>
+          </div>
+          <a href="invoices.html" class="btn btn-primary btn-sm btn-full mt-3">Pay $3,840 Now</a>
+        </div>
+      </div>
+
+      <!-- Inventory Alerts -->
+      <div class="dash-card">
+        <div class="dash-card__head">
+          <h3>Inventory Alerts <span style="background:#f43f5e;color:#fff;font-size:.6rem;font-weight:800;padding:2px 7px;border-radius:20px;margin-left:4px;">5</span></h3>
+          <a href="warehousing.html" class="btn btn-secondary btn-xs">View All</a>
+        </div>
+        <div class="dash-card__body" style="display:flex;flex-direction:column;gap:8px;">
+          <div style="display:flex;align-items:center;gap:8px;padding:7px 10px;background:rgba(244,63,94,.06);border:1px solid rgba(244,63,94,.2);border-radius:6px;">
+            <i class="fas fa-circle-exclamation" style="color:#f43f5e;font-size:.8rem;"></i>
+            <div style="flex:1;min-width:0;">
+              <div style="font-size:.78rem;font-weight:700;color:var(--color-near-black);">Dior Sauvage EDP 100ml</div>
+              <div style="font-size:.68rem;color:#f43f5e;font-weight:600;">3 units left · Reorder now</div>
+            </div>
+          </div>
+          <div style="display:flex;align-items:center;gap:8px;padding:7px 10px;background:rgba(244,63,94,.06);border:1px solid rgba(244,63,94,.2);border-radius:6px;">
+            <i class="fas fa-circle-exclamation" style="color:#f43f5e;font-size:.8rem;"></i>
+            <div style="flex:1;min-width:0;">
+              <div style="font-size:.78rem;font-weight:700;color:var(--color-near-black);">YSL Libre EDP 50ml</div>
+              <div style="font-size:.68rem;color:#f43f5e;font-weight:600;">5 units left · Below MOQ</div>
+            </div>
+          </div>
+          <div style="display:flex;align-items:center;gap:8px;padding:7px 10px;background:rgba(245,158,11,.06);border:1px solid rgba(245,158,11,.25);border-radius:6px;">
+            <i class="fas fa-triangle-exclamation" style="color:#f59e0b;font-size:.8rem;"></i>
+            <div style="flex:1;min-width:0;">
+              <div style="font-size:.78rem;font-weight:700;color:var(--color-near-black);">Air Jordan 1 Chicago</div>
+              <div style="font-size:.68rem;color:#f59e0b;font-weight:600;">14 units · Low stock</div>
+            </div>
+          </div>
+          <div style="display:flex;align-items:center;gap:8px;padding:7px 10px;background:rgba(245,158,11,.06);border:1px solid rgba(245,158,11,.25);border-radius:6px;">
+            <i class="fas fa-triangle-exclamation" style="color:#f59e0b;font-size:.8rem;"></i>
+            <div style="flex:1;min-width:0;">
+              <div style="font-size:.78rem;font-weight:700;color:var(--color-near-black);">Gucci Bloom EDP 50ml</div>
+              <div style="font-size:.68rem;color:#f59e0b;font-weight:600;">8 units · Low stock</div>
+            </div>
+          </div>
+          <div style="display:flex;align-items:center;gap:8px;padding:7px 10px;background:rgba(245,158,11,.06);border:1px solid rgba(245,158,11,.25);border-radius:6px;">
+            <i class="fas fa-triangle-exclamation" style="color:#f59e0b;font-size:.8rem;"></i>
+            <div style="flex:1;min-width:0;">
+              <div style="font-size:.78rem;font-weight:700;color:var(--color-near-black);">CT Pillow Talk Lip Kit</div>
+              <div style="font-size:.68rem;color:#f59e0b;font-weight:600;">11 units · Reorder threshold</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Activity Feed -->
+      <div class="dash-card">
+        <div class="dash-card__head"><h3>Recent Activity</h3></div>
+        <div class="dash-card__body">
+          <div class="act-item">
+            <div class="act-dot" style="background:rgba(79,70,229,.1);color:var(--color-accent);"><i class="fas fa-shopping-bag"></i></div>
+            <div class="act-content">
+              <div class="act-title">Order BD-48295 placed</div>
+              <div class="act-time">Dior · $5,760 · 2 hours ago</div>
+            </div>
+          </div>
+          <div class="act-item">
+            <div class="act-dot" style="background:rgba(16,185,129,.1);color:#10b981;"><i class="fas fa-truck-fast"></i></div>
+            <div class="act-content">
+              <div class="act-title">BD-48293 has shipped</div>
+              <div class="act-time">Charlotte Tilbury · UPS · 5h ago</div>
+            </div>
+          </div>
+          <div class="act-item">
+            <div class="act-dot" style="background:rgba(245,158,11,.1);color:#f59e0b;"><i class="fas fa-file-invoice-dollar"></i></div>
+            <div class="act-content">
+              <div class="act-title">Invoice INV-2891 due soon</div>
+              <div class="act-time">$3,840 due Apr 17 · Yesterday</div>
+            </div>
+          </div>
+          <div class="act-item">
+            <div class="act-dot" style="background:rgba(244,63,94,.1);color:#f43f5e;"><i class="fas fa-bell"></i></div>
+            <div class="act-content">
+              <div class="act-title">Low stock: Dior Sauvage</div>
+              <div class="act-time">3 units remaining · 1 day ago</div>
+            </div>
+          </div>
+          <div class="act-item">
+            <div class="act-dot" style="background:rgba(16,185,129,.1);color:#10b981;"><i class="fas fa-check"></i></div>
+            <div class="act-content">
+              <div class="act-title">BD-48289 delivered</div>
+              <div class="act-time">Jordan Brand · Mar 22, 2026</div>
+            </div>
+          </div>
+          <div class="act-item">
+            <div class="act-dot" style="background:rgba(16,185,129,.1);color:#10b981;"><i class="fas fa-check"></i></div>
+            <div class="act-content">
+              <div class="act-title">INV-2890 paid — $9,600</div>
+              <div class="act-time">Gucci · Net-30 · Mar 17, 2026</div>
+            </div>
+          </div>
+          <div class="act-item">
+            <div class="act-dot" style="background:rgba(139,92,246,.1);color:#8b5cf6;"><i class="fas fa-comment-dollar"></i></div>
+            <div class="act-content">
+              <div class="act-title">RFQ submitted: YSL Beauty</div>
+              <div class="act-time">Quote requested · Mar 19, 2026</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /RIGHT COLUMN -->
+
+  </div><!-- /MAIN GRID -->
+
+</main>
+
+<!-- ORDER DETAIL OVERLAY -->
+<div class="order-detail-page" id="orderDetailPage">
+  <div class="odp-topbar">
+    <button class="odp-back" id="odpBack"><i class="fas fa-arrow-left"></i> Back to Dashboard</button>
+    <div class="odp-title" id="odpTitle">Order BD-48291</div>
+    <span id="odpStatus" class="badge badge-confirmed odp-status">Confirmed</span>
+    <div class="odp-actions">
+      <button class="btn btn-secondary btn-sm" onclick="showToast('Invoice downloaded.','success')"><i class="fas fa-download"></i> Invoice</button>
+      <button class="btn btn-outline btn-sm" onclick="showToast('PO downloaded.','success')"><i class="fas fa-file-alt"></i> PO</button>
+      <button class="btn btn-primary btn-sm" onclick="showToast('Reorder initiated!','success')"><i class="fas fa-rotate-right"></i> Reorder</button>
+    </div>
+  </div>
+  <div class="odp-body">
+    <div class="odp-hero">
+      <div class="odp-hero-left">
+        <h2 id="odpHeroNum">BD-48291</h2>
+        <div class="placed" id="odpPlaced">Placed Mar 18, 2026</div>
+        <div style="display:flex;align-items:center;gap:8px;margin-top:10px;flex-wrap:wrap;">
+          <span id="odpPOTag" class="ref-tag"><i class="fas fa-file-alt"></i> PO-29481</span>
+          <span id="odpInvTag" class="ref-tag invoice"><i class="fas fa-file-invoice-dollar"></i> INV-2891</span>
+        </div>
+      </div>
+      <div class="odp-hero-right">
+        <div class="odp-hero-total" id="odpHeroTotal">$3,840.00</div>
+        <div class="odp-hero-total-label">Order Total</div>
+      </div>
+    </div>
+    <div class="odp-grid">
+      <div class="odp-card" style="grid-column:1/-1;">
+        <h4><i class="fas fa-boxes-stacked"></i> Order Items</h4>
+        <table class="items-table">
+          <thead><tr><th>Brand</th><th>Product</th><th>SKU</th><th>Qty</th><th>Unit Price</th><th>Line Total</th></tr></thead>
+          <tbody id="odpItemsBody"></tbody>
+        </table>
+        <div class="detail-total" style="margin-top:12px;padding-top:12px;"><span>Order Total</span><span id="odpTotalVal">$3,840.00</span></div>
+      </div>
+      <div class="odp-card">
+        <h4><i class="fas fa-truck"></i> Fulfillment &amp; Tracking</h4>
+        <div class="order-timeline" id="odpTimeline" style="margin-bottom:16px;">
+          <div class="timeline-step"><div class="timeline-dot"><i class="fas fa-check"></i></div><div class="timeline-label">Placed</div><div class="timeline-date" id="odpT1">—</div></div>
+          <div class="timeline-step"><div class="timeline-dot"><i class="fas fa-check"></i></div><div class="timeline-label">Confirmed</div><div class="timeline-date" id="odpT2">—</div></div>
+          <div class="timeline-step"><div class="timeline-dot"><i class="fas fa-truck"></i></div><div class="timeline-label">Shipped</div><div class="timeline-date" id="odpT3">—</div></div>
+          <div class="timeline-step"><div class="timeline-dot"><i class="fas fa-home"></i></div><div class="timeline-label">Delivered</div><div class="timeline-date" id="odpT4">—</div></div>
+        </div>
+        <div id="odpTrackingBlock" style="margin-bottom:10px;"></div>
+        <div class="detail-row"><span class="label">Ship Date</span><span class="value" id="odpShipDate">—</span></div>
+        <div class="detail-row"><span class="label">Est. Delivery</span><span class="value" id="odpDeliveryDate">—</span></div>
+        <div class="detail-row"><span class="label">Carrier</span><span class="value" id="odpCarrier">—</span></div>
+      </div>
+      <div class="odp-card">
+        <h4><i class="fas fa-file-invoice-dollar"></i> Payment &amp; References</h4>
+        <div class="detail-row"><span class="label">PO Number</span><span class="value" style="font-family:monospace;" id="odpPONum">—</span></div>
+        <div class="detail-row"><span class="label">Invoice #</span><span class="value" style="font-family:monospace;" id="odpInvNum">—</span></div>
+        <div class="detail-row"><span class="label">Payment Terms</span><span class="value" id="odpTerms">—</span></div>
+        <div class="detail-row"><span class="label">Payment Status</span><span class="value" id="odpPayStatus">—</span></div>
+        <div class="detail-row"><span class="label">Due Date</span><span class="value" id="odpDueDate">—</span></div>
+      </div>
+      <div class="odp-card" style="grid-column:1/-1;">
+        <h4><i class="fas fa-map-marker-alt"></i> Shipping Address</h4>
+        <div style="font-size:.875rem;color:var(--color-near-black);line-height:1.7;">Alex Johnson — Boutique Collective<br>1540 W Fulton Market, Suite 300<br>Chicago, IL 60607<br>United States</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="toast-container" id="toastContainer"></div>
+<script src="js/portal.js"></script>
+<script>(function(){try{var c=JSON.parse(sessionStorage.getItem('brnd_cart')||'[]');var b=document.getElementById('sidebarCartBadge');if(b&&c.length>0){b.textContent=c.length;b.style.display='inline-flex';}}catch(e){}})();</script>
+<script>
+/* ── Live Date ── */
+document.getElementById('liveDate').textContent = new Date().toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric',year:'numeric'});
+
+/* ── KPI Counter Animation ── */
+document.querySelectorAll('[data-count]').forEach(el => {
+  const target  = parseInt(el.dataset.count);
+  const prefix  = el.dataset.prefix || '';
+  const suffix  = el.dataset.suffix || '';
+  const isComma = el.dataset.format === 'comma';
+  const dur = 1400, steps = 60, inc = target / steps;
+  let cur = 0;
+  const io = new IntersectionObserver(entries => {
+    if (entries[0].isIntersecting) {
+      const t = setInterval(() => {
+        cur = Math.min(cur + inc, target);
+        el.textContent = prefix + (isComma ? Math.round(cur).toLocaleString() : Math.round(cur)) + suffix;
+        if (cur >= target) clearInterval(t);
+      }, dur / steps);
+      io.disconnect();
+    }
+  }, { threshold: .3 });
+  io.observe(el);
+});
+
+/* ── Chart.js: Spend vs Margin ── */
+(function(){
+  const ctx = document.getElementById('spendChart');
+  if (!ctx) return;
+  new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: ['Oct', 'Nov', 'Dec', 'Jan', 'Feb', 'Mar'],
+      datasets: [
+        {
+          label: 'Spend ($)',
+          data: [68400, 74200, 112800, 86760, 92400, 105360],
+          backgroundColor: 'rgba(79,70,229,0.15)',
+          borderColor: 'rgba(79,70,229,0.8)',
+          borderWidth: 2,
+          borderRadius: 5,
+          yAxisID: 'y',
+        },
+        {
+          label: 'Margin (%)',
+          data: [38.2, 40.1, 44.6, 41.2, 42.8, 43.5],
+          type: 'line',
+          borderColor: '#10b981',
+          backgroundColor: 'rgba(16,185,129,0.08)',
+          borderWidth: 2.5,
+          pointBackgroundColor: '#10b981',
+          pointRadius: 4,
+          tension: 0.4,
+          fill: true,
+          yAxisID: 'y1',
+        }
+      ]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      interaction: { mode: 'index', intersect: false },
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          callbacks: {
+            label: ctx => ctx.datasetIndex === 0
+              ? ' Spend: $' + ctx.raw.toLocaleString()
+              : ' Margin: ' + ctx.raw + '%'
+          }
+        }
+      },
+      scales: {
+        x: { grid: { display: false }, ticks: { font: { size: 11 } } },
+        y: {
+          position: 'left',
+          grid: { color: 'rgba(0,0,0,.05)' },
+          ticks: { callback: v => '$' + (v/1000).toFixed(0) + 'k', font: { size: 10 } }
+        },
+        y1: {
+          position: 'right',
+          grid: { drawOnChartArea: false },
+          min: 30, max: 55,
+          ticks: { callback: v => v + '%', font: { size: 10 } }
+        }
+      }
+    }
+  });
+})();
+
+/* ── Chart.js: Fulfillment Donut ── */
+(function(){
+  const ctx = document.getElementById('donutChart');
+  if (!ctx) return;
+  new Chart(ctx, {
+    type: 'doughnut',
+    data: {
+      labels: ['Delivered', 'In Transit', 'Processing', 'Delayed'],
+      datasets: [{
+        data: [76, 44, 12, 6],
+        backgroundColor: ['#10b981','#6355ff','#f59e0b','#f43f5e'],
+        borderWidth: 0,
+        hoverOffset: 6
+      }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      cutout: '72%',
+      plugins: {
+        legend: { display: false },
+        tooltip: { callbacks: { label: ctx => ' ' + ctx.label + ': ' + ctx.raw + ' orders' } }
+      }
+    }
+  });
+})();
+
+/* ── Chart.js: Category Spend Horizontal Bar ── */
+(function(){
+  const ctx = document.getElementById('categoryChart');
+  if (!ctx) return;
+  new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: ['Fragrances', 'Luxury Beauty', 'Designer Bags', 'Sneakers', 'Apparel', 'Cosmetics'],
+      datasets: [{
+        label: 'Spend ($)',
+        data: [81090, 62595, 56904, 42678, 28452, 12840],
+        backgroundColor: [
+          'rgba(79,70,229,0.75)',
+          'rgba(16,185,129,0.75)',
+          'rgba(139,92,246,0.75)',
+          'rgba(245,158,11,0.75)',
+          'rgba(14,165,233,0.75)',
+          'rgba(244,63,94,0.75)'
+        ],
+        borderRadius: 5,
+        borderWidth: 0,
+      }]
+    },
+    options: {
+      indexAxis: 'y',
+      responsive: true, maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: { callbacks: { label: ctx => ' $' + ctx.raw.toLocaleString() } }
+      },
+      scales: {
+        x: { grid: { color: 'rgba(0,0,0,.04)' }, ticks: { callback: v => '$'+(v/1000).toFixed(0)+'k', font:{size:9} } },
+        y: { grid: { display: false }, ticks: { font: { size: 10 } } }
+      }
+    }
+  });
+})();
+
+/* ── Order Detail Overlay ── */
+const ORDERS = {
+  'BD-48295': { brand:'Dior', placed:'Mar 23, 2026', status:'Processing', statusClass:'badge-processing', po:'PO-29485', inv:'INV-2896', terms:'Net-30', payStatus:'Pending', dueDate:'May 10, 2026', total:'$5,760.00', shipDate:'—', deliveryDate:'Apr 4, 2026', carrier:'FedEx', items:[{brand:'Dior',product:'Sauvage EDP 100ml',sku:'DIO-SAUEDP-100',qty:24,price:'$240.00',total:'$5,760.00'}], t:['Mar 23','Mar 23','—','—'] },
+  'BD-48293': { brand:'Charlotte Tilbury', placed:'Mar 21, 2026', status:'Shipped', statusClass:'badge-shipped', po:'PO-29483', inv:'INV-2893', terms:'Net-30', payStatus:'Pending', dueDate:'May 3, 2026', total:'$3,240.00', shipDate:'Mar 25, 2026', deliveryDate:'Mar 29, 2026', carrier:'UPS', items:[{brand:'Charlotte Tilbury',product:'Pillow Talk Lip Kit',sku:'CT-PILIP-KIT',qty:36,price:'$90.00',total:'$3,240.00'}], t:['Mar 21','Mar 21','Mar 25','—'] },
+  'BD-48291': { brand:'Maison Margiela', placed:'Mar 18, 2026', status:'Confirmed', statusClass:'badge-confirmed', po:'PO-29481', inv:'INV-2891', terms:'Net-30', payStatus:'Pending', dueDate:'Apr 17, 2026', total:'$3,840.00', shipDate:'Mar 22, 2026', deliveryDate:'Apr 1, 2026', carrier:'USPS', items:[{brand:'Maison Margiela',product:'Replica Lazy Sunday EDP',sku:'MM-REPLAZY-100',qty:12,price:'$320.00',total:'$3,840.00'}], t:['Mar 18','Mar 19','Mar 22','—'] },
+  'BD-48289': { brand:'Jordan Brand', placed:'Mar 12, 2026', status:'Delivered', statusClass:'badge-delivered', po:'PO-29479', inv:'INV-2890', terms:'Net-30', payStatus:'Paid', dueDate:'Apr 11, 2026', total:'$5,580.00', shipDate:'Mar 16, 2026', deliveryDate:'Mar 22, 2026', carrier:'FedEx', items:[{brand:'Jordan Brand',product:'Air Jordan 1 Retro OG',sku:'JB-AJ1RETRO-OG',qty:18,price:'$310.00',total:'$5,580.00'}], t:['Mar 12','Mar 12','Mar 16','Mar 22'] },
+  'BD-48285': { brand:'Gucci', placed:'Mar 8, 2026', status:'Delivered', statusClass:'badge-delivered', po:'PO-29475', inv:'INV-2888', terms:'Net-30', payStatus:'Paid', dueDate:'Apr 7, 2026', total:'$9,600.00', shipDate:'Mar 11, 2026', deliveryDate:'Mar 20, 2026', carrier:'DHL', items:[{brand:'Gucci',product:'Bloom EDP 50ml',sku:'GCC-BLOOM-50',qty:24,price:'$400.00',total:'$9,600.00'}], t:['Mar 8','Mar 8','Mar 11','Mar 20'] },
+  'BD-48282': { brand:'New Balance', placed:'Mar 17, 2026', status:'Shipped', statusClass:'badge-shipped', po:'PO-29478', inv:'INV-2895', terms:'Net-30', payStatus:'Pending', dueDate:'Apr 30, 2026', total:'$2,880.00', shipDate:'Mar 22, 2026', deliveryDate:'Mar 30, 2026', carrier:'UPS', items:[{brand:'New Balance',product:'990v6 Made in USA',sku:'NB-990V6-MUS',qty:12,price:'$240.00',total:'$2,880.00'}], t:['Mar 17','Mar 18','Mar 22','—'] },
+};
+
+function openOrderDetail(id) {
+  const o = ORDERS[id]; if (!o) return;
+  document.getElementById('odpTitle').textContent    = 'Order ' + id;
+  document.getElementById('odpHeroNum').textContent  = id;
+  document.getElementById('odpPlaced').textContent   = 'Placed ' + o.placed;
+  document.getElementById('odpHeroTotal').textContent = o.total;
+  document.getElementById('odpTotalVal').textContent  = o.total;
+  document.getElementById('odpPOTag').innerHTML  = '<i class="fas fa-file-alt"></i> ' + o.po;
+  document.getElementById('odpInvTag').innerHTML = '<i class="fas fa-file-invoice-dollar"></i> ' + o.inv;
+  const statusEl = document.getElementById('odpStatus');
+  statusEl.textContent = o.status;
+  statusEl.className   = 'badge ' + o.statusClass + ' odp-status';
+  document.getElementById('odpPONum').textContent      = o.po;
+  document.getElementById('odpInvNum').textContent     = o.inv;
+  document.getElementById('odpTerms').textContent      = o.terms;
+  document.getElementById('odpPayStatus').textContent  = o.payStatus;
+  document.getElementById('odpDueDate').textContent    = o.dueDate;
+  document.getElementById('odpShipDate').textContent   = o.shipDate;
+  document.getElementById('odpDeliveryDate').textContent = o.deliveryDate;
+  document.getElementById('odpCarrier').textContent    = o.carrier;
+  // Items
+  document.getElementById('odpItemsBody').innerHTML = o.items.map(it =>
+    `<tr><td>${it.brand}</td><td>${it.product}</td><td style="font-family:monospace;">${it.sku}</td><td>${it.qty}</td><td>${it.price}</td><td style="font-weight:800;">${it.total}</td></tr>`
+  ).join('');
+  // Timeline
+  const steps = document.getElementById('odpTimeline').querySelectorAll('.timeline-step');
+  steps.forEach((s,i) => {
+    s.classList.remove('done','current');
+    document.getElementById('odpT'+(i+1)).textContent = o.t[i];
+    if (o.t[i] !== '—') s.classList.add('done');
+  });
+  // Tracking block
+  document.getElementById('odpTrackingBlock').innerHTML = o.shipDate !== '—'
+    ? `<div class="tracking-block"><span class="tk-icon"><i class="fas fa-truck-fast"></i></span><div><div class="tk-label">Tracking #</div><div class="tk-value">${o.carrier} – See shipping portal</div></div><button class="tk-copy" onclick="showToast('Tracking copied!','success')">Copy</button></div>`
+    : '';
+  document.getElementById('orderDetailPage').classList.add('open');
+}
+document.getElementById('odpBack').onclick = () => document.getElementById('orderDetailPage').classList.remove('open');
+</script>
+</body>
+</html>

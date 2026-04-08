@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Brand Dashboard – BRND Direct Partner Portal</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&family=Inter:wght@300;400;500;600;700&family=Outfit:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.5.0/css/all.min.css" />
+  <link rel="stylesheet" href="css/portal.css" />
+  <style>
+    /* Seller portal green accent override */
+    :root { --seller-accent: #10b981; --seller-accent-glow: rgba(16,185,129,.15); }
+    .sidebar { background: linear-gradient(180deg, #0d1a14 0%, #0f1f18 40%, #111a15 100%); }
+    .sidebar .nav-item.active { background: rgba(16,185,129,.15); color: #34d399; border-left-color: #10b981; }
+    .sidebar .nav-item:hover { background: rgba(16,185,129,.08); }
+    .sidebar .nav-badge { background: var(--seller-accent); }
+    .sidebar .nav-badge.new { background: #f59e0b; }
+    .topbar { border-bottom-color: #e8f5f0; }
+
+    .seller-banner {
+      background: linear-gradient(135deg, #064e3b 0%, #065f46 50%, #047857 100%);
+      border-radius: var(--radius-lg);
+      padding: 28px 32px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 28px;
+      position: relative;
+      overflow: hidden;
+    }
+    .seller-banner::before {
+      content: '';
+      position: absolute; inset: 0;
+      background: radial-gradient(ellipse at 80% 50%, rgba(255,255,255,.08) 0%, transparent 60%);
+    }
+    .seller-banner h2 { font-family: var(--font-display); font-size: 1.4rem; font-weight: 800; color: white; margin-bottom: 6px; letter-spacing: -.02em; }
+    .seller-banner p { font-size: .875rem; color: rgba(255,255,255,.65); }
+    .seller-banner__actions { display: flex; gap: 10px; flex-shrink: 0; position: relative; z-index: 1; }
+    .banner-btn { display: flex; align-items: center; gap: 8px; padding: 10px 18px; border-radius: var(--radius-sm); font-size: .82rem; font-weight: 700; cursor: pointer; border: none; text-decoration: none; transition: all .18s; }
+    .banner-btn--white { background: white; color: #065f46; }
+    .banner-btn--white:hover { background: #f0fdf4; }
+    .banner-btn--outline { background: rgba(255,255,255,.12); color: white; border: 1px solid rgba(255,255,255,.25); }
+    .banner-btn--outline:hover { background: rgba(255,255,255,.2); }
+
+    .dash-grid { display: grid; grid-template-columns: 1fr 320px; gap: 20px; align-items: start; }
+    .channel-perf { display: flex; flex-direction: column; gap: 10px; }
+    .channel-row { display: flex; align-items: center; gap: 12px; padding: 10px 0; border-bottom: 1px solid var(--color-border); }
+    .channel-row:last-child { border-bottom: none; }
+    .channel-icon { width: 32px; height: 32px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: .8rem; flex-shrink: 0; }
+    .channel-name { font-size: .82rem; font-weight: 600; color: var(--color-near-black); flex: 1; }
+    .channel-bar-wrap { width: 80px; height: 6px; background: var(--color-border); border-radius: 3px; overflow: hidden; }
+    .channel-bar { height: 100%; border-radius: 3px; background: var(--seller-accent); }
+    .channel-pct { font-size: .78rem; font-weight: 700; color: var(--color-near-black); width: 36px; text-align: right; }
+    .channel-rev { font-size: .72rem; color: var(--color-muted); width: 56px; text-align: right; }
+
+    .activity-item { display: flex; align-items: flex-start; gap: 12px; padding: 12px 0; border-bottom: 1px solid var(--color-border); }
+    .activity-item:last-child { border-bottom: none; }
+    .activity-dot { width: 8px; height: 8px; border-radius: 50%; margin-top: 5px; flex-shrink: 0; }
+    .activity-text { font-size: .82rem; color: var(--color-near-black); line-height: 1.5; flex: 1; }
+    .activity-time { font-size: .72rem; color: var(--color-muted); white-space: nowrap; }
+
+    .pending-item { display: flex; align-items: center; gap: 12px; padding: 12px 0; border-bottom: 1px solid var(--color-border); }
+    .pending-item:last-child { border-bottom: none; }
+    .pending-icon { width: 36px; height: 36px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: .9rem; flex-shrink: 0; }
+    .pending-info { flex: 1; min-width: 0; }
+    .pending-title { font-size: .82rem; font-weight: 600; color: var(--color-near-black); }
+    .pending-sub { font-size: .72rem; color: var(--color-muted); margin-top: 2px; }
+
+    .order-mini-row { display: flex; align-items: center; gap: 10px; padding: 10px 0; border-bottom: 1px solid var(--color-border); }
+    .order-mini-row:last-child { border-bottom: none; }
+    .order-mini-num { font-size: .78rem; font-weight: 700; color: var(--color-near-black); font-family: var(--font-outfit); width: 80px; flex-shrink: 0; }
+    .order-mini-buyer { font-size: .78rem; color: var(--color-muted); flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .order-mini-amt { font-size: .82rem; font-weight: 700; color: var(--color-near-black); font-family: var(--font-outfit); width: 70px; text-align: right; }
+
+    @media (max-width: 1024px) { .dash-grid { grid-template-columns: 1fr; } }
+    @media (max-width: 768px) { .seller-banner { flex-direction: column; gap: 20px; } .seller-banner__actions { width: 100%; } }
+  </style>
+</head>
+<body>
+
+<!-- ===== SIDEBAR ===== -->
+<aside class="sidebar" id="sidebar">
+  <div class="sidebar__logo">
+    <a href="seller-dashboard.html" class="logo-mark">
+      <span class="logo-icon" style="background:linear-gradient(135deg,#10b981,#059669);"><i class="fas fa-chevron-right"></i></span>
+      <span class="logo-word">BRND <span class="logo-accent">DIRECT</span></span>
+    </a>
+  </div>
+
+  <nav class="sidebar__nav">
+    <div class="nav-section">
+      <span class="nav-section-label">Brand HQ</span>
+      <a href="seller-dashboard.html" class="nav-item active"><i class="fas fa-table-columns"></i><span>Dashboard</span></a>
+      <a href="seller-products.html" class="nav-item"><i class="fas fa-boxes-stacked"></i><span>Products</span></a>
+      <a href="seller-orders.html" class="nav-item"><i class="fas fa-file-invoice"></i><span>Orders</span><span class="nav-badge">7</span></a>
+      <a href="seller-analytics.html" class="nav-item"><i class="fas fa-chart-line"></i><span>Analytics</span></a>
+    </div>
+    <div class="nav-section">
+      <span class="nav-section-label">Brand Tools</span>
+      <a href="seller-brand-hub.html" class="nav-item"><i class="fas fa-gem"></i><span>Brand Hub</span></a>
+      <a href="seller-wholesale-pricing.html" class="nav-item"><i class="fas fa-tags"></i><span>Wholesale Pricing</span></a>
+      <a href="seller-payouts.html" class="nav-item"><i class="fas fa-wallet"></i><span>Payouts</span><span class="nav-badge new">!</span></a>
+    </div>
+    <div class="nav-section">
+      <span class="nav-section-label">Account</span>
+      <a href="seller-messages.html" class="nav-item"><i class="fas fa-message"></i><span>Messages</span><span class="nav-badge">3</span></a>
+      <a href="seller-account.html" class="nav-item"><i class="fas fa-gear"></i><span>Settings</span></a>
+      <a href="help.html" class="nav-item"><i class="fas fa-circle-question"></i><span>Help & Support</span></a>
+    </div>
+  </nav>
+
+  <div class="sidebar__bottom">
+    <div class="divider"></div>
+    <div class="sidebar__user">
+      <div class="sidebar__avatar" style="background:linear-gradient(135deg,#10b981,#059669);">AP</div>
+      <div class="sidebar__user-info">
+        <div class="sidebar__user-name">Apex Apparel Co.</div>
+        <div class="sidebar__user-role">Brand Partner</div>
+      </div>
+      <a href="seller-login.html" class="sidebar__user-logout" title="Sign out"><i class="fas fa-arrow-right-from-bracket"></i></a>
+    </div>
+  </div>
+</aside>
+<div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+<!-- TOPBAR -->
+<header class="topbar" id="topbar">
+  <div class="topbar__left">
+    <button class="topbar__mobile-toggle" id="sidebarToggle"><i class="fas fa-bars"></i></button>
+    <div>
+      <div class="topbar__title">Brand Dashboard</div>
+      <div class="topbar__breadcrumb">Apex Apparel Co. · Partner Portal</div>
+    </div>
+  </div>
+  <div class="topbar__right">
+    <div class="search-bar">
+      <i class="fas fa-magnifying-glass search-bar__icon"></i>
+      <input class="search-bar__input" type="text" placeholder="Search orders, products…" />
+    </div>
+    <button class="topbar__btn" title="Notifications" style="position:relative;">
+      <i class="fas fa-bell"></i>
+      <span class="notif-dot"></span>
+    </button>
+    <a href="seller-messages.html" class="topbar__btn" title="Messages"><i class="fas fa-message"></i></a>
+    <div class="topbar__avatar" style="background:linear-gradient(135deg,#10b981,#059669);">AP</div>
+  </div>
+</header>
+
+<!-- MAIN -->
+<main class="app-main">
+
+  <!-- Welcome banner -->
+  <div class="seller-banner fade-in">
+    <div style="position:relative;z-index:1;">
+      <h2>Good morning, Apex Apparel Co. 👋</h2>
+      <p>You have <strong>7 new wholesale orders</strong> and <strong>2 pending payout approvals</strong> today.</p>
+    </div>
+    <div class="seller-banner__actions">
+      <a href="seller-products.html" class="banner-btn banner-btn--white"><i class="fas fa-plus"></i> Add Product</a>
+      <a href="seller-orders.html" class="banner-btn banner-btn--outline"><i class="fas fa-file-invoice"></i> View Orders</a>
+    </div>
+  </div>
+
+  <!-- Stat Cards -->
+  <div class="grid-4 mb-6 fade-in">
+    <div class="stat-card">
+      <div class="stat-card__icon" style="background:rgba(16,185,129,.12);color:var(--color-emerald);"><i class="fas fa-dollar-sign"></i></div>
+      <div class="stat-card__label">Total Revenue MTD</div>
+      <div class="stat-card__value" style="font-family:var(--font-outfit);">$84,320</div>
+      <div class="stat-card__change up"><i class="fas fa-arrow-trend-up"></i> +22.4% vs last month</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-card__icon" style="background:rgba(79,70,229,.12);color:var(--color-accent);"><i class="fas fa-file-invoice"></i></div>
+      <div class="stat-card__label">Wholesale Orders</div>
+      <div class="stat-card__value" style="font-family:var(--font-outfit);">142</div>
+      <div class="stat-card__change up"><i class="fas fa-arrow-trend-up"></i> +18 new this week</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-card__icon" style="background:rgba(245,158,11,.12);color:var(--color-amber);"><i class="fas fa-boxes-stacked"></i></div>
+      <div class="stat-card__label">Active SKUs</div>
+      <div class="stat-card__value" style="font-family:var(--font-outfit);">68</div>
+      <div class="stat-card__change neutral"><i class="fas fa-minus"></i> 4 pending approval</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-card__icon" style="background:rgba(16,185,129,.12);color:var(--color-emerald);"><i class="fas fa-wallet"></i></div>
+      <div class="stat-card__label">Pending Payout</div>
+      <div class="stat-card__value" style="font-family:var(--font-outfit);">$12,480</div>
+      <div class="stat-card__change up"><i class="fas fa-clock"></i> Due in 3 days</div>
+    </div>
+  </div>
+
+  <!-- Main two-column layout -->
+  <div class="dash-grid fade-in">
+
+    <!-- LEFT: Orders + Channel Performance -->
+    <div style="display:flex;flex-direction:column;gap:20px;">
+
+      <!-- Recent Orders -->
+      <div class="card">
+        <div class="card__header">
+          <span class="card__title">Recent Wholesale Orders</span>
+          <a href="seller-orders.html" class="btn btn-outline" style="font-size:.75rem;padding:6px 14px;">View All <i class="fas fa-arrow-right"></i></a>
+        </div>
+        <div class="card__body" style="padding:0;">
+          <div class="table-wrap">
+            <table class="data-table">
+              <thead><tr>
+                <th>Order #</th><th>Buyer</th><th>Products</th><th>Total</th><th>Status</th><th>Date</th>
+              </tr></thead>
+              <tbody>
+                <tr>
+                  <td><span class="font-mono" style="font-size:.82rem;font-weight:700;">WO-4521</span></td>
+                  <td><span class="td-primary">SportZone Retail</span><span class="td-secondary">Los Angeles, CA</span></td>
+                  <td><span class="td-primary">Classic Hoodie × 200</span><span class="td-secondary">+ 2 more items</span></td>
+                  <td><span class="font-mono" style="font-weight:700;">$4,200</span></td>
+                  <td><span class="status-chip status-chip--active">New</span></td>
+                  <td><span class="td-secondary">Mar 23</span></td>
+                </tr>
+                <tr>
+                  <td><span class="font-mono" style="font-size:.82rem;font-weight:700;">WO-4520</span></td>
+                  <td><span class="td-primary">Urban Threads Co.</span><span class="td-secondary">New York, NY</span></td>
+                  <td><span class="td-primary">Premium Tee × 500</span><span class="td-secondary">+ 1 more item</span></td>
+                  <td><span class="font-mono" style="font-weight:700;">$6,750</span></td>
+                  <td><span class="status-chip status-chip--pending">Processing</span></td>
+                  <td><span class="td-secondary">Mar 22</span></td>
+                </tr>
+                <tr>
+                  <td><span class="font-mono" style="font-size:.82rem;font-weight:700;">WO-4519</span></td>
+                  <td><span class="td-primary">Boutique District</span><span class="td-secondary">Chicago, IL</span></td>
+                  <td><span class="td-primary">Jogger Set × 150</span></td>
+                  <td><span class="font-mono" style="font-weight:700;">$3,375</span></td>
+                  <td><span class="status-chip status-chip--shipped">Shipped</span></td>
+                  <td><span class="td-secondary">Mar 21</span></td>
+                </tr>
+                <tr>
+                  <td><span class="font-mono" style="font-size:.82rem;font-weight:700;">WO-4518</span></td>
+                  <td><span class="td-primary">FashionForward</span><span class="td-secondary">Miami, FL</span></td>
+                  <td><span class="td-primary">Summer Collection × 300</span></td>
+                  <td><span class="font-mono" style="font-weight:700;">$8,100</span></td>
+                  <td><span class="status-chip status-chip--delivered">Delivered</span></td>
+                  <td><span class="td-secondary">Mar 19</span></td>
+                </tr>
+                <tr>
+                  <td><span class="font-mono" style="font-size:.82rem;font-weight:700;">WO-4517</span></td>
+                  <td><span class="td-primary">TrendSetters Inc.</span><span class="td-secondary">Dallas, TX</span></td>
+                  <td><span class="td-primary">Varsity Jacket × 80</span></td>
+                  <td><span class="font-mono" style="font-weight:700;">$5,600</span></td>
+                  <td><span class="status-chip status-chip--delivered">Delivered</span></td>
+                  <td><span class="td-secondary">Mar 18</span></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- Channel Performance -->
+      <div class="card">
+        <div class="card__header">
+          <span class="card__title">Channel Performance</span>
+          <a href="seller-analytics.html" class="btn btn-outline" style="font-size:.75rem;padding:6px 14px;">Details <i class="fas fa-arrow-right"></i></a>
+        </div>
+        <div class="card__body">
+          <div class="channel-perf">
+            <div class="channel-row">
+              <div class="channel-icon" style="background:rgba(79,70,229,.12);color:var(--color-accent);"><i class="fas fa-store"></i></div>
+              <span class="channel-name">BRND Direct B2B</span>
+              <div class="channel-bar-wrap"><div class="channel-bar" style="width:72%;"></div></div>
+              <span class="channel-pct">72%</span>
+              <span class="channel-rev">$60.7K</span>
+            </div>
+            <div class="channel-row">
+              <div class="channel-icon" style="background:rgba(244,63,94,.1);color:#f43f5e;"><i class="fab fa-tiktok"></i></div>
+              <span class="channel-name">TikTok Shop</span>
+              <div class="channel-bar-wrap"><div class="channel-bar" style="width:48%;background:#f43f5e;"></div></div>
+              <span class="channel-pct">48%</span>
+              <span class="channel-rev">$12.4K</span>
+            </div>
+            <div class="channel-row">
+              <div class="channel-icon" style="background:rgba(245,158,11,.12);color:var(--color-amber);"><i class="fab fa-amazon"></i></div>
+              <span class="channel-name">Amazon</span>
+              <div class="channel-bar-wrap"><div class="channel-bar" style="width:35%;background:#f59e0b;"></div></div>
+              <span class="channel-pct">35%</span>
+              <span class="channel-rev">$7.2K</span>
+            </div>
+            <div class="channel-row">
+              <div class="channel-icon" style="background:rgba(14,165,233,.1);color:var(--color-sky);"><i class="fas fa-bullseye"></i></div>
+              <span class="channel-name">Target</span>
+              <div class="channel-bar-wrap"><div class="channel-bar" style="width:20%;background:#0ea5e9;"></div></div>
+              <span class="channel-pct">20%</span>
+              <span class="channel-rev">$4.1K</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- RIGHT: Activity, Pending Actions, Quick Stats -->
+    <div style="display:flex;flex-direction:column;gap:20px;">
+
+      <!-- Pending Actions -->
+      <div class="card">
+        <div class="card__header"><span class="card__title">Action Required</span></div>
+        <div class="card__body">
+          <div class="pending-item">
+            <div class="pending-icon" style="background:rgba(245,158,11,.12);color:var(--color-amber);"><i class="fas fa-clock"></i></div>
+            <div class="pending-info">
+              <div class="pending-title">2 Payout Approvals</div>
+              <div class="pending-sub">Approve payouts to receive $12,480</div>
+            </div>
+            <a href="seller-payouts.html" class="btn btn-outline" style="font-size:.72rem;padding:5px 10px;">Review</a>
+          </div>
+          <div class="pending-item">
+            <div class="pending-icon" style="background:rgba(79,70,229,.12);color:var(--color-accent);"><i class="fas fa-boxes-stacked"></i></div>
+            <div class="pending-info">
+              <div class="pending-title">4 Products Pending</div>
+              <div class="pending-sub">Awaiting BRND Direct approval</div>
+            </div>
+            <a href="seller-products.html" class="btn btn-outline" style="font-size:.72rem;padding:5px 10px;">View</a>
+          </div>
+          <div class="pending-item">
+            <div class="pending-icon" style="background:rgba(244,63,94,.1);color:var(--color-rose);"><i class="fas fa-shield-exclamation"></i></div>
+            <div class="pending-info">
+              <div class="pending-title">1 MAP Violation Alert</div>
+              <div class="pending-sub">Unauthorized price drop detected</div>
+            </div>
+            <a href="seller-brand-hub.html" class="btn btn-outline" style="font-size:.72rem;padding:5px 10px;">Fix</a>
+          </div>
+          <div class="pending-item">
+            <div class="pending-icon" style="background:rgba(16,185,129,.12);color:var(--color-emerald);"><i class="fas fa-message"></i></div>
+            <div class="pending-info">
+              <div class="pending-title">3 Buyer Messages</div>
+              <div class="pending-sub">Unread from the last 24 hours</div>
+            </div>
+            <a href="seller-messages.html" class="btn btn-outline" style="font-size:.72rem;padding:5px 10px;">Reply</a>
+          </div>
+        </div>
+      </div>
+
+      <!-- Activity Feed -->
+      <div class="card">
+        <div class="card__header"><span class="card__title">Recent Activity</span></div>
+        <div class="card__body">
+          <div class="activity-item">
+            <div class="activity-dot" style="background:var(--color-emerald);"></div>
+            <div class="activity-text">New wholesale order <strong>WO-4521</strong> from SportZone Retail — $4,200</div>
+            <span class="activity-time">2m ago</span>
+          </div>
+          <div class="activity-item">
+            <div class="activity-dot" style="background:var(--color-accent);"></div>
+            <div class="activity-text">Product <strong>Classic Hoodie XL</strong> approved by BRND Direct team</div>
+            <span class="activity-time">1h ago</span>
+          </div>
+          <div class="activity-item">
+            <div class="activity-dot" style="background:var(--color-amber);"></div>
+            <div class="activity-text">Payout <strong>#PAY-0028</strong> of $8,750 scheduled for Mar 26</div>
+            <span class="activity-time">3h ago</span>
+          </div>
+          <div class="activity-item">
+            <div class="activity-dot" style="background:var(--color-rose);"></div>
+            <div class="activity-text">MAP violation detected on TikTok Shop — Premium Tee listed $2 below MAP</div>
+            <span class="activity-time">6h ago</span>
+          </div>
+          <div class="activity-item">
+            <div class="activity-dot" style="background:var(--color-sky);"></div>
+            <div class="activity-text">Buyer <strong>Urban Threads Co.</strong> left a 5-star review for Spring Collection</div>
+            <span class="activity-time">12h ago</span>
+          </div>
+          <div class="activity-item">
+            <div class="activity-dot" style="background:var(--color-emerald);"></div>
+            <div class="activity-text">Order <strong>WO-4519</strong> shipped via FedEx — tracking #7839204</div>
+            <span class="activity-time">1d ago</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Quick Stats -->
+      <div class="card">
+        <div class="card__header"><span class="card__title">Brand Health</span></div>
+        <div class="card__body">
+          <div style="display:flex;flex-direction:column;gap:14px;">
+            <div style="display:flex;align-items:center;justify-content:space-between;">
+              <span style="font-size:.82rem;color:var(--color-muted);">Buyer Satisfaction</span>
+              <span style="font-size:.9rem;font-weight:800;color:var(--color-emerald);">4.8 / 5.0 ⭐</span>
+            </div>
+            <div style="display:flex;align-items:center;justify-content:space-between;">
+              <span style="font-size:.82rem;color:var(--color-muted);">Order Fill Rate</span>
+              <span style="font-size:.9rem;font-weight:800;color:var(--color-near-black);">98.2%</span>
+            </div>
+            <div style="display:flex;align-items:center;justify-content:space-between;">
+              <span style="font-size:.82rem;color:var(--color-muted);">On-Time Shipments</span>
+              <span style="font-size:.9rem;font-weight:800;color:var(--color-near-black);">96.5%</span>
+            </div>
+            <div style="display:flex;align-items:center;justify-content:space-between;">
+              <span style="font-size:.82rem;color:var(--color-muted);">Return Rate</span>
+              <span style="font-size:.9rem;font-weight:800;color:var(--color-emerald);">1.8%</span>
+            </div>
+            <div style="display:flex;align-items:center;justify-content:space-between;">
+              <span style="font-size:.82rem;color:var(--color-muted);">Active Buyers</span>
+              <span style="font-size:.9rem;font-weight:800;color:var(--color-near-black);">34 buyers</span>
+            </div>
+            <div style="display:flex;align-items:center;justify-content:space-between;">
+              <span style="font-size:.82rem;color:var(--color-muted);">Brand Verification</span>
+              <span style="font-size:.78rem;font-weight:700;background:rgba(16,185,129,.12);color:var(--color-emerald);padding:3px 10px;border-radius:100px;">✓ VERIFIED</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+</main>
+
+<div class="toast-container" id="toastContainer"></div>
+<script src="js/portal.js"></script>
+<script>
+function showToast(msg, type = 'success') {
+  const c = document.getElementById('toastContainer');
+  const icon = type === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle';
+  const t = document.createElement('div'); t.className = `toast ${type}`;
+  t.innerHTML = `<i class="fas ${icon}"></i><span>${msg}</span>`;
+  c.appendChild(t);
+  setTimeout(() => { t.style.opacity='0'; t.style.transform='translateX(60px)'; t.style.transition='all .3s'; setTimeout(() => t.remove(), 350); }, 3500);
+}
+</script>
+</body>
+</html>
