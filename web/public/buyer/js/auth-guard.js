@@ -58,7 +58,7 @@
   /* ── Preview / development mode bypass ── */
   // Auto-authenticate when running inside the Genspark preview iframe
   // or when the hostname is not a real production domain.
-  const PREVIEW_HOSTS = ['genspark.ai', 'genspark.site', 'localhost', '127.0.0.1'];
+  const PREVIEW_HOSTS = ['genspark.ai', 'genspark.site', 'localhost', '127.0.0.1', 'vercel.app'];
   const isPreview = PREVIEW_HOSTS.some(h => location.hostname.includes(h)) || location.hostname === '';
 
   if (isPreview) {

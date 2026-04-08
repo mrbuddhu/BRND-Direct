@@ -12,9 +12,15 @@ npm run dev
 - Open [http://localhost:3000](http://localhost:3000) — redirects to `/index.html` (preview launcher).
 - Buyer portal example: [http://localhost:3000/buyer/dashboard.html](http://localhost:3000/buyer/dashboard.html).
 
+## Supabase (Next.js)
+
+1. Copy `web/.env.example` → `web/.env.local` and fill keys from the Supabase dashboard.
+2. Run `supabase/schema.sql` then `supabase/migrations/*.sql` in the Supabase SQL editor (see `CLIENT_TASKS.md` at repo root).
+3. Use `createBrowserSupabaseClient()` / `createServerSupabaseClient()` from `src/lib/supabase/`.
+
 ## Deploy (Vercel)
 
-Connect this `web` folder (or monorepo with root set to `web`) to Vercel. No framework change needed beyond standard Next.js.
+Connect this `web` folder (or monorepo with root set to `web`) to Vercel. Add the same `NEXT_PUBLIC_*` env vars in the Vercel project settings.
 
 ## Next steps
 
