@@ -98,13 +98,27 @@ async function buyerRegister({
 
   const userId = data.user.id;
 
-  // 2. Update profile (trigger creates the base record)
-  await sb.from('profiles').update({
+  // 2. Create profile record (trigger may not create it automatically)
+  const { error: profileErr } = await sb.from('profiles').insert({
+    id:           userId,
     first_name:    firstName,
     last_name:     lastName,
     phone,
-    display_name:  `${firstName} ${lastName}`
-  }).eq('id', userId);
+    display_name:  `${firstName} ${lastName}`,
+    role:          'buyer',
+    status:        'pending'
+  });
+  if (profileErr) {
+    // If profile already exists, update it instead
+    await sb.from('profiles').update({
+      first_name:    firstName,
+      last_name:     lastName,
+      phone,
+      display_name:  `${firstName} ${lastName}`,
+      role:          'buyer',
+      status:        'pending'
+    }).eq('id', userId);
+  }
 
   // 3. Create buyer_profiles record
   const { error: bpErr } = await sb.from('buyer_profiles').insert({
