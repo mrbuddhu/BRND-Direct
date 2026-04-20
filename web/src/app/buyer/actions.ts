@@ -10,8 +10,9 @@ export type AuthFormState = {
 };
 
 async function supabaseServer() {
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL;
+  const key =
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || process.env.SUPABASE_ANON_KEY;
   if (!url || !key) return { supabase: null };
   const store = await cookies();
   const supabase = createServerClient(url, key, {
@@ -35,7 +36,10 @@ export async function signInBuyer(
 ): Promise<AuthFormState> {
   const pack = await supabaseServer();
   if (!pack.supabase) {
-    return { error: "Set NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY." };
+    return {
+      error:
+        "Set Supabase env vars: NEXT_PUBLIC_SUPABASE_URL + NEXT_PUBLIC_SUPABASE_ANON_KEY (or SUPABASE_URL + SUPABASE_ANON_KEY).",
+    };
   }
   const supabase = pack.supabase;
 
@@ -57,7 +61,10 @@ export async function signUpBuyer(
 ): Promise<AuthFormState> {
   const pack = await supabaseServer();
   if (!pack.supabase) {
-    return { error: "Set NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY." };
+    return {
+      error:
+        "Set Supabase env vars: NEXT_PUBLIC_SUPABASE_URL + NEXT_PUBLIC_SUPABASE_ANON_KEY (or SUPABASE_URL + SUPABASE_ANON_KEY).",
+    };
   }
   const supabase = pack.supabase;
 

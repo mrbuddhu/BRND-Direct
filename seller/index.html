@@ -145,6 +145,8 @@
 </div>
 
 <div class="toast-container" id="toastContainer"></div>
+<script src="../js/supabase.js"></script>
+<script src="../js/auth.js"></script>
 <script>
   const toggleBtn = document.getElementById('togglePassword');
   const passInput = document.getElementById('password');
@@ -163,8 +165,14 @@
     const btn = document.getElementById('loginBtn');
     btn.disabled = true;
     btn.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> Signing in…';
-    await new Promise(r => setTimeout(r, 1200));
-    window.location.href = 'dashboard.html';
+    try {
+      await sellerSignIn(email, pass);
+      window.location.href = 'dashboard.html';
+    } catch (err) {
+      showToast(err.message || 'Sign in failed. Please try again.', 'error');
+      btn.disabled = false;
+      btn.innerHTML = '<span class="btn-text">Sign In to Brand Portal</span><i class="fas fa-arrow-right"></i>';
+    }
   });
 
   function showToast(msg, type = 'success') {

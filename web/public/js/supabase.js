@@ -20,19 +20,44 @@ const STRIPE_PUBLISHABLE_KEY = 'pk_live_YOUR_STRIPE_PUBLISHABLE_KEY';
 // ── Cloudflare Worker URL (replace after Step 7 deploy) ────
 const CF_WORKER_URL = 'https://brnd-direct-api.YOUR_SUBDOMAIN.workers.dev';
 
-// ── Load Supabase from CDN ──────────────────────────────────
+// ── Load Supabase from CDN (pin version; @2 float can break UMD globals) ──
 const _supabaseScript = document.createElement('script');
-_supabaseScript.src = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js';
+_supabaseScript.src =
+  'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.1/dist/umd/supabase.min.js';
+_supabaseScript.onerror = () => {
+  console.error('[BRND Direct] Failed to load supabase-js from CDN (network or blocker).');
+  document.dispatchEvent(new CustomEvent('supabase:error'));
+};
 _supabaseScript.onload = () => {
-  window._supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+  const mod = globalThis.supabase;
+  const createClient = mod && typeof mod.createClient === 'function' ? mod.createClient : null;
+  const urlOk = typeof SUPABASE_URL === 'string' && /^https:\/\//.test(SUPABASE_URL);
+  const keyOk =
+    typeof SUPABASE_ANON_KEY === 'string' &&
+    SUPABASE_ANON_KEY.length > 20 &&
+    !SUPABASE_ANON_KEY.includes('YOUR_');
+
+  if (!createClient) {
+    console.error('[BRND Direct] supabase-js loaded but createClient is missing.');
+    document.dispatchEvent(new CustomEvent('supabase:error'));
+    return;
+  }
+  if (!urlOk || !keyOk) {
+    console.error(
+      '[BRND Direct] Invalid Supabase URL or anon key in js/supabase.js — Auth requests will return "No API key".',
+    );
+    document.dispatchEvent(new CustomEvent('supabase:error'));
+    return;
+  }
+
+  window._supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
     auth: {
-      autoRefreshToken:  true,
-      persistSession:    true,
+      autoRefreshToken: true,
+      persistSession: true,
       detectSessionInUrl: true,
-      storage:           window.localStorage
-    }
+      storage: window.localStorage,
+    },
   });
-  // Fire a custom event so every page knows the client is ready
   document.dispatchEvent(new CustomEvent('supabase:ready', { detail: window._supabase }));
 };
 document.head.appendChild(_supabaseScript);
@@ -42,9 +67,25 @@ document.head.appendChild(_supabaseScript);
  * Usage:  const sb = await getSupabase();
  */
 function getSupabase() {
-  return new Promise(resolve => {
-    if (window._supabase) { resolve(window._supabase); return; }
-    document.addEventListener('supabase:ready', e => resolve(e.detail), { once: true });
+  return new Promise((resolve, reject) => {
+    if (window._supabase) {
+      resolve(window._supabase);
+      return;
+    }
+    const onErr = () => {
+      document.removeEventListener('supabase:ready', onReady);
+      reject(
+        new Error(
+          'Supabase did not initialize. Open js/supabase.js and set a valid Project URL + anon key, allow this site through ad blockers, and hard-refresh.',
+        ),
+      );
+    };
+    const onReady = (e) => {
+      document.removeEventListener('supabase:error', onErr);
+      resolve(e.detail);
+    };
+    document.addEventListener('supabase:error', onErr, { once: true });
+    document.addEventListener('supabase:ready', onReady, { once: true });
   });
 }
 

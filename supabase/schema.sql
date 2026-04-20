@@ -48,17 +48,65 @@ CREATE TABLE profiles (
   updated_at        TIMESTAMPTZ DEFAULT NOW()
 );
 
--- ── Trigger: auto-create profile on new auth user ───────────
+-- ── Trigger: auto-create profile (+ buyer_profiles for buyers) on new auth user ─
+-- Static signup sends business_* in raw_user_meta_data so rows exist even when
+-- email confirmation is on (no client session → RLS would otherwise block inserts).
 CREATE OR REPLACE FUNCTION handle_new_user()
-RETURNS TRIGGER LANGUAGE plpgsql SECURITY DEFINER AS $$
+RETURNS TRIGGER
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+  r user_role;
+  fn text;
+  ln text;
+  disp text;
+  ph text;
+  bn text;
 BEGIN
-  INSERT INTO profiles (id, role, first_name, last_name)
-  VALUES (
-    NEW.id,
-    COALESCE((NEW.raw_user_meta_data->>'role')::user_role, 'buyer'),
-    NEW.raw_user_meta_data->>'first_name',
-    NEW.raw_user_meta_data->>'last_name'
-  );
+  fn := NULLIF(trim(COALESCE(NEW.raw_user_meta_data->>'first_name', '')), '');
+  ln := NULLIF(trim(COALESCE(NEW.raw_user_meta_data->>'last_name', '')), '');
+  ph := NULLIF(trim(COALESCE(NEW.raw_user_meta_data->>'phone', '')), '');
+  disp := NULLIF(trim(concat_ws(' ', fn, ln)), '');
+
+  BEGIN
+    r := COALESCE(
+      (NULLIF(trim(COALESCE(NEW.raw_user_meta_data->>'role', '')), ''))::user_role,
+      'buyer'::user_role
+    );
+  EXCEPTION
+    WHEN invalid_text_representation THEN
+      r := 'buyer'::user_role;
+  END;
+
+  INSERT INTO profiles (id, role, first_name, last_name, phone, display_name, status)
+  VALUES (NEW.id, r, fn, ln, ph, disp, 'pending'::account_status)
+  ON CONFLICT (id) DO UPDATE
+  SET role = EXCLUDED.role,
+      first_name = COALESCE(EXCLUDED.first_name, profiles.first_name),
+      last_name = COALESCE(EXCLUDED.last_name, profiles.last_name),
+      phone = COALESCE(EXCLUDED.phone, profiles.phone),
+      display_name = COALESCE(EXCLUDED.display_name, profiles.display_name),
+      status = EXCLUDED.status;
+
+  IF r = 'buyer'::user_role THEN
+    bn := NULLIF(trim(COALESCE(NEW.raw_user_meta_data->>'business_name', '')), '');
+    IF bn IS NOT NULL THEN
+      INSERT INTO buyer_profiles (profile_id, business_name, business_type, ein_tax_id)
+      VALUES (
+        NEW.id,
+        bn,
+        NULLIF(trim(COALESCE(NEW.raw_user_meta_data->>'business_type', '')), ''),
+        NULLIF(trim(COALESCE(NEW.raw_user_meta_data->>'ein_tax_id', '')), '')
+      )
+      ON CONFLICT (profile_id) DO UPDATE
+      SET business_name = EXCLUDED.business_name,
+          business_type = COALESCE(EXCLUDED.business_type, buyer_profiles.business_type),
+          ein_tax_id = COALESCE(EXCLUDED.ein_tax_id, buyer_profiles.ein_tax_id);
+    END IF;
+  END IF;
+
   RETURN NEW;
 END;
 $$;
@@ -580,6 +628,8 @@ CREATE POLICY "Users see own notifications"
   ON notifications FOR SELECT USING (profile_id = auth.uid() OR is_admin());
 CREATE POLICY "Users update own notifications"
   ON notifications FOR UPDATE USING (profile_id = auth.uid());
+CREATE POLICY "Users insert own notifications"
+  ON notifications FOR INSERT WITH CHECK (profile_id = auth.uid());
 
 -- ── analytics — write-only for own user ──────────────────────
 CREATE POLICY "Users insert own events"

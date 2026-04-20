@@ -189,7 +189,7 @@
         </div>
         <div class="form-group">
           <label class="form-label">Phone Number</label>
-          <div class="input-group"><i class="fas fa-phone input-icon"></i><input type="tel" class="form-input" placeholder="+1 (555) 000-0000" /></div>
+            <div class="input-group"><i class="fas fa-phone input-icon"></i><input type="tel" class="form-input" id="phone" placeholder="+1 (555) 000-0000" /></div>
         </div>
         <div class="form-grid-2">
           <div class="form-group">
@@ -221,7 +221,7 @@
           <label class="form-label">Annual Revenue (approx)</label>
           <div class="input-group">
             <i class="fas fa-chart-bar input-icon"></i>
-            <select class="form-input">
+            <select class="form-input" id="annualRevenue">
               <option value="">Select range</option>
               <option>Under $100K</option>
               <option>$100K – $500K</option>
@@ -287,7 +287,7 @@
         </div>
         <div class="form-group">
           <label class="form-label">Product Description / Brand Story</label>
-          <textarea class="form-input" rows="3" placeholder="Tell us about your products and what makes your brand unique…" style="resize:vertical;font-family:inherit;"></textarea>
+          <textarea class="form-input" id="brandDescription" rows="3" placeholder="Tell us about your products and what makes your brand unique…" style="resize:vertical;font-family:inherit;"></textarea>
         </div>
         <div class="form-section-title"><i class="fas fa-certificate" style="margin-right:6px;"></i> Certifications & Compliance</div>
         <div class="check-list">
@@ -405,6 +405,8 @@
 </div>
 
 <div class="toast-container" id="toastContainer"></div>
+<script src="../js/supabase.js"></script>
+<script src="../js/auth.js"></script>
 <script>
   let currentStep = 1;
 
@@ -454,16 +456,44 @@
   }
 
   async function submitApplication() {
+    const brandName = document.getElementById('brandName').value.trim();
+    const firstName = document.getElementById('firstName').value.trim();
+    const lastName = document.getElementById('lastName').value.trim();
+    const email = document.getElementById('email').value.trim();
+    const phone = document.getElementById('phone').value.trim();
+    const primaryCategory = document.getElementById('category').value.trim();
+    const annualRevenue = document.getElementById('annualRevenue').value.trim();
+    const description = document.getElementById('brandDescription').value.trim();
+
+    if (!brandName || !firstName || !lastName || !email || !primaryCategory) {
+      showToast('Please complete required brand details before submitting.', 'error');
+      return;
+    }
+
     const btn = document.getElementById('submitBtn');
     btn.disabled = true;
     btn.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> Submitting…';
-    await new Promise(r => setTimeout(r, 1600));
-    document.getElementById('step-4').classList.remove('active');
-    document.getElementById('step-5').classList.add('active');
-    document.getElementById('appRef').textContent = Math.floor(10000 + Math.random() * 90000);
-    // Hide step indicator for success
-    document.getElementById('stepIndicator').style.display = 'none';
-    document.querySelector('.step-label-row').style.display = 'none';
+    try {
+      await sellerRegister({
+        brandName,
+        contactName: `${firstName} ${lastName}`.trim(),
+        email,
+        phone,
+        primaryCategory,
+        annualRevenue,
+        description,
+      });
+      document.getElementById('step-4').classList.remove('active');
+      document.getElementById('step-5').classList.add('active');
+      document.getElementById('appRef').textContent = Math.floor(10000 + Math.random() * 90000);
+      // Hide step indicator for success
+      document.getElementById('stepIndicator').style.display = 'none';
+      document.querySelector('.step-label-row').style.display = 'none';
+    } catch (err) {
+      showToast(err.message || 'Application failed. Please try again.', 'error');
+      btn.disabled = false;
+      btn.innerHTML = '<span class="btn-text">Submit Application</span> <i class="fas fa-paper-plane"></i>';
+    }
   }
 
   function showToast(msg, type = 'success') {

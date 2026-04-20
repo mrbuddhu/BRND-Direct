@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Pending Approval - BRND Direct</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      color-scheme: light;
+      --bg: #f7f8fc;
+      --card: #ffffff;
+      --text: #111827;
+      --muted: #6b7280;
+      --border: #e5e7eb;
+      --accent: #4f46e5;
+      --warn: #f59e0b;
+      --ok: #059669;
+      --danger: #dc2626;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      padding: 20px;
+      font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      background: radial-gradient(circle at 20% 10%, #eef2ff 0%, var(--bg) 45%, var(--bg) 100%);
+      color: var(--text);
+    }
+    .card {
+      width: 100%;
+      max-width: 560px;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 28px;
+      box-shadow: 0 8px 40px rgba(17, 24, 39, 0.08);
+    }
+    h1 { margin: 0 0 10px; font-size: 1.5rem; }
+    p { margin: 0; color: var(--muted); line-height: 1.6; }
+    .pill {
+      display: inline-flex;
+      margin: 14px 0 16px;
+      padding: 6px 12px;
+      border-radius: 999px;
+      font-size: 0.78rem;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      background: rgba(245, 158, 11, 0.14);
+      color: #b45309;
+    }
+    .meta {
+      margin-top: 14px;
+      padding-top: 14px;
+      border-top: 1px dashed var(--border);
+      font-size: 0.85rem;
+      color: var(--muted);
+    }
+    .actions {
+      margin-top: 18px;
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    .btn {
+      border: 1px solid var(--border);
+      background: #fff;
+      color: var(--text);
+      border-radius: 10px;
+      padding: 10px 14px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .btn.primary {
+      border-color: transparent;
+      background: var(--accent);
+      color: #fff;
+    }
+    .state-ok { color: var(--ok); }
+    .state-danger { color: var(--danger); }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h1>Application under review</h1>
+    <span class="pill" id="statusPill">Pending</span>
+    <p id="message">
+      Your buyer account was created successfully. We are reviewing your application.
+      This page updates automatically as soon as your status changes.
+    </p>
+    <div class="meta" id="meta">Checking approval status...</div>
+    <div class="actions">
+      <button class="btn primary" id="checkNow">Check now</button>
+      <button class="btn" id="logoutBtn">Sign out</button>
+    </div>
+  </div>
+
+  <script src="../js/supabase.js"></script>
+  <script src="../js/auth.js"></script>
+  <script>
+    (async function initPendingApprovalPage() {
+      const statusPill = document.getElementById('statusPill');
+      const message = document.getElementById('message');
+      const meta = document.getElementById('meta');
+      const checkNow = document.getElementById('checkNow');
+      const logoutBtn = document.getElementById('logoutBtn');
+
+      let channel = null;
+      let userId = null;
+
+      function setMeta(text, state) {
+        meta.textContent = text;
+        meta.classList.remove('state-ok', 'state-danger');
+        if (state === 'ok') meta.classList.add('state-ok');
+        if (state === 'danger') meta.classList.add('state-danger');
+      }
+
+      async function fetchStatusAndRoute() {
+        const sb = await getSupabase();
+        const { data: profile, error } = await sb
+          .from('profiles')
+          .select('status')
+          .eq('id', userId)
+          .single();
+
+        if (error) {
+          setMeta('Could not read account status. Please retry.', 'danger');
+          return;
+        }
+
+        const status = profile?.status || 'pending';
+        statusPill.textContent = status;
+
+        if (status === 'approved') {
+          setMeta('Approved. Redirecting to your dashboard...', 'ok');
+          message.textContent = 'Great news, your account is approved.';
+          window.location.href = 'dashboard.html';
+          return;
+        }
+
+        if (status === 'suspended' || status === 'rejected') {
+          setMeta(`Status: ${status}. Contact support for help.`, 'danger');
+          message.textContent = 'Your account is not active right now.';
+          return;
+        }
+
+        setMeta('Still pending. This page will refresh automatically when approved.');
+      }
+
+      try {
+        const { user } = await getCurrentUser();
+        if (!user) {
+          window.location.href = 'index.html';
+          return;
+        }
+        userId = user.id;
+
+        await fetchStatusAndRoute();
+
+        const sb = await getSupabase();
+        channel = sb
+          .channel(`approval:${userId}`)
+          .on(
+            'postgres_changes',
+            {
+              event: 'UPDATE',
+              schema: 'public',
+              table: 'profiles',
+              filter: `id=eq.${userId}`,
+            },
+            () => {
+              fetchStatusAndRoute();
+            },
+          )
+          .subscribe();
+
+        checkNow.addEventListener('click', fetchStatusAndRoute);
+        logoutBtn.addEventListener('click', () => signOut('index.html'));
+
+        // Fallback in case websocket is blocked by network policy.
+        window.setInterval(fetchStatusAndRoute, 15000);
+      } catch (e) {
+        setMeta('Session error. Redirecting to sign in...', 'danger');
+        window.setTimeout(() => { window.location.href = 'index.html'; }, 1200);
+      }
+
+      window.addEventListener('beforeunload', async () => {
+        if (!channel) return;
+        try {
+          const sb = await getSupabase();
+          sb.removeChannel(channel);
+        } catch (_) {}
+      });
+    })();
+  </script>
+</body>
+</html>
