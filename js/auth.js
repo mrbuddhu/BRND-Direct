@@ -74,6 +74,36 @@ async function sellerSignIn(email, password) {
 }
 
 /* ══════════════════════════════════════════════════════════════
+   ADMIN SIGN-IN
+══════════════════════════════════════════════════════════════ */
+async function adminSignIn(email, password) {
+  const sb = await getSupabase();
+  const { data, error } = await sb.auth.signInWithPassword({ email, password });
+  if (error) throw error;
+
+  const { data: profile } = await sb
+    .from('profiles')
+    .select('role, status')
+    .eq('id', data.user.id)
+    .single();
+
+  if (profile?.role !== 'admin') {
+    await sb.auth.signOut();
+    throw new Error('This account is not an admin account. Please use the correct portal sign-in.');
+  }
+  if (profile?.status === 'suspended') {
+    await sb.auth.signOut();
+    throw new Error('Your admin access is suspended. Please contact support@brnddirect.com.');
+  }
+  if (profile?.status === 'pending') {
+    window.location.href = '../seller/pending-approval.html';
+    return data;
+  }
+
+  return data;
+}
+
+/* ══════════════════════════════════════════════════════════════
    BUYER REGISTRATION
 ══════════════════════════════════════════════════════════════ */
 async function buyerRegister({

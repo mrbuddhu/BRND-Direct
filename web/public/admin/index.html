@@ -439,7 +439,7 @@
           <div class="sidebar-user-name" id="adminName">Admin</div>
           <div class="sidebar-user-role">Super Admin</div>
         </div>
-        <button class="sidebar-logout" title="Sign out" onclick="signOut('/buyer/index.html')">
+        <button class="sidebar-logout" title="Sign out" onclick="signOut('/admin/login.html')">
           <i class="fas fa-sign-out-alt"></i>
         </button>
       </div>
@@ -1121,11 +1121,11 @@ document.addEventListener('supabase:ready', async () => {
   // Require admin auth
   const sb = await getSupabase();
   const { data: { session } } = await sb.auth.getSession();
-  if (!session) { window.location.href = '../buyer/index.html'; return; }
+  if (!session) { window.location.href = '../admin/login.html'; return; }
 
   const { data: profile } = await sb.from('profiles').select('*').eq('id', session.user.id).single();
   if (!profile || profile.role !== 'admin') {
-    window.location.href = '../buyer/index.html';
+    window.location.href = '../admin/login.html';
     return;
   }
 
