@@ -1656,6 +1656,27 @@ a, button { -webkit-tap-highlight-color: transparent; }
 }
 .auth-footer a { color: var(--color-accent); }
 
+/* Desktop login panels: keep full card visible without right-panel scroll. */
+@media (min-width: 901px) {
+  .auth-right {
+    overflow-y: hidden;
+    align-items: flex-start;
+    padding-top: 28px;
+    padding-bottom: 28px;
+  }
+  .auth-card {
+    max-width: 430px;
+    padding: 32px 30px;
+  }
+  .auth-card__logo { margin-bottom: 18px; }
+  .auth-card__sub { margin-bottom: 18px; }
+  .auth-card .form-group { margin-bottom: 14px; }
+  .forgot-link { margin-top: -6px; margin-bottom: 14px; }
+  .divider-text { margin: 14px 0 10px; }
+  .social-btns { margin-top: 12px; }
+  .auth-footer { margin-top: 14px; }
+}
+
 /* ---------- Animations ---------- */
 .fade-in {
   opacity: 0;

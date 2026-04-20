@@ -10,6 +10,21 @@
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&family=Inter:wght@300;400;500;600;700&family=Outfit:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.5.0/css/all.min.css" />
   <link rel="stylesheet" href="css/portal.css" />
+  <style>
+    /* Buyer page has more left-panel content; compact it on desktop heights. */
+    @media (min-width: 901px) {
+      .auth-left { padding-top: 34px; padding-bottom: 28px; }
+      .auth-left__logo { margin-bottom: 16px; }
+      .auth-left p { margin-bottom: 12px; line-height: 1.5; }
+      .auth-benefits { gap: 7px; margin-bottom: 10px; }
+      .auth-benefit { padding: 9px 10px; }
+      .auth-benefit-icon { width: 30px; height: 30px; font-size: .72rem; }
+      .auth-benefit-title { font-size: .78rem; }
+      .auth-benefit-desc { font-size: .7rem; line-height: 1.32; }
+      .auth-stats { padding-top: 10px; gap: 12px; }
+      .auth-stat-value { font-size: 1rem; }
+    }
+  </style>
 </head>
 <body>
 <div class="auth-wrapper">
@@ -72,7 +87,7 @@
         <div class="auth-stat-item"><span class="auth-stat-value">$32T</span><span class="auth-stat-label">TAM Market</span></div>
       </div>
 
-      <div style="margin-top:28px;padding-top:24px;border-top:1px solid rgba(255,255,255,.08);">
+      <div style="margin-top:16px;padding-top:14px;border-top:1px solid rgba(255,255,255,.08);">
         <div style="font-size:.75rem;color:rgba(255,255,255,.3);margin-bottom:10px;">Are you a brand / seller?</div>
         <a href="../seller/index.html" style="display:inline-flex;align-items:center;gap:8px;font-size:.82rem;font-weight:600;color:rgba(255,255,255,.5);border:1px solid rgba(255,255,255,.12);padding:8px 16px;border-radius:var(--radius-sm);transition:all .2s;" onmouseover="this.style.borderColor='rgba(16,185,129,.4)';this.style.color='#34d399';" onmouseout="this.style.borderColor='rgba(255,255,255,.12)';this.style.color='rgba(255,255,255,.5)';">
           <i class="fas fa-box-open"></i> Switch to Brand Portal →
