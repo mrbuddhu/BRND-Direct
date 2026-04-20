@@ -1026,6 +1026,187 @@ function renderLiveDate() {
   });
 }
 
+function formatMoney(val) {
+  const n = Number(val || 0);
+  return `$${Math.round(n).toLocaleString()}`;
+}
+
+function formatShortDate(val) {
+  if (!val) return '—';
+  const d = new Date(val);
+  if (Number.isNaN(d.getTime())) return '—';
+  return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+}
+
+function statusBadge(status) {
+  const map = {
+    pending: 'badge-processing',
+    confirmed: 'badge-confirmed',
+    processing: 'badge-processing',
+    shipped: 'badge-shipped',
+    delivered: 'badge-delivered',
+    cancelled: 'badge-cancelled',
+    refunded: 'badge-cancelled',
+  };
+  return map[(status || '').toLowerCase()] || 'badge-processing';
+}
+
+function setKpiValues(metrics) {
+  const vals = Array.from(document.querySelectorAll('.kpi-card .kpi-val'));
+  if (vals[0]) vals[0].dataset.count = Math.round(metrics.spendMtd || 0);
+  if (vals[1]) vals[1].dataset.count = Math.round(metrics.activeOrders || 0);
+  if (vals[2]) vals[2].dataset.count = Math.round(metrics.openInvoices || 0);
+  if (vals[3]) vals[3].dataset.count = Math.round(metrics.inTransit || 0);
+  if (vals[4]) vals[4].dataset.count = Math.round(metrics.creditAvailable || 0);
+}
+
+function renderRecentOrders(orders) {
+  const tbody = document.querySelector('.orders-compact tbody');
+  if (!tbody) return;
+  if (!orders.length) {
+    tbody.innerHTML = '<tr><td colspan="7" style="padding:14px;color:var(--color-muted);">No recent orders yet.</td></tr>';
+    return;
+  }
+  tbody.innerHTML = orders.map((o) => {
+    const eta = o.deliveryDate || o.due_date || o.created_at;
+    return `<tr>
+      <td><a class="order-id-link" href="#" onclick="openOrderDetail('${o.order_number}');return false;">${o.order_number}</a></td>
+      <td><span style="font-size:.78rem;font-weight:600;">${o.brand || 'Brand'}</span></td>
+      <td style="color:var(--color-muted);font-size:.78rem;">${o.productSummary || 'Order items'}</td>
+      <td style="font-weight:700;">${o.units || 0}</td>
+      <td style="font-weight:800;font-family:var(--font-display);">${formatMoney(o.total_amount)}</td>
+      <td><span class="badge ${statusBadge(o.status)}">${o.status || 'pending'}</span></td>
+      <td><span style="color:#f59e0b;font-weight:600;font-size:.75rem;">${formatShortDate(eta)}</span></td>
+    </tr>`;
+  }).join('');
+}
+
+function renderInvoices(invoices) {
+  const first = document.querySelector('.inv-row');
+  if (!first) return;
+  const body = first.parentElement;
+  if (!body) return;
+  if (!invoices.length) {
+    body.innerHTML = '<div style="font-size:.78rem;color:var(--color-muted);padding:8px 0;">No outstanding invoices.</div>';
+    return;
+  }
+  body.innerHTML = invoices.map((inv) => {
+    const color = (inv.payment_status === 'paid') ? '#10b981' : '#f59e0b';
+    return `<div class="inv-row">
+      <div class="inv-dot" style="background:${color};"></div>
+      <div class="inv-id">${inv.invoice_number || 'INV'}</div>
+      <div class="inv-brand">${inv.brand || 'Invoice'}</div>
+      <div class="inv-amt" style="color:${color};">${formatMoney(inv.amount)}</div>
+      <div class="inv-due">${formatShortDate(inv.due_date)}</div>
+    </div>`;
+  }).join('');
+}
+
+function renderShipments(orders) {
+  const first = document.querySelector('.ship-row');
+  if (!first) return;
+  const body = first.parentElement;
+  if (!body) return;
+  if (!orders.length) {
+    body.innerHTML = '<div style="font-size:.78rem;color:var(--color-muted);padding:8px 0;">No in-transit shipments.</div>';
+    return;
+  }
+  body.innerHTML = orders.map((o) => {
+    const tracking = o.tracking_info?.tracking_number || o.order_number;
+    const carrier = o.tracking_info?.carrier || 'Carrier';
+    const destination = o.tracking_info?.destination || 'Destination';
+    return `<div class="ship-row">
+      <div class="carrier-pill" style="background:#4d148c;">${carrier}</div>
+      <div class="ship-info">
+        <div class="ship-id">${tracking}</div>
+        <div class="ship-dest">${destination}</div>
+      </div>
+      <div class="ship-eta" style="color:#f59e0b;">${formatShortDate(o.deliveryDate || o.due_date || o.created_at)}</div>
+    </div>`;
+  }).join('');
+}
+
+function renderActivity(items) {
+  const first = document.querySelector('.act-item');
+  if (!first) return;
+  const body = first.parentElement;
+  if (!body) return;
+  if (!items.length) {
+    body.innerHTML = '<div style="font-size:.78rem;color:var(--color-muted);padding:8px 0;">No recent activity yet.</div>';
+    return;
+  }
+  body.innerHTML = items.map((n) => `<div class="act-item">
+      <div class="act-dot" style="background:rgba(79,70,229,.1);color:var(--color-accent);"><i class="fas fa-bell"></i></div>
+      <div class="act-content">
+        <div class="act-title">${n.title || 'Notification'}</div>
+        <div class="act-time">${n.body || ''} · ${formatShortDate(n.created_at)}</div>
+      </div>
+    </div>`).join('');
+}
+
+async function hydrateDashboardData(ctx) {
+  const sb = await getSupabase();
+  const userId = ctx?.user?.id;
+  if (!userId) return;
+  const bp = ctx?.profile?.buyer_profiles?.[0];
+  if (!bp?.id) return;
+
+  const [{ data: orders }, { data: invoices }, { data: notes }] = await Promise.all([
+    sb.from('orders').select('id,order_number,status,total_amount,created_at,due_date,tracking_info').eq('buyer_profile_id', bp.id).order('created_at', { ascending: false }).limit(6),
+    sb.from('invoices').select('invoice_number,amount,due_date,payment_status,created_at').eq('buyer_profile_id', bp.id).order('due_date', { ascending: true }).limit(4),
+    sb.from('notifications').select('title,body,created_at').eq('profile_id', userId).order('created_at', { ascending: false }).limit(6),
+  ]);
+
+  const safeOrders = orders || [];
+  const safeInvoices = invoices || [];
+  const safeNotes = notes || [];
+
+  const orderIds = safeOrders.map((o) => o.id).filter(Boolean);
+  const { data: itemRows } = orderIds.length
+    ? await sb.from('order_items').select('order_id,name,quantity').in('order_id', orderIds)
+    : { data: [] };
+  const itemsByOrder = (itemRows || []).reduce((acc, row) => {
+    if (!acc[row.order_id]) acc[row.order_id] = [];
+    acc[row.order_id].push(row);
+    return acc;
+  }, {});
+
+  const enrichedOrders = safeOrders.map((o) => {
+    const its = itemsByOrder[o.id] || [];
+    const units = its.reduce((t, r) => t + (Number(r.quantity) || 0), 0);
+    const firstItem = its[0]?.name || 'Order items';
+    return {
+      ...o,
+      units,
+      brand: firstItem.split(' ')[0] || 'Brand',
+      productSummary: `${firstItem}${units ? ` × ${units}` : ''}`,
+      deliveryDate: o.tracking_info?.estimated_delivery || null,
+    };
+  });
+
+  const spendMtd = safeOrders
+    .filter((o) => {
+      const d = new Date(o.created_at);
+      const now = new Date();
+      return d.getFullYear() === now.getFullYear() && d.getMonth() === now.getMonth();
+    })
+    .reduce((t, o) => t + (Number(o.total_amount) || 0), 0);
+  const activeOrders = safeOrders.filter((o) => ['pending', 'confirmed', 'processing', 'shipped'].includes((o.status || '').toLowerCase())).length;
+  const inTransit = safeOrders.filter((o) => ['processing', 'shipped'].includes((o.status || '').toLowerCase())).length;
+  const openInvoices = safeInvoices.filter((i) => ['unpaid', 'pending'].includes((i.payment_status || '').toLowerCase())).length;
+  const creditAvailable = Math.max(0, (Number(bp.credit_limit) || 0) - (Number(bp.credit_used) || 0));
+
+  setKpiValues({ spendMtd, activeOrders, openInvoices, inTransit, creditAvailable });
+  renderRecentOrders(enrichedOrders);
+  renderInvoices(safeInvoices);
+  renderShipments(enrichedOrders.filter((o) => ['processing', 'shipped'].includes((o.status || '').toLowerCase())));
+  renderActivity(safeNotes);
+
+  const qaBadges = document.querySelectorAll('.qa-badge');
+  if (qaBadges[0]) qaBadges[0].textContent = String(openInvoices);
+  if (qaBadges[2]) qaBadges[2].textContent = String(inTransit);
+}
+
 (async () => {
   try {
     const ctx = await initBuyerPage();
@@ -1035,12 +1216,25 @@ function renderLiveDate() {
       return;
     }
 
+    const emailFallback = (ctx?.user?.email || '')
+      .split('@')[0]
+      .replace(/[._-]+/g, ' ')
+      .trim();
+    const titleEmailFallback = emailFallback
+      ? emailFallback.replace(/\b\w/g, (c) => c.toUpperCase())
+      : '';
     const fullName = (
       profile.display_name ||
       `${profile.first_name || ''} ${profile.last_name || ''}`.trim() ||
+      titleEmailFallback ||
       'Buyer'
     ).trim();
-    const firstName = (profile.first_name || fullName.split(' ')[0] || 'Buyer').trim();
+    const firstName = (
+      profile.first_name ||
+      fullName.split(' ')[0] ||
+      titleEmailFallback.split(' ')[0] ||
+      'Buyer'
+    ).trim();
     const businessName = profile.buyer_profiles?.[0]?.business_name || 'Your Business';
 
     const welcomeName = document.getElementById('welcomeName');
@@ -1056,6 +1250,8 @@ function renderLiveDate() {
     if (shipAddressBlock) {
       shipAddressBlock.innerHTML = `${fullName} — ${businessName}<br>Address on file in account settings`;
     }
+
+    await hydrateDashboardData(ctx);
   } catch (_) {
     // initBuyerPage already handles auth redirects and soft failures.
   } finally {
