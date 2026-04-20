@@ -1207,6 +1207,55 @@ async function hydrateDashboardData(ctx) {
   if (qaBadges[2]) qaBadges[2].textContent = String(inTransit);
 }
 
+let _buyerRealtimeChannels = [];
+let _buyerRealtimeTimer = null;
+
+function scheduleBuyerDashboardRefresh(ctx) {
+  if (_buyerRealtimeTimer) clearTimeout(_buyerRealtimeTimer);
+  _buyerRealtimeTimer = setTimeout(() => {
+    hydrateDashboardData(ctx).catch(() => {});
+  }, 400);
+}
+
+async function startBuyerDashboardRealtime(ctx) {
+  try {
+    const sb = await getSupabase();
+    _buyerRealtimeChannels.forEach((ch) => sb.removeChannel(ch));
+    _buyerRealtimeChannels = [];
+
+    const userId = ctx?.user?.id;
+    const buyerProfileId = ctx?.profile?.buyer_profiles?.[0]?.id;
+    if (!userId || !buyerProfileId) return;
+
+    const orderFilter = `buyer_profile_id=eq.${buyerProfileId}`;
+    const notifFilter = `profile_id=eq.${userId}`;
+
+    _buyerRealtimeChannels.push(
+      sb.channel(`buyer-orders:${buyerProfileId}`).on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'orders', filter: orderFilter },
+        () => scheduleBuyerDashboardRefresh(ctx),
+      ).subscribe(),
+    );
+    _buyerRealtimeChannels.push(
+      sb.channel(`buyer-invoices:${buyerProfileId}`).on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'invoices', filter: orderFilter },
+        () => scheduleBuyerDashboardRefresh(ctx),
+      ).subscribe(),
+    );
+    _buyerRealtimeChannels.push(
+      sb.channel(`buyer-notes:${userId}`).on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'notifications', filter: notifFilter },
+        () => scheduleBuyerDashboardRefresh(ctx),
+      ).subscribe(),
+    );
+  } catch (_) {
+    // non-blocking: dashboard still works without realtime websocket.
+  }
+}
+
 (async () => {
   try {
     const ctx = await initBuyerPage();
@@ -1252,6 +1301,7 @@ async function hydrateDashboardData(ctx) {
     }
 
     await hydrateDashboardData(ctx);
+    await startBuyerDashboardRealtime(ctx);
   } catch (_) {
     // initBuyerPage already handles auth redirects and soft failures.
   } finally {

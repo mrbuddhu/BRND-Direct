@@ -1110,6 +1110,9 @@ let _currentBPage   = 1;
 let _currentSPage   = 1;
 let _revenueChart   = null;
 let _statusChart    = null;
+let _activeAdminTab = 'dashboard';
+let _adminRealtimeChannels = [];
+let _adminRealtimeTimer = null;
 
 /* ── Init ──────────────────────────────────────────────────── */
 document.addEventListener('supabase:ready', async () => {
@@ -1143,6 +1146,7 @@ document.addEventListener('supabase:ready', async () => {
   // Load default tab
   await loadDashboard();
   await loadAppSettingsUI();
+  await startAdminRealtimeSubscriptions();
 });
 
 /* ── Tab navigation ─────────────────────────────────────────── */
@@ -1155,6 +1159,7 @@ document.querySelectorAll('[data-tab]').forEach(link => {
 });
 
 async function switchTab(tab) {
+  _activeAdminTab = tab;
   document.querySelectorAll('[data-tab]').forEach(l => l.classList.remove('active'));
   document.querySelector(`[data-tab="${tab}"]`)?.classList.add('active');
   document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
@@ -1185,6 +1190,54 @@ async function switchTab(tab) {
     case 'portal-invoices': await loadPortalInvoices(); break;
     case 'portal-rfqs':     await loadPortalRFQs(); break;
     case 'team-members':    await loadTeamMembers(); break;
+  }
+}
+
+async function refreshActiveAdminTab() {
+  switch (_activeAdminTab) {
+    case 'dashboard':       await loadDashboard(); break;
+    case 'analytics':       await loadAnalytics(); break;
+    case 'buyers':          await loadUsers('buyer'); break;
+    case 'sellers':         await loadUsers('seller'); break;
+    case 'orders':          await loadAdminOrders(_currentOPage); break;
+    case 'products':        await loadAdminProducts(); break;
+    case 'payouts':         await loadAdminPayouts(); break;
+    case 'rfqs':            await loadAdminRFQs(); break;
+    case 'portal-orders':   await loadPortalOrders(); break;
+    case 'portal-invoices': await loadPortalInvoices(); break;
+    case 'portal-rfqs':     await loadPortalRFQs(); break;
+    case 'team-members':    await loadTeamMembers(); break;
+    default:                await loadDashboard(); break;
+  }
+}
+
+function scheduleAdminRealtimeRefresh() {
+  if (_adminRealtimeTimer) clearTimeout(_adminRealtimeTimer);
+  _adminRealtimeTimer = setTimeout(() => {
+    refreshActiveAdminTab().catch(() => {});
+  }, 500);
+}
+
+async function startAdminRealtimeSubscriptions() {
+  try {
+    const sb = await getSupabase();
+    _adminRealtimeChannels.forEach((ch) => sb.removeChannel(ch));
+    _adminRealtimeChannels = [];
+
+    const watchTables = ['profiles', 'orders', 'products', 'payouts', 'rfqs', 'invoices', 'notifications'];
+    watchTables.forEach((table) => {
+      const ch = sb
+        .channel(`admin-live:${table}`)
+        .on(
+          'postgres_changes',
+          { event: '*', schema: 'public', table },
+          () => scheduleAdminRealtimeRefresh(),
+        )
+        .subscribe();
+      _adminRealtimeChannels.push(ch);
+    });
+  } catch (_) {
+    // Non-blocking: admin still works with manual refresh.
   }
 }
 
