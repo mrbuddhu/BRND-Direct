@@ -429,9 +429,15 @@
   </div>
 </main>
 
+<script src="../js/supabase.js"></script>
+<script src="../js/auth.js"></script>
+<script src="../js/api.js"></script>
 <script src="js/portal.js"></script>
 <script>(function(){try{var c=JSON.parse(sessionStorage.getItem('brnd_cart')||'[]');var b=document.getElementById('sidebarCartBadge');if(b&&c.length>0){b.textContent=c.length;b.style.display='inline-flex';}}catch(e){}})();</script>
 <script>
+  let ACTIVE_BUYER_CONV_ID = null;
+  const BUYER_CONV_MAP = new Map();
+
   function selectConv(el, id) {
     document.querySelectorAll('.conv-item').forEach(c => c.classList.remove('active'));
     el.classList.add('active');
@@ -446,20 +452,30 @@
     const input = document.getElementById('msgInput');
     const text = input.value.trim();
     if (!text) return;
-    const msgs = document.getElementById('chatMessages');
-    const typing = document.getElementById('typingIndicator');
-    const group = document.createElement('div');
-    group.className = 'msg-group outgoing';
-    group.innerHTML = `
-      <div class="msg-avatar" style="background:var(--color-emerald);">AJ</div>
-      <div class="msg-bubbles">
-        <div class="msg-bubble">${text}</div>
-        <span class="msg-time">${new Date().toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'})}</span>
-      </div>`;
-    msgs.insertBefore(group, typing);
+    const appendLocal = () => {
+      const msgs = document.getElementById('chatMessages');
+      const typing = document.getElementById('typingIndicator');
+      const group = document.createElement('div');
+      group.className = 'msg-group outgoing';
+      group.innerHTML = `
+        <div class="msg-avatar" style="background:var(--color-emerald);">AJ</div>
+        <div class="msg-bubbles">
+          <div class="msg-bubble">${text}</div>
+          <span class="msg-time">${new Date().toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'})}</span>
+        </div>`;
+      if (typing) msgs.insertBefore(group, typing); else msgs.appendChild(group);
+      msgs.scrollTop = msgs.scrollHeight;
+    };
+    appendLocal();
+    if (ACTIVE_BUYER_CONV_ID) {
+      getSupabase().from('messages').insert({
+        conversation_id: ACTIVE_BUYER_CONV_ID,
+        sender_type: 'buyer',
+        content: text
+      }).catch(() => {});
+    }
     input.value = '';
     input.style.height = '';
-    msgs.scrollTop = msgs.scrollHeight;
   }
   function insertQuickReply(text) {
     document.getElementById('msgInput').value = text;
@@ -477,6 +493,71 @@
     const t = document.getElementById('typingIndicator');
     if (t) t.remove();
   }, 3000);
+
+  function initials(name) {
+    return String(name || 'BR').split(' ').filter(Boolean).slice(0, 2).map((part) => part[0]).join('').toUpperCase() || 'BR';
+  }
+
+  async function openBuyerConversation(conversationId, title, avatarBg) {
+    ACTIVE_BUYER_CONV_ID = conversationId;
+    document.querySelector('.chat-header-name').textContent = title || 'Conversation';
+    const avatar = document.querySelector('.chat-header .conv-avatar');
+    if (avatar) {
+      avatar.textContent = initials(title);
+      avatar.style.background = avatarBg || 'var(--color-accent)';
+    }
+    const { data: msgs } = await getMessages(conversationId);
+    const chat = document.getElementById('chatMessages');
+    chat.innerHTML = (msgs || []).map((m) => {
+      const mine = String(m.sender_type || '').toLowerCase() === 'buyer';
+      return `<div class="msg-group ${mine ? 'outgoing' : ''}">
+        <div class="msg-avatar" style="background:${mine ? 'var(--color-emerald)' : 'var(--color-accent)'};">${mine ? 'AJ' : initials(title)}</div>
+        <div class="msg-bubbles">
+          <div class="msg-bubble">${m.content || ''}</div>
+          <span class="msg-time">${new Date(m.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+        </div>
+      </div>`;
+    }).join('') || '<div class="msg-date-divider">No messages yet</div>';
+  }
+
+  async function hydrateBuyerMessagesLive() {
+    try {
+      const { profile } = await initBuyerPage();
+      const buyerProfileId = profile?.buyer_profiles?.[0]?.id;
+      if (!buyerProfileId) return;
+      const { data: convs } = await getConversations(buyerProfileId);
+      if (!convs || !convs.length) return;
+
+      const list = document.querySelector('.conv-scroll');
+      if (!list) return;
+      list.innerHTML = '';
+      convs.forEach((c, idx) => {
+        const name = c?.seller_profiles?.company_name || 'Seller';
+        const item = document.createElement('div');
+        item.className = `conv-item ${idx === 0 ? 'active' : ''}`;
+        item.innerHTML = `
+          <div class="conv-avatar" style="background:var(--color-accent);">${initials(name)}</div>
+          <div class="conv-info">
+            <div class="conv-name">${name}</div>
+            <div class="conv-preview">${c.order_id ? `Order #${String(c.order_id).slice(0, 8)}` : 'Live conversation'}</div>
+          </div>
+          <div class="conv-meta"><span class="conv-time">${new Date(c.updated_at).toLocaleDateString()}</span></div>`;
+        item.addEventListener('click', () => {
+          document.querySelectorAll('.conv-item').forEach((n) => n.classList.remove('active'));
+          item.classList.add('active');
+          openBuyerConversation(c.id, name, 'var(--color-accent)');
+        });
+        list.appendChild(item);
+        BUYER_CONV_MAP.set(c.id, c);
+      });
+      const first = convs[0];
+      openBuyerConversation(first.id, first?.seller_profiles?.company_name || 'Seller', 'var(--color-accent)');
+    } catch (_) {
+      // keep static fallback
+    }
+  }
+
+  hydrateBuyerMessagesLive();
 </script>
 </body>
 </html>

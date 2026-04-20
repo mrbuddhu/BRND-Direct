@@ -1370,6 +1370,9 @@
 </main>
 
 <div class="toast-container" id="toastContainer"></div>
+<script src="../js/supabase.js"></script>
+<script src="../js/auth.js"></script>
+<script src="../js/api.js"></script>
 <script src="js/portal.js"></script>
 <script>(function(){try{var c=JSON.parse(sessionStorage.getItem('brnd_cart')||'[]');var b=document.getElementById('sidebarCartBadge');if(b&&c.length>0){b.textContent=c.length;b.style.display='inline-flex';}}catch(e){}})();</script>
 <script>
@@ -2355,6 +2358,47 @@ renderDocuments();
 
 // Check provider status on load
 checkProviderStatus();
+
+async function hydrateShippingLogisticsLive() {
+  try {
+    const { profile } = await initBuyerPage();
+    const buyerProfileId = profile?.buyer_profiles?.[0]?.id;
+    if (!buyerProfileId) return;
+    const { data } = await getOrders(buyerProfileId, { page: 1, limit: 300 });
+    const rows = data || [];
+    if (!rows.length) return;
+
+    SHIPMENTS_DATA.length = 0;
+    rows.forEach((o, idx) => {
+      const status = String(o.status || 'pending').toLowerCase();
+      const mapped = status === 'delivered' ? 'delivered' : (status === 'shipped' ? 'in_transit' : 'pending');
+      SHIPMENTS_DATA.push({
+        id: `SHP-${String(o.id || idx).slice(0, 6).toUpperCase()}`,
+        order: o.order_number || `BD-${String(o.id || idx).slice(0, 6).toUpperCase()}`,
+        brand: o.seller_profiles?.company_name || 'Brand',
+        product: o.product_name || 'Wholesale products',
+        carrier: o.shipping_carrier || 'Carrier',
+        tracking: o.tracking_number || `TRK-${String(idx + 1).padStart(6, '0')}`,
+        type: o.shipping_type || 'Parcel',
+        status: mapped,
+        origin: o.origin_location || 'Warehouse',
+        dest: o.destination_location || 'Buyer location',
+        ship: o.shipped_at ? new Date(o.shipped_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : '—',
+        eta: o.estimated_delivery ? new Date(o.estimated_delivery).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : 'TBD',
+        weight: o.total_weight ? `${o.total_weight} lbs` : '—',
+        dims: o.dimensions || '—',
+        cost: Number(o.shipping_cost || 0),
+        progress: mapped === 'delivered' ? 5 : (mapped === 'in_transit' ? 3 : 1),
+        bolReady: true
+      });
+    });
+    filterShipments();
+  } catch (_) {
+    // keep demo fallback
+  }
+}
+
+hydrateShippingLogisticsLive();
 
 // Period tab helper
 document.querySelectorAll('.period-tab').forEach(btn => {

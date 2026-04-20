@@ -339,6 +339,9 @@
 </main>
 
 <div class="toast-container" id="toastContainer"></div>
+<script src="../js/supabase.js"></script>
+<script src="../js/auth.js"></script>
+<script src="../js/api.js"></script>
 <script src="js/portal.js"></script>
 <script>
   function setPF(btn, status) {
@@ -357,6 +360,52 @@
     c.appendChild(t);
     setTimeout(() => { t.style.opacity='0'; t.style.transform='translateX(60px)'; t.style.transition='all .3s'; setTimeout(() => t.remove(), 350); }, 3500);
   }
+
+  function fmtAmt(v) { return `$${Number(v || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`; }
+
+  function payoutState(raw) {
+    const s = String(raw || '').toLowerCase();
+    if (s === 'paid') return { cls: 'ps-paid', label: 'Paid' };
+    if (s === 'processing') return { cls: 'ps-processing', label: 'Processing' };
+    return { cls: 'ps-pending', label: 'Pending' };
+  }
+
+  async function hydrateSellerPayoutsLive() {
+    try {
+      const ctx = await initSellerPage();
+      const sellerProfileId = ctx?.profile?.seller_profiles?.[0]?.id;
+      if (!sellerProfileId || typeof getPayouts !== 'function') return;
+      const { data } = await getPayouts(sellerProfileId, { page: 1, limit: 100 });
+      const rows = data || [];
+      if (!rows.length) return;
+
+      const container = document.querySelector('.payout-row')?.parentElement;
+      if (!container) return;
+      container.innerHTML = rows.map((p) => {
+        const state = payoutState(p.status);
+        const dt = p.payout_date ? new Date(p.payout_date) : (p.created_at ? new Date(p.created_at) : null);
+        const dateText = dt ? dt.toLocaleDateString() : '—';
+        const amountColor = state.label === 'Paid' ? 'var(--color-emerald)' : (state.label === 'Processing' ? 'var(--color-accent)' : 'var(--color-amber)');
+        const statusClass = state.label === 'Paid' ? 'ss-paid' : (state.label === 'Processing' ? 'ss-confirmed' : 'ss-pending');
+        return `
+          <div class="payout-row" data-pstatus="${String(p.status || 'pending').toLowerCase()}">
+            <div class="payout-icon" style="background:rgba(16,185,129,.12);color:var(--color-emerald);"><i class="fas fa-wallet"></i></div>
+            <div class="payout-info">
+              <div class="payout-ref">PAY-${p.id ? String(p.id).slice(0, 8).toUpperCase() : 'LIVE'}</div>
+              <div class="payout-desc">Synced from payout ledger</div>
+            </div>
+            <div style="text-align:right; margin-left:auto;">
+              <div class="payout-amount" style="color:${amountColor};">${fmtAmt(p.amount)}</div>
+              <div class="payout-date">${dateText} <span class="schedule-status ${statusClass}" style="margin-left:4px;">${state.label}</span></div>
+            </div>
+          </div>`;
+      }).join('');
+    } catch (_) {
+      // keep static fallback if live load fails
+    }
+  }
+
+  hydrateSellerPayoutsLive();
 </script>
 </body>
 </html>

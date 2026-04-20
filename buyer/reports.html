@@ -734,6 +734,9 @@
 </main>
 
 <div class="toast-container" id="toastContainer"></div>
+<script src="../js/supabase.js"></script>
+<script src="../js/auth.js"></script>
+<script src="../js/api.js"></script>
 <script src="js/portal.js"></script>
 <script>(function(){try{var c=JSON.parse(sessionStorage.getItem('brnd_cart')||'[]');var b=document.getElementById('sidebarCartBadge');if(b&&c.length>0){b.textContent=c.length;b.style.display='inline-flex';}}catch(e){}})();</script>
 <script>
@@ -1102,6 +1105,72 @@ renderBrandScorecard();
 renderInvoiceReg();
 renderShipmentLog();
 buildCharts();
+
+async function hydrateReportsLive() {
+  try {
+    const { profile } = await initBuyerPage();
+    const buyerProfileId = profile?.buyer_profiles?.[0]?.id;
+    if (!buyerProfileId) return;
+
+    const [{ data: ordersData }, { data: invoicesData }] = await Promise.all([
+      getOrders(buyerProfileId, { page: 1, limit: 500 }),
+      getInvoices(buyerProfileId, { page: 1, limit: 500 })
+    ]);
+
+    const liveOrders = (ordersData || []).map((o, idx) => ({
+      id: o.order_number || `BD-${String(o.id || idx).slice(0, 6).toUpperCase()}`,
+      brand: o.seller_profiles?.company_name || 'Brand',
+      product: o.product_name || `Order ${idx + 1}`,
+      sku: o.sku || `SKU-${String(o.id || idx).slice(0, 4).toUpperCase()}`,
+      units: Number(o.quantity || o.total_units || 1),
+      price: Number(o.unit_price || ((Number(o.total_amount || 0) / Math.max(Number(o.quantity || 1), 1)) || 0)),
+      total: Number(o.total_amount || 0),
+      status: String(o.status || 'pending').toLowerCase(),
+      ship: o.shipped_at ? new Date(o.shipped_at).toLocaleDateString() : '—'
+    }));
+    if (!liveOrders.length) return;
+
+    const liveInvoices = (invoicesData || []).map((i, idx) => ({
+      id: i.invoice_number || `INV-${String(i.id || idx).slice(0, 6).toUpperCase()}`,
+      order: i.order_number || i.order_id || '—',
+      brand: i.seller_profiles?.company_name || 'Brand',
+      amount: Number(i.amount || i.total_amount || 0),
+      terms: i.terms || 'Net-30',
+      issued: i.created_at ? new Date(i.created_at).toLocaleDateString() : '—',
+      due: i.due_date ? new Date(i.due_date).toLocaleDateString() : '—',
+      status: String(i.status || 'outstanding').toLowerCase()
+    }));
+
+    const liveShipments = liveOrders.map((o, idx) => ({
+      id: o.id,
+      brand: o.brand,
+      carrier: 'Carrier',
+      tracking: `TRK-${String(idx + 1).padStart(5, '0')}`,
+      ship: o.ship,
+      delivered: o.status === 'delivered' ? o.ship : '',
+      days: o.status === 'delivered' ? 3 : 0,
+      status: o.status === 'delivered' ? 'delivered' : (o.status === 'shipped' ? 'shipped' : 'pending')
+    }));
+
+    ORDERS.length = 0; ORDERS.push(...liveOrders);
+    INVOICES.length = 0; INVOICES.push(...liveInvoices);
+    SHIPMENTS.length = 0; SHIPMENTS.push(...liveShipments);
+
+    renderOrderLog();
+    renderProductPerf();
+    renderBrandScorecard();
+    renderInvoiceReg();
+    renderShipmentLog();
+
+    ['chartMonthlySpend', 'chartCategoryDonut', 'chartOrderStatus', 'chartProductUnits', 'chartBrandBar', 'chartInvoiceStatus', 'chartTermsMix']
+      .forEach((id) => { const ch = Chart.getChart(id); if (ch) ch.destroy(); });
+    buildCharts();
+  } catch (_) {
+    // keep demo fallback
+  }
+}
+
+hydrateReportsLive();
 </script>
 </body>
 </html>

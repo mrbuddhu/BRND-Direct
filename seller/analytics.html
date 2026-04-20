@@ -321,6 +321,9 @@
 </main>
 
 <div class="toast-container" id="toastContainer"></div>
+<script src="../js/supabase.js"></script>
+<script src="../js/auth.js"></script>
+<script src="../js/api.js"></script>
 <script src="js/portal.js"></script>
 <script>
   // Revenue Line Chart
@@ -380,6 +383,58 @@
     c.appendChild(t);
     setTimeout(() => { t.style.opacity='0'; t.style.transform='translateX(60px)'; t.style.transition='all .3s'; setTimeout(() => t.remove(), 350); }, 3500);
   }
+
+async function hydrateSellerAnalyticsLive() {
+  try {
+    const ctx = await initSellerPage();
+    const sellerProfileId = ctx?.profile?.seller_profiles?.[0]?.id;
+    if (!sellerProfileId || typeof getSellerOrders !== 'function') return;
+    const { data: orders } = await getSellerOrders(sellerProfileId, { page: 1, limit: 500 });
+    const rows = orders || [];
+    if (!rows.length) return;
+
+    const byMonth = new Map();
+    const byStatus = { pending: 0, processing: 0, shipped: 0, delivered: 0, cancelled: 0 };
+    let gross = 0;
+    rows.forEach((o) => {
+      const d = new Date(o.created_at || o.order_date || Date.now());
+      const key = d.toLocaleDateString(undefined, { month: 'short', year: '2-digit' });
+      gross += Number(o.total_amount || 0);
+      byMonth.set(key, (byMonth.get(key) || 0) + Number(o.total_amount || 0));
+      const s = String(o.status || '').toLowerCase();
+      if (Object.prototype.hasOwnProperty.call(byStatus, s)) byStatus[s] += 1;
+    });
+
+    const months = Array.from(byMonth.keys()).slice(-6);
+    const revenue = months.map((m) => Math.round(byMonth.get(m) || 0));
+    const revenueChart = Chart.getChart('revenueChart');
+    if (revenueChart) {
+      revenueChart.data.labels = months;
+      revenueChart.data.datasets[0].data = revenue;
+      revenueChart.update();
+    }
+
+    const statusChart = Chart.getChart('statusChart');
+    if (statusChart) {
+      statusChart.data.datasets[0].data = [
+        byStatus.pending,
+        byStatus.processing,
+        byStatus.shipped,
+        byStatus.delivered,
+        byStatus.cancelled
+      ];
+      statusChart.update();
+    }
+
+    const kpiNodes = document.querySelectorAll('.kpi-value');
+    if (kpiNodes[0]) kpiNodes[0].textContent = `$${Math.round(gross).toLocaleString()}`;
+    if (kpiNodes[1]) kpiNodes[1].textContent = `${rows.length}`;
+  } catch (_) {
+    // keep static fallback
+  }
+}
+
+hydrateSellerAnalyticsLive();
 </script>
 </body>
 </html>

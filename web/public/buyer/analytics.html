@@ -334,6 +334,9 @@
 </main>
 
 <div class="toast-container" id="toastContainer"></div>
+<script src="../js/supabase.js"></script>
+<script src="../js/auth.js"></script>
+<script src="../js/api.js"></script>
 <script src="js/portal.js"></script>
 <script>(function(){try{var c=JSON.parse(sessionStorage.getItem('brnd_cart')||'[]');var b=document.getElementById('sidebarCartBadge');if(b&&c.length>0){b.textContent=c.length;b.style.display='inline-flex';}}catch(e){}})();</script>
 <script>
@@ -461,6 +464,61 @@ function showToast(msg,type='success'){
   const t=document.createElement('div'); t.className=`toast ${type}`; t.innerHTML=`<i class="fas ${icon}"></i><span>${msg}</span>`;
   c.appendChild(t); setTimeout(()=>{ t.style.opacity='0'; t.style.transform='translateX(60px)'; t.style.transition='all .3s'; setTimeout(()=>t.remove(),350); },3200);
 }
+
+async function hydrateBuyerAnalyticsLive() {
+  try {
+    const { profile } = await initBuyerPage();
+    const buyerProfileId = profile?.buyer_profiles?.[0]?.id;
+    if (!buyerProfileId || typeof getOrders !== 'function') return;
+    const { data: orders } = await getOrders(buyerProfileId, { page: 1, limit: 500 });
+    const rows = orders || [];
+    if (!rows.length) return;
+
+    const spendByMonth = new Map();
+    const statusCounts = { pending: 0, processing: 0, shipped: 0, delivered: 0, cancelled: 0 };
+    let totalSpend = 0;
+    rows.forEach((o) => {
+      const d = new Date(o.created_at || Date.now());
+      const key = d.toLocaleDateString(undefined, { month: 'short', year: '2-digit' });
+      const amount = Number(o.total_amount || 0);
+      spendByMonth.set(key, (spendByMonth.get(key) || 0) + amount);
+      totalSpend += amount;
+      const s = String(o.status || '').toLowerCase();
+      if (Object.prototype.hasOwnProperty.call(statusCounts, s)) statusCounts[s] += 1;
+    });
+
+    const labels = Array.from(spendByMonth.keys()).slice(-6);
+    const values = labels.map((k) => Math.round(spendByMonth.get(k) || 0));
+
+    const revenueChart = Chart.getChart('revenueChart');
+    if (revenueChart) {
+      revenueChart.data.labels = labels;
+      revenueChart.data.datasets[0].data = values;
+      revenueChart.update();
+    }
+
+    const ordersChart = Chart.getChart('ordersChart');
+    if (ordersChart) {
+      ordersChart.data.labels = ['Pending', 'Processing', 'Shipped', 'Delivered', 'Cancelled'];
+      ordersChart.data.datasets[0].data = [
+        statusCounts.pending,
+        statusCounts.processing,
+        statusCounts.shipped,
+        statusCounts.delivered,
+        statusCounts.cancelled
+      ];
+      ordersChart.update();
+    }
+
+    const bigStats = document.querySelectorAll('.stat-card .stat-value');
+    if (bigStats[0]) bigStats[0].textContent = `$${Math.round(totalSpend).toLocaleString()}`;
+    if (bigStats[1]) bigStats[1].textContent = `${rows.length}`;
+  } catch (_) {
+    // keep static fallback
+  }
+}
+
+hydrateBuyerAnalyticsLive();
 </script>
 <style>
 @media(max-width:900px){

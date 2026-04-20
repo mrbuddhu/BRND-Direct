@@ -236,8 +236,13 @@
 </main>
 
 <div class="toast-container" id="toastContainer"></div>
+<script src="../js/supabase.js"></script>
+<script src="../js/auth.js"></script>
 <script src="js/portal.js"></script>
 <script>
+  let SELLER_CONV_MAP = new Map();
+  let SELLER_ACTIVE_CONV = null;
+
   function loadConv(el, name, initials, bg, color) {
     document.querySelectorAll('.conv-item').forEach(c => c.classList.remove('active'));
     el.classList.add('active');
@@ -287,6 +292,84 @@
     this.style.height = 'auto';
     this.style.height = Math.min(this.scrollHeight, 120) + 'px';
   });
+
+  function initialsFromName(name) {
+    return String(name || 'Buyer').split(' ').filter(Boolean).slice(0, 2).map((part) => part[0]).join('').toUpperCase() || 'BY';
+  }
+
+  function renderSellerMessages(msgs) {
+    const body = document.getElementById('msgBody');
+    if (!body) return;
+    body.innerHTML = (msgs || []).map((m) => {
+      const mine = String(m.sender_type || '').toLowerCase() === 'seller';
+      return `<div class="bubble ${mine ? 'bubble--me' : 'bubble--them'}">
+        ${m.content || ''}
+        <div class="bubble-time">${new Date(m.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</div>
+      </div>`;
+    }).join('') || '<div class="msg-date-sep">No messages yet</div>';
+    body.scrollTop = body.scrollHeight;
+  }
+
+  async function openSellerConversation(convId) {
+    try {
+      const conv = SELLER_CONV_MAP.get(convId);
+      SELLER_ACTIVE_CONV = convId;
+      if (!conv) return;
+      document.getElementById('activeName').textContent = conv.title;
+      document.getElementById('activeAvatar').textContent = conv.initials;
+      const { data: msgs } = await getSupabase().from('messages').select('*').eq('conversation_id', convId).order('created_at', { ascending: true });
+      renderSellerMessages(msgs || []);
+    } catch (_) {}
+  }
+
+  async function hydrateSellerMessagesLive() {
+    try {
+      const ctx = await initSellerPage();
+      const sellerProfileId = ctx?.profile?.seller_profiles?.[0]?.id;
+      if (!sellerProfileId) return;
+      const sb = getSupabase();
+      const { data: convs } = await sb.from('conversations')
+        .select('id,buyer_profile_id,order_id,updated_at,buyer_profiles:buyer_profile_id(company_name)')
+        .eq('seller_profile_id', sellerProfileId)
+        .order('updated_at', { ascending: false })
+        .limit(30);
+      if (!convs || !convs.length) return;
+
+      const list = document.querySelector('.msg-list');
+      const header = document.querySelector('.msg-list-header');
+      if (!list || !header) return;
+      const existing = Array.from(list.querySelectorAll('.conv-item'));
+      existing.forEach((el) => el.remove());
+
+      convs.forEach((c, idx) => {
+        const title = c.buyer_profiles?.company_name || 'Buyer';
+        const initials = initialsFromName(title);
+        SELLER_CONV_MAP.set(c.id, { title, initials });
+        const item = document.createElement('div');
+        item.className = `conv-item${idx === 0 ? ' active' : ''}`;
+        item.innerHTML = `
+          <div class="conv-avatar" style="background:linear-gradient(135deg,#10b981,#059669);">${initials}</div>
+          <div class="conv-info">
+            <div class="conv-name">${title}</div>
+            <div class="conv-preview">Conversation ${c.order_id ? `for order #${String(c.order_id).slice(0, 8)}` : 'with buyer'}</div>
+          </div>
+          <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;">
+            <span class="conv-time">${new Date(c.updated_at).toLocaleDateString()}</span>
+          </div>`;
+        item.addEventListener('click', () => {
+          document.querySelectorAll('.conv-item').forEach((n) => n.classList.remove('active'));
+          item.classList.add('active');
+          openSellerConversation(c.id);
+        });
+        list.appendChild(item);
+      });
+      openSellerConversation(convs[0].id);
+    } catch (_) {
+      // keep static fallback
+    }
+  }
+
+  hydrateSellerMessagesLive();
 </script>
 </body>
 </html>

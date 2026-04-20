@@ -692,6 +692,9 @@
 </main>
 
 <div class="toast-container" id="toastContainer"></div>
+<script src="../js/supabase.js"></script>
+<script src="../js/auth.js"></script>
+<script src="../js/api.js"></script>
 <script src="js/portal.js"></script>
 <script>(function(){try{var c=JSON.parse(sessionStorage.getItem('brnd_cart')||'[]');var b=document.getElementById('sidebarCartBadge');if(b&&c.length>0){b.textContent=c.length;b.style.display='inline-flex';}}catch(e){}})();</script>
 <script>
@@ -975,6 +978,40 @@ function showToast(msg, type='success') {
 
 /* ── Boot ── */
 init();
+
+async function hydratePaymentPortalLive() {
+  try {
+    const { profile } = await initBuyerPage();
+    const buyerProfileId = profile?.buyer_profiles?.[0]?.id;
+    if (!buyerProfileId) return;
+    const { data } = await getInvoices(buyerProfileId, { page: 1, limit: 200 });
+    const rows = (data || []).filter((i) => String(i.status || '').toLowerCase() !== 'paid');
+    if (!rows.length) return;
+
+    ALL_INVOICES.length = 0;
+    rows.forEach((i, idx) => {
+      ALL_INVOICES.push({
+        id: i.invoice_number || `INV-${String(i.id || idx).slice(0, 6).toUpperCase()}`,
+        order: i.order_number || i.order_id || '—',
+        brand: i.seller_profiles?.company_name || 'Brand',
+        amount: Number(i.amount || i.total_amount || 0),
+        terms: i.terms || 'Net-30',
+        issued: i.created_at ? new Date(i.created_at).toLocaleDateString() : '—',
+        due: i.due_date ? new Date(i.due_date).toLocaleDateString() : '—',
+        status: String(i.status || 'outstanding').toLowerCase()
+      });
+    });
+
+    selectedInvoices = new Set();
+    renderInvSelectList();
+    updateSummary();
+    updateStep1Next();
+  } catch (_) {
+    // keep demo fallback
+  }
+}
+
+hydratePaymentPortalLive();
 </script>
 </body>
 </html>

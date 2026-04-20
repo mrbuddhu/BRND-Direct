@@ -449,6 +449,9 @@
 </div>
 
 <div class="toast-container" id="toastContainer"></div>
+<script src="../js/supabase.js"></script>
+<script src="../js/auth.js"></script>
+<script src="../js/api.js"></script>
 <script src="js/portal.js"></script>
 <script>
   function openAddModal() { document.getElementById('addProdModal').classList.add('open'); }
@@ -482,6 +485,67 @@
   document.getElementById('addProdModal').addEventListener('click', function(e) {
     if (e.target === this) closeAddModal();
   });
+
+  function money(v) { return `$${Number(v || 0).toFixed(2)}`; }
+
+  function productStatusBadge(status) {
+    const s = String(status || '').toLowerCase();
+    if (s === 'pending') return '<span class="prod-status-badge badge-pending">Pending Review</span>';
+    if (s === 'draft') return '<span class="prod-status-badge badge-draft">Draft</span>';
+    if (s === 'out_of_stock') return '<span class="prod-status-badge badge-out">Out of Stock</span>';
+    return '<span class="prod-status-badge badge-active">Active</span>';
+  }
+
+  async function hydrateSellerProductsLive() {
+    try {
+      const ctx = await initSellerPage();
+      const sellerProfileId = ctx?.profile?.seller_profiles?.[0]?.id;
+      if (!sellerProfileId || typeof getSellerProducts !== 'function') return;
+      const { data } = await getSellerProducts(sellerProfileId, { page: 1, limit: 120, search: '' });
+      const rows = data || [];
+      if (!rows.length) return;
+
+      const grid = document.getElementById('prodGrid');
+      if (!grid) return;
+      grid.innerHTML = rows.map((p) => {
+        const status = p.is_active ? (String(p.status || '').toLowerCase() || 'active') : 'draft';
+        const stock = Number(p.stock_qty || 0);
+        const sold = Number(p.units_sold || 0);
+        const thumb = p.category && String(p.category).toLowerCase().includes('shoe') ? '👟' : '🧥';
+        const statusData = status === 'out_of_stock' ? 'out' : (status === 'pending' ? 'pending' : (status === 'draft' ? 'draft' : 'active'));
+        return `
+          <div class="prod-card" data-status="${statusData}" data-name="${String(p.name || '').toLowerCase()}">
+            <div class="prod-thumb" style="background:linear-gradient(135deg,#1e293b,#475569);">
+              <span style="font-size:3rem;">${thumb}</span>
+              ${productStatusBadge(status)}
+              <div class="prod-menu"><button class="prod-menu-btn" onclick="event.stopPropagation();showToast('Options menu','success')"><i class="fas fa-ellipsis-v"></i></button></div>
+            </div>
+            <div class="prod-body">
+              <div class="prod-name">${p.name || 'Product'}</div>
+              <div class="prod-sku">SKU: ${p.sku || '—'}</div>
+              <div class="prod-prices">
+                <div class="prod-price-item"><span class="prod-price-label">Wholesale</span><span class="prod-price-val green">${money(p.wholesale_price)}</span></div>
+                <div class="prod-price-item"><span class="prod-price-label">MSRP</span><span class="prod-price-val">${money(p.msrp)}</span></div>
+                <div class="prod-price-item"><span class="prod-price-label">MAP</span><span class="prod-price-val">${money(p.map_price || p.msrp)}</span></div>
+              </div>
+              <div class="prod-meta">
+                <div class="prod-meta-item">Stock: <strong>${stock}</strong></div>
+                <div class="prod-meta-item">Sold: <strong>${sold}</strong></div>
+                <div class="prod-meta-item">MOQ: <strong>${Number(p.moq || 1)}</strong></div>
+              </div>
+            </div>
+            <div class="prod-footer">
+              <button class="prod-action" onclick="showToast('Opening product editor…','success')"><i class="fas fa-pencil"></i> Edit</button>
+              <button class="prod-action primary" onclick="showToast('Product synced.','success')"><i class="fas fa-check"></i> Live</button>
+            </div>
+          </div>`;
+      }).join('');
+    } catch (_) {
+      // keep static fallback if live load fails
+    }
+  }
+
+  hydrateSellerProductsLive();
 </script>
 </body>
 </html>
