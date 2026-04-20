@@ -1656,35 +1656,6 @@ a, button { -webkit-tap-highlight-color: transparent; }
 }
 .auth-footer a { color: var(--color-accent); }
 
-.mobile-auth-switch {
-  display: none;
-  margin-top: 14px;
-  padding-top: 12px;
-  border-top: 1px solid var(--color-border);
-}
-.mobile-auth-switch__label {
-  font-size: .74rem;
-  color: var(--color-muted);
-  margin-bottom: 8px;
-}
-.mobile-auth-switch__actions {
-  display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
-}
-.mobile-auth-switch__link {
-  display: inline-flex;
-  align-items: center;
-  gap: 7px;
-  font-size: .8rem;
-  font-weight: 600;
-  color: var(--color-muted);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-sm);
-  padding: 8px 12px;
-  background: #fff;
-}
-
 /* Desktop login panels: keep full card visible without right-panel scroll. */
 @media (min-width: 901px) {
   .auth-right {
@@ -1830,7 +1801,6 @@ a, button { -webkit-tap-highlight-color: transparent; }
   .auth-left { display: none; }
   .auth-right { padding: 24px; min-height: 100vh; }
   .auth-card { max-width: 500px; }
-  .mobile-auth-switch { display: block; }
 
   .products-layout { flex-direction: column; }
   .filter-panel { width: 100%; position: static; }
