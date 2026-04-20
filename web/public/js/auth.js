@@ -82,63 +82,70 @@ async function buyerRegister({
 }) {
   const sb = await getSupabase();
 
-  // 1. Create auth user
+  // Put buyer fields in user metadata so handle_new_user() (SECURITY DEFINER) can
+  // insert profiles + buyer_profiles even when email confirmation returns no session.
   const { data, error } = await sb.auth.signUp({
     email,
     password,
     options: {
       data: {
-        role:       'buyer',
+        role: 'buyer',
         first_name: firstName,
-        last_name:  lastName
-      }
-    }
+        last_name: lastName,
+        business_name: businessName,
+        business_type: businessType || null,
+        ein_tax_id: einTaxId || null,
+        ...(phone ? { phone } : {}),
+      },
+    },
   });
   if (error) throw error;
 
-  const userId = data.user.id;
-
-  // 2. Create profile record (trigger may not create it automatically)
-  const { error: profileErr } = await sb.from('profiles').insert({
-    id:           userId,
-    first_name:    firstName,
-    last_name:     lastName,
-    phone,
-    display_name:  `${firstName} ${lastName}`,
-    role:          'buyer',
-    status:        'pending'
-  });
-  if (profileErr) {
-    // If profile already exists, update it instead
-    await sb.from('profiles').update({
-      first_name:    firstName,
-      last_name:     lastName,
-      phone,
-      display_name:  `${firstName} ${lastName}`,
-      role:          'buyer',
-      status:        'pending'
-    }).eq('id', userId);
+  const userId = data.user?.id;
+  if (!userId) {
+    throw new Error('Sign up did not return a user. Check Supabase Auth logs for trigger errors.');
   }
 
-  // 3. Create buyer_profiles record
-  const { error: bpErr } = await sb.from('buyer_profiles').insert({
-    profile_id:    userId,
-    business_name: businessName,
-    business_type: businessType,
-    ein_tax_id:    einTaxId || null
-  });
-  if (bpErr) throw bpErr;
+  const hasSession = Boolean(data.session);
 
-  // 4. Send welcome notification (admin-side — just log for now)
-  await sb.from('notifications').insert({
-    profile_id: userId,
-    type:       'system',
-    title:      'Welcome to BRND Direct!',
-    body:       'Your application is under review. You will be approved within 24 hours.',
-    link:       '/buyer/dashboard.html'
-  });
+  // When a session exists, enrich rows from the client (RLS). When it does not
+  // (email confirmation required), the DB trigger + metadata above must be deployed.
+  if (hasSession) {
+    const { error: pErr } = await sb
+      .from('profiles')
+      .update({
+        first_name: firstName,
+        last_name: lastName,
+        phone: phone || null,
+        display_name: `${firstName} ${lastName}`.trim(),
+        role: 'buyer',
+        status: 'pending',
+      })
+      .eq('id', userId);
+    if (pErr) console.warn('[buyerRegister] profile update:', pErr.message);
 
-  return data;
+    const { error: bpErr } = await sb.from('buyer_profiles').upsert(
+      {
+        profile_id: userId,
+        business_name: businessName,
+        business_type: businessType || null,
+        ein_tax_id: einTaxId || null,
+      },
+      { onConflict: 'profile_id' },
+    );
+    if (bpErr) throw bpErr;
+
+    const { error: nErr } = await sb.from('notifications').insert({
+      profile_id: userId,
+      type: 'system',
+      title: 'Welcome to BRND Direct!',
+      body: 'Your application is under review. You will be approved within 24 hours.',
+      link: '/buyer/dashboard.html',
+    });
+    if (nErr) console.warn('[buyerRegister] notification:', nErr.message);
+  }
+
+  return { ...data, needsEmailConfirmation: !hasSession };
 }
 
 /* ══════════════════════════════════════════════════════════════
@@ -322,6 +329,7 @@ async function initBuyerPage() {
 
   // Load unread notification count
   loadNotificationCount(user.id);
+  subscribeNotificationCount(user.id);
 
   return { user, profile };
 }
@@ -349,6 +357,7 @@ async function initSellerPage() {
   });
 
   loadNotificationCount(user.id);
+  subscribeNotificationCount(user.id);
   return { user, profile };
 }
 
@@ -373,6 +382,39 @@ async function loadNotificationCount(userId) {
   } catch (e) { /* non-critical */ }
 }
 
+let notificationChannel = null;
+
+async function subscribeNotificationCount(userId) {
+  try {
+    const sb = await getSupabase();
+
+    // Avoid duplicate live channels when page guards rerun.
+    if (notificationChannel) {
+      await sb.removeChannel(notificationChannel);
+      notificationChannel = null;
+    }
+
+    notificationChannel = sb
+      .channel(`notifications:${userId}`)
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'notifications',
+          filter: `profile_id=eq.${userId}`,
+        },
+        () => {
+          loadNotificationCount(userId);
+        },
+      )
+      .subscribe();
+  } catch (e) {
+    // Realtime issues should not block auth/page init.
+    console.warn('[notifications] realtime subscribe failed:', e?.message || e);
+  }
+}
+
 /* ══════════════════════════════════════════════════════════════
    AUTH STATE LISTENER
    Updates UI reactively when session changes
@@ -383,6 +425,10 @@ async function loadNotificationCount(userId) {
     if (event === 'SIGNED_OUT') {
       // Clear any cached user data
       sessionStorage.removeItem('bd_profile');
+      if (notificationChannel) {
+        sb.removeChannel(notificationChannel);
+        notificationChannel = null;
+      }
     }
     if (event === 'TOKEN_REFRESHED') {
       console.debug('[Auth] Token refreshed silently');
