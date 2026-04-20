@@ -16,7 +16,7 @@
     /* Prevent branding panel clipping on shorter viewports. */
     .auth-left.admin-theme {
       justify-content: flex-start;
-      overflow-y: auto;
+      overflow-y: hidden;
       overflow-x: hidden;
       padding-top: 28px;
       padding-bottom: 28px;
@@ -33,6 +33,23 @@
     .auth-left.admin-theme p { margin-bottom: 20px; }
     .auth-left.admin-theme .auth-benefits { margin-bottom: 20px; gap: 10px; }
     .auth-left.admin-theme .auth-benefit { padding: 12px 14px; }
+    /* Keep footer links visible without manual scroll on shorter heights. */
+    @media (max-height: 900px) {
+      .auth-left.admin-theme { padding-top: 20px; padding-bottom: 20px; }
+      .auth-left.admin-theme .auth-left__logo { margin-bottom: 14px; }
+      .auth-left.admin-theme h1 { font-size: 2rem; line-height: 1.08; }
+      .auth-left.admin-theme p { font-size: .82rem; line-height: 1.5; margin-bottom: 12px; }
+      .auth-left.admin-theme .auth-benefits { gap: 8px; margin-bottom: 12px; }
+      .auth-left.admin-theme .auth-benefit { padding: 10px 12px; }
+      .auth-left.admin-theme .auth-benefit-icon { width: 30px; height: 30px; font-size: .72rem; }
+      .auth-left.admin-theme .auth-benefit-title { font-size: .78rem; }
+      .auth-left.admin-theme .auth-benefit-desc { font-size: .7rem; line-height: 1.35; }
+      .auth-left.admin-theme .auth-benefit:nth-child(3) { display: none; }
+    }
+    @media (max-height: 760px) {
+      .auth-left.admin-theme .auth-benefits { display: none; }
+      .auth-left.admin-theme p { margin-bottom: 10px; }
+    }
   </style>
 </head>
 <body>
