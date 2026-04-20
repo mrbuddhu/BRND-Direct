@@ -392,7 +392,7 @@
     <div class="sidebar__user">
       <div class="sidebar__user-avatar">AJ</div>
       <div class="sidebar__user-info">
-        <div class="sidebar__user-name">Alex Johnson</div>
+        <div class="sidebar__user-name" id="sidebarUserName">Alex Johnson</div>
         <div class="sidebar__user-role">Wholesale Buyer</div>
       </div>
       <button class="sidebar__user-logout" title="Sign out" onclick="window.location.href='index.html'">
@@ -412,7 +412,7 @@
     </button>
     <div>
       <div class="topbar__title">Dashboard</div>
-      <div class="topbar__breadcrumb">Welcome back, Alex 👋 &nbsp;·&nbsp; <span id="liveDate"></span></div>
+      <div class="topbar__breadcrumb">Welcome back, <span id="welcomeName">Alex</span> 👋 &nbsp;·&nbsp; <span id="liveDate"></span></div>
     </div>
   </div>
   <div class="topbar__right">
@@ -437,7 +437,7 @@
   <!-- Welcome Banner -->
   <div class="welcome-banner fade-in" style="margin-bottom:20px;">
     <div class="welcome-banner__content">
-      <h2>Good morning, Alex! 🌟</h2>
+      <h2 id="welcomeHeading">Good morning, Alex! 🌟</h2>
       <p>You have <strong style="color:#fff;">3 new orders</strong> to review, <strong style="color:#fff;">2 shipments</strong> in transit and <strong style="color:#fff;">1 invoice due</strong> in 3 days.</p>
     </div>
     <div class="welcome-banner__action">
@@ -1003,18 +1003,65 @@
       </div>
       <div class="odp-card" style="grid-column:1/-1;">
         <h4><i class="fas fa-map-marker-alt"></i> Shipping Address</h4>
-        <div style="font-size:.875rem;color:var(--color-near-black);line-height:1.7;">Alex Johnson — Boutique Collective<br>1540 W Fulton Market, Suite 300<br>Chicago, IL 60607<br>United States</div>
+        <div id="shipAddressBlock" style="font-size:.875rem;color:var(--color-near-black);line-height:1.7;">Alex Johnson — Boutique Collective<br>1540 W Fulton Market, Suite 300<br>Chicago, IL 60607<br>United States</div>
       </div>
     </div>
   </div>
 </div>
 
 <div class="toast-container" id="toastContainer"></div>
+<script src="../js/supabase.js"></script>
+<script src="../js/auth.js"></script>
 <script src="js/portal.js"></script>
 <script>(function(){try{var c=JSON.parse(sessionStorage.getItem('brnd_cart')||'[]');var b=document.getElementById('sidebarCartBadge');if(b&&c.length>0){b.textContent=c.length;b.style.display='inline-flex';}}catch(e){}})();</script>
 <script>
-/* ── Live Date ── */
-document.getElementById('liveDate').textContent = new Date().toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric',year:'numeric'});
+function renderLiveDate() {
+  const liveDate = document.getElementById('liveDate');
+  if (!liveDate) return;
+  liveDate.textContent = new Date().toLocaleDateString('en-US', {
+    weekday: 'long',
+    month: 'long',
+    day: 'numeric',
+    year: 'numeric',
+  });
+}
+
+(async () => {
+  try {
+    const ctx = await initBuyerPage();
+    const profile = ctx?.profile;
+    if (!profile) {
+      renderLiveDate();
+      return;
+    }
+
+    const fullName = (
+      profile.display_name ||
+      `${profile.first_name || ''} ${profile.last_name || ''}`.trim() ||
+      'Buyer'
+    ).trim();
+    const firstName = (profile.first_name || fullName.split(' ')[0] || 'Buyer').trim();
+    const businessName = profile.buyer_profiles?.[0]?.business_name || 'Your Business';
+
+    const welcomeName = document.getElementById('welcomeName');
+    if (welcomeName) welcomeName.textContent = firstName;
+
+    const heading = document.getElementById('welcomeHeading');
+    if (heading) heading.textContent = `Good morning, ${firstName}! 🌟`;
+
+    const sidebarName = document.getElementById('sidebarUserName');
+    if (sidebarName) sidebarName.textContent = fullName;
+
+    const shipAddressBlock = document.getElementById('shipAddressBlock');
+    if (shipAddressBlock) {
+      shipAddressBlock.innerHTML = `${fullName} — ${businessName}<br>Address on file in account settings`;
+    }
+  } catch (_) {
+    // initBuyerPage already handles auth redirects and soft failures.
+  } finally {
+    renderLiveDate();
+  }
+})();
 
 /* ── KPI Counter Animation ── */
 document.querySelectorAll('[data-count]').forEach(el => {
