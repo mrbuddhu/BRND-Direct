@@ -81,7 +81,7 @@
     }
 
     .portal-grid {
-      display: grid; grid-template-columns: 1fr 1fr;
+      display: grid; grid-template-columns: 1fr 1fr 1fr;
       gap: 14px; margin-bottom: 28px;
     }
 
@@ -110,6 +110,7 @@
       border-radius: 14px 14px 0 0;
     }
     .portal-btn.buyer::before { background: linear-gradient(90deg, #4f46e5, #06b6d4); }
+    .portal-btn.seller::before { background: linear-gradient(90deg, #f59e0b, #ea580c); }
     .portal-btn.admin::before { background: linear-gradient(90deg, #10b981, #059669); }
 
     .portal-icon {
@@ -118,6 +119,7 @@
       font-size: 1.4rem;
     }
     .portal-btn.buyer .portal-icon { background: rgba(79,70,229,.2); color: #818cf8; }
+    .portal-btn.seller .portal-icon { background: rgba(245,158,11,.2); color: #fbbf24; }
     .portal-btn.admin .portal-icon { background: rgba(16,185,129,.2); color: #34d399; }
 
     .portal-label { font-size: .9rem; font-weight: 800; }
@@ -179,17 +181,22 @@
 
   <div class="card">
     <h1>Portal Preview</h1>
-    <p class="subtitle">Choose a portal to preview, or jump directly to any page below.<br/>All pages are accessible without login in this preview environment.</p>
+    <p class="subtitle">Choose a portal to preview, or jump directly to any page below.</p>
 
     <div class="portal-grid">
-      <a href="buyer/dashboard.html" class="portal-btn buyer" onclick="setAuth()">
+      <a href="buyer/index.html" class="portal-btn buyer">
         <div class="portal-icon"><i class="fas fa-store"></i></div>
         <div class="portal-label">Buyer Portal</div>
         <div class="portal-sub">Dashboard · Products · Orders · Cart · Invoices · Shipping</div>
       </a>
-      <a href="buyer/dashboard.html" class="portal-btn admin" onclick="setAuth()">
+      <a href="seller/index.html" class="portal-btn seller">
+        <div class="portal-icon"><i class="fas fa-boxes-stacked"></i></div>
+        <div class="portal-label">Seller Portal</div>
+        <div class="portal-sub">Orders · Products · Analytics · Payouts</div>
+      </a>
+      <a href="admin/index.html" class="portal-btn admin">
         <div class="portal-icon"><i class="fas fa-shield-halved"></i></div>
-        <div class="portal-label">Admin / Seller</div>
+        <div class="portal-label">Admin Portal</div>
         <div class="portal-sub">Order management · Brands · Analytics · Payouts</div>
       </a>
     </div>
@@ -201,21 +208,21 @@
     </div>
 
     <div class="page-links">
-      <a href="buyer/dashboard.html"           class="page-link" onclick="setAuth()"><i class="fas fa-table-columns"></i> Dashboard</a>
-      <a href="buyer/products.html"            class="page-link" onclick="setAuth()"><i class="fas fa-boxes-stacked"></i> Products</a>
-      <a href="buyer/cart.html"                class="page-link" onclick="setAuth()"><i class="fas fa-cart-shopping"></i> Order Cart</a>
-      <a href="buyer/orders.html"              class="page-link" onclick="setAuth()"><i class="fas fa-file-invoice"></i> Orders</a>
-      <a href="buyer/invoices.html"            class="page-link" onclick="setAuth()"><i class="fas fa-file-invoice-dollar"></i> Invoices</a>
-      <a href="buyer/shipping-logistics.html"  class="page-link" onclick="setAuth()"><i class="fas fa-truck-fast"></i> Shipping</a>
-      <a href="buyer/dropship.html"            class="page-link" onclick="setAuth()"><i class="fas fa-rotate"></i> Dropship</a>
-      <a href="buyer/analytics.html"           class="page-link" onclick="setAuth()"><i class="fas fa-chart-line"></i> Analytics</a>
-      <a href="buyer/rfq.html"                 class="page-link" onclick="setAuth()"><i class="fas fa-comment-dollar"></i> RFQ</a>
-      <a href="buyer/messages.html"            class="page-link" onclick="setAuth()"><i class="fas fa-message"></i> Messages</a>
-      <a href="buyer/reports.html"             class="page-link" onclick="setAuth()"><i class="fas fa-chart-bar"></i> Reports</a>
-      <a href="buyer/account.html"             class="page-link" onclick="setAuth()"><i class="fas fa-gear"></i> Settings</a>
-      <a href="buyer/warehousing.html"         class="page-link" onclick="setAuth()"><i class="fas fa-warehouse"></i> Warehousing</a>
-      <a href="buyer/trade-finance.html"       class="page-link" onclick="setAuth()"><i class="fas fa-credit-card"></i> Trade Finance</a>
-      <a href="buyer/help.html"                class="page-link" onclick="setAuth()"><i class="fas fa-circle-question"></i> Help</a>
+      <a href="buyer/dashboard.html"           class="page-link"><i class="fas fa-table-columns"></i> Dashboard</a>
+      <a href="buyer/products.html"            class="page-link"><i class="fas fa-boxes-stacked"></i> Products</a>
+      <a href="buyer/cart.html"                class="page-link"><i class="fas fa-cart-shopping"></i> Order Cart</a>
+      <a href="buyer/orders.html"              class="page-link"><i class="fas fa-file-invoice"></i> Orders</a>
+      <a href="buyer/invoices.html"            class="page-link"><i class="fas fa-file-invoice-dollar"></i> Invoices</a>
+      <a href="buyer/shipping-logistics.html"  class="page-link"><i class="fas fa-truck-fast"></i> Shipping</a>
+      <a href="buyer/dropship.html"            class="page-link"><i class="fas fa-rotate"></i> Dropship</a>
+      <a href="buyer/analytics.html"           class="page-link"><i class="fas fa-chart-line"></i> Analytics</a>
+      <a href="buyer/rfq.html"                 class="page-link"><i class="fas fa-comment-dollar"></i> RFQ</a>
+      <a href="buyer/messages.html"            class="page-link"><i class="fas fa-message"></i> Messages</a>
+      <a href="buyer/reports.html"             class="page-link"><i class="fas fa-chart-bar"></i> Reports</a>
+      <a href="buyer/account.html"             class="page-link"><i class="fas fa-gear"></i> Settings</a>
+      <a href="buyer/warehousing.html"         class="page-link"><i class="fas fa-warehouse"></i> Warehousing</a>
+      <a href="buyer/trade-finance.html"       class="page-link"><i class="fas fa-credit-card"></i> Trade Finance</a>
+      <a href="buyer/help.html"                class="page-link"><i class="fas fa-circle-question"></i> Help</a>
     </div>
 
     <div class="divider">
@@ -238,20 +245,5 @@
 
 </div>
 
-<script>
-  // Set auth session so all buyer pages load without redirect
-  function setAuth() {
-    const key = 'brnd_portal_auth';
-    const pwd = 'BRNDdirect2025!';
-    const session = {
-      token:   btoa(pwd + '_authenticated'),
-      expires: Date.now() + (24 * 60 * 60 * 1000)
-    };
-    sessionStorage.setItem(key, JSON.stringify(session));
-  }
-
-  // Auto-set auth on page load
-  setAuth();
-</script>
 </body>
 </html>
