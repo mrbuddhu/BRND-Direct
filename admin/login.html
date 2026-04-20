@@ -31,24 +31,25 @@
     .auth-left.admin-theme .auth-left__logo { margin-bottom: 24px; }
     .auth-left.admin-theme h1 { margin-bottom: 12px; }
     .auth-left.admin-theme p { margin-bottom: 20px; }
-    .auth-left.admin-theme .auth-benefits { margin-bottom: 20px; gap: 10px; }
-    .auth-left.admin-theme .auth-benefit { padding: 12px 14px; }
+    .auth-left.admin-theme .auth-benefits { margin-bottom: 16px; gap: 8px; }
+    .auth-left.admin-theme .auth-benefit { padding: 10px 12px; }
+    .auth-left.admin-theme .auth-benefit-icon { width: 30px; height: 30px; font-size: .72rem; }
+    .auth-left.admin-theme .auth-benefit-title { font-size: .78rem; margin-bottom: 1px; }
+    .auth-left.admin-theme .auth-benefit-desc { font-size: .7rem; line-height: 1.32; }
     /* Keep footer links visible without manual scroll on shorter heights. */
     @media (max-height: 900px) {
       .auth-left.admin-theme { padding-top: 20px; padding-bottom: 20px; }
       .auth-left.admin-theme .auth-left__logo { margin-bottom: 14px; }
       .auth-left.admin-theme h1 { font-size: 2rem; line-height: 1.08; }
       .auth-left.admin-theme p { font-size: .82rem; line-height: 1.5; margin-bottom: 12px; }
-      .auth-left.admin-theme .auth-benefits { gap: 8px; margin-bottom: 12px; }
-      .auth-left.admin-theme .auth-benefit { padding: 10px 12px; }
-      .auth-left.admin-theme .auth-benefit-icon { width: 30px; height: 30px; font-size: .72rem; }
-      .auth-left.admin-theme .auth-benefit-title { font-size: .78rem; }
-      .auth-left.admin-theme .auth-benefit-desc { font-size: .7rem; line-height: 1.35; }
-      .auth-left.admin-theme .auth-benefit:nth-child(3) { display: none; }
-    }
-    @media (max-height: 760px) {
-      .auth-left.admin-theme .auth-benefits { display: none; }
-      .auth-left.admin-theme p { margin-bottom: 10px; }
+      .auth-left.admin-theme .auth-benefits { gap: 7px; margin-bottom: 10px; }
+      .auth-left.admin-theme .auth-benefit { padding: 9px 11px; }
+      .auth-left.admin-theme .auth-benefit-desc {
+        display: -webkit-box;
+        -webkit-line-clamp: 1;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+      }
     }
   </style>
 </head>
@@ -76,7 +77,7 @@
           </div>
           <div class="auth-benefit-content">
             <div class="auth-benefit-title">User Governance</div>
-            <div class="auth-benefit-desc">Review and approve buyers, sellers, and account status changes.</div>
+            <div class="auth-benefit-desc">Review approvals and account status.</div>
           </div>
         </div>
         <div class="auth-benefit">
@@ -85,7 +86,7 @@
           </div>
           <div class="auth-benefit-content">
             <div class="auth-benefit-title">Realtime Oversight</div>
-            <div class="auth-benefit-desc">Track revenue, orders, payouts, and operational health in one place.</div>
+            <div class="auth-benefit-desc">Monitor revenue, orders, and payouts.</div>
           </div>
         </div>
         <div class="auth-benefit">
@@ -94,7 +95,7 @@
           </div>
           <div class="auth-benefit-content">
             <div class="auth-benefit-title">Platform Controls</div>
-            <div class="auth-benefit-desc">Manage settings, defaults, and support controls securely.</div>
+            <div class="auth-benefit-desc">Control platform settings securely.</div>
           </div>
         </div>
       </div>
