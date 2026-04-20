@@ -13,6 +13,26 @@
   <style>
     /* Buyer page has more left-panel content; compact it on desktop heights. */
     @media (min-width: 901px) {
+      .auth-right {
+        overflow-y: hidden !important;
+        align-items: flex-start !important;
+        padding-top: 20px !important;
+        padding-bottom: 20px !important;
+      }
+      .auth-card {
+        max-width: 410px !important;
+        padding: 24px 24px !important;
+      }
+      .auth-card__logo { margin-bottom: 12px !important; }
+      .auth-card h2 { font-size: 1.42rem !important; margin-bottom: 4px !important; }
+      .auth-card__sub { margin-bottom: 12px !important; font-size: .82rem !important; }
+      .auth-card .form-group { margin-bottom: 11px !important; }
+      .forgot-link { margin-top: -4px !important; margin-bottom: 10px !important; }
+      .btn.btn-lg { padding-top: 10px !important; padding-bottom: 10px !important; }
+      .divider-text { margin: 10px 0 8px !important; }
+      .social-btns { margin-top: 8px !important; gap: 8px !important; }
+      .social-btn { padding-top: 8px !important; padding-bottom: 8px !important; font-size: .82rem !important; }
+      .auth-footer { margin-top: 10px !important; font-size: .72rem !important; }
       .auth-left { padding-top: 34px; padding-bottom: 28px; }
       .auth-left__logo { margin-bottom: 16px; }
       .auth-left p { margin-bottom: 12px; line-height: 1.5; }
@@ -149,6 +169,13 @@
         </div>
 
       </form>
+
+      <div class="mobile-auth-switch">
+        <div class="mobile-auth-switch__label">Need a different portal?</div>
+        <div class="mobile-auth-switch__actions">
+          <a href="../seller/index.html" class="mobile-auth-switch__link"><i class="fas fa-boxes-stacked"></i> Seller Portal</a>
+        </div>
+      </div>
 
       <p class="auth-footer">© 2026 BRND Direct Inc. &nbsp;·&nbsp; <a href="#">Terms</a> &nbsp;·&nbsp; <a href="#">Privacy</a></p>
     </div>

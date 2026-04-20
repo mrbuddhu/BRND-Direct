@@ -13,6 +13,28 @@
   <style>
     .auth-left.seller-theme { background: linear-gradient(145deg, #0a1a0f 0%, #0d1f1a 40%, #111 100%); }
     .auth-left.seller-theme .auth-left__bg { background: radial-gradient(ellipse 80% 70% at 20% 20%, rgba(16,185,129,.18) 0%, transparent 60%), radial-gradient(ellipse 60% 50% at 80% 80%, rgba(79,70,229,.1) 0%, transparent 55%); }
+    @media (min-width: 901px) {
+      .auth-right {
+        overflow-y: hidden !important;
+        align-items: flex-start !important;
+        padding-top: 20px !important;
+        padding-bottom: 20px !important;
+      }
+      .auth-card {
+        max-width: 410px !important;
+        padding: 24px 24px !important;
+      }
+      .auth-card__logo { margin-bottom: 12px !important; }
+      .auth-card h2 { font-size: 1.42rem !important; margin-bottom: 4px !important; }
+      .auth-card__sub { margin-bottom: 12px !important; font-size: .82rem !important; }
+      .auth-card .form-group { margin-bottom: 11px !important; }
+      .forgot-link { margin-top: -4px !important; margin-bottom: 10px !important; }
+      .btn.btn-lg { padding-top: 10px !important; padding-bottom: 10px !important; }
+      .divider-text { margin: 10px 0 8px !important; }
+      .social-btns { margin-top: 8px !important; gap: 8px !important; }
+      .social-btn { padding-top: 8px !important; padding-bottom: 8px !important; font-size: .82rem !important; }
+      .auth-footer { margin-top: 10px !important; font-size: .72rem !important; }
+    }
   </style>
 </head>
 <body>
@@ -138,6 +160,13 @@
         </div>
 
       </form>
+
+      <div class="mobile-auth-switch">
+        <div class="mobile-auth-switch__label">Need a different portal?</div>
+        <div class="mobile-auth-switch__actions">
+          <a href="../buyer/index.html" class="mobile-auth-switch__link"><i class="fas fa-store"></i> Buyer Portal</a>
+        </div>
+      </div>
 
       <p class="auth-footer">© 2026 BRND Direct Inc. &nbsp;·&nbsp; <a href="#">Terms</a> &nbsp;·&nbsp; <a href="#">Privacy</a></p>
     </div>
