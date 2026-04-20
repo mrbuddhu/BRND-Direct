@@ -366,9 +366,9 @@
       <span class="nav-section-label">Main Menu</span>
       <a href="dashboard.html" class="nav-item active"><i class="fas fa-table-columns"></i><span>Dashboard</span></a>
       <a href="products.html" class="nav-item"><i class="fas fa-boxes-stacked"></i><span>Products</span></a>
-      <a href="orders.html" class="nav-item"><i class="fas fa-file-invoice"></i><span>Orders</span><span class="nav-badge">18</span></a>
+      <a href="orders.html" class="nav-item"><i class="fas fa-file-invoice"></i><span>Orders</span><span class="nav-badge" id="sidebarOrdersBadge">0</span></a>
       <a href="cart.html" class="nav-item" id="navCartLink"><i class="fas fa-cart-shopping"></i><span>Order Cart</span><span class="nav-badge" id="sidebarCartBadge" style="display:none;">0</span></a>
-      <a href="rfq.html" class="nav-item"><i class="fas fa-comment-dollar"></i><span>RFQ</span><span class="nav-badge new">5</span></a>
+      <a href="rfq.html" class="nav-item"><i class="fas fa-comment-dollar"></i><span>RFQ</span><span class="nav-badge new" id="sidebarRfqBadge">0</span></a>
       <a href="dropship.html" class="nav-item"><i class="fas fa-rotate"></i><span>Dropship</span></a>
       <a href="analytics.html" class="nav-item"><i class="fas fa-chart-line"></i><span>Analytics</span></a>
     </div>
@@ -384,7 +384,7 @@
       <a href="shipping-logistics.html" class="nav-item"><i class="fas fa-truck-fast"></i><span>Shipping &amp; Logistics</span></a>
     </div>
     <div class="sidebar__divider"></div>
-    <a href="messages.html" class="nav-item"><i class="fas fa-message"></i><span>Messages</span><span class="nav-badge">3</span></a>
+    <a href="messages.html" class="nav-item"><i class="fas fa-message"></i><span>Messages</span><span class="nav-badge" id="sidebarMessagesBadge">0</span></a>
     <a href="account.html" class="nav-item"><i class="fas fa-gear"></i><span>Settings</span></a>
     <a href="help.html" class="nav-item"><i class="fas fa-circle-question"></i><span>Help &amp; Support</span></a>
   </nav>
@@ -1144,6 +1144,176 @@ function renderActivity(items) {
     </div>`).join('');
 }
 
+let _spendChart = null;
+let _donutChart = null;
+let _categoryChart = null;
+
+function buildMonthlySpendSeries(orders) {
+  const now = new Date();
+  const months = [];
+  for (let i = 5; i >= 0; i -= 1) {
+    const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+    months.push({
+      key: `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`,
+      label: d.toLocaleDateString('en-US', { month: 'short' }),
+      spend: 0,
+      count: 0,
+    });
+  }
+  const byKey = Object.fromEntries(months.map((m) => [m.key, m]));
+  orders.forEach((o) => {
+    const d = new Date(o.created_at);
+    if (Number.isNaN(d.getTime())) return;
+    const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+    if (!byKey[key]) return;
+    byKey[key].spend += Number(o.total_amount || 0);
+    byKey[key].count += 1;
+  });
+  return months;
+}
+
+function refreshDashboardCharts(orders, itemRows, productCategoryById) {
+  const spendCtx = document.getElementById('spendChart');
+  const donutCtx = document.getElementById('donutChart');
+  const categoryCtx = document.getElementById('categoryChart');
+  if (!spendCtx || !donutCtx || !categoryCtx) return;
+
+  const months = buildMonthlySpendSeries(orders);
+  const spendData = months.map((m) => Math.round(m.spend));
+  const marginLikeData = months.map((m) => (m.count ? Math.min(65, Math.max(15, (m.spend / m.count) / 100)) : 0));
+
+  if (_spendChart) _spendChart.destroy();
+  _spendChart = new Chart(spendCtx, {
+    type: 'bar',
+    data: {
+      labels: months.map((m) => m.label),
+      datasets: [
+        {
+          label: 'Spend ($)',
+          data: spendData,
+          backgroundColor: 'rgba(79,70,229,0.15)',
+          borderColor: 'rgba(79,70,229,0.8)',
+          borderWidth: 2,
+          borderRadius: 5,
+          yAxisID: 'y',
+        },
+        {
+          label: 'Margin (%)',
+          data: marginLikeData,
+          type: 'line',
+          borderColor: '#10b981',
+          backgroundColor: 'rgba(16,185,129,0.08)',
+          borderWidth: 2.5,
+          pointBackgroundColor: '#10b981',
+          pointRadius: 4,
+          tension: 0.4,
+          fill: true,
+          yAxisID: 'y1',
+        },
+      ],
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      interaction: { mode: 'index', intersect: false },
+      plugins: { legend: { display: false } },
+      scales: {
+        x: { grid: { display: false }, ticks: { font: { size: 11 } } },
+        y: { position: 'left', grid: { color: 'rgba(0,0,0,.05)' }, ticks: { callback: (v) => `$${(v/1000).toFixed(0)}k`, font: { size: 10 } } },
+        y1: { position: 'right', grid: { drawOnChartArea: false }, min: 0, max: 70, ticks: { callback: (v) => `${v}%`, font: { size: 10 } } },
+      },
+    },
+  });
+
+  const statuses = ['delivered', 'shipped', 'processing', 'pending'];
+  const statusCounts = statuses.map((s) => orders.filter((o) => (o.status || '').toLowerCase() === s).length);
+  if (_donutChart) _donutChart.destroy();
+  _donutChart = new Chart(donutCtx, {
+    type: 'doughnut',
+    data: {
+      labels: ['Delivered', 'In Transit', 'Processing', 'Pending'],
+      datasets: [{
+        data: statusCounts,
+        backgroundColor: ['#10b981', '#6355ff', '#f59e0b', '#f43f5e'],
+        borderWidth: 0,
+        hoverOffset: 6,
+      }],
+    },
+    options: { responsive: true, maintainAspectRatio: false, cutout: '72%', plugins: { legend: { display: false } } },
+  });
+
+  const categoryTotals = {};
+  (itemRows || []).forEach((r) => {
+    const cat = productCategoryById[r.product_id] || 'Other';
+    categoryTotals[cat] = (categoryTotals[cat] || 0) + Number(r.line_total || 0);
+  });
+  const topCats = Object.entries(categoryTotals)
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 6);
+  if (!topCats.length) topCats.push(['No data', 0]);
+
+  if (_categoryChart) _categoryChart.destroy();
+  _categoryChart = new Chart(categoryCtx, {
+    type: 'bar',
+    data: {
+      labels: topCats.map(([k]) => k),
+      datasets: [{
+        label: 'Spend ($)',
+        data: topCats.map(([, v]) => Math.round(v)),
+        backgroundColor: ['rgba(79,70,229,0.75)', 'rgba(16,185,129,0.75)', 'rgba(139,92,246,0.75)', 'rgba(245,158,11,0.75)', 'rgba(14,165,233,0.75)', 'rgba(244,63,94,0.75)'],
+        borderRadius: 5,
+        borderWidth: 0,
+      }],
+    },
+    options: {
+      indexAxis: 'y',
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: {
+        x: { grid: { color: 'rgba(0,0,0,.04)' }, ticks: { callback: (v) => `$${(v/1000).toFixed(0)}k`, font: { size: 9 } } },
+        y: { grid: { display: false }, ticks: { font: { size: 10 } } },
+      },
+    },
+  });
+}
+
+function updateOrderDetailsMap(orders, itemsByOrder, invoices) {
+  const invoiceByOrderNumber = {};
+  (invoices || []).forEach((inv) => {
+    const possibleOrderNum = inv.order_number || null;
+    if (possibleOrderNum) invoiceByOrderNumber[possibleOrderNum] = inv;
+  });
+
+  ORDERS = {};
+  orders.forEach((o) => {
+    const inv = invoiceByOrderNumber[o.order_number] || {};
+    const items = (itemsByOrder[o.id] || []).map((it) => ({
+      brand: o.brand || 'Brand',
+      product: it.name || 'Item',
+      sku: it.sku || (it.name || 'ITEM').toUpperCase().replace(/[^A-Z0-9]+/g, '-').slice(0, 14),
+      qty: Number(it.quantity || 0),
+      price: formatMoney((Number(it.line_total || 0) / Math.max(1, Number(it.quantity || 1)))),
+      total: formatMoney(it.line_total || 0),
+    }));
+    ORDERS[o.order_number] = {
+      brand: o.brand || 'Brand',
+      placed: formatShortDate(o.created_at),
+      status: o.status || 'pending',
+      statusClass: statusBadge(o.status),
+      po: o.order_number || '—',
+      inv: inv.invoice_number || '—',
+      terms: `Net-${o.net_terms || 30}`,
+      payStatus: o.payment_status || inv.payment_status || 'pending',
+      dueDate: formatShortDate(o.due_date),
+      total: formatMoney(o.total_amount),
+      shipDate: formatShortDate(o.tracking_info?.ship_date),
+      deliveryDate: formatShortDate(o.deliveryDate || o.due_date || o.created_at),
+      carrier: o.tracking_info?.carrier || 'Carrier',
+      items,
+      t: [formatShortDate(o.created_at), '—', formatShortDate(o.tracking_info?.ship_date), formatShortDate(o.deliveryDate)],
+    };
+  });
+}
+
 async function hydrateDashboardData(ctx) {
   const sb = await getSupabase();
   const userId = ctx?.user?.id;
@@ -1153,7 +1323,7 @@ async function hydrateDashboardData(ctx) {
 
   const [{ data: orders }, { data: invoices }, { data: notes }] = await Promise.all([
     sb.from('orders').select('id,order_number,status,total_amount,created_at,due_date,tracking_info').eq('buyer_profile_id', bp.id).order('created_at', { ascending: false }).limit(6),
-    sb.from('invoices').select('invoice_number,amount,due_date,payment_status,created_at').eq('buyer_profile_id', bp.id).order('due_date', { ascending: true }).limit(4),
+    sb.from('invoices').select('invoice_number,order_number,amount,due_date,payment_status,created_at').eq('buyer_profile_id', bp.id).order('due_date', { ascending: true }).limit(4),
     sb.from('notifications').select('title,body,created_at').eq('profile_id', userId).order('created_at', { ascending: false }).limit(6),
   ]);
 
@@ -1163,8 +1333,16 @@ async function hydrateDashboardData(ctx) {
 
   const orderIds = safeOrders.map((o) => o.id).filter(Boolean);
   const { data: itemRows } = orderIds.length
-    ? await sb.from('order_items').select('order_id,name,quantity').in('order_id', orderIds)
+    ? await sb.from('order_items').select('order_id,product_id,name,sku,quantity,line_total').in('order_id', orderIds)
     : { data: [] };
+  const productIds = (itemRows || []).map((r) => r.product_id).filter(Boolean);
+  const { data: productRows } = productIds.length
+    ? await sb.from('products').select('id,category').in('id', productIds)
+    : { data: [] };
+  const productCategoryById = (productRows || []).reduce((acc, p) => {
+    acc[p.id] = p.category || 'Other';
+    return acc;
+  }, {});
   const itemsByOrder = (itemRows || []).reduce((acc, row) => {
     if (!acc[row.order_id]) acc[row.order_id] = [];
     acc[row.order_id].push(row);
@@ -1205,6 +1383,16 @@ async function hydrateDashboardData(ctx) {
   const qaBadges = document.querySelectorAll('.qa-badge');
   if (qaBadges[0]) qaBadges[0].textContent = String(openInvoices);
   if (qaBadges[2]) qaBadges[2].textContent = String(inTransit);
+
+  const ordersBadge = document.getElementById('sidebarOrdersBadge');
+  if (ordersBadge) ordersBadge.textContent = String(safeOrders.length);
+  const messagesBadge = document.getElementById('sidebarMessagesBadge');
+  if (messagesBadge) messagesBadge.textContent = String(safeNotes.length);
+  const rfqBadge = document.getElementById('sidebarRfqBadge');
+  if (rfqBadge) rfqBadge.textContent = String(safeOrders.filter((o) => ['pending', 'confirmed'].includes((o.status || '').toLowerCase())).length);
+
+  refreshDashboardCharts(safeOrders, itemRows || [], productCategoryById);
+  updateOrderDetailsMap(enrichedOrders, itemsByOrder, safeInvoices);
 }
 
 let _buyerRealtimeChannels = [];
@@ -1330,143 +1518,8 @@ document.querySelectorAll('[data-count]').forEach(el => {
   io.observe(el);
 });
 
-/* ── Chart.js: Spend vs Margin ── */
-(function(){
-  const ctx = document.getElementById('spendChart');
-  if (!ctx) return;
-  new Chart(ctx, {
-    type: 'bar',
-    data: {
-      labels: ['Oct', 'Nov', 'Dec', 'Jan', 'Feb', 'Mar'],
-      datasets: [
-        {
-          label: 'Spend ($)',
-          data: [68400, 74200, 112800, 86760, 92400, 105360],
-          backgroundColor: 'rgba(79,70,229,0.15)',
-          borderColor: 'rgba(79,70,229,0.8)',
-          borderWidth: 2,
-          borderRadius: 5,
-          yAxisID: 'y',
-        },
-        {
-          label: 'Margin (%)',
-          data: [38.2, 40.1, 44.6, 41.2, 42.8, 43.5],
-          type: 'line',
-          borderColor: '#10b981',
-          backgroundColor: 'rgba(16,185,129,0.08)',
-          borderWidth: 2.5,
-          pointBackgroundColor: '#10b981',
-          pointRadius: 4,
-          tension: 0.4,
-          fill: true,
-          yAxisID: 'y1',
-        }
-      ]
-    },
-    options: {
-      responsive: true, maintainAspectRatio: false,
-      interaction: { mode: 'index', intersect: false },
-      plugins: {
-        legend: { display: false },
-        tooltip: {
-          callbacks: {
-            label: ctx => ctx.datasetIndex === 0
-              ? ' Spend: $' + ctx.raw.toLocaleString()
-              : ' Margin: ' + ctx.raw + '%'
-          }
-        }
-      },
-      scales: {
-        x: { grid: { display: false }, ticks: { font: { size: 11 } } },
-        y: {
-          position: 'left',
-          grid: { color: 'rgba(0,0,0,.05)' },
-          ticks: { callback: v => '$' + (v/1000).toFixed(0) + 'k', font: { size: 10 } }
-        },
-        y1: {
-          position: 'right',
-          grid: { drawOnChartArea: false },
-          min: 30, max: 55,
-          ticks: { callback: v => v + '%', font: { size: 10 } }
-        }
-      }
-    }
-  });
-})();
-
-/* ── Chart.js: Fulfillment Donut ── */
-(function(){
-  const ctx = document.getElementById('donutChart');
-  if (!ctx) return;
-  new Chart(ctx, {
-    type: 'doughnut',
-    data: {
-      labels: ['Delivered', 'In Transit', 'Processing', 'Delayed'],
-      datasets: [{
-        data: [76, 44, 12, 6],
-        backgroundColor: ['#10b981','#6355ff','#f59e0b','#f43f5e'],
-        borderWidth: 0,
-        hoverOffset: 6
-      }]
-    },
-    options: {
-      responsive: true, maintainAspectRatio: false,
-      cutout: '72%',
-      plugins: {
-        legend: { display: false },
-        tooltip: { callbacks: { label: ctx => ' ' + ctx.label + ': ' + ctx.raw + ' orders' } }
-      }
-    }
-  });
-})();
-
-/* ── Chart.js: Category Spend Horizontal Bar ── */
-(function(){
-  const ctx = document.getElementById('categoryChart');
-  if (!ctx) return;
-  new Chart(ctx, {
-    type: 'bar',
-    data: {
-      labels: ['Fragrances', 'Luxury Beauty', 'Designer Bags', 'Sneakers', 'Apparel', 'Cosmetics'],
-      datasets: [{
-        label: 'Spend ($)',
-        data: [81090, 62595, 56904, 42678, 28452, 12840],
-        backgroundColor: [
-          'rgba(79,70,229,0.75)',
-          'rgba(16,185,129,0.75)',
-          'rgba(139,92,246,0.75)',
-          'rgba(245,158,11,0.75)',
-          'rgba(14,165,233,0.75)',
-          'rgba(244,63,94,0.75)'
-        ],
-        borderRadius: 5,
-        borderWidth: 0,
-      }]
-    },
-    options: {
-      indexAxis: 'y',
-      responsive: true, maintainAspectRatio: false,
-      plugins: {
-        legend: { display: false },
-        tooltip: { callbacks: { label: ctx => ' $' + ctx.raw.toLocaleString() } }
-      },
-      scales: {
-        x: { grid: { color: 'rgba(0,0,0,.04)' }, ticks: { callback: v => '$'+(v/1000).toFixed(0)+'k', font:{size:9} } },
-        y: { grid: { display: false }, ticks: { font: { size: 10 } } }
-      }
-    }
-  });
-})();
-
 /* ── Order Detail Overlay ── */
-const ORDERS = {
-  'BD-48295': { brand:'Dior', placed:'Mar 23, 2026', status:'Processing', statusClass:'badge-processing', po:'PO-29485', inv:'INV-2896', terms:'Net-30', payStatus:'Pending', dueDate:'May 10, 2026', total:'$5,760.00', shipDate:'—', deliveryDate:'Apr 4, 2026', carrier:'FedEx', items:[{brand:'Dior',product:'Sauvage EDP 100ml',sku:'DIO-SAUEDP-100',qty:24,price:'$240.00',total:'$5,760.00'}], t:['Mar 23','Mar 23','—','—'] },
-  'BD-48293': { brand:'Charlotte Tilbury', placed:'Mar 21, 2026', status:'Shipped', statusClass:'badge-shipped', po:'PO-29483', inv:'INV-2893', terms:'Net-30', payStatus:'Pending', dueDate:'May 3, 2026', total:'$3,240.00', shipDate:'Mar 25, 2026', deliveryDate:'Mar 29, 2026', carrier:'UPS', items:[{brand:'Charlotte Tilbury',product:'Pillow Talk Lip Kit',sku:'CT-PILIP-KIT',qty:36,price:'$90.00',total:'$3,240.00'}], t:['Mar 21','Mar 21','Mar 25','—'] },
-  'BD-48291': { brand:'Maison Margiela', placed:'Mar 18, 2026', status:'Confirmed', statusClass:'badge-confirmed', po:'PO-29481', inv:'INV-2891', terms:'Net-30', payStatus:'Pending', dueDate:'Apr 17, 2026', total:'$3,840.00', shipDate:'Mar 22, 2026', deliveryDate:'Apr 1, 2026', carrier:'USPS', items:[{brand:'Maison Margiela',product:'Replica Lazy Sunday EDP',sku:'MM-REPLAZY-100',qty:12,price:'$320.00',total:'$3,840.00'}], t:['Mar 18','Mar 19','Mar 22','—'] },
-  'BD-48289': { brand:'Jordan Brand', placed:'Mar 12, 2026', status:'Delivered', statusClass:'badge-delivered', po:'PO-29479', inv:'INV-2890', terms:'Net-30', payStatus:'Paid', dueDate:'Apr 11, 2026', total:'$5,580.00', shipDate:'Mar 16, 2026', deliveryDate:'Mar 22, 2026', carrier:'FedEx', items:[{brand:'Jordan Brand',product:'Air Jordan 1 Retro OG',sku:'JB-AJ1RETRO-OG',qty:18,price:'$310.00',total:'$5,580.00'}], t:['Mar 12','Mar 12','Mar 16','Mar 22'] },
-  'BD-48285': { brand:'Gucci', placed:'Mar 8, 2026', status:'Delivered', statusClass:'badge-delivered', po:'PO-29475', inv:'INV-2888', terms:'Net-30', payStatus:'Paid', dueDate:'Apr 7, 2026', total:'$9,600.00', shipDate:'Mar 11, 2026', deliveryDate:'Mar 20, 2026', carrier:'DHL', items:[{brand:'Gucci',product:'Bloom EDP 50ml',sku:'GCC-BLOOM-50',qty:24,price:'$400.00',total:'$9,600.00'}], t:['Mar 8','Mar 8','Mar 11','Mar 20'] },
-  'BD-48282': { brand:'New Balance', placed:'Mar 17, 2026', status:'Shipped', statusClass:'badge-shipped', po:'PO-29478', inv:'INV-2895', terms:'Net-30', payStatus:'Pending', dueDate:'Apr 30, 2026', total:'$2,880.00', shipDate:'Mar 22, 2026', deliveryDate:'Mar 30, 2026', carrier:'UPS', items:[{brand:'New Balance',product:'990v6 Made in USA',sku:'NB-990V6-MUS',qty:12,price:'$240.00',total:'$2,880.00'}], t:['Mar 17','Mar 18','Mar 22','—'] },
-};
+let ORDERS = {};
 
 function openOrderDetail(id) {
   const o = ORDERS[id]; if (!o) return;

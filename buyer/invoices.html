@@ -1063,6 +1063,9 @@
 </div>
 
 <div class="toast-container" id="toastContainer"></div>
+<script src="../js/supabase.js"></script>
+<script src="../js/auth.js"></script>
+<script src="../js/api.js"></script>
 <script src="js/portal.js"></script>
 <script>(function(){try{var c=JSON.parse(sessionStorage.getItem('brnd_cart')||'[]');var b=document.getElementById('sidebarCartBadge');if(b&&c.length>0){b.textContent=c.length;b.style.display='inline-flex';}}catch(e){}})();</script>
 <script>
@@ -1143,10 +1146,52 @@ const baseInvoices = [
 ];
 
 // Merge cart-generated invoices at the top (newest first)
-const invoices = [...cartInvoices, ...baseInvoices];
-
-const OUTSTANDING = invoices.filter(i => i.status === 'outstanding' || i.status === 'overdue');
+let invoices = [...cartInvoices, ...baseInvoices];
+let OUTSTANDING = invoices.filter(i => i.status === 'outstanding' || i.status === 'overdue');
 const statusBadgeMap = { outstanding:'badge-pending', paid:'badge-delivered', upcoming:'badge-shipped', overdue:'badge-cancelled' };
+
+function refreshOutstandingInvoices() {
+  OUTSTANDING = invoices.filter(i => i.status === 'outstanding' || i.status === 'overdue');
+}
+
+function toDisplayDate(value) {
+  if (!value) return '—';
+  const d = new Date(value);
+  if (Number.isNaN(d.getTime())) return '—';
+  return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+}
+
+async function hydrateLiveBuyerInvoices() {
+  try {
+    const ctx = await initBuyerPage();
+    const buyerProfileId = ctx?.profile?.buyer_profiles?.[0]?.id;
+    if (!buyerProfileId || typeof getInvoices !== 'function') return;
+    const { data } = await getInvoices(buyerProfileId, { paymentStatus: 'all', page: 1, limit: 300 });
+    const mapped = (data || []).map((inv) => {
+      const ps = String(inv.payment_status || '').toLowerCase();
+      const status = ps === 'paid' ? 'paid' : (ps === 'overdue' ? 'overdue' : (ps === 'pending' ? 'upcoming' : 'outstanding'));
+      const amount = Number(inv.amount || inv.orders?.total_amount || 0);
+      return {
+        id: inv.invoice_number || String(inv.id || '').slice(0, 8),
+        order: inv.orders?.order_number || inv.order_number || '—',
+        brand: inv.orders?.brand_name || 'Brand',
+        amount,
+        terms: `Net-${inv.net_terms || 30}`,
+        issued: toDisplayDate(inv.created_at),
+        due: toDisplayDate(inv.due_date),
+        status,
+        items: [{ desc: inv.notes || 'Order invoice', qty: 1, price: amount }],
+      };
+    });
+    if (mapped.length) {
+      invoices = [...cartInvoices, ...mapped];
+      refreshOutstandingInvoices();
+      renderInvoices(invoices);
+    }
+  } catch (_) {
+    // Keep static fallback when live query fails.
+  }
+}
 
 /* ════════════════════════════════════════════════════════════
    SECTION SWITCHING
@@ -1189,6 +1234,7 @@ function renderInvoices(data) {
   document.getElementById('invCount').textContent = `Showing ${data.length} invoice${data.length !== 1 ? 's' : ''}`;
 }
 renderInvoices(invoices);
+hydrateLiveBuyerInvoices();
 
 // Highlight the latest invoice row if arriving from cart
 if (latestInvId) {

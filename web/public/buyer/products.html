@@ -829,13 +829,13 @@ let selectedIds  = new Set();
 let currentView  = 'grid'; // 'grid' | 'list' | 'text'
 
 // Live catalog state (populated from API or static fallback)
-let LIVE_MODE        = false;    // true when fetching from API
+let LIVE_MODE        = true;     // live-first by default
 let LIVE_PAGE        = 1;
 let LIVE_TOTAL_PAGES = 1;
 let LIVE_TOTAL       = PRODUCTS.length;
 let LIVE_BRANDS      = [];       // brands from API
 
-const BRANDS_AZ  = [...new Set(PRODUCTS.map(p => p.brand))].sort((a,b) => a.localeCompare(b));
+let BRANDS_AZ  = [...new Set(PRODUCTS.map(p => p.brand))].sort((a,b) => a.localeCompare(b));
 
 /* ════════════════════════════════════════════════════════════
    HELPERS
@@ -1317,8 +1317,8 @@ function getFilteredProducts() {
   return list;
 }
 
-function applyFilters()   { renderProducts(getFilteredProducts()); showToast('Filters applied!', 'success'); }
-function applyAdvSearch() { renderProducts(getFilteredProducts()); }
+async function applyFilters()   { await refreshCatalogView(); showToast('Filters applied!', 'success'); }
+async function applyAdvSearch() { await refreshCatalogView(); }
 function clearFilters() {
   document.querySelectorAll('.cat-check,.brand-check,.fulfill-filter,.special-filter').forEach(c => c.checked = false);
   document.getElementById('newArrivalsCheck').checked = false;
@@ -1330,7 +1330,12 @@ function clearFilters() {
   document.querySelectorAll('.filter-pill').forEach(p => p.classList.remove('active'));
   document.querySelector('.filter-pill[data-cat="all"]').classList.add('active');
   renderBrandList();
-  renderProducts(PRODUCTS);
+  if (LIVE_MODE) {
+    LIVE_PAGE = 1;
+    fetchLiveCatalog().catch(() => {});
+  } else {
+    renderProducts(PRODUCTS);
+  }
   showToast('Filters cleared.', '');
 }
 
@@ -1345,7 +1350,12 @@ function toggleTag(btn) {
     document.querySelectorAll('.special-tag').forEach(t => t.classList.remove('active'));
     btn.classList.add('active');
   }
-  renderProducts(getFilteredProducts());
+  if (LIVE_MODE) {
+    LIVE_PAGE = 1;
+    fetchLiveCatalog().catch(() => {});
+  } else {
+    renderProducts(getFilteredProducts());
+  }
 }
 
 /* ════════════════════════════════════════════════════════════
@@ -1506,19 +1516,19 @@ document.getElementById('textViewBtn').addEventListener('click', () => setView('
    CATEGORY PILLS
 ════════════════════════════════════════════════════════════ */
 document.getElementById('catPills').querySelectorAll('.filter-pill').forEach(pill => {
-  pill.addEventListener('click', function() {
+  pill.addEventListener('click', async function() {
     document.querySelectorAll('.filter-pill').forEach(p => p.classList.remove('active'));
     this.classList.add('active');
-    renderProducts(getFilteredProducts());
+    await refreshCatalogView();
   });
 });
 
 /* ════════════════════════════════════════════════════════════
    SORT + SEARCH
 ════════════════════════════════════════════════════════════ */
-document.getElementById('sortSelect').addEventListener('change', () => renderProducts(getFilteredProducts()));
-document.getElementById('globalSearch').addEventListener('input', () => renderProducts(getFilteredProducts()));
-document.getElementById('advSearch').addEventListener('keydown', e => { if (e.key === 'Enter') applyAdvSearch(); });
+document.getElementById('sortSelect').addEventListener('change', () => { refreshCatalogView().catch(() => {}); });
+document.getElementById('globalSearch').addEventListener('input', () => { refreshCatalogView().catch(() => {}); });
+document.getElementById('advSearch').addEventListener('keydown', e => { if (e.key === 'Enter') applyAdvSearch().catch(() => {}); });
 
 /* ════════════════════════════════════════════════════════════
    BULK UPLOAD MODAL
@@ -1690,6 +1700,8 @@ async function fetchLiveCatalog(paramsOverride = {}) {
     if (liveData.length > 0) {
       PRODUCTS.length = 0;
       liveData.forEach(p => PRODUCTS.push(p));
+      BRANDS_AZ = [...new Set(PRODUCTS.map((p) => p.brand))].sort((a,b) => a.localeCompare(b));
+      renderBrandList(document.getElementById('brandSearch')?.value || '');
     }
     LIVE_TOTAL       = result.total;
     LIVE_TOTAL_PAGES = result.pages;
@@ -1702,7 +1714,7 @@ async function fetchLiveCatalog(paramsOverride = {}) {
     if (countEl) countEl.textContent = `${LIVE_TOTAL.toLocaleString()} products in catalog (live)`;
   } catch (err) {
     console.error('[Catalog API] Fetch failed:', err.message);
-    showApiStatus('demo', 'Demo mode — showing static catalog. <a href="../setup/connect-catalog.html" style="color:inherit;text-decoration:underline;">Connect live catalog →</a>');
+    showApiStatus('error', 'Live catalog is unavailable right now. Showing fallback data.');
     LIVE_MODE = false;
     renderProducts(PRODUCTS); // fallback renders existing static data
   } finally {
@@ -1710,11 +1722,20 @@ async function fetchLiveCatalog(paramsOverride = {}) {
   }
 }
 
+async function refreshCatalogView() {
+  if (LIVE_MODE) {
+    LIVE_PAGE = 1;
+    await fetchLiveCatalog();
+    return;
+  }
+  renderProducts(getFilteredProducts());
+}
+
 async function initCatalog() {
-  // Show demo products immediately
-  showApiStatus('demo', 'Demo mode — showing static catalog. <a href="../setup/connect-catalog.html" style="color:inherit;text-decoration:underline;">Connect live catalog →</a>');
+  showApiStatus('loading', 'Connecting to live catalog…');
   renderBrandList();
   renderProducts(PRODUCTS);
+  await fetchLiveCatalog();
 }
 
 /* ════════════════════════════════════════════════════════════

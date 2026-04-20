@@ -1110,6 +1110,8 @@ let _currentBPage   = 1;
 let _currentSPage   = 1;
 let _revenueChart   = null;
 let _statusChart    = null;
+let _analyticsRevChart = null;
+let _analyticsOrderChart = null;
 let _activeAdminTab = 'dashboard';
 let _adminRealtimeChannels = [];
 let _adminRealtimeTimer = null;
@@ -1380,7 +1382,9 @@ async function loadAnalytics() {
   const revenue = data.map(r => Number(r.revenue)||0);
   const orders  = data.map(r => Number(r.order_count)||0);
 
-  new Chart(document.getElementById('analyticsRevChart'), {
+  const analyticsRevEl = document.getElementById('analyticsRevChart');
+  if (_analyticsRevChart) _analyticsRevChart.destroy();
+  _analyticsRevChart = new Chart(analyticsRevEl, {
     type:'line',
     data:{ labels, datasets:[{ label:'Revenue', data:revenue,
       borderColor:'#6366f1', backgroundColor:'rgba(99,102,241,.1)',
@@ -1390,7 +1394,9 @@ async function loadAnalytics() {
       scales:{ x:{ticks:{color:'#64748b'},grid:{color:'rgba(255,255,255,.04)'}},
                y:{ticks:{color:'#64748b',callback:v=>'$'+v.toLocaleString()},grid:{color:'rgba(255,255,255,.04)'}} } }
   });
-  new Chart(document.getElementById('analyticsOrderChart'), {
+  const analyticsOrderEl = document.getElementById('analyticsOrderChart');
+  if (_analyticsOrderChart) _analyticsOrderChart.destroy();
+  _analyticsOrderChart = new Chart(analyticsOrderEl, {
     type:'bar',
     data:{ labels, datasets:[{ label:'Orders', data:orders,
       backgroundColor:'rgba(52,211,153,.5)', borderColor:'#34d399', borderRadius:4 }] },

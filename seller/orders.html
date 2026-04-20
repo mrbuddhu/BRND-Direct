@@ -387,10 +387,132 @@
 </div>
 
 <div class="toast-container" id="toastContainer"></div>
+<script src="../js/supabase.js"></script>
+<script src="../js/auth.js"></script>
+<script src="../js/api.js"></script>
 <script src="js/portal.js"></script>
 <script>
+  let LIVE_SELLER_ORDERS = [];
+  let ACTIVE_SELLER_FILTER = 'all';
+
+  function fmtMoney(n) {
+    return `$${Number(n || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+  }
+
+  function fmtDate(v) {
+    const d = new Date(v);
+    if (Number.isNaN(d.getTime())) return '—';
+    return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+  }
+
+  function sellerRowStatus(s) {
+    const st = String(s || '').toLowerCase();
+    if (st === 'confirmed') return 'processing';
+    return st || 'new';
+  }
+
+  function statusChip(status) {
+    const s = sellerRowStatus(status);
+    if (s === 'delivered') return `<span class="status-chip status-chip--delivered">Delivered</span>`;
+    if (s === 'shipped') return `<span class="status-chip status-chip--shipped">Shipped</span>`;
+    if (s === 'processing') return `<span class="status-chip status-chip--pending">Processing</span>`;
+    if (s === 'cancelled') return `<span class="status-chip status-chip--cancelled">Cancelled</span>`;
+    return `<span class="status-chip status-chip--active">New</span>`;
+  }
+
+  function renderSellerOrdersTable() {
+    const tbody = document.querySelector('#ordersTable tbody');
+    if (!tbody) return;
+    const list = ACTIVE_SELLER_FILTER === 'all'
+      ? LIVE_SELLER_ORDERS
+      : LIVE_SELLER_ORDERS.filter((o) => sellerRowStatus(o.status) === ACTIVE_SELLER_FILTER);
+    if (!list.length) {
+      tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;padding:24px;color:var(--color-muted);">No orders found.</td></tr>';
+      return;
+    }
+    tbody.innerHTML = list.map((o) => `
+      <tr data-status="${sellerRowStatus(o.status)}">
+        <td><span class="font-mono" style="font-weight:700;font-size:.82rem;">${o.orderNumber}</span></td>
+        <td><span class="td-primary">${o.buyerName}</span></td>
+        <td><span style="font-size:.72rem;background:rgba(79,70,229,.1);color:var(--color-accent);padding:2px 8px;border-radius:100px;font-weight:700;">B2B</span></td>
+        <td><span class="td-primary">${o.productName}</span></td>
+        <td><span class="font-mono">${o.units}</span></td>
+        <td><span class="font-mono" style="font-weight:700;">${fmtMoney(o.totalAmount)}</span></td>
+        <td>${statusChip(o.status)}</td>
+        <td><span class="td-secondary">${fmtDate(o.createdAt)}</span></td>
+        <td><button class="btn btn-outline" style="font-size:.72rem;padding:5px 10px;" onclick="openDrawer('${o.orderNumber}')">View</button></td>
+      </tr>`).join('');
+  }
+
+  function updateSellerOrderStats() {
+    const total = LIVE_SELLER_ORDERS.length;
+    const count = (s) => LIVE_SELLER_ORDERS.filter((o) => sellerRowStatus(o.status) === s).length;
+    const newCount = count('new');
+    const processingCount = count('processing');
+    const shippedCount = count('shipped');
+    const deliveredCount = count('delivered');
+    const cancelledCount = count('cancelled');
+    const inProgress = processingCount + shippedCount;
+
+    const statValues = document.querySelectorAll('.stat-card__value');
+    if (statValues[0]) statValues[0].textContent = String(newCount);
+    if (statValues[1]) statValues[1].textContent = String(inProgress);
+    if (statValues[2]) statValues[2].textContent = String(deliveredCount);
+    if (statValues[3]) statValues[3].textContent = String(cancelledCount);
+
+    const filterButtons = document.querySelectorAll('.sfilter');
+    filterButtons.forEach((btn) => {
+      const txt = btn.textContent || '';
+      if (txt.includes('All Orders')) btn.innerHTML = `All Orders <strong style="margin-left:4px;">${total}</strong>`;
+      if (txt.includes('New')) btn.innerHTML = `<span class="dot" style="color:var(--color-accent);"></span> New (${newCount})`;
+      if (txt.includes('Processing')) btn.innerHTML = `<span class="dot" style="color:var(--color-amber);"></span> Processing (${processingCount})`;
+      if (txt.includes('Shipped')) btn.innerHTML = `<span class="dot" style="color:var(--color-sky);"></span> Shipped (${shippedCount})`;
+      if (txt.includes('Delivered')) btn.innerHTML = `<span class="dot" style="color:var(--color-emerald);"></span> Delivered (${deliveredCount})`;
+      if (txt.includes('Cancelled')) btn.innerHTML = `<span class="dot" style="color:var(--color-rose);"></span> Cancelled (${cancelledCount})`;
+    });
+  }
+
+  async function hydrateSellerOrdersLive() {
+    try {
+      const ctx = await initSellerPage();
+      const sellerProfileId = ctx?.profile?.seller_profiles?.[0]?.id;
+      if (!sellerProfileId || typeof getSellerOrders !== 'function') return;
+
+      const { data } = await getSellerOrders(sellerProfileId, { status: 'all', page: 1, limit: 200 });
+      LIVE_SELLER_ORDERS = (data || []).map((row) => {
+        const ord = row.orders || {};
+        return {
+          orderNumber: ord.order_number || String(ord.id || '').slice(0, 8),
+          orderId: ord.id,
+          status: ord.status || 'new',
+          buyerName: ord?.buyer_profiles?.business_name || 'Buyer',
+          productName: row?.products?.name || row.name || 'Item',
+          units: Number(row.quantity || 0),
+          totalAmount: Number(ord.total_amount || (Number(row.quantity || 0) * Number(row.unit_price || 0))),
+          createdAt: ord.created_at,
+          itemSku: row?.products?.sku || row.sku || '—',
+          unitPrice: Number(row.unit_price || 0),
+        };
+      });
+
+      updateSellerOrderStats();
+      renderSellerOrdersTable();
+    } catch (_) {
+      // Keep static markup fallback.
+    }
+  }
+
   function openDrawer(orderId) {
+    const row = LIVE_SELLER_ORDERS.find((o) => o.orderNumber === orderId);
     document.getElementById('drawerTitle').textContent = 'Order ' + orderId;
+    if (row) {
+      const statusEl = document.getElementById('drawerStatus');
+      if (statusEl) statusEl.outerHTML = statusChip(row.status).replace('<span ', '<span id="drawerStatus" ');
+      const dateEl = document.getElementById('drawerDate');
+      if (dateEl) dateEl.textContent = fmtDate(row.createdAt);
+      const buyerEl = document.getElementById('drawerBuyer');
+      if (buyerEl) buyerEl.textContent = row.buyerName;
+    }
     document.getElementById('orderDrawer').classList.add('open');
   }
   function closeDrawer() { document.getElementById('orderDrawer').classList.remove('open'); }
@@ -398,10 +520,8 @@
   function filterOrders(btn, status) {
     document.querySelectorAll('.sfilter').forEach(f => f.classList.remove('active'));
     btn.classList.add('active');
-    const rows = document.querySelectorAll('#ordersTable tbody tr');
-    rows.forEach(row => {
-      row.style.display = (status === 'all' || row.dataset.status === status) ? '' : 'none';
-    });
+    ACTIVE_SELLER_FILTER = status;
+    renderSellerOrdersTable();
   }
 
   function showToast(msg, type = 'success') {
@@ -412,6 +532,8 @@
     c.appendChild(t);
     setTimeout(() => { t.style.opacity='0'; t.style.transform='translateX(60px)'; t.style.transition='all .3s'; setTimeout(() => t.remove(), 350); }, 3500);
   }
+
+  hydrateSellerOrdersLive();
 </script>
 </body>
 </html>

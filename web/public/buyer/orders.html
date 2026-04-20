@@ -1022,12 +1022,15 @@
 </div>
 
 <div class="toast-container" id="toastContainer"></div>
+<script src="../js/supabase.js"></script>
+<script src="../js/auth.js"></script>
+<script src="../js/api.js"></script>
 <script src="js/portal.js"></script>
 <script>
 /* ══════════════════════════════════════════════════════
    ORDERS DATA
 ══════════════════════════════════════════════════════ */
-const orders = [
+let orders = [
   // Step 3 — Pending (awaiting seller confirmation)
   { id:'BD-48295', status:'pending',          placed:'Mar 26, 2026', ship:'',            delivery:'',             po:'PO-29485', inv:'INV-2895', terms:'Net-30', payStatus:'Unpaid', due:'Apr 25, 2026', tracking:{type:'',num:'',carrier:''}, items:[{brand:'Chanel',name:'No. 5 EDP 50ml',sku:'SKU-5510',qty:24,price:240}] },
   { id:'BD-48294', status:'pending',          placed:'Mar 25, 2026', ship:'',            delivery:'',             po:'PO-29484', inv:'INV-2894', terms:'Net-30', payStatus:'Unpaid', due:'Apr 24, 2026', tracking:{type:'',num:'',carrier:''}, items:[{brand:'Jordan Brand',name:'Air Jordan 1 High',sku:'SKU-0110',qty:24,price:180}] },
@@ -1566,9 +1569,108 @@ function showToast(msg,type) {
 /* ══════════════════════════════════════════════════════
    INIT — check URL params to open specific tab
 ══════════════════════════════════════════════════════ */
+function mapBuyerOrderStatus(status, paymentStatus) {
+  const s = String(status || '').toLowerCase();
+  const p = String(paymentStatus || '').toLowerCase();
+  if (s === 'cancelled') return 'cancelled';
+  if (s === 'delivered') return 'delivered';
+  if (s === 'shipped') return 'shipped';
+  if (s === 'processing') return 'packed';
+  if (s === 'confirmed' && p !== 'paid') return 'awaiting_payment';
+  if (s === 'confirmed' && p === 'paid') return 'packed';
+  return 'pending';
+}
+
+function toDisplayDate(value) {
+  if (!value) return '';
+  const d = new Date(value);
+  if (Number.isNaN(d.getTime())) return '';
+  return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+}
+
+function updateOrderStatChips() {
+  const countByStatus = {
+    all: orders.length,
+    pending: orders.filter((o) => o.status === 'pending').length,
+    awaiting_payment: orders.filter((o) => o.status === 'awaiting_payment').length,
+    packed: orders.filter((o) => o.status === 'packed').length,
+    shipped: orders.filter((o) => o.status === 'shipped').length,
+    delivered: orders.filter((o) => o.status === 'delivered').length,
+    cancelled: orders.filter((o) => o.status === 'cancelled').length,
+  };
+  document.querySelectorAll('.ostat-chip').forEach((chip) => {
+    const st = chip.dataset.status || 'all';
+    const countEl = chip.querySelector('.ostat-count');
+    if (countEl) countEl.textContent = String(countByStatus[st] || 0);
+  });
+}
+
+async function hydrateLiveBuyerOrders() {
+  try {
+    const ctx = await initBuyerPage();
+    const buyerProfileId = ctx?.profile?.buyer_profiles?.[0]?.id;
+    if (!buyerProfileId || typeof getOrders !== 'function') return;
+
+    const [{ data: orderRows }, { data: invoiceRows }] = await Promise.all([
+      getOrders(buyerProfileId, { status: 'all', page: 1, limit: 200 }),
+      (typeof getInvoices === 'function' ? getInvoices(buyerProfileId, { paymentStatus: 'all', page: 1, limit: 200 }) : Promise.resolve({ data: [] })),
+    ]);
+
+    const invoiceByOrderNum = {};
+    (invoiceRows || []).forEach((inv) => {
+      const key = inv?.orders?.order_number || inv?.order_number || null;
+      if (key) invoiceByOrderNum[key] = inv;
+    });
+
+    const mapped = (orderRows || []).map((o) => {
+      const inv = invoiceByOrderNum[o.order_number] || {};
+      const lineItems = (o.order_items || []).map((it) => {
+        const qty = Number(it.quantity || 0);
+        const unit = Number(it.unit_price || (qty ? Number(it.line_total || 0) / qty : 0) || 0);
+        return {
+          brand: it?.products?.brand_name || 'Brand',
+          name: it.name || it?.products?.name || 'Item',
+          sku: it.sku || it?.products?.sku || '—',
+          qty,
+          price: unit,
+        };
+      });
+      return {
+        id: o.order_number || String(o.id || '').slice(0, 8),
+        status: mapBuyerOrderStatus(o.status, o.payment_status),
+        placed: toDisplayDate(o.created_at),
+        ship: toDisplayDate(o.tracking_info?.ship_date),
+        delivery: toDisplayDate(o.tracking_info?.estimated_delivery || o.due_date),
+        po: o.order_number || '—',
+        inv: inv.invoice_number || '—',
+        terms: `Net-${o.net_terms || 30}`,
+        payStatus: String(o.payment_status || inv.payment_status || 'unpaid').toLowerCase() === 'paid' ? 'Paid' : 'Unpaid',
+        due: toDisplayDate(inv.due_date || o.due_date),
+        tracking: {
+          type: String(o.tracking_info?.carrier || '').toLowerCase(),
+          num: o.tracking_info?.tracking_number || '',
+          carrier: o.tracking_info?.carrier || '',
+        },
+        dims: o.tracking_info?.package_dimensions || '',
+        items: lineItems.length ? lineItems : [{ brand: 'Brand', name: 'Order items', sku: '—', qty: 1, price: Number(o.total_amount || 0) }],
+      };
+    });
+
+    if (mapped.length) {
+      orders = mapped;
+      renderAllPanels();
+      filterOrders();
+      updateOrderStatChips();
+    }
+  } catch (_) {
+    // Keep static fallback when live loading fails.
+  }
+}
+
 renderAllPanels();
 renderOrders(orders);
 renderCartPanels();
+hydrateLiveBuyerOrders();
 
 // Support ?tab=stepN URL parameter to auto-open a tab
 (function(){
