@@ -1,9 +1,9 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "cleanUrls": true,
-  "redirects": [
-    { "source": "/buyer", "destination": "/buyer/index", "permanent": false },
-    { "source": "/seller", "destination": "/seller/index", "permanent": false },
-    { "source": "/admin", "destination": "/admin/index", "permanent": false }
+  "rewrites": [
+    { "source": "/buyer", "destination": "/buyer/index.html" },
+    { "source": "/seller", "destination": "/seller/index.html" },
+    { "source": "/admin", "destination": "/admin/index.html" }
   ]
 }
