@@ -151,6 +151,30 @@
     }
     .divider-line { flex: 1; height: 1px; background: rgba(255,255,255,.08); }
     .divider-label { font-size: .68rem; font-weight: 700; color: rgba(255,255,255,.25); text-transform: uppercase; letter-spacing: .1em; white-space: nowrap; }
+    .quick-access summary {
+      list-style: none;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      cursor: pointer;
+      user-select: none;
+      color: rgba(255,255,255,.82);
+      font-size: .8rem;
+      font-weight: 700;
+      background: rgba(255,255,255,.04);
+      border: 1px solid rgba(255,255,255,.09);
+      border-radius: 10px;
+      padding: 10px 12px;
+      margin-bottom: 10px;
+    }
+    .quick-access summary::-webkit-details-marker { display: none; }
+    .quick-access summary i {
+      font-size: .8rem;
+      color: rgba(255,255,255,.55);
+      transition: transform .2s ease;
+    }
+    .quick-access[open] summary i { transform: rotate(180deg); }
 
     .notice {
       background: rgba(245,158,11,.08);
@@ -277,29 +301,29 @@
       </a>
     </div>
 
-    <div class="divider">
-      <div class="divider-line"></div>
-      <div class="divider-label">Quick Page Access</div>
-      <div class="divider-line"></div>
-    </div>
-
-    <div class="page-links">
-      <a href="buyer/dashboard.html"           class="page-link"><i class="fas fa-table-columns"></i> Dashboard</a>
-      <a href="buyer/products.html"            class="page-link"><i class="fas fa-boxes-stacked"></i> Products</a>
-      <a href="buyer/cart.html"                class="page-link"><i class="fas fa-cart-shopping"></i> Order Cart</a>
-      <a href="buyer/orders.html"              class="page-link"><i class="fas fa-file-invoice"></i> Orders</a>
-      <a href="buyer/invoices.html"            class="page-link"><i class="fas fa-file-invoice-dollar"></i> Invoices</a>
-      <a href="buyer/shipping-logistics.html"  class="page-link"><i class="fas fa-truck-fast"></i> Shipping</a>
-      <a href="buyer/dropship.html"            class="page-link"><i class="fas fa-rotate"></i> Dropship</a>
-      <a href="buyer/analytics.html"           class="page-link"><i class="fas fa-chart-line"></i> Analytics</a>
-      <a href="buyer/rfq.html"                 class="page-link"><i class="fas fa-comment-dollar"></i> RFQ</a>
-      <a href="buyer/messages.html"            class="page-link"><i class="fas fa-message"></i> Messages</a>
-      <a href="buyer/reports.html"             class="page-link"><i class="fas fa-chart-bar"></i> Reports</a>
-      <a href="buyer/account.html"             class="page-link"><i class="fas fa-gear"></i> Settings</a>
-      <a href="buyer/warehousing.html"         class="page-link"><i class="fas fa-warehouse"></i> Warehousing</a>
-      <a href="buyer/trade-finance.html"       class="page-link"><i class="fas fa-credit-card"></i> Trade Finance</a>
-      <a href="buyer/help.html"                class="page-link"><i class="fas fa-circle-question"></i> Help</a>
-    </div>
+    <details class="quick-access">
+      <summary>
+        <span>Quick Page Access</span>
+        <i class="fas fa-chevron-down" aria-hidden="true"></i>
+      </summary>
+      <div class="page-links">
+        <a href="buyer/dashboard.html"           class="page-link"><i class="fas fa-table-columns"></i> Dashboard</a>
+        <a href="buyer/products.html"            class="page-link"><i class="fas fa-boxes-stacked"></i> Products</a>
+        <a href="buyer/cart.html"                class="page-link"><i class="fas fa-cart-shopping"></i> Order Cart</a>
+        <a href="buyer/orders.html"              class="page-link"><i class="fas fa-file-invoice"></i> Orders</a>
+        <a href="buyer/invoices.html"            class="page-link"><i class="fas fa-file-invoice-dollar"></i> Invoices</a>
+        <a href="buyer/shipping-logistics.html"  class="page-link"><i class="fas fa-truck-fast"></i> Shipping</a>
+        <a href="buyer/dropship.html"            class="page-link"><i class="fas fa-rotate"></i> Dropship</a>
+        <a href="buyer/analytics.html"           class="page-link"><i class="fas fa-chart-line"></i> Analytics</a>
+        <a href="buyer/rfq.html"                 class="page-link"><i class="fas fa-comment-dollar"></i> RFQ</a>
+        <a href="buyer/messages.html"            class="page-link"><i class="fas fa-message"></i> Messages</a>
+        <a href="buyer/reports.html"             class="page-link"><i class="fas fa-chart-bar"></i> Reports</a>
+        <a href="buyer/account.html"             class="page-link"><i class="fas fa-gear"></i> Settings</a>
+        <a href="buyer/warehousing.html"         class="page-link"><i class="fas fa-warehouse"></i> Warehousing</a>
+        <a href="buyer/trade-finance.html"       class="page-link"><i class="fas fa-credit-card"></i> Trade Finance</a>
+        <a href="buyer/help.html"                class="page-link"><i class="fas fa-circle-question"></i> Help</a>
+      </div>
+    </details>
 
     <div class="divider">
       <div class="divider-line"></div>
@@ -312,10 +336,6 @@
       <a href="buyer/register.html" class="page-link"><i class="fas fa-user-plus"></i> Register</a>
       <a href="setup/connect-catalog.html" class="page-link"><i class="fas fa-plug"></i> Setup Guide</a>
     </div>
-  </div>
-
-  <div class="notice">
-    <strong>Coming soon</strong>
   </div>
 
   <div class="status-panel">
