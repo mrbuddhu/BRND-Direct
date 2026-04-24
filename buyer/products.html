@@ -828,14 +828,14 @@ let activeTag    = null;
 let selectedIds  = new Set();
 let currentView  = 'grid'; // 'grid' | 'list' | 'text'
 
-// Live catalog state (populated from API or static fallback)
+// Live catalog state (API-first; do not render static dummy catalog on failure)
 let LIVE_MODE        = true;     // live-first by default
 let LIVE_PAGE        = 1;
 let LIVE_TOTAL_PAGES = 1;
-let LIVE_TOTAL       = PRODUCTS.length;
+let LIVE_TOTAL       = 0;
 let LIVE_BRANDS      = [];       // brands from API
 
-let BRANDS_AZ  = [...new Set(PRODUCTS.map(p => p.brand))].sort((a,b) => a.localeCompare(b));
+let BRANDS_AZ  = [];
 
 /* ════════════════════════════════════════════════════════════
    HELPERS
@@ -1695,14 +1695,12 @@ async function fetchLiveCatalog(paramsOverride = {}) {
   try {
     const params = { ...buildLiveFilters(), ...paramsOverride };
     const result = await CatalogAPI.getProducts(params);
-    // Replace the in-memory PRODUCTS array with live data
+    // Replace the in-memory PRODUCTS array with live data (even if empty).
     const liveData = result.products || [];
-    if (liveData.length > 0) {
-      PRODUCTS.length = 0;
-      liveData.forEach(p => PRODUCTS.push(p));
-      BRANDS_AZ = [...new Set(PRODUCTS.map((p) => p.brand))].sort((a,b) => a.localeCompare(b));
-      renderBrandList(document.getElementById('brandSearch')?.value || '');
-    }
+    PRODUCTS.length = 0;
+    liveData.forEach(p => PRODUCTS.push(p));
+    BRANDS_AZ = [...new Set(PRODUCTS.map((p) => p.brand))].sort((a,b) => a.localeCompare(b));
+    renderBrandList(document.getElementById('brandSearch')?.value || '');
     LIVE_TOTAL       = result.total;
     LIVE_TOTAL_PAGES = result.pages;
     LIVE_PAGE        = result.page;
@@ -1714,9 +1712,12 @@ async function fetchLiveCatalog(paramsOverride = {}) {
     if (countEl) countEl.textContent = `${LIVE_TOTAL.toLocaleString()} products in catalog (live)`;
   } catch (err) {
     console.error('[Catalog API] Fetch failed:', err.message);
-    showApiStatus('error', 'Live catalog is unavailable right now. Showing fallback data.');
+    showApiStatus('error', 'Live catalog is unavailable right now. No dummy data is shown.');
     LIVE_MODE = false;
-    renderProducts(PRODUCTS); // fallback renders existing static data
+    PRODUCTS.length = 0;
+    BRANDS_AZ = [];
+    renderBrandList(document.getElementById('brandSearch')?.value || '');
+    renderProducts([]);
   } finally {
     if (grid) grid.style.opacity = '1';
   }
@@ -1734,7 +1735,7 @@ async function refreshCatalogView() {
 async function initCatalog() {
   showApiStatus('loading', 'Connecting to live catalog…');
   renderBrandList();
-  renderProducts(PRODUCTS);
+  renderProducts([]);
   await fetchLiveCatalog();
 }
 
@@ -1742,7 +1743,7 @@ async function initCatalog() {
    INIT
 ════════════════════════════════════════════════════════════ */
 renderBrandList();
-renderProducts(PRODUCTS);
+renderProducts([]);
 initCatalog();
 </script>
 </body>
