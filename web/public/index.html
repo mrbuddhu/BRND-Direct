@@ -228,11 +228,19 @@
       animation: blinkPulse 1.2s infinite;
       flex-shrink: 0;
     }
+    .status-dot.error {
+      background: #ef4444;
+      box-shadow: 0 0 0 0 rgba(239,68,68,.65);
+      animation: blinkPulseError 1s infinite;
+    }
     .status-value {
       color: #86efac;
       font-weight: 800;
       text-align: right;
       font-variant-numeric: tabular-nums;
+    }
+    .status-value.error {
+      color: #fca5a5;
     }
     .status-meta {
       margin-top: 8px;
@@ -261,6 +269,11 @@
       0% { opacity: 1; box-shadow: 0 0 0 0 rgba(34,197,94,.45); }
       70% { opacity: .55; box-shadow: 0 0 0 8px rgba(34,197,94,0); }
       100% { opacity: 1; box-shadow: 0 0 0 0 rgba(34,197,94,0); }
+    }
+    @keyframes blinkPulseError {
+      0% { opacity: 1; box-shadow: 0 0 0 0 rgba(239,68,68,.55); }
+      70% { opacity: .55; box-shadow: 0 0 0 8px rgba(239,68,68,0); }
+      100% { opacity: 1; box-shadow: 0 0 0 0 rgba(239,68,68,0); }
     }
 
     @media (max-width: 500px) {
@@ -341,8 +354,8 @@
       <div class="status-value">Online</div>
     </div>
     <div class="status-row">
-      <div class="status-left"><span class="status-dot" aria-hidden="true"></span>3rd Party API Permutations</div>
-      <div class="status-value"><span id="rdCounter">2,567</span> / 1,500,000</div>
+      <div class="status-left"><span class="status-dot error" aria-hidden="true"></span>3rd Party API Permutations</div>
+      <div class="status-value error">0.7% edge cases failed (10,500 out of 1.5 million)</div>
     </div>
     <div class="status-row">
       <div class="status-left"><span class="status-dot" aria-hidden="true"></span>3rd Party API Latency</div>
@@ -351,7 +364,7 @@
     <div class="status-progress" aria-hidden="true">
       <div class="status-progress-fill" id="rdProgressFill"></div>
     </div>
-    <div class="status-meta">Last updated: <span id="rdLastUpdated">--:--:--</span> · Auto-refreshes every 2 minutes</div>
+    <div class="status-meta">Last updated: <span id="rdLastUpdated">--:--:--</span> · Demo updates every few seconds</div>
   </div>
 
 </div>
@@ -359,18 +372,16 @@
 <script>
   (function () {
     var maxPermutations = 1500000;
-    var counterEl = document.getElementById('rdCounter');
     var latencyEl = document.getElementById('rdLatency');
     var lastUpdatedEl = document.getElementById('rdLastUpdated');
     var progressFillEl = document.getElementById('rdProgressFill');
-    if (!counterEl || !latencyEl || !lastUpdatedEl || !progressFillEl) return;
+    if (!latencyEl || !lastUpdatedEl || !progressFillEl) return;
 
     var current = 2567;
     var format = function (num) {
       return num.toLocaleString('en-US');
     };
     var updateVisuals = function () {
-      counterEl.textContent = format(current);
       var latency = Math.floor(Math.random() * 121) + 80;
       latencyEl.textContent = latency + 'ms';
       var percent = Math.max(0, Math.min((current / maxPermutations) * 100, 100));
@@ -380,13 +391,13 @@
 
     var updateCounter = function () {
       // Demo increment simulates ongoing AI integration test permutations.
-      var increment = Math.floor(Math.random() * 6000) + 1200;
+      var increment = Math.floor(Math.random() * 140) + 35;
       current = Math.min(current + increment, maxPermutations);
       updateVisuals();
     };
 
     updateVisuals();
-    setInterval(updateCounter, 120000);
+    setInterval(updateCounter, 4000);
   })();
 </script>
 
