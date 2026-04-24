@@ -1053,11 +1053,31 @@ function statusBadge(status) {
 
 function setKpiValues(metrics) {
   const vals = Array.from(document.querySelectorAll('.kpi-card .kpi-val'));
-  if (vals[0]) vals[0].dataset.count = Math.round(metrics.spendMtd || 0);
-  if (vals[1]) vals[1].dataset.count = Math.round(metrics.activeOrders || 0);
-  if (vals[2]) vals[2].dataset.count = Math.round(metrics.openInvoices || 0);
-  if (vals[3]) vals[3].dataset.count = Math.round(metrics.inTransit || 0);
-  if (vals[4]) vals[4].dataset.count = Math.round(metrics.creditAvailable || 0);
+  const spendMtd = Math.round(metrics.spendMtd || 0);
+  const activeOrders = Math.round(metrics.activeOrders || 0);
+  const openInvoices = Math.round(metrics.openInvoices || 0);
+  const inTransit = Math.round(metrics.inTransit || 0);
+  const creditAvailable = Math.round(metrics.creditAvailable || 0);
+  if (vals[0]) {
+    vals[0].dataset.count = spendMtd;
+    vals[0].textContent = `$${spendMtd.toLocaleString()}`;
+  }
+  if (vals[1]) {
+    vals[1].dataset.count = activeOrders;
+    vals[1].textContent = String(activeOrders);
+  }
+  if (vals[2]) {
+    vals[2].dataset.count = openInvoices;
+    vals[2].textContent = String(openInvoices);
+  }
+  if (vals[3]) {
+    vals[3].dataset.count = inTransit;
+    vals[3].textContent = String(inTransit);
+  }
+  if (vals[4]) {
+    vals[4].dataset.count = creditAvailable;
+    vals[4].textContent = `$${creditAvailable.toLocaleString()}`;
+  }
 }
 
 function renderRecentOrders(orders) {

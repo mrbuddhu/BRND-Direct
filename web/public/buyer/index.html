@@ -207,12 +207,7 @@ function showToast(msg, type = 'success') {
   }, 3500);
 }
 
-/* ── Redirect if already logged in ─────────────────────── */
-document.addEventListener('supabase:ready', async () => {
-  const sb = await getSupabase();
-  const { data: { session } } = await sb.auth.getSession();
-  if (session) { window.location.href = 'dashboard.html'; }
-});
+/* ── Keep explicit login flow (no silent auto-redirect) ── */
 
 /* ── Sign-in form ───────────────────────────────────────── */
 document.getElementById('loginForm').addEventListener('submit', async (e) => {
