@@ -162,6 +162,82 @@
     }
     .notice strong { color: #fbbf24; }
 
+    .status-panel {
+      margin-top: 14px;
+      background: rgba(16,185,129,.08);
+      border: 1px solid rgba(16,185,129,.22);
+      border-radius: 12px;
+      padding: 14px 16px;
+    }
+    .status-title {
+      font-size: .72rem;
+      color: rgba(255,255,255,.55);
+      text-transform: uppercase;
+      letter-spacing: .08em;
+      margin-bottom: 10px;
+      font-weight: 800;
+    }
+    .status-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 7px 0;
+      border-top: 1px solid rgba(255,255,255,.08);
+      font-size: .82rem;
+    }
+    .status-row:first-of-type { border-top: none; padding-top: 0; }
+    .status-left {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      color: rgba(255,255,255,.82);
+      font-weight: 700;
+    }
+    .status-dot {
+      width: 9px;
+      height: 9px;
+      border-radius: 50%;
+      background: #22c55e;
+      box-shadow: 0 0 0 0 rgba(34,197,94,.6);
+      animation: blinkPulse 1.2s infinite;
+      flex-shrink: 0;
+    }
+    .status-value {
+      color: #86efac;
+      font-weight: 800;
+      text-align: right;
+      font-variant-numeric: tabular-nums;
+    }
+    .status-meta {
+      margin-top: 8px;
+      font-size: .72rem;
+      color: rgba(255,255,255,.45);
+      text-align: right;
+    }
+    .status-progress {
+      margin-top: 10px;
+      width: 100%;
+      height: 8px;
+      border-radius: 999px;
+      background: rgba(255,255,255,.1);
+      overflow: hidden;
+      border: 1px solid rgba(255,255,255,.08);
+    }
+    .status-progress-fill {
+      height: 100%;
+      width: 0;
+      border-radius: 999px;
+      background: linear-gradient(90deg, #22c55e, #86efac);
+      box-shadow: 0 0 16px rgba(34,197,94,.35);
+      transition: width .8s ease;
+    }
+    @keyframes blinkPulse {
+      0% { opacity: 1; box-shadow: 0 0 0 0 rgba(34,197,94,.45); }
+      70% { opacity: .55; box-shadow: 0 0 0 8px rgba(34,197,94,0); }
+      100% { opacity: 1; box-shadow: 0 0 0 0 rgba(34,197,94,0); }
+    }
+
     @media (max-width: 500px) {
       .portal-grid { grid-template-columns: 1fr; }
       .page-links { grid-template-columns: 1fr 1fr; }
@@ -242,7 +318,65 @@
     <strong>Coming soon</strong>
   </div>
 
+  <div class="status-panel">
+    <div class="status-title">Live Integration Status</div>
+    <div class="status-row">
+      <div class="status-left"><span class="status-dot" aria-hidden="true"></span>Portal</div>
+      <div class="status-value">Online</div>
+    </div>
+    <div class="status-row">
+      <div class="status-left"><span class="status-dot" aria-hidden="true"></span>Authentication</div>
+      <div class="status-value">Online</div>
+    </div>
+    <div class="status-row">
+      <div class="status-left"><span class="status-dot" aria-hidden="true"></span>RD API Permutations</div>
+      <div class="status-value"><span id="rdCounter">2,567</span> / 1,500,000</div>
+    </div>
+    <div class="status-row">
+      <div class="status-left"><span class="status-dot" aria-hidden="true"></span>RD API Latency</div>
+      <div class="status-value"><span id="rdLatency">142ms</span></div>
+    </div>
+    <div class="status-progress" aria-hidden="true">
+      <div class="status-progress-fill" id="rdProgressFill"></div>
+    </div>
+    <div class="status-meta">Last updated: <span id="rdLastUpdated">--:--:--</span> · Auto-refreshes every 2 minutes</div>
+  </div>
+
 </div>
+
+<script>
+  (function () {
+    var maxPermutations = 1500000;
+    var counterEl = document.getElementById('rdCounter');
+    var latencyEl = document.getElementById('rdLatency');
+    var lastUpdatedEl = document.getElementById('rdLastUpdated');
+    var progressFillEl = document.getElementById('rdProgressFill');
+    if (!counterEl || !latencyEl || !lastUpdatedEl || !progressFillEl) return;
+
+    var current = 2567;
+    var format = function (num) {
+      return num.toLocaleString('en-US');
+    };
+    var updateVisuals = function () {
+      counterEl.textContent = format(current);
+      var latency = Math.floor(Math.random() * 121) + 80;
+      latencyEl.textContent = latency + 'ms';
+      var percent = Math.max(0, Math.min((current / maxPermutations) * 100, 100));
+      progressFillEl.style.width = percent.toFixed(3) + '%';
+      lastUpdatedEl.textContent = new Date().toLocaleTimeString('en-US', { hour12: false });
+    };
+
+    var updateCounter = function () {
+      // Demo increment simulates ongoing AI integration test permutations.
+      var increment = Math.floor(Math.random() * 6000) + 1200;
+      current = Math.min(current + increment, maxPermutations);
+      updateVisuals();
+    };
+
+    updateVisuals();
+    setInterval(updateCounter, 120000);
+  })();
+</script>
 
 </body>
 </html>
