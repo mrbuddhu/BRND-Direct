@@ -262,7 +262,7 @@
     <div class="sidebar__user">
       <div class="sidebar__user-avatar">AJ</div>
       <div class="sidebar__user-info">
-        <div class="sidebar__user-name">Alex Johnson</div>
+        <div class="sidebar__user-name">Buyer User</div>
         <div class="sidebar__user-role">Wholesale Buyer</div>
       </div>
       <button class="sidebar__user-logout" title="Sign out" onclick="window.location.href='index.html'">
@@ -296,7 +296,7 @@
   <div class="page-header-bar fade-in">
     <div>
       <h1>Settings</h1>
-      <div class="page-header-sub">Alex Johnson · Wholesale Buyer Account</div>
+      <div class="page-header-sub">Buyer User · Wholesale Buyer Account</div>
     </div>
   </div>
 
@@ -373,7 +373,7 @@
                   <label class="form-label" for="p-email">Email Address</label>
                   <div class="input-group">
                     <i class="fas fa-envelope input-icon"></i>
-                    <input type="email" id="p-email" class="form-input" value="alex@johnsonretail.com" required />
+                    <input type="email" id="p-email" class="form-input" value="buyer@example.com" required />
                   </div>
                 </div>
                 <div class="form-group">
@@ -920,8 +920,8 @@
               <div class="team-member-row" id="member-owner">
                 <div class="team-member-avatar" style="background:var(--color-accent);">AJ</div>
                 <div class="team-member-info">
-                  <div class="team-member-name">Alex Johnson <span style="font-size:.68rem;color:var(--color-muted);font-weight:500;">(You)</span></div>
-                  <div class="team-member-email">alex@johnsonretail.com</div>
+                  <div class="team-member-name">Buyer User <span style="font-size:.68rem;color:var(--color-muted);font-weight:500;">(You)</span></div>
+                  <div class="team-member-email">buyer@example.com</div>
                 </div>
                 <span class="team-member-role-tag owner"><i class="fas fa-crown" style="font-size:.65rem;"></i> Owner</span>
                 <div class="team-member-actions">
@@ -1156,7 +1156,7 @@
   const MAX_MEMBERS = 10;
   // Tracks all members: owner (fixed) + dynamic ones
   let teamMembers = [
-    { id: 'owner', name: 'Alex Johnson',    email: 'alex@johnsonretail.com',    role: 'owner',   initials: 'AJ', color: 'var(--color-accent)',   isOwner: true },
+    { id: 'owner', name: 'Buyer User',    email: 'buyer@example.com',    role: 'owner',   initials: 'AJ', color: 'var(--color-accent)',   isOwner: true },
     { id: 'm1',   name: 'Sarah Rodriguez', email: 'sarah.r@johnsonretail.com', role: 'manager', initials: 'SR', color: 'var(--color-emerald)', isOwner: false },
   ];
 
@@ -1284,8 +1284,8 @@
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          account_owner_name:  'Alex Johnson',
-          account_owner_email: 'alex@johnsonretail.com',
+          account_owner_name:  'Buyer User',
+          account_owner_email: 'buyer@example.com',
           business_name:       'Johnson Retail Group LLC',
           member_name:         name,
           member_email:        email,

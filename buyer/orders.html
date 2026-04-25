@@ -490,7 +490,7 @@
     <div class="sidebar__user">
       <div class="sidebar__user-avatar">AJ</div>
       <div class="sidebar__user-info">
-        <div class="sidebar__user-name">Alex Johnson</div>
+        <div class="sidebar__user-name">Buyer User</div>
         <div class="sidebar__user-role">Wholesale Buyer</div>
       </div>
       <button class="sidebar__user-logout" title="Sign out" onclick="window.location.href='index.html'"><i class="fas fa-arrow-right-from-bracket"></i></button>
@@ -1381,7 +1381,7 @@ function openDetail(id) {
         o.status==='awaiting_payment'?` <a href="invoices.html" style="margin-left:8px;font-size:.72rem;color:#10b981;font-weight:700;text-decoration:none;background:rgba(16,185,129,.1);padding:2px 10px;border-radius:20px;">Pay Now →</a>`:''
       }`;
   document.getElementById('odpPayDueDate').textContent = o.due||'—';
-  document.getElementById('odpShipAddr').textContent = 'Alex Johnson — Boutique Collective, Chicago, IL 60607';
+  document.getElementById('odpShipAddr').textContent = 'Buyer User — Boutique Collective, Chicago, IL 60607';
 }
 
 function closeDetail() {
