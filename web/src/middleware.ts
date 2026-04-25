@@ -16,24 +16,26 @@ export async function middleware(request: NextRequest) {
     return response;
   }
 
-  const supabase = createServerClient(url, key, {
-    cookies: {
-      getAll() {
-        return request.cookies.getAll();
+  try {
+    const supabase = createServerClient(url, key, {
+      cookies: {
+        getAll() {
+          return request.cookies.getAll();
+        },
+        setAll(cookiesToSet) {
+          // Avoid mutating request cookies in edge runtimes; only set response cookies.
+          response = NextResponse.next({ request });
+          cookiesToSet.forEach(({ name, value, options }) =>
+            response.cookies.set(name, value, options),
+          );
+        },
       },
-      setAll(cookiesToSet) {
-        cookiesToSet.forEach(({ name, value }) =>
-          request.cookies.set(name, value),
-        );
-        response = NextResponse.next({ request });
-        cookiesToSet.forEach(({ name, value, options }) =>
-          response.cookies.set(name, value, options),
-        );
-      },
-    },
-  });
-
-  await supabase.auth.getUser();
+    });
+    await supabase.auth.getUser();
+  } catch {
+    // Never block page rendering if auth refresh fails on edge runtime.
+    return NextResponse.next({ request });
+  }
 
   return response;
 }
