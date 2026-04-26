@@ -28,6 +28,10 @@ type WholesaleProduct = {
   category?: string;
   availableInventory?: number;
   askingPrice?: number;
+  image?: string;
+  image_url?: string;
+  imageUrl?: string;
+  images?: string[];
 };
 
 function getSupabaseConfig() {
@@ -169,6 +173,12 @@ export function mapWholesaleProductToPortal(row: WholesaleProduct, index = 0) {
   const wholesale = Number(row.askingPrice || 0);
   const stock = Number(row.availableInventory || 0);
   const syntheticId = sku || upc || `wh-${index + 1}`;
+  const images = [
+    ...(Array.isArray(row.images) ? row.images : []),
+    row.image,
+    row.image_url,
+    row.imageUrl,
+  ].filter((value): value is string => typeof value === "string" && value.trim().length > 0);
 
   return {
     id: syntheticId,
@@ -182,7 +192,7 @@ export function mapWholesaleProductToPortal(row: WholesaleProduct, index = 0) {
     msrp,
     moq: 1,
     stock_qty: stock,
-    images: [],
+    images,
     tags: [],
     meta: {
       size: row.size || "",

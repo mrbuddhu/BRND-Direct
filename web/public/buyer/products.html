@@ -155,6 +155,11 @@
       background:rgba(16,185,129,.12); color:#059669; border:1px solid rgba(16,185,129,.25);
       font-size:.62rem; font-weight:800; padding:2px 7px; border-radius:100px; text-transform:uppercase; letter-spacing:.04em;
     }
+    .no-image-badge {
+      display:inline-flex; align-items:center; gap:4px;
+      background:rgba(100,116,139,.12); color:#475569; border:1px solid rgba(100,116,139,.35);
+      font-size:.62rem; font-weight:800; padding:2px 7px; border-radius:100px; text-transform:uppercase; letter-spacing:.04em;
+    }
 
     /* ── Filter sidebar sub-categories ── */
     .sub-cat-list { padding-left:16px; margin-top:4px; display:none; }
@@ -909,6 +914,12 @@ function renderProducts(products) {
     const topSellerBadge = p.topSeller ? `<span class="badge" style="background:rgba(245,158,11,.12);color:#b45309;font-size:.62rem;">⭐ Top Seller</span>` : '';
     const newBadge = p.isNew ? `<span class="new-arrival-dot"><i class="fas fa-sparkles"></i> New</span>` : '';
     const imgStyle = p.imgStyle ? ` style="${p.imgStyle}"` : '';
+    const primaryImage = typeof p.img === 'string' && /^https?:\/\//i.test(p.img) ? p.img : '';
+    const imageMedia = primaryImage
+      ? `<img src="${primaryImage}" alt="${p.name}" loading="lazy" style="width:100%;height:100%;object-fit:cover;">`
+      : `<span style="font-size:2.5rem;">${p.emoji}</span>`;
+    const imageClass = primaryImage ? '' : (p.img || '');
+    const noImageBadge = primaryImage ? '' : `<span class="no-image-badge"><i class="fas fa-image"></i> No Image</span>`;
     const isSelected = selectedIds.has(p.id);
     const m = margin(p);
     const marginBadge = m ? `<span class="margin-badge">${m}% margin</span>` : '';
@@ -975,10 +986,10 @@ function renderProducts(products) {
     } else {
       /* ── GRID / LIST VIEW ── */
       card.innerHTML = `
-        <div class="product-card__img ${p.img}"${imgStyle}>
-          <span style="font-size:2.5rem;">${p.emoji}</span>
+        <div class="product-card__img ${imageClass}"${imgStyle}>
+          ${imageMedia}
           ${ribbonHtml}
-          <div class="product-card__badge">${topSellerBadge}${newBadge}</div>
+          <div class="product-card__badge">${topSellerBadge}${newBadge}${noImageBadge}</div>
           <div class="card-select-wrap">
             <input type="checkbox" class="card-checkbox" data-id="${p.id}" ${isSelected ? 'checked' : ''} onclick="event.stopPropagation();toggleSelect(${p.id},this)">
           </div>
@@ -1378,10 +1389,13 @@ function openProductModal(id) {
   // Gallery
   const emojis = [p.emoji, '\u{1F4E6}', '\u{1F3F7}', '\u{1F50D}'];
   const mainImg = document.getElementById('modalMainImg');
-  mainImg.className = `modal-main-img ${p.img}`;
+  const hasImage = typeof p.img === 'string' && /^https?:\/\//i.test(p.img);
+  mainImg.className = `modal-main-img ${hasImage ? '' : (p.img || '')}`;
   if (p.imgStyle) mainImg.setAttribute('style', p.imgStyle);
   else mainImg.removeAttribute('style');
-  mainImg.innerHTML = `<span style="font-size:5.5rem;">${p.emoji}</span>`;
+  mainImg.innerHTML = hasImage
+    ? `<img src="${p.img}" alt="${p.name}" loading="lazy" style="max-width:100%;max-height:100%;object-fit:contain;">`
+    : `<span style="font-size:5.5rem;">${p.emoji}</span>`;
 
   const thumbsEl = document.getElementById('modalThumbs');
   thumbsEl.innerHTML = emojis.map((em, i) => `
@@ -1404,10 +1418,11 @@ function openProductModal(id) {
 
   // New arrival badge
   const newLine = p.isNew ? `<span class="new-arrival-dot" style="margin-bottom:10px;display:inline-flex;"><i class="fas fa-sparkles"></i> New Arrival</span><br>` : '';
+  const noImageLine = hasImage ? '' : `<span class="no-image-badge" style="margin-bottom:10px;"><i class="fas fa-image"></i> No Image from supplier</span><br>`;
 
   document.getElementById('modalDetails').innerHTML = `
     <div class="prod-cat-tag"><i class="fas fa-tag"></i> ${catLabel(p.cat)}</div>
-    ${newLine}
+    ${newLine}${noImageLine}
     <h2>${p.name}</h2>
     <div class="modal-brand"><i class="fas fa-building" style="margin-right:5px;opacity:.5;"></i>${p.brand}</div>
     <div class="modal-fulfill">${fulfillMapFull[p.fulfill]}</div>

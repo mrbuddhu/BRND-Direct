@@ -72,6 +72,9 @@ const CatalogAPI = (() => {
   /* ── Map Supabase row → portal product object ──────────── */
   function mapProduct(row) {
     const brand = row.brands || {};
+    const images = Array.isArray(row.images)
+      ? row.images.filter((img) => typeof img === 'string' && img.trim())
+      : [];
     // Determine fulfillment display label
     const fulfillMap = { wholesale:'wholesale', dropship:'dropship', both:'both' };
     return {
@@ -90,8 +93,8 @@ const CatalogAPI = (() => {
       moq:         parseInt(row.moq, 10) || 1,
       stock:       parseInt(row.stock_qty, 10) || 0,
       fulfill:     fulfillMap[row.fulfillment_type] || 'both',
-      images:      Array.isArray(row.images) ? row.images : [],
-      img:         Array.isArray(row.images) && row.images[0] ? row.images[0] : null,
+      images,
+      img:         images[0] || null,
       tags:        Array.isArray(row.tags) ? row.tags : [],
       topSeller:   row.is_top_seller || false,
       isNew:       row.is_new       || false,
