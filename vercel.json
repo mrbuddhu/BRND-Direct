@@ -1,9 +1,17 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
-  "cleanUrls": true,
   "rewrites": [
+    { "source": "/", "destination": "/index.html" },
+    { "source": "/index", "destination": "/index.html" },
+    { "source": "/admin", "destination": "/admin/index.html" },
     { "source": "/buyer", "destination": "/buyer/index.html" },
     { "source": "/seller", "destination": "/seller/index.html" },
-    { "source": "/admin", "destination": "/admin/index.html" }
+    { "source": "/investor", "destination": "/investor/index.html" },
+    { "source": "/investor-demo", "destination": "/investor-demo/index.html" },
+    { "source": "/admin/:path*", "destination": "/admin/:path*.html" },
+    { "source": "/buyer/:path*", "destination": "/buyer/:path*.html" },
+    { "source": "/seller/:path*", "destination": "/seller/:path*.html" },
+    { "source": "/investor/:path*", "destination": "/investor/:path*.html" },
+    { "source": "/investor-demo/:path*", "destination": "/investor-demo/:path*.html" }
   ]
 }
