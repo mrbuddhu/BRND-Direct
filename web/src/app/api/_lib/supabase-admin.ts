@@ -32,7 +32,36 @@ type WholesaleProduct = {
   image_url?: string;
   imageUrl?: string;
   images?: string[];
+  [key: string]: unknown;
 };
+
+function isImageUrl(value: unknown): value is string {
+  if (typeof value !== "string") return false;
+  const v = value.trim();
+  return /^https?:\/\//i.test(v);
+}
+
+function collectImageUrlsFromUnknown(value: unknown, keyHint = ""): string[] {
+  if (Array.isArray(value)) {
+    return value.flatMap((item) => collectImageUrlsFromUnknown(item, keyHint));
+  }
+
+  if (typeof value === "object" && value) {
+    return Object.entries(value as Record<string, unknown>).flatMap(([k, v]) =>
+      collectImageUrlsFromUnknown(v, k),
+    );
+  }
+
+  // Only accept URL strings from image-like keys to avoid unrelated links.
+  if (
+    isImageUrl(value) &&
+    /(image|img|photo|thumb|thumbnail|media|gallery|picture|icon|logo)/i.test(keyHint)
+  ) {
+    return [value.trim()];
+  }
+
+  return [];
+}
 
 function getSupabaseConfig() {
   const url =
@@ -178,7 +207,10 @@ export function mapWholesaleProductToPortal(row: WholesaleProduct, index = 0) {
     row.image,
     row.image_url,
     row.imageUrl,
-  ].filter((value): value is string => typeof value === "string" && value.trim().length > 0);
+    ...collectImageUrlsFromUnknown(row),
+  ]
+    .filter((value): value is string => typeof value === "string" && value.trim().length > 0)
+    .filter((value, idx, arr) => arr.indexOf(value) === idx);
 
   return {
     id: syntheticId,
