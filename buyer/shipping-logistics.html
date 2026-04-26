@@ -1410,12 +1410,12 @@ const CARRIER_ABBR = { 'FedEx':'FX','FedEx Ground':'FX','FedEx Freight':'FX','UP
 /* ═══════════════════════════════════════════════════════════
    API CONFIG — update these to match your worker URL
 ═══════════════════════════════════════════════════════════ */
-const API_BASE = '/api';  // Cloudflare Worker at /api/*
+const API_BASE = (window.BRND_API_BASE || '/api').replace(/\/$/, '');  // Cloudflare Worker at /api/*
 // In production this hits your deployed Cloudflare Worker.
 // In dev/sandbox mode, the page falls back to mock data when
 // the worker returns an error (keys not yet configured).
 
-const DEMO_MODE = true; // Set false once real API keys are configured
+const DEMO_MODE = new URLSearchParams(window.location.search).get('demo') === '1';
 
 const STATUS_MAP = {
   in_transit: { label:'In Transit', cls:'badge-shipped' },

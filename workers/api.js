@@ -69,7 +69,16 @@ export default {
     // ── Route table ─────────────────────────────────────────
     try {
       if (method === 'GET'  && path === '/api/health') {
-        return corsResponse(JSON.stringify({ status: 'ok', ts: Date.now() }), 200);
+        return corsResponse(JSON.stringify({
+          status: 'ok',
+          ts: Date.now(),
+          providers: {
+            supabase: Boolean(env.SUPABASE_URL && env.SUPABASE_SERVICE_ROLE_KEY),
+            shippo: Boolean(env.SHIPPO_API_TOKEN),
+            freightos: Boolean(env.FREIGHTOS_CLIENT_ID && env.FREIGHTOS_CLIENT_SECRET),
+            stripe: Boolean(env.STRIPE_SECRET_KEY),
+          },
+        }), 200);
       }
 
       // ── CATALOG ROUTES ────────────────────────────────────
