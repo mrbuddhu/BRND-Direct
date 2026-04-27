@@ -9,6 +9,15 @@
 #      Stripe:
 #        wrangler secret put STRIPE_SECRET_KEY
 #        wrangler secret put STRIPE_WEBHOOK_SECRET
+#      Helcim:
+#        wrangler secret put HELCIM_API_TOKEN
+#        wrangler secret put HELCIM_WEBHOOK_SECRET
+#      Two (Trade finance):
+#        wrangler secret put TWO_API_KEY
+#        wrangler secret put TWO_BASE_URL
+#      Shopify:
+#        wrangler secret put SHOPIFY_API_VERSION
+#        wrangler secret put SHOPIFY_WEBHOOK_SECRET
 #      Supabase:
 #        wrangler secret put SUPABASE_URL
 #        wrangler secret put SUPABASE_SERVICE_ROLE_KEY
@@ -42,9 +51,16 @@ compatibility_flags = ["nodejs_compat"]
 [env.production]
 name = "brnd-direct-api-prod"
 # Secrets (never commit values — set via `wrangler secret put`)
-# ── Stripe ───────────────────────────────────────
-# STRIPE_SECRET_KEY          = "sk_live_..."   ← set via CLI
-# STRIPE_WEBHOOK_SECRET      = "whsec_..."     ← set via CLI
+# ── Helcim ──────────────────────────────────────
+# HELCIM_API_TOKEN           = "..."           ← set via CLI
+# HELCIM_WEBHOOK_SECRET      = "..."           ← optional
+# HELCIM_BASE_URL            = "https://api.helcim.com"
+# ── Two (Trade finance) ────────────────────────
+# TWO_API_KEY                = "..."           ← set via CLI
+# TWO_BASE_URL               = "https://api.sandbox.two.inc"
+# ── Shopify ────────────────────────────────────
+# SHOPIFY_API_VERSION        = "2025-01"
+# SHOPIFY_WEBHOOK_SECRET     = "..."           ← set via CLI
 # ── Supabase ─────────────────────────────────────
 # SUPABASE_URL               = "https://..."   ← set via CLI
 # SUPABASE_SERVICE_ROLE_KEY  = "eyJ..."        ← set via CLI

@@ -4,11 +4,16 @@
  *  workers/api.js
  *
  *  Handles:
- *   • POST /api/create-payment-intent      — Stripe PaymentIntent
- *   • POST /api/create-setup-intent        — Stripe SetupIntent (save card)
- *   • POST /api/stripe-webhook             — Stripe webhook events
- *   • POST /api/create-connect-account     — Stripe Connect for sellers
+ *   • POST /api/create-payment-intent      — Helcim checkout init (compat route)
+ *   • POST /api/create-setup-intent        — Helcim card-vault init (compat route)
+ *   • POST /api/stripe-webhook             — Helcim webhook receiver (compat route)
+ *   • POST /api/create-connect-account     — Seller payout onboarding placeholder
  *   • GET  /api/health                     — Health check
+ *   • POST /api/trade-finance/order        — Two order creation
+ *   • POST /api/trade-finance/intent       — Two order intent creation
+ *   • POST /api/shopify/connect            — Store credential verify
+ *   • POST /api/shopify/sync-catalog       — Push catalog to Shopify
+ *   • POST /api/shopify/webhook/orders-create — Shopify order import webhook
  *
  *  ── SHIPPING ROUTES ──────────────────────────────────────
  *   FREIGHTOS (LTL / FTL Freight)
@@ -35,8 +40,13 @@
  *                 otherwise → Shippo (parcels)
  *
  *  Environment variables (set in CF dashboard via wrangler secret put):
- *   • STRIPE_SECRET_KEY          — sk_live_xxx  or  sk_test_xxx
- *   • STRIPE_WEBHOOK_SECRET      — whsec_xxx
+ *   • HELCIM_API_TOKEN           — Helcim API token
+ *   • HELCIM_BASE_URL            — https://api.helcim.com
+ *   • HELCIM_WEBHOOK_SECRET      — Optional webhook signature secret
+ *   • TWO_API_KEY                — Two API key
+ *   • TWO_BASE_URL               — https://api.sandbox.two.inc or https://api.two.inc
+ *   • SHOPIFY_API_VERSION        — e.g. 2025-01
+ *   • SHOPIFY_WEBHOOK_SECRET     — Shopify webhook signature secret
  *   • SUPABASE_URL               — https://xxx.supabase.co
  *   • SUPABASE_SERVICE_ROLE_KEY  — service_role JWT (never expose client-side)
  *   • FREIGHTOS_CLIENT_ID        — from Freightos Terminal API dashboard
@@ -76,7 +86,9 @@ export default {
             supabase: Boolean(env.SUPABASE_URL && env.SUPABASE_SERVICE_ROLE_KEY),
             shippo: Boolean(env.SHIPPO_API_TOKEN),
             freightos: Boolean(env.FREIGHTOS_CLIENT_ID && env.FREIGHTOS_CLIENT_SECRET),
-            stripe: Boolean(env.STRIPE_SECRET_KEY),
+            helcim: Boolean(env.HELCIM_API_TOKEN),
+            two: Boolean(env.TWO_API_KEY),
+            shopify: Boolean(env.SHOPIFY_API_VERSION),
           },
         }), 200);
       }
@@ -107,6 +119,21 @@ export default {
       }
       if (method === 'GET'  && path === '/api/payout-link') {
         return await handlePayoutLink(request, env);
+      }
+      if (method === 'POST' && path === '/api/trade-finance/order') {
+        return await handleTwoCreateOrder(request, env);
+      }
+      if (method === 'POST' && path === '/api/trade-finance/intent') {
+        return await handleTwoCreateOrderIntent(request, env);
+      }
+      if (method === 'POST' && path === '/api/shopify/connect') {
+        return await handleShopifyConnect(request, env);
+      }
+      if (method === 'POST' && path === '/api/shopify/sync-catalog') {
+        return await handleShopifySyncCatalog(request, env);
+      }
+      if (method === 'POST' && path === '/api/shopify/webhook/orders-create') {
+        return await handleShopifyOrdersCreateWebhook(request, env);
       }
 
       // ── FREIGHTOS FREIGHT ROUTES ──────────────────────────
@@ -301,44 +328,64 @@ async function handleGetBrands(request, env) {
 }
 
 /* ════════════════════════════════════════════════════════════
-   STRIPE HELPERS
+   HELCIM / TWO / SHOPIFY HELPERS
 ════════════════════════════════════════════════════════════ */
 
-/** Thin wrapper around the Stripe REST API */
-async function stripe(env, endpoint, params = {}, method = 'POST') {
-  const body = method === 'POST'
-    ? new URLSearchParams(flatten(params)).toString()
-    : null;
-
-  const res = await fetch(`https://api.stripe.com/v1/${endpoint}`, {
+async function helcim(env, endpoint, body = null, method = 'POST') {
+  if (!env.HELCIM_API_TOKEN) throw new Error('HELCIM_API_TOKEN is not configured');
+  const base = (env.HELCIM_BASE_URL || 'https://api.helcim.com').replace(/\/$/, '');
+  const res = await fetch(`${base}${endpoint}`, {
     method,
     headers: {
-      Authorization: `Bearer ${env.STRIPE_SECRET_KEY}`,
-      'Content-Type': 'application/x-www-form-urlencoded',
-      'Stripe-Version': '2024-04-10'
+      'api-token': env.HELCIM_API_TOKEN,
+      'Content-Type': 'application/json',
+      Accept: 'application/json'
     },
-    body
+    body: body ? JSON.stringify(body) : null
   });
-
-  const data = await res.json();
-  if (!res.ok) throw new Error(data.error?.message || 'Stripe API error');
+  const text = await res.text();
+  let data;
+  try { data = JSON.parse(text); } catch { data = { raw: text }; }
+  if (!res.ok) throw new Error(data.error || data.message || text || 'Helcim API error');
   return data;
 }
 
-/** Recursively flatten nested objects for URL encoding */
-function flatten(obj, prefix = '') {
-  const out = {};
-  for (const [k, v] of Object.entries(obj)) {
-    const key = prefix ? `${prefix}[${k}]` : k;
-    if (v !== null && v !== undefined && typeof v === 'object' && !Array.isArray(v)) {
-      Object.assign(out, flatten(v, key));
-    } else if (Array.isArray(v)) {
-      v.forEach((item, i) => { out[`${key}[${i}]`] = item; });
-    } else if (v !== undefined && v !== null) {
-      out[key] = String(v);
-    }
-  }
-  return out;
+async function twoApi(env, endpoint, body = null, method = 'POST') {
+  if (!env.TWO_API_KEY) throw new Error('TWO_API_KEY is not configured');
+  const base = (env.TWO_BASE_URL || 'https://api.sandbox.two.inc').replace(/\/$/, '');
+  const res = await fetch(`${base}${endpoint}`, {
+    method,
+    headers: {
+      'X-Api-Key': env.TWO_API_KEY,
+      'Content-Type': 'application/json',
+      Accept: 'application/json'
+    },
+    body: body ? JSON.stringify(body) : null
+  });
+  const text = await res.text();
+  let data;
+  try { data = JSON.parse(text); } catch { data = { raw: text }; }
+  if (!res.ok) throw new Error(data.message || text || 'Two API error');
+  return data;
+}
+
+async function shopifyApi(storeDomain, accessToken, env, endpoint, body = null, method = 'GET') {
+  const version = env.SHOPIFY_API_VERSION || '2025-01';
+  const domain = String(storeDomain || '').replace(/^https?:\/\//i, '').replace(/\/$/, '');
+  const res = await fetch(`https://${domain}/admin/api/${version}${endpoint}`, {
+    method,
+    headers: {
+      'X-Shopify-Access-Token': accessToken,
+      'Content-Type': 'application/json',
+      Accept: 'application/json'
+    },
+    body: body ? JSON.stringify(body) : null
+  });
+  const text = await res.text();
+  let data;
+  try { data = JSON.parse(text); } catch { data = { raw: text }; }
+  if (!res.ok) throw new Error(data.errors ? JSON.stringify(data.errors) : (text || 'Shopify API error'));
+  return data;
 }
 
 /* ════════════════════════════════════════════════════════════
@@ -365,7 +412,7 @@ async function supabaseAdmin(env, method, table, body = null, query = '') {
 }
 
 /* ════════════════════════════════════════════════════════════
-   1. CREATE PAYMENT INTENT
+   1. CREATE PAYMENT INTENT (HELCIM COMPAT ROUTE)
    Body: { orderId, amount, currency, buyerEmail, metadata }
 ════════════════════════════════════════════════════════════ */
 async function handleCreatePaymentIntent(request, env) {
@@ -390,93 +437,82 @@ async function handleCreatePaymentIntent(request, env) {
     return corsResponse(JSON.stringify({ error: 'Order already paid' }), 409);
   }
 
-  // Convert dollars → cents
-  const amountCents = Math.round(order.total_amount * 100);
-
-  const pi = await stripe(env, 'payment_intents', {
-    amount:             amountCents,
-    currency,
-    automatic_payment_methods: { enabled: true },
-    receipt_email:      buyerEmail || undefined,
+  const amountMajor = Number(order.total_amount || amount);
+  const checkout = await helcim(env, '/v2/helcim-pay/initialize', {
+    paymentType: 'purchase',
+    amount: amountMajor,
+    currency: String(currency || 'usd').toUpperCase(),
+    customerRequest: buyerEmail ? { email: buyerEmail } : undefined,
+    invoiceRequest: {
+      invoiceNumber: order.order_number || orderId,
+      amount: amountMajor
+    },
     metadata: {
-      order_id:     orderId,
-      order_number: order.order_number,
-      platform:     'brnd-direct',
+      orderId,
+      orderNumber: order.order_number,
+      platform: 'brnd-direct',
       ...metadata
     }
   });
 
-  // Store the payment intent ID on the order
+  const checkoutId = checkout.id || checkout.checkoutId || checkout.checkoutToken || null;
   await supabaseAdmin(
     env, 'PATCH', 'orders',
-    { stripe_payment_intent: pi.id, payment_status: 'pending', updated_at: new Date().toISOString() },
+    { stripe_payment_intent: checkoutId, payment_status: 'pending', updated_at: new Date().toISOString() },
     `?id=eq.${encodeURIComponent(orderId)}`
   );
 
   return corsResponse(JSON.stringify({
-    clientSecret: pi.client_secret,
-    paymentIntentId: pi.id
+    provider: 'helcim',
+    checkoutToken: checkout.checkoutToken || null,
+    secretToken: checkout.secretToken || null,
+    checkoutUrl: checkout.checkoutUrl || null,
+    paymentIntentId: checkoutId,
+    // Legacy field retained to avoid immediate frontend breakage during migration.
+    clientSecret: checkout.checkoutToken || null
   }), 200);
 }
 
 /* ════════════════════════════════════════════════════════════
-   2. CREATE SETUP INTENT  (save card for Net Terms billing)
+   2. CREATE SETUP INTENT (HELCIM CARD-VAULT COMPAT)
    Body: { profileId, email }
 ════════════════════════════════════════════════════════════ */
 async function handleCreateSetupIntent(request, env) {
   const { profileId, email } = await request.json();
   if (!profileId) return corsResponse(JSON.stringify({ error: 'profileId required' }), 400);
 
-  // Find or create Stripe customer
-  let customerId;
-  const profiles = await supabaseAdmin(
-    env, 'GET', 'buyer_profiles', null,
-    `?profile_id=eq.${encodeURIComponent(profileId)}&select=id,stripe_customer_id`
-  );
-  const bp = profiles?.[0];
-
-  if (bp?.stripe_customer_id) {
-    customerId = bp.stripe_customer_id;
-  } else {
-    const customer = await stripe(env, 'customers', { email, metadata: { profile_id: profileId } });
-    customerId = customer.id;
-    // Save customer id (add stripe_customer_id column to buyer_profiles if not present)
-    await supabaseAdmin(env, 'PATCH', 'buyer_profiles',
-      { stripe_customer_id: customerId },
-      `?profile_id=eq.${encodeURIComponent(profileId)}`
-    );
-  }
-
-  const si = await stripe(env, 'setup_intents', {
-    customer:              customerId,
-    payment_method_types:  ['card'],
-    usage:                 'off_session',
-    metadata: { profile_id: profileId }
+  const vaultInit = await helcim(env, '/v2/helcim-pay/initialize', {
+    paymentType: 'verify',
+    amount: 0,
+    currency: 'USD',
+    customerRequest: {
+      customerCode: profileId,
+      email: email || undefined
+    },
+    metadata: { profileId, mode: 'vault' }
   });
 
-  return corsResponse(JSON.stringify({ clientSecret: si.client_secret }), 200);
+  return corsResponse(JSON.stringify({
+    provider: 'helcim',
+    checkoutToken: vaultInit.checkoutToken || null,
+    secretToken: vaultInit.secretToken || null,
+    // Legacy compatibility field.
+    clientSecret: vaultInit.checkoutToken || null
+  }), 200);
 }
 
 /* ════════════════════════════════════════════════════════════
-   3. STRIPE WEBHOOK
-   Events handled:
-    • payment_intent.succeeded
-    • payment_intent.payment_failed
-    • invoice.payment_succeeded  (Stripe Billing / net-terms)
-    • account.updated            (Stripe Connect)
+   3. PAYMENT WEBHOOK (HELCIM VIA LEGACY /api/stripe-webhook ROUTE)
 ════════════════════════════════════════════════════════════ */
 async function handleStripeWebhook(request, env, ctx) {
-  const rawBody  = await request.text();
-  const sigHeader = request.headers.get('stripe-signature');
+  const rawBody = await request.text();
+  const event = JSON.parse(rawBody || '{}');
+  const sigHeader = request.headers.get('helcim-signature') || request.headers.get('stripe-signature');
 
-  // Verify webhook signature
-  const isValid = await verifyWebhookSignature(rawBody, sigHeader, env.STRIPE_WEBHOOK_SECRET);
-  if (!isValid) {
-    return corsResponse(JSON.stringify({ error: 'Invalid signature' }), 401);
+  if (env.HELCIM_WEBHOOK_SECRET) {
+    const isValid = await verifyWebhookSignature(rawBody, sigHeader, env.HELCIM_WEBHOOK_SECRET);
+    if (!isValid) return corsResponse(JSON.stringify({ error: 'Invalid signature' }), 401);
   }
-
-  const event = JSON.parse(rawBody);
-  console.log('[Webhook]', event.type);
 
   ctx.waitUntil(processWebhookEvent(event, env));
 
@@ -485,109 +521,73 @@ async function handleStripeWebhook(request, env, ctx) {
 
 async function processWebhookEvent(event, env) {
   try {
-    switch (event.type) {
+    const eventType = String(event.eventType || event.type || '').toLowerCase();
+    const payload = event.data?.object || event.data || event.transaction || event;
+    const orderId = payload?.metadata?.orderId || payload?.metadata?.order_id || payload?.orderId || payload?.invoiceNumber;
+    if (!orderId) return;
 
-      case 'payment_intent.succeeded': {
-        const pi      = event.data.object;
-        const orderId = pi.metadata?.order_id;
-        if (!orderId) break;
+    if (eventType.includes('approved') || eventType.includes('succeeded') || String(payload?.status || '').toUpperCase() === 'APPROVED') {
+      await markOrderPaid(orderId, env, payload?.amount || null);
+      return;
+    }
 
-        await supabaseAdmin(env, 'PATCH', 'orders', {
-          payment_status: 'paid',
-          status:         'confirmed',
-          updated_at:     new Date().toISOString()
-        }, `?id=eq.${encodeURIComponent(orderId)}`);
-
-        // Create invoice record
-        const orders = await supabaseAdmin(
-          env, 'GET', 'orders', null,
-          `?id=eq.${encodeURIComponent(orderId)}&select=id,buyer_profile_id,total_amount,net_terms`
-        );
-        const order = orders?.[0];
-        if (order) {
-          const dueDate = new Date();
-          dueDate.setDate(dueDate.getDate() + (order.net_terms || 30));
-          await supabaseAdmin(env, 'POST', 'invoices', {
-            order_id:         orderId,
-            buyer_profile_id: order.buyer_profile_id,
-            amount:           order.total_amount,
-            payment_status:   'paid',
-            paid_at:          new Date().toISOString(),
-            due_date:         dueDate.toISOString().split('T')[0]
-          });
-
-          // Notification
-          const buyers = await supabaseAdmin(
-            env, 'GET', 'buyer_profiles', null,
-            `?id=eq.${encodeURIComponent(order.buyer_profile_id)}&select=profile_id`
-          );
-          const profileId = buyers?.[0]?.profile_id;
-          if (profileId) {
-            await supabaseAdmin(env, 'POST', 'notifications', {
-              profile_id: profileId,
-              type:       'payment',
-              title:      'Payment confirmed',
-              body:       `Your payment of $${order.total_amount} has been received.`,
-              link:       '/buyer/invoices.html'
-            });
-          }
-        }
-        break;
-      }
-
-      case 'payment_intent.payment_failed': {
-        const pi      = event.data.object;
-        const orderId = pi.metadata?.order_id;
-        if (!orderId) break;
-
-        await supabaseAdmin(env, 'PATCH', 'orders', {
-          payment_status: 'failed',
-          updated_at:     new Date().toISOString()
-        }, `?id=eq.${encodeURIComponent(orderId)}`);
-        break;
-      }
-
-      case 'account.updated': {
-        // Stripe Connect seller account updated
-        const account = event.data.object;
-        if (account.charges_enabled) {
-          await supabaseAdmin(env, 'PATCH', 'seller_profiles', {
-            stripe_account_id: account.id,
-            updated_at:        new Date().toISOString()
-          }, `?stripe_account_id=eq.${encodeURIComponent(account.id)}`);
-        }
-        break;
-      }
-
-      case 'transfer.created': {
-        const transfer = event.data.object;
-        if (transfer.metadata?.payout_id) {
-          await supabaseAdmin(env, 'PATCH', 'payouts', {
-            status:            'processing',
-            stripe_transfer_id: transfer.id,
-            updated_at:        new Date().toISOString()
-          }, `?id=eq.${encodeURIComponent(transfer.metadata.payout_id)}`);
-        }
-        break;
-      }
+    if (eventType.includes('failed') || eventType.includes('declined') || String(payload?.status || '').toUpperCase() === 'FAILED') {
+      await supabaseAdmin(env, 'PATCH', 'orders', {
+        payment_status: 'failed',
+        updated_at: new Date().toISOString()
+      }, `?id=eq.${encodeURIComponent(orderId)}`);
     }
   } catch (e) {
     console.error('[Webhook Processing Error]', e.message);
   }
 }
 
-/** Verify Stripe webhook HMAC-SHA256 signature */
+async function markOrderPaid(orderId, env, amount = null) {
+  await supabaseAdmin(env, 'PATCH', 'orders', {
+    payment_status: 'paid',
+    status: 'confirmed',
+    updated_at: new Date().toISOString()
+  }, `?id=eq.${encodeURIComponent(orderId)}`);
+
+  const orders = await supabaseAdmin(
+    env, 'GET', 'orders', null,
+    `?id=eq.${encodeURIComponent(orderId)}&select=id,buyer_profile_id,total_amount,net_terms`
+  );
+  const order = orders?.[0];
+  if (!order) return;
+
+  const dueDate = new Date();
+  dueDate.setDate(dueDate.getDate() + (order.net_terms || 30));
+  await supabaseAdmin(env, 'POST', 'invoices', {
+    order_id: orderId,
+    buyer_profile_id: order.buyer_profile_id,
+    amount: amount ?? order.total_amount,
+    payment_status: 'paid',
+    paid_at: new Date().toISOString(),
+    due_date: dueDate.toISOString().split('T')[0]
+  });
+
+  const buyers = await supabaseAdmin(
+    env, 'GET', 'buyer_profiles', null,
+    `?id=eq.${encodeURIComponent(order.buyer_profile_id)}&select=profile_id`
+  );
+  const profileId = buyers?.[0]?.profile_id;
+  if (profileId) {
+    await supabaseAdmin(env, 'POST', 'notifications', {
+      profile_id: profileId,
+      type: 'payment',
+      title: 'Payment confirmed',
+      body: `Your payment of $${amount ?? order.total_amount} has been received.`,
+      link: '/buyer/invoices.html'
+    });
+  }
+}
+
+/** Verify webhook HMAC-SHA256 signature (hex or base64) */
 async function verifyWebhookSignature(payload, sigHeader, secret) {
   if (!sigHeader || !secret) return false;
   try {
-    const parts     = sigHeader.split(',');
-    const tPart     = parts.find(p => p.startsWith('t='));
-    const v1Part    = parts.find(p => p.startsWith('v1='));
-    if (!tPart || !v1Part) return false;
-
-    const timestamp = tPart.split('=')[1];
-    const sig       = v1Part.split('=')[1];
-    const signed    = `${timestamp}.${payload}`;
+    const provided = sigHeader.includes('=') ? sigHeader.split('=').pop() : sigHeader;
 
     const keyMaterial = await crypto.subtle.importKey(
       'raw',
@@ -596,17 +596,18 @@ async function verifyWebhookSignature(payload, sigHeader, secret) {
       false,
       ['sign']
     );
-    const signatureBytes = await crypto.subtle.sign('HMAC', keyMaterial, new TextEncoder().encode(signed));
-    const expected       = Array.from(new Uint8Array(signatureBytes))
+    const signatureBytes = await crypto.subtle.sign('HMAC', keyMaterial, new TextEncoder().encode(payload));
+    const expectedHex    = Array.from(new Uint8Array(signatureBytes))
       .map(b => b.toString(16).padStart(2, '0'))
       .join('');
+    const expectedB64 = btoa(String.fromCharCode(...new Uint8Array(signatureBytes)));
 
-    return expected === sig;
+    return provided === expectedHex || provided === expectedB64;
   } catch { return false; }
 }
 
 /* ════════════════════════════════════════════════════════════
-   4. CREATE STRIPE CONNECT ACCOUNT  (for sellers)
+   4. CREATE SELLER PAYOUT ACCOUNT PLACEHOLDER
    Body: { sellerProfileId, email, brandName }
 ════════════════════════════════════════════════════════════ */
 async function handleCreateConnectAccount(request, env) {
@@ -625,40 +626,23 @@ async function handleCreateConnectAccount(request, env) {
     return corsResponse(JSON.stringify({ accountId: sp.stripe_account_id }), 200);
   }
 
-  // Create Express account
-  const account = await stripe(env, 'accounts', {
-    type:          'express',
-    email,
-    capabilities: {
-      card_payments: { requested: true },
-      transfers:     { requested: true }
-    },
-    business_type: 'company',
-    metadata: { seller_profile_id: sellerProfileId, brand_name: brandName || '' }
-  });
+  const payoutAccountId = `helcim-seller-${sellerProfileId}`;
 
-  // Save account ID
   await supabaseAdmin(env, 'PATCH', 'seller_profiles', {
-    stripe_account_id: account.id,
+    stripe_account_id: payoutAccountId,
     updated_at:        new Date().toISOString()
   }, `?id=eq.${encodeURIComponent(sellerProfileId)}`);
 
-  // Create onboarding link
-  const accountLink = await stripe(env, 'account_links', {
-    account:     account.id,
-    refresh_url: `https://brnddirect.com/seller/account.html?stripe=refresh`,
-    return_url:  `https://brnddirect.com/seller/account.html?stripe=success`,
-    type:        'account_onboarding'
-  });
-
   return corsResponse(JSON.stringify({
-    accountId:    account.id,
-    onboardingUrl: accountLink.url
+    provider: 'helcim',
+    accountId: payoutAccountId,
+    onboardingUrl: null,
+    message: 'Seller payout onboarding is managed in Helcim merchant dashboard.'
   }), 200);
 }
 
 /* ════════════════════════════════════════════════════════════
-   5. GET PAYOUT LINK   (seller dashboard link to Stripe Express)
+   5. GET PAYOUT LINK (compat)
    Query: ?sellerProfileId=xxx
 ════════════════════════════════════════════════════════════ */
 async function handlePayoutLink(request, env) {
@@ -673,8 +657,153 @@ async function handlePayoutLink(request, env) {
   const accountId = profiles?.[0]?.stripe_account_id;
   if (!accountId) return corsResponse(JSON.stringify({ error: 'No Stripe account linked' }), 404);
 
-  const link = await stripe(env, `accounts/${accountId}/login_links`, {});
-  return corsResponse(JSON.stringify({ url: link.url }), 200);
+  return corsResponse(JSON.stringify({
+    provider: 'helcim',
+    accountId,
+    url: null,
+    message: 'Helcim payout dashboard login links are not exposed via this API.'
+  }), 200);
+}
+
+/* ════════════════════════════════════════════════════════════
+   6. TRADE FINANCE (TWO)
+════════════════════════════════════════════════════════════ */
+async function handleTwoCreateOrder(request, env) {
+  try {
+    const body = await request.json();
+    const data = await twoApi(env, '/v1/order', body, 'POST');
+    return corsResponse(JSON.stringify({ provider: 'two', ...data }), 200);
+  } catch (e) {
+    return corsResponse(JSON.stringify({ error: e.message }), 502);
+  }
+}
+
+async function handleTwoCreateOrderIntent(request, env) {
+  try {
+    const body = await request.json();
+    const data = await twoApi(env, '/v1/order/intent', body, 'POST');
+    return corsResponse(JSON.stringify({ provider: 'two', ...data }), 200);
+  } catch (e) {
+    return corsResponse(JSON.stringify({ error: e.message }), 502);
+  }
+}
+
+/* ════════════════════════════════════════════════════════════
+   7. SHOPIFY DROPSHIP BRIDGE
+════════════════════════════════════════════════════════════ */
+async function handleShopifyConnect(request, env) {
+  try {
+    const { storeDomain, accessToken, profileId } = await request.json();
+    if (!storeDomain || !accessToken) {
+      return corsResponse(JSON.stringify({ error: 'storeDomain and accessToken are required' }), 400);
+    }
+
+    const shop = await shopifyApi(storeDomain, accessToken, env, '/shop.json', null, 'GET');
+    if (profileId) {
+      await supabaseAdmin(env, 'PATCH', 'buyer_profiles', {
+        stripe_customer_id: `shopify:${storeDomain}`,
+        updated_at: new Date().toISOString()
+      }, `?profile_id=eq.${encodeURIComponent(profileId)}`);
+    }
+
+    return corsResponse(JSON.stringify({
+      provider: 'shopify',
+      connected: true,
+      store: shop?.shop || null
+    }), 200);
+  } catch (e) {
+    return corsResponse(JSON.stringify({ error: e.message }), 502);
+  }
+}
+
+async function handleShopifySyncCatalog(request, env) {
+  try {
+    const { storeDomain, accessToken, products = [] } = await request.json();
+    if (!storeDomain || !accessToken) {
+      return corsResponse(JSON.stringify({ error: 'storeDomain and accessToken are required' }), 400);
+    }
+    if (!Array.isArray(products) || !products.length) {
+      return corsResponse(JSON.stringify({ error: 'products[] is required' }), 400);
+    }
+
+    const results = [];
+    for (const p of products) {
+      try {
+        const payload = {
+          product: {
+            title: p.name,
+            body_html: p.description || '',
+            vendor: p.brand || 'BRND Direct',
+            product_type: p.category || 'General',
+            tags: Array.isArray(p.tags) ? p.tags.join(',') : '',
+            variants: [
+              {
+                sku: p.sku || '',
+                barcode: p.upc || undefined,
+                price: String(p.retailPrice || p.wholesale_price || p.price || 0),
+                inventory_management: 'shopify',
+                inventory_quantity: Number(p.stock_qty || p.stock || 0)
+              }
+            ],
+            images: Array.isArray(p.images)
+              ? p.images.filter((url) => typeof url === 'string' && /^https?:\/\//i.test(url)).map((src) => ({ src }))
+              : []
+          }
+        };
+        const created = await shopifyApi(storeDomain, accessToken, env, '/products.json', payload, 'POST');
+        results.push({ ok: true, sku: p.sku || null, product_id: created?.product?.id || null });
+      } catch (err) {
+        results.push({ ok: false, sku: p.sku || null, error: err.message });
+      }
+    }
+
+    return corsResponse(JSON.stringify({
+      provider: 'shopify',
+      synced: results.filter((r) => r.ok).length,
+      failed: results.filter((r) => !r.ok).length,
+      results
+    }), 200);
+  } catch (e) {
+    return corsResponse(JSON.stringify({ error: e.message }), 502);
+  }
+}
+
+async function handleShopifyOrdersCreateWebhook(request, env) {
+  try {
+    const payload = await request.text();
+    const signature = request.headers.get('x-shopify-hmac-sha256');
+    if (env.SHOPIFY_WEBHOOK_SECRET && signature) {
+      const valid = await verifyShopifyWebhook(payload, signature, env.SHOPIFY_WEBHOOK_SECRET);
+      if (!valid) return corsResponse(JSON.stringify({ error: 'Invalid webhook signature' }), 401);
+    }
+
+    const order = JSON.parse(payload || '{}');
+    return corsResponse(JSON.stringify({
+      provider: 'shopify',
+      received: true,
+      order_id: order.id || null,
+      note: 'Webhook received. Map this payload into internal order tables as final integration step.'
+    }), 200);
+  } catch (e) {
+    return corsResponse(JSON.stringify({ error: e.message }), 502);
+  }
+}
+
+async function verifyShopifyWebhook(payload, signature, secret) {
+  try {
+    const key = await crypto.subtle.importKey(
+      'raw',
+      new TextEncoder().encode(secret),
+      { name: 'HMAC', hash: 'SHA-256' },
+      false,
+      ['sign']
+    );
+    const hmac = await crypto.subtle.sign('HMAC', key, new TextEncoder().encode(payload));
+    const b64 = btoa(String.fromCharCode(...new Uint8Array(hmac)));
+    return b64 === signature;
+  } catch {
+    return false;
+  }
 }
 
 /* ════════════════════════════════════════════════════════════

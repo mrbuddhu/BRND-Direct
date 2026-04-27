@@ -833,7 +833,7 @@ let activeTag    = null;
 let selectedIds  = new Set();
 let currentView  = 'grid'; // 'grid' | 'list' | 'text'
 
-// Live catalog state (API-first; do not render static dummy catalog on failure)
+// Live catalog state (API-only; do not render static dummy catalog on failure)
 let LIVE_MODE        = true;     // live-first by default
 let LIVE_PAGE        = 1;
 let LIVE_TOTAL_PAGES = 1;
@@ -1341,12 +1341,8 @@ function clearFilters() {
   document.querySelectorAll('.filter-pill').forEach(p => p.classList.remove('active'));
   document.querySelector('.filter-pill[data-cat="all"]').classList.add('active');
   renderBrandList();
-  if (LIVE_MODE) {
-    LIVE_PAGE = 1;
-    fetchLiveCatalog().catch(() => {});
-  } else {
-    renderProducts(PRODUCTS);
-  }
+  LIVE_PAGE = 1;
+  fetchLiveCatalog().catch(() => {});
   showToast('Filters cleared.', '');
 }
 
@@ -1361,12 +1357,8 @@ function toggleTag(btn) {
     document.querySelectorAll('.special-tag').forEach(t => t.classList.remove('active'));
     btn.classList.add('active');
   }
-  if (LIVE_MODE) {
-    LIVE_PAGE = 1;
-    fetchLiveCatalog().catch(() => {});
-  } else {
-    renderProducts(getFilteredProducts());
-  }
+  LIVE_PAGE = 1;
+  fetchLiveCatalog().catch(() => {});
 }
 
 /* ════════════════════════════════════════════════════════════
@@ -1680,7 +1672,6 @@ function updateLivePagination(current, total) {
 }
 
 async function loadLivePage(page) {
-  if (!LIVE_MODE) return;
   LIVE_PAGE = Math.max(1, page);
   await fetchLiveCatalog();
   window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -1703,7 +1694,6 @@ function buildLiveFilters() {
 }
 
 async function fetchLiveCatalog(paramsOverride = {}) {
-  if (!LIVE_MODE) return;
   showApiStatus('loading', 'Loading live catalog from database…');
   const grid = document.getElementById('productGrid');
   if (grid) grid.style.opacity = '0.4';
@@ -1728,23 +1718,19 @@ async function fetchLiveCatalog(paramsOverride = {}) {
   } catch (err) {
     console.error('[Catalog API] Fetch failed:', err.message);
     showApiStatus('error', 'Live catalog is unavailable right now. No dummy data is shown.');
-    LIVE_MODE = false;
     PRODUCTS.length = 0;
     BRANDS_AZ = [];
     renderBrandList(document.getElementById('brandSearch')?.value || '');
     renderProducts([]);
+    updateLivePagination(1, 1);
   } finally {
     if (grid) grid.style.opacity = '1';
   }
 }
 
 async function refreshCatalogView() {
-  if (LIVE_MODE) {
-    LIVE_PAGE = 1;
-    await fetchLiveCatalog();
-    return;
-  }
-  renderProducts(getFilteredProducts());
+  LIVE_PAGE = 1;
+  await fetchLiveCatalog();
 }
 
 async function initCatalog() {

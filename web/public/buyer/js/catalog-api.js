@@ -3,9 +3,9 @@
  *  BRND DIRECT — Live Catalog API Client
  *  buyer/js/catalog-api.js
  *
- *  Fetches products and brands from the Cloudflare Worker API
- *  which proxies to Supabase. Falls back to static data if API
- *  is unreachable.
+ *  Fetches products and brands from the live API layer
+ *  (Worker/Next route handlers backed by Supabase).
+ *  No static dummy fallback is used.
  *
  *  Usage:
  *    <script src="js/catalog-api.js"></script>
@@ -37,8 +37,8 @@ const CatalogAPI = (() => {
     return ''; // same-origin (relative /api/... paths)
   }
 
-  const CACHE    = new Map();          // in-memory cache per request
-  const CACHE_TTL = 60 * 1000;        // 60 seconds
+  const CACHE    = new Map();         // in-memory cache per request
+  const CACHE_TTL = 0;                // realtime: no stale cache
 
   /* ── Internal fetch helper ─────────────────────────────── */
   async function apiFetch(endpoint, params = {}) {

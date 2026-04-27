@@ -41,22 +41,38 @@ function isImageUrl(value: unknown): value is string {
   return /^https?:\/\//i.test(v);
 }
 
-function collectImageUrlsFromUnknown(value: unknown, keyHint = ""): string[] {
+function collectImageUrlsFromUnknown(
+  value: unknown,
+  keyHint = "",
+  imageContext = false,
+): string[] {
   if (Array.isArray(value)) {
-    return value.flatMap((item) => collectImageUrlsFromUnknown(item, keyHint));
+    return value.flatMap((item) => collectImageUrlsFromUnknown(item, keyHint, imageContext));
   }
 
   if (typeof value === "object" && value) {
     return Object.entries(value as Record<string, unknown>).flatMap(([k, v]) =>
-      collectImageUrlsFromUnknown(v, k),
+      collectImageUrlsFromUnknown(
+        v,
+        k,
+        imageContext || /(image|img|photo|thumb|thumbnail|media|gallery|picture|icon|logo)/i.test(k),
+      ),
     );
   }
 
-  // Only accept URL strings from image-like keys to avoid unrelated links.
-  if (
-    isImageUrl(value) &&
-    /(image|img|photo|thumb|thumbnail|media|gallery|picture|icon|logo)/i.test(keyHint)
-  ) {
+  // Accept URL strings from image-like keys, and common nested URL keys within image context.
+  if (isImageUrl(value)) {
+    const isDirectImageKey = /(image|img|photo|thumb|thumbnail|media|gallery|picture|icon|logo)/i.test(
+      keyHint,
+    );
+    const isNestedUrlKey = /^(url|src|href|original|large|small|full)$/i.test(keyHint);
+    if (isDirectImageKey || (imageContext && isNestedUrlKey)) {
+      return [value.trim()];
+    }
+  }
+
+  // Some wholesalers send plain URL strings inside an `images` array.
+  if (isImageUrl(value) && imageContext) {
     return [value.trim()];
   }
 
@@ -207,6 +223,11 @@ export function mapWholesaleProductToPortal(row: WholesaleProduct, index = 0) {
     row.image,
     row.image_url,
     row.imageUrl,
+    row.thumbnail,
+    row.thumbnail_url,
+    row.primaryImage,
+    row.mainImage,
+    row.featuredImage,
     ...collectImageUrlsFromUnknown(row),
   ]
     .filter((value): value is string => typeof value === "string" && value.trim().length > 0)
