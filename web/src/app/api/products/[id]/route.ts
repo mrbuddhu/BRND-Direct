@@ -6,6 +6,8 @@ import {
   supabaseRest,
 } from "../../_lib/supabase-admin";
 
+export const runtime = "edge";
+
 type RouteContext = {
   params: Promise<{ id: string }>;
 };

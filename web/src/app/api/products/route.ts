@@ -6,6 +6,8 @@ import {
   supabaseRest,
 } from "../_lib/supabase-admin";
 
+export const runtime = "edge";
+
 export async function GET(request: NextRequest) {
   try {
     const url = new URL(request.url);
