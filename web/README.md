@@ -22,6 +22,10 @@ npm run dev
 
 Connect this `web` folder (or monorepo with root set to `web`) to Vercel. Add the same `NEXT_PUBLIC_*` env vars in the Vercel project settings.
 
+## Cloudflare Pages
+
+This app is also deployed to Cloudflare Pages at `app.brnddirect.com`.
+
 ## Next steps
 
 Gradually replace static routes with React pages under `src/app/` while reusing `public/` assets, or wire Supabase from new Route Handlers — without removing the legacy mirror until each route is ported.
