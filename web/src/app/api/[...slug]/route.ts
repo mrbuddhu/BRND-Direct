@@ -63,6 +63,10 @@ async function callJson(
     const message =
       typeof payload === "object" && payload && "message" in payload
         ? String((payload as { message: unknown }).message)
+        : typeof payload === "object" && payload && "error" in payload
+          ? String((payload as { error: unknown }).error)
+          : typeof payload === "object" && payload && "error_message" in payload
+            ? String((payload as { error_message: unknown }).error_message)
         : typeof payload === "string"
           ? payload
           : `${errorPrefix} request failed`;
@@ -109,22 +113,44 @@ function shipFromAddress(overrides: JsonMap = {}) {
 async function warp(method: string, endpoint: string, body?: unknown) {
   const apiKey = requiredEnv("WARP_API_KEY");
   const base = baseUrl("WARP_BASE_URL", "https://api.warp.io/v1");
-  return callJson(
-    endpoint,
+  const variants: Array<Record<string, string>> = [
     {
-      method,
-      headers: {
-        Authorization: `Bearer ${apiKey}`,
-        "X-API-Key": apiKey,
-        "Content-Type": "application/json",
-        Accept: "application/json",
-      },
-      body: body ? JSON.stringify(body) : undefined,
-      cache: "no-store",
+      Authorization: `Bearer ${apiKey}`,
+      "X-API-Key": apiKey,
+      "Content-Type": "application/json",
+      Accept: "application/json",
     },
-    base,
-    "Warp",
-  );
+    {
+      Authorization: apiKey,
+      "X-API-Key": apiKey,
+      "Content-Type": "application/json",
+      Accept: "application/json",
+    },
+    {
+      "X-API-Key": apiKey,
+      "Content-Type": "application/json",
+      Accept: "application/json",
+    },
+  ];
+  let lastError: Error | null = null;
+  for (const headers of variants) {
+    try {
+      return await callJson(
+        endpoint,
+        {
+          method,
+          headers,
+          body: body ? JSON.stringify(body) : undefined,
+          cache: "no-store",
+        },
+        base,
+        "Warp",
+      );
+    } catch (error) {
+      lastError = error instanceof Error ? error : new Error("Warp request failed");
+    }
+  }
+  throw lastError || new Error("Warp request failed");
 }
 
 async function twoApi(endpoint: string, body: unknown) {
@@ -150,6 +176,49 @@ async function twoApi(endpoint: string, body: unknown) {
     base,
     "Two",
   );
+}
+
+function buildTwoIntentPayload(body: JsonMap): JsonMap {
+  const merchantId = process.env.TWO_MERCHANT_ID || "";
+  const currency = String(body.currency || "USD");
+  const taxRate = Number(body.tax_rate || 0);
+  const rawLineItems = Array.isArray(body.line_items) ? body.line_items : [];
+
+  const lineItems = rawLineItems.map((item, idx) => {
+    const li = item as JsonMap;
+    const qty = Number(li.qty || li.quantity || 1) || 1;
+    const unit = Number(li.unit_price || li.price || 0) || 0;
+    const gross = Math.max(0, unit * qty);
+    const net = taxRate > 0 ? gross / (1 + taxRate) : gross;
+    const tax = Math.max(0, gross - net);
+    return {
+      name: String(li.name || li.description || `Item ${idx + 1}`),
+      description: String(li.description || li.name || `Item ${idx + 1}`),
+      quantity: qty,
+      quantity_unit: String(li.quantity_unit || li.unit || "pcs"),
+      type: String(li.type || "PHYSICAL"),
+      unit_price: unit.toFixed(2),
+      gross_amount: gross.toFixed(2),
+      net_amount: net.toFixed(2),
+      tax_amount: tax.toFixed(2),
+      tax_rate: taxRate.toFixed(2),
+      tax_class_rate: taxRate.toFixed(2),
+      tax_class_name: String(li.tax_class_name || (taxRate > 0 ? "Standard" : "None")),
+    };
+  });
+
+  const grossTotal =
+    Number(body.gross_amount || 0) ||
+    lineItems.reduce((sum, item) => sum + Number(item.gross_amount || 0), 0);
+
+  return {
+    merchant_id: merchantId,
+    tracking_id: body.tracking_id || body.merchant_order_id || `intent-${Date.now()}`,
+    currency,
+    gross_amount: Number(grossTotal).toFixed(2),
+    line_items: lineItems,
+    buyer: body.buyer || {},
+  };
 }
 
 async function shopifyApi(
@@ -190,6 +259,14 @@ async function solaPayment(body: JsonMap) {
 
   // Cardknox/Sola compatibility mode.
   if (/cardknox\.com/i.test(base)) {
+    const hasCardData = Boolean(body.xToken || body.token || body.xCardNum || body.card_number);
+    if (!hasCardData) {
+      return {
+        provider: "sola",
+        status: "requires_payment_details",
+        message: "Card token/details are required for cardknox charge step.",
+      };
+    }
     const payload = new URLSearchParams({
       xKey: apiKey,
       xVersion: "5.0.0",
@@ -198,6 +275,10 @@ async function solaPayment(body: JsonMap) {
       xCurrency: String(body.currency || "USD").toUpperCase(),
       xInvoice: String(body.orderId || body.invoice || ""),
       xEmail: String(body.buyerEmail || body.email || ""),
+      xToken: String(body.xToken || body.token || ""),
+      xCardNum: String(body.xCardNum || body.card_number || ""),
+      xExp: String(body.xExp || body.expiry || ""),
+      xCVV: String(body.xCVV || body.cvv || ""),
     });
     const response = await fetch(`${base}/gatewayjson`, {
       method: "POST",
@@ -492,7 +573,8 @@ export async function POST(
     }
     if (first === "trade-finance" && second === "intent") {
       const body = await readJson(request);
-      const result = await twoApi("/v1/order_intent", body);
+      const payload = buildTwoIntentPayload(body);
+      const result = await twoApi("/v1/order_intent", payload);
       return json({ provider: "two", ...(result as JsonMap) });
     }
     if (first === "shopify" && second === "connect") {
