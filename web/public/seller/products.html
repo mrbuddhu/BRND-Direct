@@ -540,8 +540,14 @@
             </div>
           </div>`;
       }).join('');
-    } catch (_) {
-      // keep static fallback if live load fails
+    } catch (err) {
+      const grid = document.getElementById('prodGrid');
+      if (grid) {
+        grid.innerHTML = `<div style="grid-column:1/-1;text-align:center;padding:48px;color:var(--color-muted);">
+          Live products are unavailable right now.
+        </div>`;
+      }
+      showToast((err && err.message) ? err.message : 'Failed to load seller products.', 'error');
     }
   }
 

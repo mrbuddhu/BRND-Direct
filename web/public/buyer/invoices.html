@@ -1188,8 +1188,11 @@ async function hydrateLiveBuyerInvoices() {
       refreshOutstandingInvoices();
       renderInvoices(invoices);
     }
-  } catch (_) {
-    // Keep static fallback when live query fails.
+  } catch (err) {
+    invoices = [...cartInvoices];
+    refreshOutstandingInvoices();
+    renderInvoices(invoices);
+    showToast((err && err.message) ? err.message : 'Failed to load live invoices.', 'error');
   }
 }
 

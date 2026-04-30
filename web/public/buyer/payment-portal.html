@@ -1006,8 +1006,13 @@ async function hydratePaymentPortalLive() {
     renderInvSelectList();
     updateSummary();
     updateStep1Next();
-  } catch (_) {
-    // keep demo fallback
+  } catch (err) {
+    invoices = [];
+    selectedInvoices = new Set();
+    renderInvSelectList();
+    updateSummary();
+    updateStep1Next();
+    showToast((err && err.message) ? err.message : 'Failed to load live payment data.', 'error');
   }
 }
 

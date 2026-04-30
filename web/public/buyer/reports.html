@@ -1165,8 +1165,16 @@ async function hydrateReportsLive() {
     ['chartMonthlySpend', 'chartCategoryDonut', 'chartOrderStatus', 'chartProductUnits', 'chartBrandBar', 'chartInvoiceStatus', 'chartTermsMix']
       .forEach((id) => { const ch = Chart.getChart(id); if (ch) ch.destroy(); });
     buildCharts();
-  } catch (_) {
-    // keep demo fallback
+  } catch (err) {
+    ORDERS.length = 0;
+    INVOICES.length = 0;
+    SHIPMENTS.length = 0;
+    renderOrderLog();
+    renderProductPerf();
+    renderBrandScorecard();
+    renderInvoiceReg();
+    renderShipmentLog();
+    showToast((err && err.message) ? err.message : 'Failed to load live reports.', 'error');
   }
 }
 

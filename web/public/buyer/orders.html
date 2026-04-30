@@ -1662,8 +1662,12 @@ async function hydrateLiveBuyerOrders() {
       filterOrders();
       updateOrderStatChips();
     }
-  } catch (_) {
-    // Keep static fallback when live loading fails.
+  } catch (err) {
+    orders = [];
+    renderAllPanels();
+    filterOrders();
+    updateOrderStatChips();
+    showToast((err && err.message) ? err.message : 'Failed to load live orders.', 'error');
   }
 }
 

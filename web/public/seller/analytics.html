@@ -429,8 +429,11 @@ async function hydrateSellerAnalyticsLive() {
     const kpiNodes = document.querySelectorAll('.kpi-value');
     if (kpiNodes[0]) kpiNodes[0].textContent = `$${Math.round(gross).toLocaleString()}`;
     if (kpiNodes[1]) kpiNodes[1].textContent = `${rows.length}`;
-  } catch (_) {
-    // keep static fallback
+  } catch (err) {
+    const kpiNodes = document.querySelectorAll('.kpi-value');
+    if (kpiNodes[0]) kpiNodes[0].textContent = '$0';
+    if (kpiNodes[1]) kpiNodes[1].textContent = '0';
+    showToast((err && err.message) ? err.message : 'Failed to load seller analytics.', 'error');
   }
 }
 

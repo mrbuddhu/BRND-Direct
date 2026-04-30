@@ -1415,7 +1415,7 @@ const API_BASE = (window.BRND_API_BASE || '/api').replace(/\/$/, '');  // Cloudf
 // In dev/sandbox mode, the page falls back to mock data when
 // the worker returns an error (keys not yet configured).
 
-const DEMO_MODE = new URLSearchParams(window.location.search).get('demo') === '1';
+const DEMO_MODE = false;
 
 const STATUS_MAP = {
   in_transit: { label:'In Transit', cls:'badge-shipped' },
@@ -1567,21 +1567,7 @@ function wzGo(n) {
   document.getElementById('sl-book').scrollIntoView({ behavior:'smooth', block:'start' });
 }
 
-/* ─── MOCK RATES (used when API keys not yet configured) ─── */
-const MOCK_PARCEL_RATES = [
-  { provider:'shippo', rate_id:'mock-s1', carrier:'FedEx', service:'FedEx Priority Overnight', transit:'1 business day', price:89.40, currency:'USD', attributes:['FASTEST'] },
-  { provider:'shippo', rate_id:'mock-s2', carrier:'UPS',   service:'UPS 2nd Day Air',           transit:'2 business days', price:54.20, currency:'USD', attributes:['BESTVALUE'] },
-  { provider:'shippo', rate_id:'mock-s3', carrier:'FedEx', service:'FedEx Ground',              transit:'2-3 business days', price:38.60, currency:'USD', attributes:[] },
-  { provider:'shippo', rate_id:'mock-s4', carrier:'DHL',   service:'DHL Express Worldwide',    transit:'1-2 business days', price:76.80, currency:'USD', attributes:[] },
-  { provider:'shippo', rate_id:'mock-s5', carrier:'USPS',  service:'USPS Priority Mail',        transit:'2-3 business days', price:28.90, currency:'USD', attributes:['CHEAPEST'] },
-];
-const MOCK_FREIGHT_RATES = [
-  { provider:'freightos', rate_id:'mock-f1', carrier:'XPO Logistics',  service:'LTL Standard (via Freightos)', transit:'3-5 business days', price:310.00, currency:'USD', guaranteed:false },
-  { provider:'freightos', rate_id:'mock-f2', carrier:'Old Dominion',   service:'LTL Expedited (via Freightos)', transit:'2-4 business days', price:420.00, currency:'USD', guaranteed:true  },
-  { provider:'freightos', rate_id:'mock-f3', carrier:'FedEx Freight',  service:'FedEx Freight Priority',       transit:'2-3 business days', price:485.00, currency:'USD', guaranteed:true  },
-];
-
-/* ─── Build rates: calls live API or falls back to demo data ─── */
+/* ─── Build rates: calls live API only ─── */
 async function buildRates() {
   document.getElementById('ratesLoadingState').style.display = 'block';
   document.getElementById('parcelRatesSection').style.display = 'none';
@@ -1619,12 +1605,7 @@ async function buildRates() {
 
     let rates = [];
 
-    if (DEMO_MODE) {
-      // Simulate network latency
-      await new Promise(r => setTimeout(r, 1200));
-      rates = isFreight ? MOCK_FREIGHT_RATES : MOCK_PARCEL_RATES;
-      showToast('Demo mode: showing sample rates. Configure API keys to go live.', 'info');
-    } else if (isFreight) {
+    if (isFreight) {
       // Freightos LTL/FTL quote
       const originParts = originZip.split(' ');
       const destParts   = destZip.split(' ');
@@ -1996,11 +1977,10 @@ async function loadTracking() {
   const val = document.getElementById('trackInput').value.trim();
   if (!val) return;
 
-  // Check local demo data first
+  // Check preloaded tracking cache first
   const localData = TRACK_EVENTS[val];
-  if (localData || DEMO_MODE) {
-    renderTracking(localData || TRACK_EVENTS['794644792798']);
-    if (DEMO_MODE && !localData) showToast('Demo tracking data. Configure API keys for live status.','info');
+  if (localData) {
+    renderTracking(localData);
     return;
   }
 
@@ -2062,8 +2042,7 @@ async function loadTracking() {
     renderTracking(data);
   } catch (err) {
     showToast('Tracking error: ' + err.message, 'error');
-    // Fall back to demo data
-    renderTracking(TRACK_EVENTS['794644792798']);
+    return;
   }
 }
 
@@ -2232,13 +2211,7 @@ async function loadRateCompare() {
   try {
     let rates = [];
 
-    if (DEMO_MODE) {
-      await new Promise(r => setTimeout(r, 900));
-      rates = isFreight
-        ? MOCK_FREIGHT_RATES.map(r => ({...r, provider:'freightos'}))
-        : MOCK_PARCEL_RATES.map(r => ({...r, provider:'shippo'}));
-      showToast('Demo mode — configure API keys for live rates.', 'info');
-    } else if (isFreight) {
+    if (isFreight) {
       const resp = await fetch(`${API_BASE}/freight/quote`, {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -2287,16 +2260,6 @@ async function checkProviderStatus() {
   const shippoStatusEl  = document.getElementById('shippoStatus');
   const shippoStatusDot = document.getElementById('shippoStatusDot');
   const shippoCarrierList = document.getElementById('shippoCarrierList');
-
-  if (DEMO_MODE) {
-    const demoChip = '<i class="fas fa-circle" style="font-size:.4rem;margin-right:3px;"></i> Demo Mode';
-    if (freightosStatusEl)  freightosStatusEl.innerHTML  = demoChip;
-    if (freightosStatusDot) freightosStatusDot.innerHTML = '<i class="fas fa-circle" style="font-size:.4rem;color:#d97706;"></i> Demo';
-    if (shippoStatusEl)  shippoStatusEl.innerHTML  = demoChip;
-    if (shippoStatusDot) shippoStatusDot.innerHTML = '<i class="fas fa-circle" style="font-size:.4rem;color:#d97706;"></i> Demo';
-    if (shippoCarrierList) shippoCarrierList.textContent = 'FedEx · UPS · DHL · USPS (demo)';
-    return;
-  }
 
   // Real checks
   try {
@@ -2393,8 +2356,10 @@ async function hydrateShippingLogisticsLive() {
       });
     });
     filterShipments();
-  } catch (_) {
-    // keep demo fallback
+  } catch (err) {
+    SHIPMENTS_DATA.length = 0;
+    filterShipments();
+    showToast((err && err.message) ? err.message : 'Failed to load live shipping data.', 'error');
   }
 }
 

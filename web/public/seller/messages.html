@@ -364,8 +364,12 @@
         list.appendChild(item);
       });
       openSellerConversation(convs[0].id);
-    } catch (_) {
-      // keep static fallback
+    } catch (err) {
+      const list = document.getElementById('conversationList');
+      if (list) {
+        Array.from(list.querySelectorAll('.conv-item')).forEach((el) => el.remove());
+      }
+      showToast((err && err.message) ? err.message : 'Failed to load seller messages.', 'error');
     }
   }
 

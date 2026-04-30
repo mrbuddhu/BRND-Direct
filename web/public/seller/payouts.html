@@ -400,8 +400,12 @@
             </div>
           </div>`;
       }).join('');
-    } catch (_) {
-      // keep static fallback if live load fails
+    } catch (err) {
+      const container = document.querySelector('.payout-row')?.parentElement;
+      if (container) {
+        container.innerHTML = `<div style="padding:20px;color:var(--color-muted);text-align:center;">Live payouts are unavailable right now.</div>`;
+      }
+      showToast((err && err.message) ? err.message : 'Failed to load payouts.', 'error');
     }
   }
 

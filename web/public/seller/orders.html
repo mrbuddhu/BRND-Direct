@@ -497,8 +497,11 @@
 
       updateSellerOrderStats();
       renderSellerOrdersTable();
-    } catch (_) {
-      // Keep static markup fallback.
+    } catch (err) {
+      LIVE_SELLER_ORDERS = [];
+      updateSellerOrderStats();
+      renderSellerOrdersTable();
+      showToast((err && err.message) ? err.message : 'Failed to load seller orders.', 'error');
     }
   }
 

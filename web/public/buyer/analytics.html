@@ -513,8 +513,11 @@ async function hydrateBuyerAnalyticsLive() {
     const bigStats = document.querySelectorAll('.stat-card .stat-value');
     if (bigStats[0]) bigStats[0].textContent = `$${Math.round(totalSpend).toLocaleString()}`;
     if (bigStats[1]) bigStats[1].textContent = `${rows.length}`;
-  } catch (_) {
-    // keep static fallback
+  } catch (err) {
+    const bigStats = document.querySelectorAll('.stat-card .stat-value');
+    if (bigStats[0]) bigStats[0].textContent = '$0';
+    if (bigStats[1]) bigStats[1].textContent = '0';
+    showToast((err && err.message) ? err.message : 'Failed to load live analytics.', 'error');
   }
 }
 

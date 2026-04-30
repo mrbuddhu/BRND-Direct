@@ -552,8 +552,12 @@
       });
       const first = convs[0];
       openBuyerConversation(first.id, first?.seller_profiles?.company_name || 'Seller', 'var(--color-accent)');
-    } catch (_) {
-      // keep static fallback
+    } catch (err) {
+      const list = document.getElementById('conversationList');
+      if (list) {
+        Array.from(list.querySelectorAll('.conv-item')).forEach((el) => el.remove());
+      }
+      showToast((err && err.message) ? err.message : 'Failed to load live messages.', 'error');
     }
   }
 
