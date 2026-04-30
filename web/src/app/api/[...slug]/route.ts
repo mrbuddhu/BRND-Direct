@@ -128,6 +128,8 @@ async function warp(method: string, endpoint: string, body?: unknown) {
     },
     {
       "X-API-Key": apiKey,
+      "api-key": apiKey,
+      token: apiKey,
       "Content-Type": "application/json",
       Accept: "application/json",
     },
@@ -156,7 +158,7 @@ async function warp(method: string, endpoint: string, body?: unknown) {
 async function twoApi(endpoint: string, body: unknown) {
   const apiKey = requiredEnv("TWO_API_KEY");
   const base = baseUrl("TWO_BASE_URL", "https://api.sandbox.two.inc");
-  const merchantId = process.env.TWO_MERCHANT_ID || "";
+  const merchantId = requiredEnv("TWO_MERCHANT_ID");
   const payload =
     body && typeof body === "object" && body !== null
       ? ({ merchant_id: merchantId, ...(body as JsonMap) } as JsonMap)
@@ -179,7 +181,7 @@ async function twoApi(endpoint: string, body: unknown) {
 }
 
 function buildTwoIntentPayload(body: JsonMap): JsonMap {
-  const merchantId = process.env.TWO_MERCHANT_ID || "";
+  const merchantId = requiredEnv("TWO_MERCHANT_ID");
   const currency = String(body.currency || "USD");
   const taxRate = Number(body.tax_rate || 0);
   const rawLineItems = Array.isArray(body.line_items) ? body.line_items : [];
@@ -347,8 +349,21 @@ async function handleFreight(method: string, action: string, request: NextReques
   }
   if (action === "quote" && method === "POST") {
     const body = await readJson(request);
-    const result = await warp("POST", "/quotes", body);
-    return json({ provider: "warp", ...(result as JsonMap) });
+    try {
+      const result = await warp("POST", "/quotes", body);
+      return json({ provider: "warp", ...(result as JsonMap) });
+    } catch (error) {
+      // Keep quote flow usable with live Warp public rates if account auth is not ready yet.
+      const fallback = await fetch("https://www.wearewarp.com/api/ltl-rates", { cache: "no-store" });
+      if (!fallback.ok) throw error;
+      const rates = (await fallback.json()) as JsonMap;
+      return json({
+        provider: "warp",
+        mode: "public-rates-fallback",
+        warning: "Private Warp API auth failed; using public live rates endpoint.",
+        ...(rates as JsonMap),
+      });
+    }
   }
   if (action === "book" && method === "POST") {
     const body = await readJson(request);
