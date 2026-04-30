@@ -346,16 +346,16 @@
   <div class="status-panel">
     <div class="status-title">Live Integration Status</div>
     <div class="status-row">
-      <div class="status-left"><span class="status-dot" aria-hidden="true"></span>Portal</div>
-      <div class="status-value">Online</div>
+      <div class="status-left"><span class="status-dot" id="portalStatusDot" aria-hidden="true"></span>Portal</div>
+      <div class="status-value" id="portalStatusValue">Checking...</div>
     </div>
     <div class="status-row">
-      <div class="status-left"><span class="status-dot" aria-hidden="true"></span>Authentication</div>
-      <div class="status-value">Online</div>
+      <div class="status-left"><span class="status-dot" id="authStatusDot" aria-hidden="true"></span>Authentication</div>
+      <div class="status-value" id="authStatusValue">Checking...</div>
     </div>
     <div class="status-row">
-      <div class="status-left"><span class="status-dot error" aria-hidden="true"></span>3rd Party API Permutations</div>
-      <div class="status-value error">Failed fetching</div>
+      <div class="status-left"><span class="status-dot" id="providerStatusDot" aria-hidden="true"></span>3rd Party Providers</div>
+      <div class="status-value" id="providerStatusValue">Checking...</div>
     </div>
     <div class="status-row">
       <div class="status-left"><span class="status-dot" aria-hidden="true"></span>3rd Party API Latency</div>
@@ -364,40 +364,66 @@
     <div class="status-progress" aria-hidden="true">
       <div class="status-progress-fill" id="rdProgressFill"></div>
     </div>
-    <div class="status-meta">Last updated: <span id="rdLastUpdated">--:--:--</span> · Demo updates every few seconds</div>
+    <div class="status-meta">Last updated: <span id="rdLastUpdated">--:--:--</span> · Live health check every 30 seconds</div>
   </div>
 
 </div>
 
 <script>
   (function () {
-    var maxPermutations = 1500000;
+    var portalStatusValueEl = document.getElementById('portalStatusValue');
+    var authStatusValueEl = document.getElementById('authStatusValue');
+    var providerStatusValueEl = document.getElementById('providerStatusValue');
+    var portalStatusDotEl = document.getElementById('portalStatusDot');
+    var authStatusDotEl = document.getElementById('authStatusDot');
+    var providerStatusDotEl = document.getElementById('providerStatusDot');
     var latencyEl = document.getElementById('rdLatency');
     var lastUpdatedEl = document.getElementById('rdLastUpdated');
     var progressFillEl = document.getElementById('rdProgressFill');
-    if (!latencyEl || !lastUpdatedEl || !progressFillEl) return;
+    if (!latencyEl || !lastUpdatedEl || !progressFillEl || !portalStatusValueEl || !authStatusValueEl || !providerStatusValueEl || !portalStatusDotEl || !authStatusDotEl || !providerStatusDotEl) return;
 
-    var current = 2567;
-    var format = function (num) {
-      return num.toLocaleString('en-US');
+    var setStatus = function (dotEl, valueEl, text, isError) {
+      dotEl.classList.toggle('error', Boolean(isError));
+      valueEl.classList.toggle('error', Boolean(isError));
+      valueEl.textContent = text;
     };
-    var updateVisuals = function () {
-      var latency = Math.floor(Math.random() * 121) + 80;
-      latencyEl.textContent = latency + 'ms';
-      var percent = Math.max(0, Math.min((current / maxPermutations) * 100, 100));
-      progressFillEl.style.width = percent.toFixed(3) + '%';
+
+    var refreshHealth = async function () {
+      var started = (typeof performance !== 'undefined' && performance.now) ? performance.now() : Date.now();
+      try {
+        var response = await fetch('/api/health', { cache: 'no-store' });
+        var elapsed = ((typeof performance !== 'undefined' && performance.now) ? performance.now() : Date.now()) - started;
+        latencyEl.textContent = Math.max(1, Math.round(elapsed)) + 'ms';
+        if (!response.ok) throw new Error('Health endpoint unavailable');
+
+        var payload = await response.json();
+        var providers = payload && payload.providers ? payload.providers : {};
+        var names = Object.keys(providers);
+        var onlineCount = names.filter(function (name) { return Boolean(providers[name]); }).length;
+        var ratio = names.length ? (onlineCount / names.length) : 0;
+
+        setStatus(portalStatusDotEl, portalStatusValueEl, 'Online', false);
+        setStatus(authStatusDotEl, authStatusValueEl, 'Online', false);
+        setStatus(
+          providerStatusDotEl,
+          providerStatusValueEl,
+          onlineCount + '/' + names.length + ' online',
+          onlineCount !== names.length
+        );
+        progressFillEl.style.width = (ratio * 100).toFixed(1) + '%';
+      } catch (error) {
+        setStatus(portalStatusDotEl, portalStatusValueEl, 'Degraded', true);
+        setStatus(authStatusDotEl, authStatusValueEl, 'Unknown', true);
+        setStatus(providerStatusDotEl, providerStatusValueEl, 'Failed to fetch', true);
+        latencyEl.textContent = '--';
+        progressFillEl.style.width = '0%';
+      } finally {
       lastUpdatedEl.textContent = new Date().toLocaleTimeString('en-US', { hour12: false });
+      }
     };
 
-    var updateCounter = function () {
-      // Demo increment simulates ongoing AI integration test permutations.
-      var increment = Math.floor(Math.random() * 140) + 35;
-      current = Math.min(current + increment, maxPermutations);
-      updateVisuals();
-    };
-
-    updateVisuals();
-    setInterval(updateCounter, 4000);
+    refreshHealth();
+    setInterval(refreshHealth, 30000);
   })();
 </script>
 

@@ -21,3 +21,4 @@ web/*.tsbuildinfo
 
 # Optional: local Supabase
 .supabase/
+.vercel
