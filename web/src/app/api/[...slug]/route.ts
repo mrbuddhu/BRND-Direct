@@ -21,8 +21,20 @@ function requiredEnv(name: string) {
 
 async function readJson(request: NextRequest): Promise<JsonMap> {
   try {
-    const data = (await request.json()) as JsonMap;
-    return data && typeof data === "object" ? data : {};
+    const raw = await request.text();
+    if (!raw) return {};
+    try {
+      const data = JSON.parse(raw) as JsonMap;
+      return data && typeof data === "object" ? data : {};
+    } catch {
+      // Fallback: allow form-style bodies
+      const params = new URLSearchParams(raw);
+      const obj: JsonMap = {};
+      params.forEach((value, key) => {
+        obj[key] = value;
+      });
+      return obj;
+    }
   } catch {
     return {};
   }
@@ -103,6 +115,7 @@ async function warp(method: string, endpoint: string, body?: unknown) {
       method,
       headers: {
         Authorization: `Bearer ${apiKey}`,
+        "X-API-Key": apiKey,
         "Content-Type": "application/json",
         Accept: "application/json",
       },
@@ -117,6 +130,11 @@ async function warp(method: string, endpoint: string, body?: unknown) {
 async function twoApi(endpoint: string, body: unknown) {
   const apiKey = requiredEnv("TWO_API_KEY");
   const base = baseUrl("TWO_BASE_URL", "https://api.sandbox.two.inc");
+  const merchantId = process.env.TWO_MERCHANT_ID || "";
+  const payload =
+    body && typeof body === "object" && body !== null
+      ? ({ merchant_id: merchantId, ...(body as JsonMap) } as JsonMap)
+      : ({ merchant_id: merchantId } as JsonMap);
   return callJson(
     endpoint,
     {
@@ -126,7 +144,7 @@ async function twoApi(endpoint: string, body: unknown) {
         "Content-Type": "application/json",
         Accept: "application/json",
       },
-      body: JSON.stringify(body),
+      body: JSON.stringify(payload),
       cache: "no-store",
     },
     base,
@@ -164,11 +182,62 @@ async function solaPayment(body: JsonMap) {
   const apiKey = requiredEnv("SOLA_API_KEY");
   const base = baseUrl("SOLA_BASE_URL", "https://api.sola.com");
   const command = process.env.SOLA_DEFAULT_COMMAND || "cc:sale";
-  const amount = Number(body.amount || 0);
+  const cents = Number(body.amount_cents || 0);
+  const majorFromCents = Number.isFinite(cents) && cents > 0 ? cents / 100 : 0;
+  const amount = Number(body.amount || body.gross_amount || majorFromCents || 0);
   if (!Number.isFinite(amount) || amount <= 0) throw new Error("amount is required");
+  const amountFixed = amount.toFixed(2);
+
+  // Cardknox/Sola compatibility mode.
+  if (/cardknox\.com/i.test(base)) {
+    const payload = new URLSearchParams({
+      xKey: apiKey,
+      xVersion: "5.0.0",
+      xCommand: command,
+      xAmount: amountFixed,
+      xCurrency: String(body.currency || "USD").toUpperCase(),
+      xInvoice: String(body.orderId || body.invoice || ""),
+      xEmail: String(body.buyerEmail || body.email || ""),
+    });
+    const response = await fetch(`${base}/gatewayjson`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/x-www-form-urlencoded",
+        Accept: "application/json, text/plain, */*",
+      },
+      body: payload.toString(),
+      cache: "no-store",
+    });
+    const text = await response.text();
+    let parsed: unknown = text;
+    try {
+      parsed = JSON.parse(text);
+    } catch {
+      // Some gateway responses are key=value pairs.
+      const kv = new URLSearchParams(text);
+      if (Array.from(kv.keys()).length) {
+        const obj: JsonMap = {};
+        kv.forEach((value, key) => {
+          obj[key] = value;
+        });
+        parsed = obj;
+      }
+    }
+    if (!response.ok) {
+      throw new Error(
+        typeof parsed === "object" && parsed && "xError" in parsed
+          ? String((parsed as { xError: unknown }).xError)
+          : typeof parsed === "string"
+            ? parsed
+            : "Sola payment request failed",
+      );
+    }
+    return parsed;
+  }
+
   const payload = {
     command,
-    amount,
+    amount: Number(amountFixed),
     currency: String(body.currency || "USD").toUpperCase(),
     orderId: body.orderId || "",
     customerEmail: body.buyerEmail || body.email || "",
@@ -423,7 +492,7 @@ export async function POST(
     }
     if (first === "trade-finance" && second === "intent") {
       const body = await readJson(request);
-      const result = await twoApi("/v1/order/intent", body);
+      const result = await twoApi("/v1/order_intent", body);
       return json({ provider: "two", ...(result as JsonMap) });
     }
     if (first === "shopify" && second === "connect") {
