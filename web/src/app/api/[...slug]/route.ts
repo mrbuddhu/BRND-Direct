@@ -182,7 +182,7 @@ async function twoApi(endpoint: string, body: unknown) {
 
 function buildTwoIntentPayload(body: JsonMap): JsonMap {
   const merchantId = requiredEnv("TWO_MERCHANT_ID");
-  const currency = String(body.currency || "USD");
+  const currency = String(body.currency || "USD").toUpperCase();
   const taxRate = Number(body.tax_rate || 0);
   const rawLineItems = Array.isArray(body.line_items) ? body.line_items : [];
 
@@ -196,7 +196,7 @@ function buildTwoIntentPayload(body: JsonMap): JsonMap {
     return {
       name: String(li.name || li.description || `Item ${idx + 1}`),
       description: String(li.description || li.name || `Item ${idx + 1}`),
-      quantity: qty,
+      quantity: qty.toString(),
       quantity_unit: String(li.quantity_unit || li.unit || "pcs"),
       type: String(li.type || "PHYSICAL"),
       unit_price: unit.toFixed(2),
@@ -209,17 +209,55 @@ function buildTwoIntentPayload(body: JsonMap): JsonMap {
     };
   });
 
+  const safeLineItems =
+    lineItems.length > 0
+      ? lineItems
+      : [
+          {
+            name: "Order Item",
+            description: "Order Item",
+            quantity: "1",
+            quantity_unit: "pcs",
+            type: "PHYSICAL",
+            unit_price: "0.00",
+            gross_amount: "0.00",
+            net_amount: "0.00",
+            tax_amount: "0.00",
+            tax_rate: "0.00",
+            tax_class_rate: "0.00",
+            tax_class_name: "None",
+          },
+        ];
+
   const grossTotal =
     Number(body.gross_amount || 0) ||
-    lineItems.reduce((sum, item) => sum + Number(item.gross_amount || 0), 0);
+    safeLineItems.reduce((sum, item) => sum + Number(item.gross_amount || 0), 0);
+
+  const rawBuyer = ((body.buyer || {}) as JsonMap) || {};
+  const rawCompany = ((rawBuyer.company || {}) as JsonMap) || {};
+  const rawRep = ((rawBuyer.representative || {}) as JsonMap) || {};
+  const buyer = {
+    company: {
+      company_name: String(rawCompany.company_name || body.company_name || "Unknown Company"),
+      organization_number: String(rawCompany.organization_number || body.organization_number || "000000"),
+      country_prefix: String(rawCompany.country_prefix || body.country_prefix || "US").toUpperCase(),
+    },
+    representative: {
+      first_name: String(rawRep.first_name || body.first_name || "Portal"),
+      last_name: String(rawRep.last_name || body.last_name || "User"),
+      email: String(rawRep.email || body.email || "buyer@brnddirect.com"),
+      phone_number: String(rawRep.phone_number || body.phone_number || "+10000000000"),
+    },
+  };
 
   return {
     merchant_id: merchantId,
     tracking_id: body.tracking_id || body.merchant_order_id || `intent-${Date.now()}`,
     currency,
     gross_amount: Number(grossTotal).toFixed(2),
-    line_items: lineItems,
-    buyer: body.buyer || {},
+    line_items: safeLineItems,
+    buyer,
+    order_origination: String(body.order_origination || "ONLINE"),
   };
 }
 
