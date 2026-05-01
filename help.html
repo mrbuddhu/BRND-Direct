@@ -454,6 +454,12 @@
 
 <script src="js/portal.js"></script>
 <script>
+  function toggleSidebar() {
+    const sidebar = document.getElementById('sidebar');
+    if (!sidebar) return;
+    sidebar.classList.toggle('open');
+  }
+
   function toggleFAQ(el) {
     const item = el.closest('.faq-item');
     const isOpen = item.classList.contains('open');

@@ -417,6 +417,12 @@
 
 <script src="js/portal.js"></script>
 <script>
+  function toggleSidebar() {
+    const sidebar = document.getElementById('sidebar');
+    if (!sidebar) return;
+    sidebar.classList.toggle('open');
+  }
+
   function selectConv(el, id) {
     document.querySelectorAll('.conv-item').forEach(c => c.classList.remove('active'));
     el.classList.add('active');

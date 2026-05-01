@@ -356,6 +356,12 @@
 </main>
 <script src="js/portal.js"></script>
 <script>
+  function toggleSidebar() {
+    const sidebar = document.getElementById('sidebar');
+    if (!sidebar) return;
+    sidebar.classList.toggle('open');
+  }
+
   function setActive(el) {
     document.querySelectorAll('.report-nav-item').forEach(i => i.classList.remove('active'));
     el.classList.add('active');

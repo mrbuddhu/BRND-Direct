@@ -1015,6 +1015,14 @@
 <script src="js/portal.js"></script>
 <script>(function(){try{var c=JSON.parse(sessionStorage.getItem('brnd_cart')||'[]');var b=document.getElementById('sidebarCartBadge');if(b&&c.length>0){b.textContent=c.length;b.style.display='inline-flex';}}catch(e){}})();</script>
 <script>
+if (typeof window.showToast !== 'function') {
+  window.showToast = function(message, type = 'success') {
+    if (typeof window.showPortalToast === 'function') {
+      window.showPortalToast(message, type);
+    }
+  };
+}
+
 function renderLiveDate() {
   const liveDate = document.getElementById('liveDate');
   if (!liveDate) return;

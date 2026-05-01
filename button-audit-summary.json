@@ -1,0 +1,506 @@
+[
+  {
+    "file": "account.html",
+    "total": 47,
+    "good": 38,
+    "bad": 0,
+    "unknown": 9
+  },
+  {
+    "file": "admin/index.html",
+    "total": 34,
+    "good": 31,
+    "bad": 0,
+    "unknown": 3
+  },
+  {
+    "file": "admin/login.html",
+    "total": 2,
+    "good": 0,
+    "bad": 0,
+    "unknown": 2
+  },
+  {
+    "file": "analytics.html",
+    "total": 8,
+    "good": 1,
+    "bad": 0,
+    "unknown": 7
+  },
+  {
+    "file": "buyer-login.html",
+    "total": 4,
+    "good": 2,
+    "bad": 0,
+    "unknown": 2
+  },
+  {
+    "file": "buyer/account.html",
+    "total": 52,
+    "good": 41,
+    "bad": 0,
+    "unknown": 11
+  },
+  {
+    "file": "buyer/analytics.html",
+    "total": 8,
+    "good": 1,
+    "bad": 0,
+    "unknown": 7
+  },
+  {
+    "file": "buyer/cart.html",
+    "total": 9,
+    "good": 6,
+    "bad": 0,
+    "unknown": 3
+  },
+  {
+    "file": "buyer/dashboard.html",
+    "total": 7,
+    "good": 4,
+    "bad": 0,
+    "unknown": 3
+  },
+  {
+    "file": "buyer/dropship.html",
+    "total": 60,
+    "good": 56,
+    "bad": 0,
+    "unknown": 4
+  },
+  {
+    "file": "buyer/help.html",
+    "total": 13,
+    "good": 5,
+    "bad": 0,
+    "unknown": 8
+  },
+  {
+    "file": "buyer/index.html",
+    "total": 4,
+    "good": 0,
+    "bad": 0,
+    "unknown": 4
+  },
+  {
+    "file": "buyer/invoices.html",
+    "total": 36,
+    "good": 21,
+    "bad": 0,
+    "unknown": 15
+  },
+  {
+    "file": "buyer/messages.html",
+    "total": 13,
+    "good": 5,
+    "bad": 0,
+    "unknown": 8
+  },
+  {
+    "file": "buyer/orders.html",
+    "total": 45,
+    "good": 33,
+    "bad": 0,
+    "unknown": 12
+  },
+  {
+    "file": "buyer/payment-portal.html",
+    "total": 9,
+    "good": 7,
+    "bad": 0,
+    "unknown": 2
+  },
+  {
+    "file": "buyer/pending-approval.html",
+    "total": 2,
+    "good": 0,
+    "bad": 0,
+    "unknown": 2
+  },
+  {
+    "file": "buyer/products.html",
+    "total": 60,
+    "good": 44,
+    "bad": 0,
+    "unknown": 16
+  },
+  {
+    "file": "buyer/register.html",
+    "total": 3,
+    "good": 0,
+    "bad": 0,
+    "unknown": 3
+  },
+  {
+    "file": "buyer/reports.html",
+    "total": 28,
+    "good": 26,
+    "bad": 0,
+    "unknown": 2
+  },
+  {
+    "file": "buyer/reset-password.html",
+    "total": 5,
+    "good": 1,
+    "bad": 0,
+    "unknown": 4
+  },
+  {
+    "file": "buyer/rfq.html",
+    "total": 23,
+    "good": 10,
+    "bad": 0,
+    "unknown": 13
+  },
+  {
+    "file": "buyer/shipping-logistics.html",
+    "total": 51,
+    "good": 48,
+    "bad": 0,
+    "unknown": 3
+  },
+  {
+    "file": "buyer/trade-finance.html",
+    "total": 11,
+    "good": 6,
+    "bad": 0,
+    "unknown": 5
+  },
+  {
+    "file": "buyer/warehousing.html",
+    "total": 2,
+    "good": 0,
+    "bad": 0,
+    "unknown": 2
+  },
+  {
+    "file": "cart.html",
+    "total": 9,
+    "good": 6,
+    "bad": 0,
+    "unknown": 3
+  },
+  {
+    "file": "dashboard.html",
+    "total": 11,
+    "good": 5,
+    "bad": 0,
+    "unknown": 6
+  },
+  {
+    "file": "developer-brief.html",
+    "total": 0,
+    "good": 0,
+    "bad": 0,
+    "unknown": 0
+  },
+  {
+    "file": "dropship.html",
+    "total": 10,
+    "good": 4,
+    "bad": 0,
+    "unknown": 6
+  },
+  {
+    "file": "help.html",
+    "total": 15,
+    "good": 6,
+    "bad": 0,
+    "unknown": 9
+  },
+  {
+    "file": "index.html",
+    "total": 0,
+    "good": 0,
+    "bad": 0,
+    "unknown": 0
+  },
+  {
+    "file": "investor-demo/index.html",
+    "total": 19,
+    "good": 16,
+    "bad": 0,
+    "unknown": 3
+  },
+  {
+    "file": "investor/index.html",
+    "total": 3,
+    "good": 0,
+    "bad": 0,
+    "unknown": 3
+  },
+  {
+    "file": "invoices.html",
+    "total": 23,
+    "good": 8,
+    "bad": 0,
+    "unknown": 15
+  },
+  {
+    "file": "lock.html",
+    "total": 2,
+    "good": 1,
+    "bad": 0,
+    "unknown": 1
+  },
+  {
+    "file": "messages.html",
+    "total": 15,
+    "good": 6,
+    "bad": 0,
+    "unknown": 9
+  },
+  {
+    "file": "orders.html",
+    "total": 14,
+    "good": 2,
+    "bad": 0,
+    "unknown": 12
+  },
+  {
+    "file": "products.html",
+    "total": 111,
+    "good": 5,
+    "bad": 0,
+    "unknown": 106
+  },
+  {
+    "file": "register.html",
+    "total": 6,
+    "good": 0,
+    "bad": 0,
+    "unknown": 6
+  },
+  {
+    "file": "reports.html",
+    "total": 17,
+    "good": 1,
+    "bad": 0,
+    "unknown": 16
+  },
+  {
+    "file": "rfq.html",
+    "total": 23,
+    "good": 8,
+    "bad": 0,
+    "unknown": 15
+  },
+  {
+    "file": "seller-account.html",
+    "total": 17,
+    "good": 15,
+    "bad": 0,
+    "unknown": 2
+  },
+  {
+    "file": "seller-analytics.html",
+    "total": 7,
+    "good": 5,
+    "bad": 0,
+    "unknown": 2
+  },
+  {
+    "file": "seller-brand-hub.html",
+    "total": 28,
+    "good": 25,
+    "bad": 0,
+    "unknown": 3
+  },
+  {
+    "file": "seller-dashboard.html",
+    "total": 2,
+    "good": 0,
+    "bad": 0,
+    "unknown": 2
+  },
+  {
+    "file": "seller-login.html",
+    "total": 4,
+    "good": 2,
+    "bad": 0,
+    "unknown": 2
+  },
+  {
+    "file": "seller-messages.html",
+    "total": 7,
+    "good": 5,
+    "bad": 0,
+    "unknown": 2
+  },
+  {
+    "file": "seller-orders.html",
+    "total": 24,
+    "good": 20,
+    "bad": 0,
+    "unknown": 4
+  },
+  {
+    "file": "seller-payouts.html",
+    "total": 14,
+    "good": 12,
+    "bad": 0,
+    "unknown": 2
+  },
+  {
+    "file": "seller-products.html",
+    "total": 40,
+    "good": 35,
+    "bad": 0,
+    "unknown": 5
+  },
+  {
+    "file": "seller-register.html",
+    "total": 18,
+    "good": 18,
+    "bad": 0,
+    "unknown": 0
+  },
+  {
+    "file": "seller-wholesale-pricing.html",
+    "total": 11,
+    "good": 9,
+    "bad": 0,
+    "unknown": 2
+  },
+  {
+    "file": "seller/account.html",
+    "total": 17,
+    "good": 15,
+    "bad": 0,
+    "unknown": 2
+  },
+  {
+    "file": "seller/analytics.html",
+    "total": 7,
+    "good": 5,
+    "bad": 0,
+    "unknown": 2
+  },
+  {
+    "file": "seller/brand-hub.html",
+    "total": 28,
+    "good": 25,
+    "bad": 0,
+    "unknown": 3
+  },
+  {
+    "file": "seller/dashboard.html",
+    "total": 2,
+    "good": 0,
+    "bad": 0,
+    "unknown": 2
+  },
+  {
+    "file": "seller/index.html",
+    "total": 4,
+    "good": 2,
+    "bad": 0,
+    "unknown": 2
+  },
+  {
+    "file": "seller/messages.html",
+    "total": 7,
+    "good": 5,
+    "bad": 0,
+    "unknown": 2
+  },
+  {
+    "file": "seller/orders.html",
+    "total": 25,
+    "good": 21,
+    "bad": 0,
+    "unknown": 4
+  },
+  {
+    "file": "seller/payouts.html",
+    "total": 14,
+    "good": 12,
+    "bad": 0,
+    "unknown": 2
+  },
+  {
+    "file": "seller/pending-approval.html",
+    "total": 2,
+    "good": 0,
+    "bad": 0,
+    "unknown": 2
+  },
+  {
+    "file": "seller/products.html",
+    "total": 43,
+    "good": 38,
+    "bad": 0,
+    "unknown": 5
+  },
+  {
+    "file": "seller/register.html",
+    "total": 18,
+    "good": 18,
+    "bad": 0,
+    "unknown": 0
+  },
+  {
+    "file": "seller/wholesale-pricing.html",
+    "total": 11,
+    "good": 9,
+    "bad": 0,
+    "unknown": 2
+  },
+  {
+    "file": "setup/connect-catalog.html",
+    "total": 8,
+    "good": 8,
+    "bad": 0,
+    "unknown": 0
+  },
+  {
+    "file": "setup/deploy-fix.html",
+    "total": 10,
+    "good": 4,
+    "bad": 0,
+    "unknown": 6
+  },
+  {
+    "file": "setup/deploy-guide.html",
+    "total": 3,
+    "good": 2,
+    "bad": 0,
+    "unknown": 1
+  },
+  {
+    "file": "setup/guide.html",
+    "total": 13,
+    "good": 7,
+    "bad": 0,
+    "unknown": 6
+  },
+  {
+    "file": "setup/schema-copy.html",
+    "total": 1,
+    "good": 1,
+    "bad": 0,
+    "unknown": 0
+  },
+  {
+    "file": "setup/upload-fix.html",
+    "total": 5,
+    "good": 1,
+    "bad": 0,
+    "unknown": 4
+  },
+  {
+    "file": "trade-finance.html",
+    "total": 11,
+    "good": 6,
+    "bad": 0,
+    "unknown": 5
+  },
+  {
+    "file": "warehousing.html",
+    "total": 24,
+    "good": 0,
+    "bad": 0,
+    "unknown": 24
+  }
+]
