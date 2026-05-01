@@ -3,7 +3,6 @@ import {
   fetchWholesaleProducts,
   jsonError,
   mapWholesaleProductToPortal,
-  supabaseRest,
 } from "../../_lib/supabase-admin";
 
 export const runtime = "edge";
@@ -29,14 +28,9 @@ export async function GET(_request: NextRequest, context: RouteContext) {
       }
       if (row) return NextResponse.json(mapWholesaleProductToPortal(row));
     } catch {
-      // Fall through to Supabase fallback.
+      // Continue and return not found; no static/demo fallback source.
     }
-
-    const query = `id=eq.${id}&select=*,brands(id,name,logo_url,category,description)`;
-    const { data } = await supabaseRest("products", query);
-    const product = Array.isArray(data) ? data[0] : data;
-    if (!product) return jsonError("Product not found", 404);
-    return NextResponse.json(product);
+    return jsonError("Product not found", 404);
   } catch (error) {
     const message = error instanceof Error ? error.message : "Product query failed";
     return jsonError(message, 500);

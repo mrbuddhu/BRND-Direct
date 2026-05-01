@@ -519,7 +519,7 @@
             <div class="ach-form-grid">
               <div class="form-group span-2" style="grid-column:span 2;">
                 <label>Account Holder Name</label>
-                <input type="text" placeholder="Johnson Retail Group LLC" />
+                <input type="text" placeholder="Buyer Company LLC" />
               </div>
               <div class="form-group">
                 <label>Routing Number</label>
@@ -915,7 +915,7 @@ function buildConfirmStep() {
     { label: 'Processing Fee', val: fee > 0 ? `$${fee.toFixed(2)}` : 'Free' },
     { label: 'Total Amount', val: `<strong style="font-size:1rem;color:var(--color-accent);">$${total.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',')}</strong>` },
     { label: 'Payment Date', val: new Date().toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'}) },
-    { label: 'Account', val: 'Johnson Retail Group LLC' },
+    { label: 'Account', val: 'Buyer Company LLC' },
   ];
   document.getElementById('confirmDetails').innerHTML = `<div style="border:1.5px solid var(--color-border);border-radius:var(--radius-md);overflow:hidden;">${
     rows.map(r => `<div class="confirm-row" style="padding:10px 16px;"><span class="confirm-row__label">${r.label}</span><span class="confirm-row__val">${r.val}</span></div>`).join('')

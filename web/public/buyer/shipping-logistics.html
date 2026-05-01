@@ -948,7 +948,7 @@
 
             <div class="sl-form-group">
               <label>Company / Recipient Name</label>
-              <input type="text" id="destName" value="Johnson Retail Group LLC" />
+              <input type="text" id="destName" value="Buyer Company LLC" />
             </div>
             <div class="sl-form-group">
               <label>Address Line 1</label>
@@ -1144,7 +1144,7 @@
           <div class="book-summary__body">
             <div class="bsum-row"><span class="bsum-row__label">Shipment Type</span><span class="bsum-row__val" id="bsumType">—</span></div>
             <div class="bsum-row"><span class="bsum-row__label">From</span><span class="bsum-row__val" id="bsumFrom">—</span></div>
-            <div class="bsum-row"><span class="bsum-row__label">To</span><span class="bsum-row__val" id="bsumTo">Johnson Retail Group LLC<br>New York, NY 10118</span></div>
+            <div class="bsum-row"><span class="bsum-row__label">To</span><span class="bsum-row__val" id="bsumTo">Buyer Company LLC<br>New York, NY 10118</span></div>
             <div class="bsum-row"><span class="bsum-row__label">Pickup</span><span class="bsum-row__val" id="bsumDate">—</span></div>
             <div class="bsum-row"><span class="bsum-row__label">Packages</span><span class="bsum-row__val" id="bsumPkgs">—</span></div>
             <div class="bsum-row"><span class="bsum-row__label">Carrier</span><span class="bsum-row__val" id="bsumCarrier">—</span></div>
@@ -1715,7 +1715,7 @@ function selectRate(id, carrier, service, transit, price, rate_id, provider) {
 
 function buildReview() {
   const from = document.getElementById('originName').value || 'Sender';
-  const to   = document.getElementById('destName').value   || 'Johnson Retail Group LLC';
+  const to   = document.getElementById('destName').value   || 'Buyer Company LLC';
   const date = document.getElementById('pickupDate').value || 'TBD';
   const ref  = document.getElementById('refNum').value     || '—';
   const rate = selectedRate || { carrier:'—', service:'—', transit:'—', price:0 };

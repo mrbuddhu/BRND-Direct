@@ -1719,7 +1719,7 @@ async function fetchLiveCatalog(paramsOverride = {}) {
     if (countEl) countEl.textContent = `${LIVE_TOTAL.toLocaleString()} products in catalog (live)`;
   } catch (err) {
     console.error('[Catalog API] Fetch failed:', err.message);
-    showApiStatus('error', 'Live catalog is unavailable right now. No dummy data is shown.');
+    showApiStatus('error', 'Live catalog is unavailable right now.');
     PRODUCTS.length = 0;
     BRANDS_AZ = [];
     renderBrandList(document.getElementById('brandSearch')?.value || '');

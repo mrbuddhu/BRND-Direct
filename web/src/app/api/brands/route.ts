@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from "next/server";
 import {
   fetchWholesaleProducts,
   jsonError,
-  supabaseRest,
 } from "../_lib/supabase-admin";
 
 export const runtime = "edge";
@@ -46,26 +45,11 @@ export async function GET(request: NextRequest) {
       if (search) data = data.filter((b) => b.name.toLowerCase().includes(search.toLowerCase()));
       data.sort((a, b) => a.name.localeCompare(b.name));
       return NextResponse.json({ data: data.slice(0, limit), total: data.length });
-    } catch {
-      // Fall back to existing Supabase brand table.
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : "Wholesale brands are currently unavailable";
+      return NextResponse.json({ data: [], total: 0, error: message }, { status: 200 });
     }
-
-    const filters: string[] = ["is_active=eq.true"];
-    if (category) filters.push(`category=eq.${encodeURIComponent(category)}`);
-    if (search) {
-      const s = encodeURIComponent(`%${search}%`);
-      filters.push(`name=ilike.${s}`);
-    }
-
-    const query = [
-      ...filters,
-      "select=id,name,logo_url,banner_url,category,description,is_verified",
-      "order=name.asc",
-      `limit=${limit}`,
-    ].join("&");
-
-    const { data, total } = await supabaseRest("brands", query);
-    return NextResponse.json({ data, total });
   } catch (error) {
     const message = error instanceof Error ? error.message : "Brands query failed";
     return jsonError(message, 500);

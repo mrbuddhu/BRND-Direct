@@ -154,7 +154,7 @@ document.addEventListener('DOMContentLoaded', () => {
      ============================================================ */
   const avatar = document.querySelector('.topbar__avatar');
   if (avatar) {
-    avatar.setAttribute('title', 'Alex Johnson · Settings');
+    avatar.setAttribute('title', 'Account User · Settings');
     avatar.addEventListener('click', () => {
       window.location.href = 'account.html';
     });

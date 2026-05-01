@@ -808,7 +808,7 @@
               <div class="pp-form-grid">
                 <div class="pp-form-group span2">
                   <label>Account Holder Name</label>
-                  <input type="text" placeholder="Johnson Retail Group LLC" />
+                  <input type="text" placeholder="Buyer Company LLC" />
                 </div>
                 <div class="pp-form-group">
                   <label>Routing Number</label>
@@ -1033,7 +1033,7 @@
       </div>
       <div style="background:var(--color-off-white);border-radius:var(--radius-md);padding:16px;margin-bottom:20px;">
         <div style="font-size:.72rem;text-transform:uppercase;letter-spacing:.07em;color:var(--color-muted);margin-bottom:10px;">Bill To</div>
-        <div style="font-weight:700;color:var(--color-near-black);">Johnson Retail Group LLC</div>
+        <div style="font-weight:700;color:var(--color-near-black);">Buyer Company LLC</div>
         <div style="font-size:.82rem;color:var(--color-muted);">Buyer User · buyer@example.com<br>350 Fifth Avenue, Suite 4100, New York NY 10118</div>
       </div>
       <table style="width:100%;border-collapse:collapse;font-size:.875rem;margin-bottom:16px;">
@@ -1537,7 +1537,7 @@ function ppBuildConfirm() {
     { label: 'Processing Fee',  val: fee > 0 ? ppFmtMoney(fee) : '<span style="color:var(--color-emerald);font-weight:700;">Free</span>' },
     { label: 'Total Amount',    val: `<strong style="font-size:1rem;color:var(--color-accent);">${ppFmtMoney(total)}</strong>` },
     { label: 'Payment Date',    val: new Date().toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'}) },
-    { label: 'Billing Account', val: 'Johnson Retail Group LLC' },
+    { label: 'Billing Account', val: 'Buyer Company LLC' },
   ];
   document.getElementById('ppConfirmDetails').innerHTML = rows.map(r => `
     <div class="confirm-row">
