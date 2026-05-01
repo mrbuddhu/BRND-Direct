@@ -46,8 +46,9 @@ export async function GET(request: NextRequest) {
         limit: wholesale.meta.per_page,
         pages: wholesale.meta.total_pages,
       });
-    } catch {
+    } catch (error) {
       // Fallback source: existing Supabase catalog.
+      console.error("Wholesale products fetch failed; falling back to Supabase:", error);
     }
 
     const fulfillment = (url.searchParams.get("fulfillment_type") || "").trim();
