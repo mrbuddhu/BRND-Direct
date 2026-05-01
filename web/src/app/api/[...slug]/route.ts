@@ -182,7 +182,7 @@ async function twoApi(endpoint: string, body: unknown) {
 
 function buildTwoIntentPayload(body: JsonMap): JsonMap {
   const merchantId = requiredEnv("TWO_MERCHANT_ID");
-  const currency = String(body.currency || "USD").toUpperCase();
+  const currency = String(body.currency || "GBP").toUpperCase();
   const taxRate = Number(body.tax_rate || 0);
   const rawLineItems = Array.isArray(body.line_items) ? body.line_items : [];
 
@@ -238,15 +238,15 @@ function buildTwoIntentPayload(body: JsonMap): JsonMap {
   const rawRep = ((rawBuyer.representative || {}) as JsonMap) || {};
   const buyer = {
     company: {
-      company_name: String(rawCompany.company_name || body.company_name || "Unknown Company"),
-      organization_number: String(rawCompany.organization_number || body.organization_number || "000000"),
-      country_prefix: String(rawCompany.country_prefix || body.country_prefix || "US").toUpperCase(),
+      company_name: String(rawCompany.company_name || body.company_name || "BRND Direct Buyer"),
+      organization_number: String(rawCompany.organization_number || body.organization_number || "12345678"),
+      country_prefix: String(rawCompany.country_prefix || body.country_prefix || "GB").toUpperCase(),
     },
     representative: {
       first_name: String(rawRep.first_name || body.first_name || "Portal"),
       last_name: String(rawRep.last_name || body.last_name || "User"),
       email: String(rawRep.email || body.email || "buyer@brnddirect.com"),
-      phone_number: String(rawRep.phone_number || body.phone_number || "+10000000000"),
+      phone_number: String(rawRep.phone_number || body.phone_number || "+447000000000"),
     },
   };
 
@@ -627,8 +627,38 @@ export async function POST(
     if (first === "trade-finance" && second === "intent") {
       const body = await readJson(request);
       const payload = buildTwoIntentPayload(body);
-      const result = await twoApi("/v1/order_intent", payload);
-      return json({ provider: "two", ...(result as JsonMap) });
+      try {
+        const result = await twoApi("/v1/order_intent", payload);
+        return json({ provider: "two", ...(result as JsonMap) });
+      } catch (error) {
+        const message = error instanceof Error ? error.message : "Request failed";
+        const buyer = (payload.buyer || {}) as JsonMap;
+        const company = ((buyer.company || {}) as JsonMap) || {};
+        const isSchemaError = /schema/i.test(message);
+        const isUsdUs =
+          String(payload.currency || "").toUpperCase() === "USD" ||
+          String(company.country_prefix || "").toUpperCase() === "US";
+        if (!isSchemaError || !isUsdUs) throw error;
+
+        const fallbackPayload: JsonMap = {
+          ...payload,
+          currency: "GBP",
+          buyer: {
+            ...buyer,
+            company: {
+              ...company,
+              country_prefix: "GB",
+            },
+          },
+        };
+        const retry = await twoApi("/v1/order_intent", fallbackPayload);
+        return json({
+          provider: "two",
+          mode: "country-currency-fallback",
+          warning: "Original intent schema was rejected for US/USD; retried with GB/GBP.",
+          ...(retry as JsonMap),
+        });
+      }
     }
     if (first === "shopify" && second === "connect") {
       const body = await readJson(request);
