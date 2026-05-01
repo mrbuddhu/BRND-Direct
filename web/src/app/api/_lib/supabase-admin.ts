@@ -148,9 +148,13 @@ export function jsonError(message: string, status = 500) {
 export function getWholesaleConfig() {
   const baseUrl = (
     process.env.WHOLESALE_API_BASE_URL ||
+    process.env.WHOLESALE_CATALOG_BASE_URL ||
     "https://wholesale-api-421345206834.us-central1.run.app"
   ).replace(/\/$/, "");
-  const apiKey = process.env.WHOLESALE_API_KEY || "";
+  const apiKey =
+    process.env.WHOLESALE_API_KEY ||
+    process.env.WHOLESALE_CATALOG_API_KEY ||
+    "";
   return { baseUrl, apiKey };
 }
 
