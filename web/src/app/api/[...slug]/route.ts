@@ -647,7 +647,12 @@ export async function POST(
             ...buyer,
             company: {
               ...company,
+              organization_number: "12345678",
               country_prefix: "GB",
+            },
+            representative: {
+              ...((buyer.representative || {}) as JsonMap),
+              phone_number: "+447000000000",
             },
           },
         };
