@@ -17,6 +17,12 @@ type WholesaleMeta = {
   rate_limit_remaining?: number;
 };
 
+type WholesaleCacheEntry = {
+  expiresAt: number;
+  data: WholesaleProduct[];
+  meta: WholesaleMeta;
+};
+
 type WholesaleProduct = {
   sku?: string;
   upc?: string;
@@ -34,6 +40,8 @@ type WholesaleProduct = {
   images?: string[];
   [key: string]: unknown;
 };
+
+let wholesaleCache: WholesaleCacheEntry | null = null;
 
 function isImageUrl(value: unknown): value is string {
   if (typeof value !== "string") return false;
@@ -155,7 +163,20 @@ export function getWholesaleConfig() {
     process.env.WHOLESALE_API_KEY ||
     process.env.WHOLESALE_CATALOG_API_KEY ||
     "";
-  return { baseUrl, apiKey };
+  const cacheTtlSeconds = Number(
+    process.env.WHOLESALE_CATALOG_CACHE_TTL_SECONDS ||
+      process.env.WHOLESALE_API_CACHE_TTL_SECONDS ||
+      "300",
+  );
+  const requestTimeoutMs = Number(
+    process.env.WHOLESALE_REQUEST_TIMEOUT_MS || process.env.WHOLESALE_API_TIMEOUT_MS || "8000",
+  );
+  return {
+    baseUrl,
+    apiKey,
+    cacheTtlSeconds: Number.isFinite(cacheTtlSeconds) ? Math.max(0, cacheTtlSeconds) : 300,
+    requestTimeoutMs: Number.isFinite(requestTimeoutMs) ? Math.max(1000, requestTimeoutMs) : 8000,
+  };
 }
 
 export async function fetchWholesaleProducts(params: {
@@ -164,9 +185,16 @@ export async function fetchWholesaleProducts(params: {
   sku?: string;
   upc?: string;
 }) {
-  const { baseUrl, apiKey } = getWholesaleConfig();
+  const { baseUrl, apiKey, cacheTtlSeconds, requestTimeoutMs } = getWholesaleConfig();
   if (!apiKey) {
     throw new Error("WHOLESALE_API_KEY is not configured");
+  }
+
+  // For catalog list calls, use recently cached successful result to avoid UI timeouts
+  // when the upstream wholesale service is temporarily unavailable.
+  const isCatalogList = !params.sku && !params.upc;
+  if (isCatalogList && wholesaleCache && wholesaleCache.expiresAt > Date.now()) {
+    return { meta: wholesaleCache.meta, data: wholesaleCache.data };
   }
 
   const endpointCandidates = ["/", "/products", "/api/products", "/v1/products"];
@@ -194,11 +222,36 @@ export async function fetchWholesaleProducts(params: {
     if (params.sku) url.searchParams.set("sku", params.sku);
     if (params.upc) url.searchParams.set("upc", params.upc);
     for (const headers of headerVariants) {
-      const response = await fetch(url.toString(), {
-        method: "GET",
-        headers,
-        cache: "no-store",
-      });
+      let response: Response | null = null;
+      let timeoutErr = "";
+      for (let attempt = 0; attempt < 2; attempt += 1) {
+        const controller = new AbortController();
+        const timeout = setTimeout(() => controller.abort(), requestTimeoutMs);
+        try {
+          response = await fetch(url.toString(), {
+            method: "GET",
+            headers,
+            cache: "no-store",
+            signal: controller.signal,
+          });
+          clearTimeout(timeout);
+          // Retry once for temporary upstream unavailability.
+          if (response.status === 503 && attempt === 0) continue;
+          break;
+        } catch (error) {
+          clearTimeout(timeout);
+          if (error instanceof Error && error.name === "AbortError") {
+            timeoutErr = `Wholesale request timed out after ${requestTimeoutMs}ms`;
+          } else {
+            timeoutErr = error instanceof Error ? error.message : "Wholesale request failed";
+          }
+          if (attempt === 0) continue;
+        }
+      }
+      if (!response) {
+        lastError = timeoutErr || "Wholesale API request failed";
+        continue;
+      }
 
       const text = await response.text();
       let payload: unknown = text;
@@ -252,9 +305,21 @@ export async function fetchWholesaleProducts(params: {
 
       // Treat non-empty list as a successful match for endpoint shape.
       if (Array.isArray(data) && data.length > 0) {
+        if (isCatalogList && cacheTtlSeconds > 0) {
+          wholesaleCache = {
+            data,
+            meta,
+            expiresAt: Date.now() + cacheTtlSeconds * 1000,
+          };
+        }
         return { meta, data };
       }
     }
+  }
+
+  // Graceful stale fallback for list view if upstream fails now but we have older data.
+  if (isCatalogList && wholesaleCache && wholesaleCache.data.length > 0) {
+    return { meta: wholesaleCache.meta, data: wholesaleCache.data };
   }
 
   throw new Error(lastError);
