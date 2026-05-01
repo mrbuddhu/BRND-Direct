@@ -175,42 +175,81 @@ export async function fetchWholesaleProducts(params: {
   if (params.sku) url.searchParams.set("sku", params.sku);
   if (params.upc) url.searchParams.set("upc", params.upc);
 
-  const response = await fetch(url.toString(), {
-    method: "GET",
-    headers: {
+  const headerVariants: Array<Record<string, string>> = [
+    {
       Authorization: `Bearer ${apiKey}`,
       Accept: "application/json",
     },
-    cache: "no-store",
-  });
+    {
+      "x-api-key": apiKey,
+      Accept: "application/json",
+    },
+    {
+      "X-API-Key": apiKey,
+      Accept: "application/json",
+    },
+  ];
 
-  const text = await response.text();
-  let payload: unknown = text;
-  try {
-    payload = text ? JSON.parse(text) : null;
-  } catch {
-    // keep text fallback
+  let lastError = "Wholesale API request failed";
+  for (const headers of headerVariants) {
+    const response = await fetch(url.toString(), {
+      method: "GET",
+      headers,
+      cache: "no-store",
+    });
+
+    const text = await response.text();
+    let payload: unknown = text;
+    try {
+      payload = text ? JSON.parse(text) : null;
+    } catch {
+      // keep text fallback
+    }
+
+    if (!response.ok) {
+      lastError =
+        typeof payload === "object" && payload && "error" in payload
+          ? String((payload as { error: unknown }).error)
+          : typeof payload === "string"
+            ? payload
+            : "Wholesale API request failed";
+      continue;
+    }
+
+    const payloadObj = (payload && typeof payload === "object" ? payload : {}) as Record<
+      string,
+      unknown
+    >;
+    const data = (
+      (Array.isArray(payloadObj.data) && payloadObj.data) ||
+      (Array.isArray(payloadObj.products) && payloadObj.products) ||
+      (Array.isArray(payloadObj.items) && payloadObj.items) ||
+      []
+    ) as WholesaleProduct[];
+
+    const explicitMeta = (payloadObj.meta || payloadObj.pagination || payloadObj.page_info || {}) as Partial<
+      WholesaleMeta
+    >;
+    const total = Number(explicitMeta.total || payloadObj.total || data.length || 0);
+    const currentPage = Number(
+      explicitMeta.current_page || payloadObj.page || payloadObj.current_page || params.page || 1,
+    );
+    const perPage = Number(explicitMeta.per_page || payloadObj.limit || params.limit || 250);
+    const totalPages = Number(
+      explicitMeta.total_pages || payloadObj.total_pages || Math.max(1, Math.ceil(total / Math.max(1, perPage))),
+    );
+
+    const meta: WholesaleMeta = {
+      total,
+      current_page: currentPage,
+      total_pages: totalPages,
+      per_page: perPage,
+    };
+
+    return { meta, data };
   }
 
-  if (!response.ok) {
-    const message =
-      typeof payload === "object" && payload && "error" in payload
-        ? String((payload as { error: unknown }).error)
-        : typeof payload === "string"
-          ? payload
-          : "Wholesale API request failed";
-    throw new Error(message);
-  }
-
-  const meta = (payload as { meta?: WholesaleMeta }).meta || {
-    total: 0,
-    current_page: 1,
-    total_pages: 1,
-    per_page: params.limit || 250,
-  };
-  const data = (payload as { data?: WholesaleProduct[] }).data || [];
-
-  return { meta, data };
+  throw new Error(lastError);
 }
 
 export function mapWholesaleProductToPortal(row: WholesaleProduct, index = 0) {
