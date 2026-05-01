@@ -924,6 +924,7 @@ function renderProducts(products) {
     const isSelected = selectedIds.has(p.id);
     const m = margin(p);
     const marginBadge = m ? `<span class="margin-badge">${m}% margin</span>` : '';
+    const safeId = JSON.stringify(p.id);
 
     const card = document.createElement('div');
     card.className = `product-card fade-in${i < 3 ? ' d' + i : ''}${isSelected ? ' selected' : ''}`;
@@ -945,7 +946,7 @@ function renderProducts(products) {
       card.innerHTML = `
         <div class="text-row" style="width:100%;">
           <div class="tr-check">
-            <input type="checkbox" class="card-checkbox" data-id="${p.id}" ${isSelected ? 'checked' : ''} onclick="event.stopPropagation();toggleSelect(${p.id},this)" style="accent-color:var(--color-accent);">
+            <input type="checkbox" class="card-checkbox" data-id="${p.id}" ${isSelected ? 'checked' : ''} onclick="event.stopPropagation();toggleSelect(${safeId},this)" style="accent-color:var(--color-accent);">
           </div>
           <div class="tr-name">
             <div style="font-weight:700;font-size:.82rem;color:var(--color-near-black);">${p.name}</div>
@@ -975,10 +976,10 @@ function renderProducts(products) {
               <span class="cq-hint">Min ${p.moq}</span>
             </div>
             <div style="display:flex;gap:5px;width:100%;">
-              <button class="action-btn view-detail-btn" data-id="${p.id}" style="padding:4px 7px;font-size:.7rem;flex-shrink:0;" onclick="event.stopPropagation();openProductModal(${p.id})">
+              <button class="action-btn view-detail-btn" data-id="${p.id}" style="padding:4px 7px;font-size:.7rem;flex-shrink:0;" onclick="event.stopPropagation();openProductModal(${safeId})">
                 <i class="fas fa-eye"></i>
               </button>
-              <button class="action-btn add-to-cart" data-id="${p.id}" style="padding:4px 8px;font-size:.7rem;flex:1;background:var(--color-accent);color:white;border-color:var(--color-accent);" onclick="event.stopPropagation();quickAddToCart(${p.id},this)">
+              <button class="action-btn add-to-cart" data-id="${p.id}" style="padding:4px 8px;font-size:.7rem;flex:1;background:var(--color-accent);color:white;border-color:var(--color-accent);" onclick="event.stopPropagation();quickAddToCart(${safeId},this)">
                 <i class="fas fa-plus"></i> Add
               </button>
             </div>
@@ -992,7 +993,7 @@ function renderProducts(products) {
           ${ribbonHtml}
           <div class="product-card__badge">${topSellerBadge}${newBadge}${noImageBadge}</div>
           <div class="card-select-wrap">
-            <input type="checkbox" class="card-checkbox" data-id="${p.id}" ${isSelected ? 'checked' : ''} onclick="event.stopPropagation();toggleSelect(${p.id},this)">
+            <input type="checkbox" class="card-checkbox" data-id="${p.id}" ${isSelected ? 'checked' : ''} onclick="event.stopPropagation();toggleSelect(${safeId},this)">
           </div>
         </div>
         <div class="product-card__body card-normal-body">
@@ -1022,10 +1023,10 @@ function renderProducts(products) {
             <span class="cq-hint">Min ${p.moq}</span>
           </div>
           <div style="display:flex;gap:7px;margin-top:8px;">
-            <button class="btn btn-secondary btn-sm view-detail-btn" data-id="${p.id}" style="flex:1;justify-content:center;" onclick="event.stopPropagation();openProductModal(${p.id})">
+            <button class="btn btn-secondary btn-sm view-detail-btn" data-id="${p.id}" style="flex:1;justify-content:center;" onclick="event.stopPropagation();openProductModal(${safeId})">
               <i class="fas fa-eye"></i> Details
             </button>
-            <button class="btn btn-primary btn-sm add-to-cart" data-id="${p.id}" style="flex:2;justify-content:center;" onclick="event.stopPropagation();quickAddToCart(${p.id},this)">
+            <button class="btn btn-primary btn-sm add-to-cart" data-id="${p.id}" style="flex:2;justify-content:center;" onclick="event.stopPropagation();quickAddToCart(${safeId},this)">
               Add to Order →
             </button>
           </div>
@@ -1466,7 +1467,7 @@ function openProductModal(id) {
       <button class="btn btn-secondary" onclick="showToast('Added to RFQ list.','success')">
         <i class="fas fa-comment-dollar"></i> Request RFQ
       </button>
-      <button class="btn btn-primary" onclick="addModalToCart(${p.id})">
+      <button class="btn btn-primary" onclick="addModalToCart(${safeId})">
         <i class="fas fa-shopping-cart"></i> Add to Order
       </button>
     </div>`;
