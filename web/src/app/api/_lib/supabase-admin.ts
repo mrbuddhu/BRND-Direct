@@ -169,13 +169,13 @@ export function getWholesaleConfig() {
       "300",
   );
   const requestTimeoutMs = Number(
-    process.env.WHOLESALE_REQUEST_TIMEOUT_MS || process.env.WHOLESALE_API_TIMEOUT_MS || "8000",
+    process.env.WHOLESALE_REQUEST_TIMEOUT_MS || process.env.WHOLESALE_API_TIMEOUT_MS || "0",
   );
   return {
     baseUrl,
     apiKey,
     cacheTtlSeconds: Number.isFinite(cacheTtlSeconds) ? Math.max(0, cacheTtlSeconds) : 300,
-    requestTimeoutMs: Number.isFinite(requestTimeoutMs) ? Math.max(1000, requestTimeoutMs) : 8000,
+    requestTimeoutMs: Number.isFinite(requestTimeoutMs) ? Math.max(0, requestTimeoutMs) : 0,
   };
 }
 
@@ -226,7 +226,8 @@ export async function fetchWholesaleProducts(params: {
       let timeoutErr = "";
       for (let attempt = 0; attempt < 2; attempt += 1) {
         const controller = new AbortController();
-        const timeout = setTimeout(() => controller.abort(), requestTimeoutMs);
+        const timeout =
+          requestTimeoutMs > 0 ? setTimeout(() => controller.abort(), requestTimeoutMs) : null;
         try {
           response = await fetch(url.toString(), {
             method: "GET",
@@ -234,12 +235,12 @@ export async function fetchWholesaleProducts(params: {
             cache: "no-store",
             signal: controller.signal,
           });
-          clearTimeout(timeout);
+          if (timeout) clearTimeout(timeout);
           // Retry once for temporary upstream unavailability.
           if (response.status === 503 && attempt === 0) continue;
           break;
         } catch (error) {
-          clearTimeout(timeout);
+          if (timeout) clearTimeout(timeout);
           if (error instanceof Error && error.name === "AbortError") {
             timeoutErr = `Wholesale request timed out after ${requestTimeoutMs}ms`;
           } else {
